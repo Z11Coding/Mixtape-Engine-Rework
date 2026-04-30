@@ -219,8 +219,8 @@ class APFreeplayManager extends FreeplayManager {
 			trace("Location IDs are null, empty, or contain 0. Attempting fallback logic...");
 			for (song in WeekData.getCurrentWeek().songs) {
 				trace("Checking song in current week: " + song[0]);
-				if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
+				if ((cast song[0] : String).toLowerCase().trim() == PlayfieldManager.SONG.song.trim().toLowerCase() ||
+					(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayfieldManager.SONG.song.trim().toLowerCase().replace(" ", "-")) {
 					trace("Match found for song: " + song[0]);
 					locationId = song[0];
 					trace("Updated locationId in fallback logic: " + locationId);
@@ -251,7 +251,7 @@ class APFreeplayManager extends FreeplayManager {
 						songJson = Song.parseJSON(File.getContent(json));
 						if (songJson != null) {
 							trace("Parsed song JSON successfully. Checking song name...");
-							if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
+							if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayfieldManager.SONG.song.trim().toLowerCase().replace(" ", "-")) {
 								trace("Match found for song in JSON: " + songJson.song);
 								locationId = song[0];
 								trace("Updated locationId in secondary fallback logic: " + locationId);
@@ -271,7 +271,7 @@ class APFreeplayManager extends FreeplayManager {
 			trace("Location check result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
 			trace("Location name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
 		}
-		trace("Current song in PlayState: " + PlayState.SONG.song);
+		trace("Current song in PlayState: " + PlayfieldManager.SONG.song);
 
 		// Check and send sanity item location checks related to this song
 		#if ARCHIPELAGO_ALLOWED

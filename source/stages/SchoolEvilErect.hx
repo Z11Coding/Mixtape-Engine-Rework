@@ -14,7 +14,7 @@ class SchoolEvilErect extends BaseStage
 
 	override function create()
 	{
-		var _song = PlayState.SONG;
+		var _song = PlayfieldManager.SONG;
 		if (_song.gameOverSound == null || _song.gameOverSound.trim().length < 1)
 			GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pixel';
 		if (_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1)
@@ -57,7 +57,7 @@ class SchoolEvilErect extends BaseStage
             applyShader(boyfriend, boyfriend.curCharacter);
             applyShader(gf, gf.curCharacter);
             applyShader(dad, dad.curCharacter);
-            
+
         }
 	}
 
@@ -86,7 +86,7 @@ class SchoolEvilErect extends BaseStage
 					applyShader(boyfriend, boyfriend.curCharacter);
 					applyShader(gf, gf.curCharacter);
 					applyShader(dad, dad.curCharacter);
-					
+
 				}
 		}
 	}
@@ -131,12 +131,12 @@ class SchoolEvilErect extends BaseStage
 					{
 						rim.angle = 90;
 						sprite.shader = rim;
-	
+
 						// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
 						rim.altMaskImage = Paths.image("weeb/erect/masks/bfPixel_mask", 'week6').bitmap;
 						rim.maskThreshold = 1;
 						rim.useAltMask = true;
-	
+
 						sprite.animation.callback = function(anim, frame, index)
 						{
 							rim.updateFrameInfo(sprite.frame);
@@ -146,12 +146,12 @@ class SchoolEvilErect extends BaseStage
 					{
 						rim.angle = 90;
 						sprite.shader = rim;
-	
+
 						// rim.loadAltMask('assets/week6/images/weeb/erect/masks/bfPixel_mask.png');
 						rim.altMaskImage = Paths.image("weeb/erect/masks/picoPixel_mask", 'week6').bitmap;
 						rim.maskThreshold = 1;
 						rim.useAltMask = true;
-	
+
 						sprite.animation.callback = function(anim, frame, index)
 						{
 							rim.updateFrameInfo(sprite.frame);
@@ -167,7 +167,7 @@ class SchoolEvilErect extends BaseStage
 						rim.altMaskImage = Paths.image("weeb/erect/masks/gfPixel_mask", 'week6').bitmap;
 						rim.maskThreshold = 1;
 						rim.useAltMask = true;
-	
+
 						sprite.animation.callback = function(anim, frame, index)
 						{
 							rim.updateFrameInfo(sprite.frame);
@@ -188,14 +188,14 @@ class SchoolEvilErect extends BaseStage
 							rim.updateFrameInfo(sprite.frame);
 						};
 					}
-	
+
 				case "spirit":
 					{
 						rim.angle = 90;
 						sprite.shader = rim;
 						rim.setAdjustColor(0, -10, 44, -13);
 						rim.useAltMask = false;
-	
+
 						sprite.animation.callback = function(anim, frame, index)
 						{
 							rim.updateFrameInfo(sprite.frame);

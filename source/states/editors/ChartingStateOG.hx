@@ -389,8 +389,8 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 	override function create()
 	{
 		states.editors.ChartEditorEvents.pushToArray(eventStuff);
-		if (PlayState.SONG != null) {
-			_song = PlayState.SONG;
+		if (PlayfieldManager.SONG != null) {
+			_song = PlayfieldManager.SONG;
 			_song.format = 'mixtape_v1';
 		}
 		else
@@ -420,7 +420,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 			};
 			Song.chartPath = null;
 			addSection();
-			PlayState.SONG = _song;
+			PlayfieldManager.SONG = _song;
 		}
 
 		_inital_state_song = _song;
@@ -430,9 +430,9 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		hitsound = new FlxSound();
 
 		if (_song.mania != null)
-			PlayState.mania = _song.mania;
+			PlayfieldManager.mania[0] = _song.mania;
 		else {
-			PlayState.mania = Note.defaultMania;
+			PlayfieldManager.mania[0] = Note.defaultMania;
 			_song.mania = Note.defaultMania;
 			_song.startMania = Note.defaultMania;
 		}
@@ -675,7 +675,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 
 		var loadAutosaveBtn:FlxButton = new FlxButton(reloadSongJson.x, reloadSongJson.y + 30, 'Load Autosave', function()
 		{
-			PlayState.SONG = Song.parseJSON(FlxG.save.data.autosave);
+			PlayfieldManager.SONG = Song.parseJSON(FlxG.save.data.autosave);
 			MusicBeatState.resetState();
 		});
 
@@ -913,7 +913,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 			difficultyDropDown.selectedLabel = Difficulty.list[PlayState.storyDifficulty];
 		blockPressWhileScrolling.push(difficultyDropDown);
 
-		var skin = PlayState.SONG.arrowSkin;
+		var skin = PlayfieldManager.SONG.arrowSkin;
 		if (skin == null)
 			skin = '';
 		noteSkinInputText = new FlxUIInputText(player2DropDown.x, player2DropDown.y + 50, 150, skin, 8);
@@ -1980,7 +1980,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 		var file:Dynamic = Paths.voices(_song.song, (characterData.vocalsP1 == null || characterData.vocalsP1.length < 1) ? 'player' : characterData.vocalsP1);
 		try
 		{
-			soundTracksMap.set("Vocals", vocals.loadEmbedded(file != null ? file : Paths.voices(PlayState.SONG.song)));
+			soundTracksMap.set("Vocals", vocals.loadEmbedded(file != null ? file : Paths.voices(PlayfieldManager.SONG.song)));
 			FlxG.sound.list.add(vocals);
 		}
 		catch (e:Dynamic)
@@ -2268,7 +2268,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 			else if (wname == 'mania')
 			{
 				_song.mania = Std.int(nums.value);
-				PlayState.mania = _song.mania;
+				PlayfieldManager.mania[0] = _song.mania;
 				reloadGridLayer();
 			}
 			else if (wname == 'startMania')
@@ -2381,7 +2381,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 	{
 		curStep = recalculateSteps();
 
-		PlayState.mania = _song.mania;
+		PlayfieldManager.mania[0] = _song.mania;
 
 		var gWidth = GRID_SIZE * (Note.ammo[_song.mania] * 2);
 		camPos.x = -80 + gWidth;
@@ -2601,7 +2601,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 			{
 				autosaveSong();
 				Cursor.hide();
-				PlayState.SONG = _song;
+				PlayfieldManager.SONG = _song;
 				FlxG.sound.music.stop();
 				if (vocals != null)
 					vocals.stop();
@@ -3160,7 +3160,7 @@ class ChartingStateOG extends backend.MusicBeatChartingState
 	{
 		GRID_SIZE = Note.gridSizes[_song.mania];
 
-		PlayState.mania = _song.mania;
+		PlayfieldManager.mania[0] = _song.mania;
 
 		if (dummyArrow != null)
 		{

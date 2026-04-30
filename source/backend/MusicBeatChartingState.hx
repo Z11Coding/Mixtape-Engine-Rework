@@ -171,7 +171,7 @@ class MusicBeatChartingState extends FlxUIState
 			if (curStep > 0)
 				stepHit();
 
-			if (PlayState.SONG != null)
+			if (PlayfieldManager.SONG != null)
 			{
 				if (oldStep < curStep)
 					updateSection();
@@ -214,9 +214,9 @@ class MusicBeatChartingState extends FlxUIState
 		var lastSection:Int = curSection;
 		curSection = 0;
 		stepsToDo = 0;
-		for (i in 0...PlayState.SONG.notes.length)
+		for (i in 0...PlayfieldManager.SONG.notes.length)
 		{
-			if (PlayState.SONG.notes[i] != null)
+			if (PlayfieldManager.SONG.notes[i] != null)
 			{
 				stepsToDo += Math.round(getBeatsOnSection() * 4);
 				if (stepsToDo > curStep)
@@ -263,12 +263,12 @@ class MusicBeatChartingState extends FlxUIState
 			PlayState.storyPlaylist = songs.map(function(song:backend.Song.SwagSong):String {
 				return song.song;
 			});
-			PlayState.SONG = null;
+			PlayfieldManager.SONG = null;
 		} else {
 			// songsInput is a String when storyMode is false
 			var songLowercase:String = Paths.formatToSongPath(storyPlaylist[0]);
 			var formattedSong:String = Highscore.formatSong(songLowercase, difficulty);
-			PlayState.SONG = Song.loadFromJson(formattedSong, songLowercase);
+			PlayfieldManager.SONG = Song.loadFromJson(formattedSong, songLowercase);
 		}
 
 		PlayState.isStoryMode = storyMode;
@@ -385,8 +385,8 @@ class MusicBeatChartingState extends FlxUIState
 	function getBeatsOnSection()
 	{
 		var val:Null<Float> = 4;
-		if (PlayState.SONG != null && PlayState.SONG.notes[curSection] != null)
-			val = PlayState.SONG.notes[curSection].sectionBeats;
+		if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.notes[curSection] != null)
+			val = PlayfieldManager.SONG.notes[curSection].sectionBeats;
 		return val == null ? 4 : val;
 	}
 }

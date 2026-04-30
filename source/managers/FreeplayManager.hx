@@ -1307,9 +1307,9 @@ class FreeplayManager {
             vocals = new FlxSound();
             try
             {
-                var playerVocals:String = getVocalFromCharacter(PlayState.SONG.player1);
-                var loadedVocals = Paths.voices(PlayState.SONG.song, (playerVocals != null && playerVocals.length > 0) ? playerVocals : 'Player');
-                if(loadedVocals == null) loadedVocals = Paths.voices(PlayState.SONG.song);
+                var playerVocals:String = getVocalFromCharacter(PlayfieldManager.SONG.player1);
+                var loadedVocals = Paths.voices(PlayfieldManager.SONG.song, (playerVocals != null && playerVocals.length > 0) ? playerVocals : 'Player');
+                if(loadedVocals == null) loadedVocals = Paths.voices(PlayfieldManager.SONG.song);
 
                 if(loadedVocals != null)
                 {
@@ -1332,9 +1332,9 @@ class FreeplayManager {
             try
             {
                 //trace('please work...');
-                var oppVocals:String = getVocalFromCharacter(PlayState.SONG.player2);
-                var loadedVocals = Paths.voices(PlayState.SONG.song, (oppVocals != null && oppVocals.length > 0) ? oppVocals : 'Opponent');
-                var loadedgfVocals = Paths.voices(PlayState.SONG.song, 'gf');
+                var oppVocals:String = getVocalFromCharacter(PlayfieldManager.SONG.player2);
+                var loadedVocals = Paths.voices(PlayfieldManager.SONG.song, (oppVocals != null && oppVocals.length > 0) ? oppVocals : 'Opponent');
+                var loadedgfVocals = Paths.voices(PlayfieldManager.SONG.song, 'gf');
 
                 if(loadedVocals != null)
                 {
@@ -1368,9 +1368,9 @@ class FreeplayManager {
             }
         }
 
-        FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 0.8);
+        FlxG.sound.playMusic(Paths.inst(PlayfieldManager.SONG.song), 0.8);
         FlxG.sound.music.pause();
-        Conductor.bpm = PlayState.SONG.bpm;
+        Conductor.bpm = PlayfieldManager.SONG.bpm;
     }
 
     public function destroyFreeplayVocals() {

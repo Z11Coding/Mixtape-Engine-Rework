@@ -645,7 +645,7 @@ class APPlaylistState extends MusicBeatState {
 				if (hasVocals) {
 					if (vocalSND != null) {
 						if (vocalvisual != null) remove(vocalvisual);
-						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player1).get("Health Colors");
+						var color:Array<Int> = Character.grabCharInfo(PlayfieldManager.SONG.player1).get("Health Colors");
 						vocalvisual = new AudioDisplay(vocalSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, color != null ? FlxColor.fromRGB(color[0], color[1], color[2]) : FlxColor.WHITE);
 						vocalvisual.scrollFactor.set(0, 0);
 						vocalvisual.flipY = true;
@@ -655,7 +655,7 @@ class APPlaylistState extends MusicBeatState {
 
 					if (oppSND != null) {
 						if (oppvisual != null) remove(oppvisual);
-						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player2).get("Health Colors");
+						var color:Array<Int> = Character.grabCharInfo(PlayfieldManager.SONG.player2).get("Health Colors");
 						oppvisual = new AudioDisplay(oppSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.fromRGB(color[0], color[1], color[2]));
 						oppvisual.scrollFactor.set(0, 0);
 						oppvisual.flipY = true;

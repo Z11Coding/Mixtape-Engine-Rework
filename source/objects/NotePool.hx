@@ -411,14 +411,14 @@ class NotePool extends FlxBasic
 		}
 
 		// Set position
-		note.x = (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
+		note.x = (ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X) + 50;
 		if (!sustainNote) note.y = -2000;
 
 		// Apply note offset
 		if (!inEditor)
 		{
 			note.strumTime += ClientPrefs.data.noteOffset;
-			note.visualTime = PlayState.getNoteInitialTime(note.strumTime);
+			note.visualTime = PlayfieldManager.getNoteInitialTime(note.strumTime);
 		}
 
 		// Set up RGB shader and texture
@@ -429,23 +429,23 @@ class NotePool extends FlxBasic
 			else
 				note.rgbShader.parent = Note.initializeGlobalRGBShader(noteData);
 
-			if (PlayState.SONG != null && PlayState.SONG.disableNoteRGB)
+			if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB)
 				note.rgbShader.enabled = false;
 			else
 				note.rgbShader.enabled = true;
 
 			note.texture = '';
-			note.x += Note.swagWidth * (noteData % Note.ammo[PlayState.mania]);
+			note.x += Note.swagWidth * (noteData % Note.ammo[PlayfieldManager.mania[0]]);
 
 			// Play animation
 			if (!sustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer)
 			{
-				var animToPlay:String = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+				var animToPlay:String = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData];
 				if (note.hasAnimation(animToPlay))
 					note.animation.play(animToPlay);
 				else
 				{
-					animToPlay = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
+					animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]];
 					note.animation.play(animToPlay + 'Scroll');
 				}
 			}
@@ -466,10 +466,10 @@ class NotePool extends FlxBasic
 			note.istail = true;
 
 			// Set up sustain animations
-			var animToPlay:String = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
+			var animToPlay:String = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' tail';
 			if (!note.hasAnimation(animToPlay))
 			{
-				animToPlay = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
+				animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + 'holdend';
 			}
 			note.animation.play(animToPlay);
 
@@ -479,10 +479,10 @@ class NotePool extends FlxBasic
 			// Handle previous note sustain setup
 			if (prevNote.isSustainNote)
 			{
-				var animToPlay2:String = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
+				var animToPlay2:String = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' hold';
 				if (!note.hasAnimation(animToPlay2))
 				{
-					animToPlay2 = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
+					animToPlay2 = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + 'hold';
 				}
 				prevNote.animation.play(animToPlay2);
 

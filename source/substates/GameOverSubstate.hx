@@ -65,7 +65,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		video = null;
 		isVideo = false;
 
-		var _song = PlayState.SONG;
+		var _song = PlayfieldManager.SONG;
 		if(_song != null)
 		{
 			if(_song.gameOverChar != null && _song.gameOverChar.trim().length > 0) characterName = _song.gameOverChar;
@@ -264,8 +264,8 @@ class GameOverSubstate extends MusicBeatSubstate
 			}
 			else if (justPlayedLoop && !deathbysquare.visible) // make sure it only triggers ONCE
 			{
-				if (PlayState.SONG != null) {
-					switch(PlayState.SONG.stage)
+				if (PlayfieldManager.SONG != null) {
+					switch(PlayfieldManager.SONG.stage)
 					{
 						case 'tank':
 							coolStartDeath(0.2);

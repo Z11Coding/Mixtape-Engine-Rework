@@ -139,7 +139,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		for (field in playfields.members)
 		{
-			field.keyCount = Note.ammo[PlayState.mania];
+			field.keyCount = Note.ammo[PlayfieldManager.mania[0]];
 			field.generateStrums();
 		}
 		for (field in playfields.members)
@@ -187,7 +187,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence (with Time Left)
-		DiscordClient.changePresence('Playtesting on Chart Editor', PlayState.SONG.song, null, true, songLength);
+		DiscordClient.changePresence('Playtesting on Chart Editor', PlayfieldManager.SONG.song, null, true, songLength);
 		#end
 		RecalculateRating();
 	}
@@ -324,7 +324,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	var lastStepHit:Int = -1;
 	override function stepHit()
 	{
-		if (PlayState.SONG.needsVoices && FlxG.sound.music.time >= -ClientPrefs.data.noteOffset)
+		if (PlayfieldManager.SONG.needsVoices && FlxG.sound.music.time >= -ClientPrefs.data.noteOffset)
 		{
 			var timeSub:Float = Conductor.songPosition - Conductor.offset;
 			var syncTime:Float = 20 * playbackRate;
@@ -358,10 +358,10 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 	override function sectionHit()
 	{
-		if (PlayState.SONG.notes[curSection] != null)
+		if (PlayfieldManager.SONG.notes[curSection] != null)
 		{
-			if (PlayState.SONG.notes[curSection].changeBPM)
-				Conductor.bpm = PlayState.SONG.notes[curSection].bpm;
+			if (PlayfieldManager.SONG.notes[curSection].changeBPM)
+				Conductor.bpm = PlayfieldManager.SONG.notes[curSection].bpm;
 		}
 		super.sectionHit();
 	}
@@ -435,7 +435,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	{
 		for (i in 1...2)
 		{
-			var data:CharacterFile = loadCharacterFile(Reflect.field(PlayState.SONG, 'player$i'));
+			var data:CharacterFile = loadCharacterFile(Reflect.field(PlayfieldManager.SONG, 'player$i'));
 			Reflect.setField(characterData, 'vocalsP$i', data.vocals_file != null ? data.vocals_file : '');
 		}
 	}
@@ -445,9 +445,9 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	function generateSong():Void
 	{
 		// FlxG.log.add(ChartParser.parse());
-		songSpeed = PlayState.SONG.speed;
+		songSpeed = PlayfieldManager.SONG.speed;
 
-		var songData = PlayState.SONG;
+		var songData = PlayfieldManager.SONG;
 		Conductor.bpm = songData.bpm;
 
 		vocals = new FlxSound();
@@ -505,7 +505,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		add(notes);
 
 		var oldNote:Note = null;
-		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
+		var sectionsData:Array<SwagSection> = PlayfieldManager.SONG.notes;
 		var ghostNotesCaught:Int = 0;
 		var daBpm:Float = Conductor.bpm;
 
@@ -526,14 +526,14 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			}*/
 
 			//var gottaHit:Array<Bool> = [for (note in section.sectionNotes) note[1] < (SONG.mania != null ? totalColumns : Note.ammo[3])];
-			//var APNotes:Array<{index:Int, loc:Int}> = (this is archipelago.APPlayState) ? getAPLocations(section.sectionNotes.length, archipelago.APGameState.instance.noteData(PlayState.SONG.song, archipelago.APPlayState.currentMod), gottaHit) : [];
+			//var APNotes:Array<{index:Int, loc:Int}> = (this is archipelago.APPlayState) ? getAPLocations(section.sectionNotes.length, archipelago.APGameState.instance.noteData(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod), gottaHit) : [];
 
 			for (i in 0...section.sectionNotes.length)
 			{
 				final songNotes: Array<Dynamic> = section.sectionNotes[i];
 				var spawnTime:Float = songNotes[0];
 				var noteColumn:Int = Std.int(songNotes[1]);
-				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[PlayState.SONG.mania != null ? PlayState.SONG.mania : 3]);
+				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[PlayfieldManager.SONG.mania != null ? PlayfieldManager.SONG.mania : 3]);
 				var holdLength:Float = songNotes[2];
 				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
 				/*var apNote:Bool = (function() {
@@ -548,8 +548,8 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 				if (Math.isNaN(holdLength)) holdLength = 0.0;
 
 				var gottaHitNote:Bool;
-				noteColumn = Std.int(songNotes[1] % Note.ammo[PlayState.SONG.mania != null ? PlayState.SONG.mania : 3]);
-				gottaHitNote = (songNotes[1] < (PlayState.SONG.mania != null ? PlayState.SONG.mania : Note.ammo[3]));
+				noteColumn = Std.int(songNotes[1] % Note.ammo[PlayfieldManager.SONG.mania != null ? PlayfieldManager.SONG.mania : 3]);
+				gottaHitNote = (songNotes[1] < (PlayfieldManager.SONG.mania != null ? PlayfieldManager.SONG.mania : Note.ammo[3]));
 
 				//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
 
@@ -660,7 +660,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			}
 		}
 
-		trace('["${PlayState.SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
+		trace('["${PlayfieldManager.SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
 		allNotes.sort(PlayState.sortByTime);
 
 		for (fuck in allNotes)
@@ -910,11 +910,11 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		// var tempKeys:Array<Dynamic> = backend.Keybinds.fill();
 		if (key != NONE)
 		{
-			for (i in 0...keysArray[PlayState.mania].length)
+			for (i in 0...keysArray[PlayfieldManager.mania[0]].length)
 			{
-				for (j in 0...keysArray[PlayState.mania][i].length)
+				for (j in 0...keysArray[PlayfieldManager.mania[0]][i].length)
 				{
-					if (key == keysArray[PlayState.mania][i][j])
+					if (key == keysArray[PlayfieldManager.mania[0]][i][j])
 					{
 						return i;
 					}
@@ -961,7 +961,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 	function opponentNoteHit(note:Note, field:PlayField):Void
 	{
-		if (PlayState.SONG.needsVoices && opponentVocals.length <= 0)
+		if (PlayfieldManager.SONG.needsVoices && opponentVocals.length <= 0)
 			vocals.volume = 1;
 
 		if (note.visible)

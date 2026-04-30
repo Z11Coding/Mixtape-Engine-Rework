@@ -11,8 +11,6 @@ final class ArrowData {
 	public var hitten:Bool = false;
 	public var isTapArrow:Bool = false;
 
-	private var __holdSubdivisionOffset:Float = .0;
-
 	public function toString() {
 		return 'ModifierParameters(hitTime: $hitTime, distance: $distance, lane: $lane, player: $player, hitten: $hitten, isTapArrow: $isTapArrow)';
 	}

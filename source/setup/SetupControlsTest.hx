@@ -189,8 +189,8 @@ class SetupControlsTest extends MusicBeatState {
 
         // Try to load "Performance" song first, fallback to "Test"
         try {
-            PlayState.SONG = Song.loadFromJson('performance');
-            if (PlayState.SONG != null) {
+            PlayfieldManager.SONG = Song.loadFromJson('tutorial');
+            if (PlayfieldManager.SONG != null) {
                 PlayState.isStoryMode = false;
                 PlayState.storyDifficulty = 1;
                 MusicBeatState.switchState(new SetupControlsPlayState());
@@ -202,7 +202,7 @@ class SetupControlsTest extends MusicBeatState {
 
         // Fallback to Test song
         try {
-            PlayState.SONG = Song.loadFromJson('test');
+            PlayfieldManager.SONG = Song.loadFromJson('test');
             PlayState.isStoryMode = false;
             PlayState.storyDifficulty = 1;
             MusicBeatState.switchState(new SetupControlsPlayState());

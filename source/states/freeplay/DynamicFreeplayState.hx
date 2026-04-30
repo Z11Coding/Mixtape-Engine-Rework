@@ -508,8 +508,8 @@ class DynamicFreeplayState extends MusicBeatState
 				changeSelection();
 				updateTexts();
 				changeDiff();
-				if (PlayState.SONG != null)
-					Conductor.bpm = PlayState.SONG.bpm;
+				if (PlayfieldManager.SONG != null)
+					Conductor.bpm = PlayfieldManager.SONG.bpm;
 				return;
 			}
 
@@ -612,7 +612,7 @@ class DynamicFreeplayState extends MusicBeatState
 			changeSelection();
 			updateTexts();
 			changeDiff();
-			if (PlayState.SONG != null) Conductor.bpm = PlayState.SONG.bpm;
+			if (PlayfieldManager.SONG != null) Conductor.bpm = PlayfieldManager.SONG.bpm;
 		}
 	}
 
@@ -726,7 +726,7 @@ class DynamicFreeplayState extends MusicBeatState
 				if (hasVocals) {
 					if (vocalSND != null) {
 						if (vocalvisual != null) remove(vocalvisual);
-						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player1).get("Health Colors");
+						var color:Array<Int> = Character.grabCharInfo(PlayfieldManager.SONG.player1).get("Health Colors");
 						vocalvisual = new AudioDisplay(vocalSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, color != null ? FlxColor.fromRGB(color[0], color[1], color[2]) : FlxColor.WHITE);
 						vocalvisual.scrollFactor.set(0, 0);
 						vocalvisual.flipY = true;
@@ -736,7 +736,7 @@ class DynamicFreeplayState extends MusicBeatState
 
 					if (oppSND != null) {
 						if (oppvisual != null) remove(oppvisual);
-						var color:Array<Int> = Character.grabCharInfo(PlayState.SONG.player2).get("Health Colors");
+						var color:Array<Int> = Character.grabCharInfo(PlayfieldManager.SONG.player2).get("Health Colors");
 						oppvisual = new AudioDisplay(oppSND, 0, 0, FlxG.width, Std.int(FlxG.height / 2), 100, 4, FlxColor.fromRGB(color[0], color[1], color[2]));
 						oppvisual.scrollFactor.set(0, 0);
 						oppvisual.flipY = true;
@@ -1080,7 +1080,7 @@ class DynamicFreeplayState extends MusicBeatState
 					Mods.currentModDirectory = fpManager.songList[curSelected].folder;
 					var poop:String = Highscore.formatSong(fpManager.songList[curSelected].songName.toLowerCase(), curDifficulty);
 					Song.loadFromJson(poop, fpManager.songList[curSelected].songName.toLowerCase());
-					fpManager.previewSong(PlayState.SONG.needsVoices);
+					fpManager.previewSong(PlayfieldManager.SONG.needsVoices);
 					instPlaying = curSelected;
 					trackPlaying = poop;
 					player.playingMusic = true;
@@ -1365,8 +1365,8 @@ class DynamicFreeplayState extends MusicBeatState
 
 							// Check if required characters and stage are unlocked via sanity system
 							if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-								trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG)}');
-								var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
+								trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG)}');
+								var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
 								if (missingItems.length > 0) {
 									trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
 

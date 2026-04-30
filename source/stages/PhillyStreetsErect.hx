@@ -141,7 +141,7 @@ class PhillyStreetsErect extends BaseStage
             setupRainShader();
 
 
-        var _song = PlayState.SONG;
+        var _song = PlayfieldManager.SONG;
 
         setDefaultGF('gf');
         gfGroup.y += 200;
@@ -203,7 +203,7 @@ function updateMist(elapsed:Float) {
     override function createPost()
     {
         super.createPost();
-        if(PlayState.SONG.player1.startsWith("pico")) StickerSubState.STICKER_PACK = "weekend";
+        if(PlayfieldManager.SONG.player1.startsWith("pico")) StickerSubState.STICKER_PACK = "weekend";
         spraycanPile = new BGSprite('SpraycanPile', 920, 1045, 1, 1);
 
         add(spraycanPile);

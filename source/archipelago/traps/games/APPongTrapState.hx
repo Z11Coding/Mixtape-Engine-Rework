@@ -215,7 +215,7 @@ class APPongTrapState extends PongGameState {
                         if (previousState != null) {
                             FlxG.switchState(Type.createInstance(previousState, []));
                         } else {
-                            StageData.loadDirectory(PlayState.SONG);
+                            StageData.loadDirectory(PlayfieldManager.SONG);
                             LoadingState.loadAndSwitchState(new archipelago.APPlayState());
                         }
                     });

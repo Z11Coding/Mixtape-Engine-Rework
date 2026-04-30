@@ -15,7 +15,7 @@ class SchoolErect extends BaseStage
 
 	override function create()
 	{
-		PlayState.SONG.splashSkin = "pixelNoteSplash";
+		PlayfieldManager.SONG.splashSkin = "pixelNoteSplash";
 		var repositionShit = -200;
 
 		var bgSky:BGSprite = new BGSprite('weeb/erect/weebSky', repositionShit + 38, -78, 0.2, 0.2);
@@ -121,7 +121,7 @@ class SchoolErect extends BaseStage
 
 	}
 	override function createPost(){
-		var _song = PlayState.SONG;
+		var _song = PlayfieldManager.SONG;
 		if(PicoCapableStage.PIXEL_LIST.contains(gf.curCharacter)){
 			if(_song.gameOverSound == null || _song.gameOverSound.trim().length < 1) GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pixel-pico';
 			if(_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1) GameOverSubstate.loopSoundName = 'gameOver-pixel-pico';

@@ -12,8 +12,6 @@ class Confusion extends Modifier {
 		var angle = 0.;
 		// real confusion
 		angle -= (params.curBeat * (getPercent('confusion' + axis, player) + getPercent('confusion' + axis + receptorName, player))) % 360;
-		// static confusion "angle" (ángulo fijo en lugar de rotación continua)
-		angle += getPercent('angle' + axis, player) + getPercent('angle' + axis + receptorName, player);
 		// offset
 		angle += getPercent('confusionOffset' + axis, player) + getPercent('confusionOffset' + axis + receptorName, player);
 		// dizzy mods

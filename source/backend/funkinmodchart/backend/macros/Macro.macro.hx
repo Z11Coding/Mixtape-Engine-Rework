@@ -12,6 +12,18 @@ class Macro {
 		Compiler.include("backend.funkinmodchart.backend.standalone.adapters.psych");
 	}
 
+	// public static function buildFlxShader():Array<Field> {
+	// 	final fields = Context.getBuildFields();
+	// 	final pos = Context.currentPos();
+	// 	fields.push({
+	// 		name: "__fmIdx",
+	// 		kind: FVar(macro :Null<Int>, macro null),
+	// 		access: [APrivate],
+	// 		pos: pos
+	// 	});
+	// 	return fields;
+	// }
+
 	public static function addModchartStorage():Array<Field> {
 		final fields = Context.getBuildFields();
 		final pos = Context.currentPos();
@@ -106,19 +118,19 @@ class Macro {
 			fields.push(newField);
 		 */
 
-		for (f in fields) {
-			if (f.name == 'startTrianglesBatch') {
-				switch (f.kind) {
-					case FFun(fun):
-						// we're just removing a if statement cuz causes some color issues
-						fun.expr = macro {
-							return getNewDrawTrianglesItem(graphic, smoothing, isColored, blend #if (flixel >= "5.2.0"), hasColorOffsets, shader #end);
-						};
-					default:
-						// do nothing
-				}
-			}
-		}
+		// for (f in fields) {
+		// 	if (f.name == 'startTrianglesBatch') {
+		// 		switch (f.kind) {
+		// 			case FFun(fun):
+		// 				// we're just removing a if statement cuz causes some color issues
+		// 				fun.expr = macro {
+		// 					return getNewDrawTrianglesItem(graphic, smoothing, isColored, blend #if (flixel >= "5.2.0"), hasColorOffsets, shader #end);
+		// 				};
+		// 			default:
+		// 				// do nothing
+		// 		}
+		// 	}
+		// }
 
 		return fields;
 	}
@@ -155,11 +167,15 @@ class Macro {
 					},
 					{
 						name: 'transforms',
-						type: macro :Array<ColorTransform>,
+						type: macro :haxe.ds.Vector<ColorTransform>,
 						opt: true
 					}
 				],
 				expr: macro {
+					// hay glitches en el alpha de las holds
+					// no es de aqui, ya llege a la conclusion de que no es dentro de aqui
+					// otra cosa, el alpha que agarran es de los batchs anteriores (no estos)
+					// tipo si yo pongo en el arrow renderer una alpha hardcodeadas, esa alpha se pone en las primeras holds
 					if (position == null)
 						position = point.set();
 
@@ -172,6 +188,8 @@ class Macro {
 					var prevIndicesLength:Int = this.indices.length;
 					var prevUVTDataLength:Int = this.uvtData.length;
 					var prevNumberOfVertices:Int = this.numVertices;
+					var prevColorsPos:Int = colorsPosition;
+					var prevColorsLength:Int = this.colors.length;
 
 					var tempX:Float, tempY:Float;
 					var i:Int = 0;
@@ -206,6 +224,14 @@ class Macro {
 							this.indices[prevIndicesLength + i] = indices[i] + prevNumberOfVertices;
 						}
 
+						if (colored) {
+							for (i in 0...numberOfVertices) {
+								this.colors[prevColorsLength + i] = 0;
+							}
+
+							colorsPosition += numberOfVertices;
+						}
+
 						verticesPosition = verticesPosition + verticesLength;
 						indicesPosition = indicesPosition + indicesLength;
 					}
@@ -214,24 +240,16 @@ class Macro {
 					cameraBounds.putWeak();
 
 					#if (flixel >= "5.2.0")
-					final indDiv = (1 / indicesLength);
-
-					var curAlphas = [];
-					curAlphas.resize(indicesLength);
-					var j = 0;
-
 					for (_ in 0...indicesLength) {
-						final possibleTransform = transforms[Std.int(_ * indDiv * transforms.length)];
+						final possibleTransform = transforms[Math.floor(_ / indicesLength * transforms.length)];
 
 						var alphaMultiplier = 1.;
 
 						if (possibleTransform != null)
 							alphaMultiplier = possibleTransform.alphaMultiplier;
 
-						curAlphas[j++] = alphaMultiplier;
+						alphas.push(alphaMultiplier);
 					}
-
-					alphas = alphas.concat(curAlphas);
 
 					if (colored || hasColorOffsets) {
 						if (colorMultipliers == null)
@@ -240,45 +258,30 @@ class Macro {
 						if (colorOffsets == null)
 							colorOffsets = [];
 
-						var curMultipliers = [];
-						var curOffsets = [];
-
-						var multCount = 0;
-						var offCount = 0;
-
-						curMultipliers.resize(indicesLength * (3 + 1));
-						curOffsets.resize(indicesLength * 4);
-
 						for (_ in 0...indicesLength) {
-							final transform = transforms[Std.int(_ * indDiv * transforms.length)];
+							final transform = transforms[Math.floor(_ / indicesLength * transforms.length)];
 							if (transform != null) {
-								curMultipliers[multCount + 0] = transform.redMultiplier;
-								curMultipliers[multCount + 1] = transform.greenMultiplier;
-								curMultipliers[multCount + 2] = transform.blueMultiplier;
+								colorMultipliers.push(transform.redMultiplier);
+								colorMultipliers.push(transform.greenMultiplier);
+								colorMultipliers.push(transform.blueMultiplier);
 
-								curOffsets[offCount + 0] = transform.redOffset;
-								curOffsets[offCount + 1] = transform.greenOffset;
-								curOffsets[offCount + 2] = transform.blueOffset;
-								curOffsets[offCount + 3] = transform.alphaOffset;
+								colorOffsets.push(transform.redOffset);
+								colorOffsets.push(transform.greenOffset);
+								colorOffsets.push(transform.blueOffset);
+								colorOffsets.push(transform.alphaOffset);
 							} else {
-								curMultipliers[multCount + 0] = 1;
-								curMultipliers[multCount + 1] = 1;
-								curMultipliers[multCount + 2] = 1;
+								colorMultipliers.push(1);
+								colorMultipliers.push(1);
+								colorMultipliers.push(1);
 
-								curOffsets[offCount + 0] = 0;
-								curOffsets[offCount + 1] = 0;
-								curOffsets[offCount + 2] = 0;
-								curOffsets[offCount + 3] = 0;
+								colorOffsets.push(0);
+								colorOffsets.push(0);
+								colorOffsets.push(0);
+								colorOffsets.push(0);
 							}
 
-							curMultipliers[multCount + 3] = 1;
-
-							multCount = multCount + (3 + 1);
-							offCount = offCount + 4;
+							colorMultipliers.push(1);
 						}
-
-						colorMultipliers = colorMultipliers.concat(curMultipliers);
-						colorOffsets = colorOffsets.concat(curOffsets);
 					}
 					#end
 				}

@@ -296,7 +296,10 @@ class MusicBeatState extends yutautil.SafeManagedState
 	public static function getVariables()
 		return getState().variables;
 
+	// Mega Manager Refrences for easy access in states
 	public var conductor:RConductor = MegaManager.conductor;
+	public var playfield:PlayfieldManager = MegaManager.playfield;
+	public var mcm:CharacterManager = MegaManager.charaManager;
 
 	override function create()
 	{
@@ -671,7 +674,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			if (curStep > 0)
 				RConductor.instance.onStepHit();
 
-			if (PlayState.SONG != null)
+			if (PlayfieldManager.SONG != null)
 			{
 				if (oldStep < curStep)
 					updateSection();
@@ -752,9 +755,9 @@ class MusicBeatState extends yutautil.SafeManagedState
 		var lastSection:Int = RConductor.instance.currentMeasure;
 		RConductor.instance.currentMeasure = 0;
 		stepsToDo = 0;
-		for (i in 0...PlayState.SONG.notes.length)
+		for (i in 0...PlayfieldManager.SONG.notes.length)
 		{
-			if (PlayState.SONG.notes[i] != null)
+			if (PlayfieldManager.SONG.notes[i] != null)
 			{
 				stepsToDo += Math.round(getBeatsOnSection() * 4);
 				if (stepsToDo > curStep)
@@ -1090,8 +1093,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 	/*function getBeatsOnSection()
 	{
 		var val:Null<Float> = 4;
-		if (PlayState.SONG != null && PlayState.SONG.notes[curSection] != null)
-			val = PlayState.SONG.notes[curSection].sectionBeats;
+		if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.notes[curSection] != null)
+			val = PlayfieldManager.SONG.notes[curSection].sectionBeats;
 		return val == null ? 4 : val;
 	}*/
 

@@ -462,7 +462,7 @@ class MixtapeChartEditorState extends MusicBeatState
         super();
 
         // Initialize _song if needed
-        if (PlayState.SONG == null)
+        if (PlayfieldManager.SONG == null)
         {
             _song = {
                 song: 'New Song',
@@ -485,7 +485,7 @@ class MixtapeChartEditorState extends MusicBeatState
         }
         else
         {
-            _song = PlayState.SONG;
+            _song = PlayfieldManager.SONG;
         }
 
         loadSettings();
@@ -974,7 +974,7 @@ class MixtapeChartEditorState extends MusicBeatState
         notes = new FlxTypedGroup<ChartingNote>();
         add(notes);
 
-        // Load existing notes from PlayState.SONG
+        // Load existing notes from PlayfieldManager.SONG
         loadNotesFromSong();
     }
 
@@ -1127,7 +1127,7 @@ class MixtapeChartEditorState extends MusicBeatState
 
     function checkAndLoadExistingChart():Void
     {
-        if (PlayState.SONG != null && PlayState.SONG.notes != null && PlayState.SONG.notes.length > 0)
+        if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.notes != null && PlayfieldManager.SONG.notes.length > 0)
         {
             // Chart exists, load it with animation
             loadNotesFromSong();
@@ -1165,10 +1165,10 @@ class MixtapeChartEditorState extends MusicBeatState
 
     function updateInfo():Void
     {
-        var bpm = PlayState.SONG?.bpm;
+        var bpm = PlayfieldManager.SONG?.bpm;
         var time = FlxG.sound.music != null ? FlxG.sound.music.time : 0;
         var pos = 'Step: ${MegaManager.conductor.currentStep} | Beat: ${MegaManager.conductor.currentBeat} | Section: ${MegaManager.conductor.currentMeasure}';
-        var songInfo = 'Song: ${PlayState.SONG?.song} | BPM: ${MegaManager.conductor.currentBpm}';
+        var songInfo = 'Song: ${PlayfieldManager.SONG?.song} | BPM: ${MegaManager.conductor.currentBpm}';
 
         infoText.text = '$songInfo\n$pos\nTime: ${Math.round(time)}ms';
     }
@@ -1546,7 +1546,7 @@ class MixtapeChartEditorState extends MusicBeatState
         #if sys
         var saveTasks = [
             GenericProgressSubstate.createTask("Preparing chart data...", function(results) {
-                PlayState.SONG = _song;
+                PlayfieldManager.SONG = _song;
                 return "Chart data prepared";
             }),
             GenericProgressSubstate.createTask("Generating JSON...", function(results) {
@@ -1588,7 +1588,7 @@ class MixtapeChartEditorState extends MusicBeatState
         #if sys
         var saveTasks = [
             GenericProgressSubstate.createTask("Preparing chart data...", function(results) {
-                PlayState.SONG = _song;
+                PlayfieldManager.SONG = _song;
                 return "Chart data prepared";
             }),
             GenericProgressSubstate.createTask("Generating chart JSON...", function(results) {

@@ -14,8 +14,8 @@ class MallXmasErect extends PicoCapableStage
 
 	override function create()
 	{
-		var _song = PlayState.SONG;
-		
+		var _song = PlayfieldManager.SONG;
+
 		var bg:BGSprite = new BGSprite('christmas/erect/bgWalls', -1000, -500, 0.2, 0.2);
 		bg.setGraphicSize(Std.int(bg.width * 0.8));
 		bg.updateHitbox();
@@ -89,9 +89,9 @@ class MallXmasErect extends PicoCapableStage
 			if (dad != null) dad.shader = colorShader;
 			if (santa != null) santa.shader = colorShader;
 		}
-		
+
 		@:privateAccess
-		if(PicoCapableStage.NENE_LIST.contains(PlayState.SONG.gfVersion)) GameOverSubstate.characterName = 'pico-christmas-dead';
+		if(PicoCapableStage.NENE_LIST.contains(PlayfieldManager.SONG.gfVersion)) GameOverSubstate.characterName = 'pico-christmas-dead';
 
 		if (!ClientPrefs.data.lowQuality) {
 			var snowSprite = new MallSnow({

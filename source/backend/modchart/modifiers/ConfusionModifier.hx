@@ -84,7 +84,7 @@ class ConfusionModifier extends NoteModifier {
 			"dizzy"
 		];
 
-		for (i in 0...Note.ammo[PlayState.mania]) {
+		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {
 			subMods.push('note${i}AngleX');
 			subMods.push('receptor${i}AngleX');
 			subMods.push('note${i}AngleY');

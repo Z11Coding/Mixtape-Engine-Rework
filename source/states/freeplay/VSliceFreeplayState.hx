@@ -2299,7 +2299,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 			// Check if required characters and stage are unlocked via sanity system
 			if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-				// Load the song data to get character information instead of relying on PlayState.SONG
+				// Load the song data to get character information instead of relying on PlayfieldManager.SONG
 				var songData = null; // Declare songData outside try-catch blocks
 				// Make sure the folder is correct.
 				var originalModDirectory = Mods.currentModDirectory;

@@ -1,28 +1,28 @@
 package objects.playfields;
 
-import backend.modchart.modifiers.ReverseModifier;
-import backend.modchart.Modifier;
-import flixel.math.FlxMath;
-import flixel.math.FlxAngle;
-import flixel.math.FlxPoint;
-import flixel.math.FlxMatrix;
-import flixel.util.FlxSort;
-import flixel.util.FlxDestroyUtil;
-import flixel.graphics.FlxGraphic;
-import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
-import flixel.system.FlxAssets.FlxShader;
+import backend.MusicBeatState;
 import backend.math.Vector3;
 import backend.math.VectorHelpers;
-import openfl.Vector;
-import openfl.geom.ColorTransform;
 import backend.modchart.ModManager;
 import backend.modchart.Modifier.RenderInfo;
+import backend.modchart.Modifier;
+import backend.modchart.modifiers.ReverseModifier;
+import flixel.graphics.FlxGraphic;
+import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
+import flixel.math.FlxAngle;
+import flixel.math.FlxMath;
+import flixel.math.FlxMatrix;
+import flixel.math.FlxPoint;
+import flixel.system.FlxAssets.FlxShader;
+import flixel.util.FlxDestroyUtil;
+import flixel.util.FlxSort;
+import haxe.ds.Vector as FastVector;
+import objects.Note;
+import objects.playfields.FieldBase;
+import openfl.Vector;
+import openfl.geom.ColorTransform;
 import shaders.NoteColorSwap;
 import states.PlayState;
-import objects.Note;
-import backend.MusicBeatState;
-import haxe.ds.Vector as FastVector;
-import objects.playfields.FieldBase;
 
 
 
@@ -92,7 +92,7 @@ class NoteFieldOld extends FieldBase
 	 * The position of every receptor for a given frame.
 	 */
 	public var strumPositions:Array<Vector3> = [];
-	
+
 	/**
 	 * How zoomed this NoteField is without taking modifiers into account. 2 is 2x zoomed, 0.5 is half zoomed.
 	 * If you want to modify a NoteField's zoom in code, you should use this!
@@ -116,7 +116,7 @@ class NoteFieldOld extends FieldBase
 		drawQueue = [];
 		if (field == null) return;
 		if (!active || !exists) return;
-		
+
 		curDecStep = MusicBeatState.pubCurDecStep;
 		curDecBeat = MusicBeatState.pubCurDecBeat;
 
@@ -133,7 +133,7 @@ class NoteFieldOld extends FieldBase
 		if (multAllowed == null || multAllowed.getValue(modNumber) == 0)
 			drawDist *= drawDistMod;
 		var lookAheadTime = modManager.getValue("lookAheadTime", modNumber);
-		
+
 		for (daNote in field.spawnedNotes)
 		{
 			if (!daNote.alive || !daNote.visible)
@@ -176,7 +176,7 @@ class NoteFieldOld extends FieldBase
 						var nextPos = modManager.getPos(visPos + lookAheadTime, diff + lookAheadTime, curDecBeat, daNote.column, modNumber, daNote, this, perspectiveArrDontUse); // perspectiveDONTUSE is excluded because its code is done in the modifyVert function
 						nextNotePos.set(daNote, nextPos);
 					}
-					
+
 					notePos.set(daNote, pos);
 					taps.push(daNote);
 				}
@@ -222,7 +222,7 @@ class NoteFieldOld extends FieldBase
 			var object = drawHold(note);
 			if (object == null)
 				continue;
-			
+
 			if (tryForceHoldsBehind)
 				object.zIndex -= 1;
 
@@ -288,7 +288,7 @@ class NoteFieldOld extends FieldBase
 	}
 
 	var matrix:FlxMatrix = new FlxMatrix();
-	
+
 	override function draw(){
 		// Drawing is handled by NotefieldManager now (maybe rename to NotefieldRenderer?)
 		return;
@@ -305,13 +305,13 @@ class NoteFieldOld extends FieldBase
 		var simpleDraw = !hold.copyX && !hold.copyY;
 
 		var p1 = simpleDraw ? hold.vec3Cache : modManager.getPos(-vDiff * speed, diff, curDecBeat, hold.column, modNumber, hold, this, [], hold.vec3Cache);
-		
+
 		if(!hold.copyX)
 			p1.x = hold.x;
 
 		if(!hold.copyY)
 			p1.y = hold.y;
-		
+
 		if (simpleDraw)
 			p1.z = 0;
 
@@ -346,7 +346,7 @@ class NoteFieldOld extends FieldBase
 
 	var crotchet:Float = Conductor.getCrotchetAtTime(0.0) / 4.0;
 	function drawHold(hold:Note, ?prevAlpha:Float, ?prevGlow:Float):Null<RenderObject>
-	{ 
+	{
 		try {if (hold.animation.curAnim == null || hold.scale == null || hold.frame == null) return null;}
 		catch(e) {
 			//trace("Note was null!");
@@ -380,8 +380,8 @@ class NoteFieldOld extends FieldBase
 				tWid
 		);
 
-		
-		
+
+
 		var strumDiff = (Conductor.songPosition - hold.strumTime);
 		var visualDiff = (Conductor.visualPosition - hold.visualTime); // TODO: get the start and end visualDiff and interpolate so that changing speeds mid-hold will look better
 		var sv = PlayState.instance.getSV(hold.strumTime).speed;
@@ -418,7 +418,7 @@ class NoteFieldOld extends FieldBase
 			var strumOff = (strumSub * sub);
 			strumSub *= sv;
 			strumOff *= sv;
-			
+
 			if ((hold.wasGoodHit || hold.parent.wasGoodHit) && !hold.tooLate) {
 				var scale:Float = 1 - ((strumDiff + crotchet) / crotchet);
 				if (scale <= 0.0) {
@@ -449,7 +449,7 @@ class NoteFieldOld extends FieldBase
 
 			if (hold.parent.wasGoodHit && hold.holdGlow)
 				alphaMult = FlxMath.lerp(0.3, 1, hold.parent.tripProgress);
-			
+
 			info.alpha *= FlxMath.lerp(alphaMult, 1, info.glow);
 
 			if(lastMe == null) // first sexment
@@ -471,7 +471,7 @@ class NoteFieldOld extends FieldBase
 			}
 			lastMe = bot;
 
-			for (_ in 0...Note.ammo[PlayState.mania]) { // why was this keyCount lol??  
+			for (_ in 0...Note.ammo[PlayfieldManager.mania[0]]) { // why was this keyCount lol??
 				alphas.push(info.alpha);
 				glows.push(info.glow);
 			}
@@ -585,7 +585,7 @@ class NoteFieldOld extends FieldBase
 
 			if (sprite.frame == null)
 				return null;
-			
+
 
 			var render = false;
 			for (camera in cameras)
@@ -661,7 +661,7 @@ class NoteFieldOld extends FieldBase
 
 				if(isNote)
 					angle += note.typeOffsetAngle;
-				
+
 				var vert = VectorHelpers.rotateV3(quad, 0, 0, (FlxAngle.TO_RAD * angle) + radAngles, quad);
 				vert.x = vert.x + sprite.offsetX;
 				vert.y = vert.y + sprite.offsetY;
@@ -690,7 +690,7 @@ class NoteFieldOld extends FieldBase
 					vert.x = -vert.x;
 				if (sprite.flipY)
 					vert.y = -vert.x;
-				
+
 				//quad.setTo(vert.x, vert.y, vert.z);
 			}
 

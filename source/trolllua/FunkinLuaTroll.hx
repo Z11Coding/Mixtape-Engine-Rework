@@ -41,9 +41,9 @@ private typedef State = Dynamic;
 class FunkinLuaTroll extends FunkinScript
 {
 	public static final defaultVars:Map<String, Dynamic> = new Map<String, Dynamic>();
-	
+
 	public static var haxeScript:FunkinHScript;
-	
+
 	#if LUA_ALLOWED
 	public var lua:State = null;
 
@@ -173,9 +173,9 @@ class FunkinLuaTroll extends FunkinScript
 		set('defaultGirlfriendY', PlayState.instance.GF_Y);
 
 		// Character shit
-		set('boyfriendName', PlayState.SONG.player1);
-		set('dadName', PlayState.SONG.player2);
-		set('gfName', PlayState.SONG.gfVersion);
+		set('boyfriendName', PlayfieldManager.SONG.player1);
+		set('dadName', PlayfieldManager.SONG.player2);
+		set('gfName', PlayfieldManager.SONG.gfVersion);
 
 		////
 		addCallback("getProperty", getProperty);
@@ -221,7 +221,7 @@ class FunkinLuaTroll extends FunkinScript
 		addCallback("getValue", function(modName:String, player:Int)
 			return PlayState.instance.modManager.getValue(modName, player)
 		);
-		
+
 		addCallback("queueSet", function(step:Float, modName:String, target:Float, player:Int = -1)
 			PlayState.instance.modManager.queueSet(step, modName, target, player)
 		);
@@ -229,7 +229,7 @@ class FunkinLuaTroll extends FunkinScript
 		addCallback("queueSetP", function(step:Float, modName:String, perc:Float, player:Int = -1)
 			PlayState.instance.modManager.queueSetP(step, modName, perc, player)
 		);
-		
+
 		addCallback("queueEase",
 			function(step:Float, endStep:Float, modName:String, percent:Float, style:String = 'linear', player:Int = -1, ?startVal:Float)
 				PlayState.instance.modManager.queueEase(step, endStep, modName, percent, style, player, startVal)
@@ -320,7 +320,7 @@ class FunkinLuaTroll extends FunkinScript
 
 			var cervix = pussyPath(luaFile);
 			var doPush = cervix != null;
-			
+
 			if (doPush)
 			{
 				for (luaInstance in PlayState.instance.luaArray)
@@ -365,7 +365,7 @@ class FunkinLuaTroll extends FunkinScript
 		addCallback("getGlobals", function(luaFile:String){ // returns a copy of the specified file's globals
 			var cervix = pussyPath(luaFile);
 			var doPush = cervix != null;
-			
+
 			if(doPush)
 			{
 				for (luaInstance in PlayState.instance.luaArray)
@@ -435,7 +435,7 @@ class FunkinLuaTroll extends FunkinScript
 
 			if (retVal != null && !isOfTypes(retVal, [Bool, Int, Float, String, Array]))
 				retVal = null;
-	
+
 			return retVal;
 			#else
 			luaTrace('runHaxeCode not supported');
@@ -457,7 +457,7 @@ class FunkinLuaTroll extends FunkinScript
 			return false;
 		});
 
-		addCallback("addLuaScript", function(luaFile:String, ?ignoreAlreadyRunning:Bool = false) { //would be dope asf.	
+		addCallback("addLuaScript", function(luaFile:String, ?ignoreAlreadyRunning:Bool = false) { //would be dope asf.
 			var cervix = pussyPath(luaFile);
 			var doPush = cervix != null;
 
@@ -477,7 +477,7 @@ class FunkinLuaTroll extends FunkinScript
 					}
 				}
 			}
-			
+
 			PlayState.instance.createLua(cervix);
 		});
 		addCallback("removeLuaScript", function(luaFile:String, ?ignoreAlreadyRunning:Bool = false) { //would be dope asf.
@@ -488,7 +488,7 @@ class FunkinLuaTroll extends FunkinScript
 				luaTrace("Script doesn't exist!");
 				return;
 			}
-			
+
 			//if (ignoreAlreadyRunning != true){
 				for (luaInstance in PlayState.instance.luaArray){
 					if(luaInstance.scriptName == cervix){
@@ -496,17 +496,17 @@ class FunkinLuaTroll extends FunkinScript
 						PlayState.instance.removeLua(luaInstance);
 						return;
 					}
-				}		
+				}
 			//}
-			
+
 		});
 
 		addCallback("loadSong", function(?name:String = null, ?difficultyNum:Int = 1) {
 			if(name == null || name.length < 1)
-				name = PlayState.SONG.song;
+				name = PlayfieldManager.SONG.song;
 
 			var poop = Paths.formatToSongPath(name);
-			PlayState.SONG = funkin.data.Song.loadFromJson(poop, name);
+			PlayfieldManager.SONG = funkin.data.Song.loadFromJson(poop, name);
 			PlayState.instance.persistentUpdate = false;
 			PlayState.difficulty = difficultyNum;
 			PlayState.difficultyName = '';
@@ -807,7 +807,7 @@ class FunkinLuaTroll extends FunkinScript
 						if (Math.isNaN(charType))
 							charType = 0;
 				}
-				
+
 				trace(charType, type, PlayState.instance);
 
 				PlayState.instance.addCharacterToList(name, charType);
@@ -855,7 +855,7 @@ class FunkinLuaTroll extends FunkinScript
 				MusicBeatState.switchState(new FreeplayState());
 
 			MusicBeatState.playMenuMusic(true);
-			
+
 			PlayState.chartingMode = false;
 			PlayState.instance.transitioning = true;
 			return true;
@@ -920,7 +920,7 @@ class FunkinLuaTroll extends FunkinScript
 		addCallback("cameraFlash", function(camera:String, color:String, duration:Float,forced:Bool) {
 			cameraFromString(camera).flash(FlxColor.fromString(color), duration, null, forced);
 		});
-		addCallback("cameraFade", function(camera:String, color:String, duration:Float,forced:Bool) {	
+		addCallback("cameraFade", function(camera:String, color:String, duration:Float,forced:Bool) {
 			cameraFromString(camera).fade(FlxColor.fromString(color), duration, false, null, forced);
 		});
 
@@ -1120,7 +1120,7 @@ class FunkinLuaTroll extends FunkinScript
 				}
 			}
 		});
-		
+
 		addCallback("playAnim", function(obj:String, name:String, forced:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0)
 		{
 			if(PlayState.instance.getLuaObject(obj, false) != null) {
@@ -1131,7 +1131,7 @@ class FunkinLuaTroll extends FunkinScript
 					if(Std.isOfType(luaObj, ModchartSprite))
 					{
 						var luaObj:ModchartSprite = cast luaObj;
-						
+
 						if (luaObj.animOffsets.exists(name))
 						{
 							var daOffset = luaObj.animOffsets.get(name);
@@ -1223,13 +1223,13 @@ class FunkinLuaTroll extends FunkinScript
 			var instance:FlxState = getInstance();
 
 			if (front){
-				instance.add(spr);			
+				instance.add(spr);
 			}else if (instance is GameOverSubstate){
 				var instance:GameOverSubstate = cast instance; // fucking haxe
 				instance.insert(instance.members.indexOf(instance.boyfriend), spr);
 			}else if (instance is PlayState){
 				var instance:PlayState = cast instance; // fucking haxe
-				
+
 				var position:Int = instance.members.indexOf(instance.gfGroup);
 				position = FlxMath.minInt(position, instance.members.indexOf(instance.boyfriendGroup));
 				position = FlxMath.minInt(position, instance.members.indexOf(instance.dadGroup));
@@ -1241,8 +1241,8 @@ class FunkinLuaTroll extends FunkinScript
 			}else{
 				instance.add(spr);
 			}
-			
-			spr.wasAdded = true;	
+
+			spr.wasAdded = true;
 		});
 		addCallback("setGraphicSize", function(obj:String, x:Int, y:Int = 0, updateHitbox:Bool = true) {
 			if(PlayState.instance.getLuaObject(obj)!=null) {
@@ -1469,7 +1469,7 @@ class FunkinLuaTroll extends FunkinScript
 		addCallback("getRandomBool", function(chance:Float = 50) {
 			return FlxG.random.bool(chance);
 		});
-		
+
 		addCallback("startDialogue", function(dialogueFile:String, music:String = null) {
 			new FlxTimer().start(0.2, (tmr:FlxTimer) -> {
 				if(PlayState.instance.endingSong) {
@@ -1479,7 +1479,7 @@ class FunkinLuaTroll extends FunkinScript
 				}
 			});
 		});
-		
+
 		addCallback("startVideo", function(videoFile:String) {
 			#if VIDEOS_ALLOWED
 			if (Paths.exists(Paths.video(videoFile))) {
@@ -1593,7 +1593,7 @@ class FunkinLuaTroll extends FunkinScript
 				}
 			}
 		});
-		
+
 		#if DISCORD_ALLOWED
 		addCallback("changePresence", DiscordClient.changePresence);
 		#end
@@ -1909,8 +1909,8 @@ class FunkinLuaTroll extends FunkinScript
 			for(key => val in vars)
 				set(key, val);
 		}
-		
-		if (ignoreCreateCall != true) 
+
+		if (ignoreCreateCall != true)
 			call('onCreate');
 		#end
 	}
@@ -1942,7 +1942,7 @@ class FunkinLuaTroll extends FunkinScript
 					(arg is String ? '"$arg"' : Std.string(arg));
 				}];
 				print('$scriptName: Error on function $name(${args.join(', ')}): $err');
-				
+
 				/* just so your output isnt SPAMMED
 				if (!duplicateErrors.contains(err)) {
 					var args = [for (arg in args){
@@ -1970,7 +1970,7 @@ class FunkinLuaTroll extends FunkinScript
 		if (ignoreCheck || getBool('luaDebugMode')) {
 			if (deprecated && !getBool('luaDeprecatedWarnings'))
 				return;
-			
+
 			PlayState.instance.addTextToDebug(text);
 			print('$scriptName: $text');
 		}
@@ -2006,7 +2006,7 @@ class FunkinLuaTroll extends FunkinScript
 				trace('$scriptName: Unsupported value: $val ${Type.typeof(val)}');
 				return;
 		}
-		
+
 		Lua.setglobal(lua, name);
 		#end
 	}
@@ -2015,7 +2015,7 @@ class FunkinLuaTroll extends FunkinScript
 		#if LUA_ALLOWED
 		if (lua == null)
 			return null;
-		
+
 		var result:Dynamic = null;
 		Lua.getglobal(lua, name);
 		result = Convert.fromLua(lua, -1);
@@ -2030,7 +2030,7 @@ class FunkinLuaTroll extends FunkinScript
 	public function call(funcName:String, ?args:Array<Dynamic>, ?extraVars:Map<String,Dynamic>):Dynamic {
 		#if LUA_ALLOWED
 		if (lua==null) return Function_Continue;
-		
+
 		try {
 			var ret = executeFunc(funcName, args);
 			return ret==null ? Function_Continue : ret;

@@ -10,7 +10,7 @@ class ArrowShape extends CustomPathModifier {
 
 	override function getPath():Array<Array<Vector3>>
 	{
-		var path:Array<Array<Vector3>> = [for(i in 0...Note.ammo[PlayState.mania]) []];
+		var path:Array<Array<Vector3>> = [for(i in 0...Note.ammo[PlayfieldManager.mania[0]]) []];
 
 		for (data in 0...path.length) {
 			for (line in ModchartUtil.coolTextFile('assets/modchart/arrowShape.csv')) {

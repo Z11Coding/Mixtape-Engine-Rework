@@ -100,7 +100,7 @@ class NoteSplash extends NoteObject
 		if(splash == null)
 		{
 			splash = defaultNoteSplash + getSplashSkinPostfix();
-			if (PlayState.SONG != null && PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) splash = PlayState.SONG.splashSkin;
+			if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) splash = PlayfieldManager.SONG.splashSkin;
 		}
 
 		texture = splash;
@@ -211,14 +211,14 @@ class NoteSplash extends NoteObject
 		var keyCount:Int = 4; // Default fallback
 		if (PlayState.instance != null && PlayState.instance.playfields != null && PlayState.instance.playfields.members.length > 0) {
 			keyCount = PlayState.instance.playfields.members[0].keyCount;
-		} else if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length) {
-			keyCount = Note.ammo[PlayState.mania];
+		} else if (PlayfieldManager.mania[0] >= 0 && PlayfieldManager.mania[0] < Note.ammo.length) {
+			keyCount = Note.ammo[PlayfieldManager.mania[0]];
 		}
 
 		// Get the appropriate color array for the current key count
 		var colArray:Array<String> = [];
-		if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length && Note.keysShit.exists(PlayState.mania)) {
-			var keyData = Note.keysShit.get(PlayState.mania);
+		if (PlayfieldManager.mania[0] >= 0 && PlayfieldManager.mania[0] < Note.ammo.length && Note.keysShit.exists(PlayfieldManager.mania[0])) {
+			var keyData = Note.keysShit.get(PlayfieldManager.mania[0]);
 			if (keyData.exists("letters") && keyData.get("letters") is Array) {
 				var letters:Array<String> = cast keyData.get("letters");
 				colArray = letters.map(letter -> letter.toLowerCase()); // Convert to lowercase for consistency
@@ -275,7 +275,7 @@ class NoteSplash extends NoteObject
 		{
 			var loadedTexture:String = defaultNoteSplash + getSplashSkinPostfix();
 			if (note != null && note.noteSplashData.texture != null) loadedTexture = note.noteSplashData.texture;
-			else if (PlayState.SONG != null && PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) loadedTexture = PlayState.SONG.splashSkin;
+			else if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) loadedTexture = PlayfieldManager.SONG.splashSkin;
 
 			if (texture != loadedTexture) loadSplash(loadedTexture);
 		}
@@ -310,13 +310,13 @@ class NoteSplash extends NoteObject
 
 		if (PlayState.instance != null && PlayState.instance.playfields != null && PlayState.instance.playfields.members.length > 0) {
 			keyCount = PlayState.instance.playfields.members[0].keyCount;
-		} else if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length) {
-			keyCount = Note.ammo[PlayState.mania];
+		} else if (PlayfieldManager.mania[0] >= 0 && PlayfieldManager.mania[0] < Note.ammo.length) {
+			keyCount = Note.ammo[PlayfieldManager.mania[0]];
 		}
 
 		// Get the appropriate color array for the current key count
-		if (PlayState.mania >= 0 && PlayState.mania < Note.ammo.length && Note.keysShit.exists(PlayState.mania)) {
-			var keyData = Note.keysShit.get(PlayState.mania);
+		if (PlayfieldManager.mania[0] >= 0 && PlayfieldManager.mania[0] < Note.ammo.length && Note.keysShit.exists(PlayfieldManager.mania[0])) {
+			var keyData = Note.keysShit.get(PlayfieldManager.mania[0]);
 			if (keyData.exists("letters") && keyData.get("letters") is Array) {
 				var letters:Array<String> = cast keyData.get("letters");
 				colArray = letters.map(letter -> letter.toLowerCase());
@@ -367,7 +367,7 @@ class NoteSplash extends NoteObject
 		if (config.allowRGB)
 		{
 			Note.initializeGlobalRGBShader(noteData % colArray.length);
-			if (inEditor || (note == null || note.noteSplashData.useRGBShader) && (PlayState.SONG == null || !PlayState.SONG.disableNoteRGB))
+			if (inEditor || (note == null || note.noteSplashData.useRGBShader) && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB))
 			{
 				tempShader = new RGBPalette();
 				// If Note RGB is enabled:

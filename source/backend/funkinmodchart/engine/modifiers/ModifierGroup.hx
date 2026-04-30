@@ -84,8 +84,6 @@ final class ModifierGroup {
 		__loadModifiers();
 	}
 
-	public inline function postRender() {}
-
 	/**
 	 * Computes the transformed position and visual properties of an arrow based on active modifiers.
 	 *
@@ -137,7 +135,7 @@ final class ModifierGroup {
 				visuals = mod.visuals(visuals, args);
 		}
 		pos.z *= 0.001 * Config.Z_SCALE;
-		pos = playfield.projection.transformVector(pos);
+		pos = playfield.view.transformVector(pos);
 		final output:ModifierOutput = {
 			pos: pos,
 			visuals: visuals

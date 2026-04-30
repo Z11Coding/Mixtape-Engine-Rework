@@ -276,8 +276,8 @@ class HighQualityTrapManager {
         var currentSong:String = null;
         var currentMod:String = null;
 
-        if (states.PlayState.instance != null && states.PlayState.SONG != null) {
-            currentSong = states.PlayState.SONG.song;
+        if (states.PlayState.instance != null && PlayfieldManager.SONG != null) {
+            currentSong = PlayfieldManager.SONG.song;
             currentMod = backend.Mods.currentModDirectory;
         } else {
             return false;

@@ -559,10 +559,10 @@ class MainMenuState extends MusicBeatState
 						case 'options':
 							MusicBeatState.switchState(new OptionsState());
 							// OptionsState.onPlayState = false;
-							if (PlayState.SONG != null)
+							if (PlayfieldManager.SONG != null)
 							{
-								PlayState.SONG.arrowSkin = null;
-								PlayState.SONG.splashSkin = null;
+								PlayfieldManager.SONG.arrowSkin = null;
+								PlayfieldManager.SONG.splashSkin = null;
 								PlayState.stageUI = 'normal';
 							}
 						case 'donate':

@@ -129,7 +129,7 @@ class PhillyStreets extends BaseStage
 			setupRainShader();
 
 
-		var _song = PlayState.SONG;
+		var _song = PlayfieldManager.SONG;
 		if (_song.gameOverSound == null || _song.gameOverSound.trim().length < 1)
 			GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pico';
 		if (_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1)
@@ -248,7 +248,7 @@ class PhillyStreets extends BaseStage
 			if (rainSndAmbience != null) rainSndAmbience.resume();
 		});
 	}
-	
+
 
 	var casingGroup:FlxSpriteGroup;
 	var casingFrames:FlxAtlasFrames;

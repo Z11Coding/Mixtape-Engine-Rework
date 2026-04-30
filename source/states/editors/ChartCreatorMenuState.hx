@@ -396,8 +396,8 @@ class ChartCreatorMenuState extends MusicBeatState
 		convertChart.resize(150, 50);
 		add(convertChart);
 
-		// Load Current Song Button (if PlayState.SONG exists)
-		if (PlayState.SONG != null) {
+		// Load Current Song Button (if PlayfieldManager.SONG exists)
+		if (PlayfieldManager.SONG != null) {
 			loadCurrentSongButton = new FlxUIButton(FlxG.width - 370, FlxG.height - 80, "Load Current Song", onLoadCurrentSong);
 			loadCurrentSongButton.resize(160, 50);
 			add(loadCurrentSongButton);
@@ -421,7 +421,7 @@ class ChartCreatorMenuState extends MusicBeatState
 
 	function onLoadCurrentSong()
 	{
-		if (PlayState.SONG == null) {
+		if (PlayfieldManager.SONG == null) {
 			showError("No song currently loaded in PlayState");
 			return;
 		}
@@ -435,7 +435,7 @@ class ChartCreatorMenuState extends MusicBeatState
 		#end
 
 		// Pre-fill the form with current song data
-		songNameInput.text = PlayState.SONG.song;
+		songNameInput.text = PlayfieldManager.SONG.song;
 		difficultyInput.text = Difficulty.getString();
 
 		// Launch the selected chart editor directly
@@ -573,8 +573,8 @@ class ChartCreatorMenuState extends MusicBeatState
 				return;
 			}
 
-			// Set PlayState.SONG to the loaded chart
-			PlayState.SONG = chartData;
+			// Set PlayfieldManager.SONG to the loaded chart
+			PlayfieldManager.SONG = chartData;
 			PlayState.storyDifficulty = 1; // Default difficulty index
 			PlayState.isStoryMode = false;
 
@@ -637,8 +637,8 @@ class ChartCreatorMenuState extends MusicBeatState
 				return;
 			}
 
-			// Set PlayState.SONG to the loaded chart
-			PlayState.SONG = chartData;
+			// Set PlayfieldManager.SONG to the loaded chart
+			PlayfieldManager.SONG = chartData;
 			PlayState.storyDifficulty = 1; // Default difficulty index
 			PlayState.isStoryMode = false;
 
@@ -1440,7 +1440,7 @@ class ChartCreatorMenuState extends MusicBeatState
 		#end
 
 		// Set up PlayState with the new song
-		PlayState.SONG = songData;
+		PlayfieldManager.SONG = songData;
 		PlayState.storyDifficulty = 1;
 		PlayState.isStoryMode = false;
 
@@ -2056,7 +2056,7 @@ class ChartCreatorMenuState extends MusicBeatState
 				try {
 					// Parse and load the autosaved chart
 					var autosaveData = haxe.Json.parse(FlxG.save.data.autosave);
-					PlayState.SONG = autosaveData.song;
+					PlayfieldManager.SONG = autosaveData.song;
 
 					// Switch to the Old chart editor to load the autosave
 					var originalStyle = ClientPrefs.data.chartEditorStyle;

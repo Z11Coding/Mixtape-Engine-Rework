@@ -1,9 +1,8 @@
 package objects.charting;
 
 import backend.animation.PsychAnimationController;
-
-import shaders.RGBPalette;
 import shaders.RGBPalette.RGBShaderReference;
+import shaders.RGBPalette;
 
 class ChartingStrumNote extends FlxSprite
 {
@@ -53,7 +52,7 @@ class ChartingStrumNote extends FlxSprite
 		}
 		return value;
 	}
-	
+
 	public var texture(default, set):String = null;
 	private function set_texture(value:String):String {
 		if(texture != value) {
@@ -69,11 +68,11 @@ class ChartingStrumNote extends FlxSprite
 
 		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
 		rgbShader.enabled = false;
-		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
-		
+		if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) useRGBShader = false;
+
 		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBPixelExtra[leData];
 		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[leData];
-		
+
 		if(leData <= arr.length)
 		{
 			@:bypassAccessor
@@ -91,7 +90,7 @@ class ChartingStrumNote extends FlxSprite
 		super(x, y);
 
 		var skin:String = null;
-		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
+		if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 1) skin = PlayfieldManager.SONG.arrowSkin;
 		else skin = Note.defaultNoteSkin;
 
 		if (Note.getNoteSkinPostfix() != '')
@@ -126,9 +125,9 @@ class ChartingStrumNote extends FlxSprite
 			width = width / pxDV;
 			antialiasing = false;
 			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
-			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
+			var daFrames:Array<Int> = Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex');
 
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayfieldManager.mania[0]]));
 			updateHitbox();
 			antialiasing = false;
 			animation.add('static', [daFrames[noteData]]);
@@ -141,13 +140,13 @@ class ChartingStrumNote extends FlxSprite
 			var ogSkin:String = texture;
 			if (texture == 'noteSkins/NOTE_assets')
 				texture = 'noteSkins/' + (PlayState.isPixelStage ? ogSkin : 'strums');
-			
+
 			frames = Paths.getSparrowAtlas(texture);
 			antialiasing = ClientPrefs.data.antialiasing;
-			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
-			animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[noteData];
-			animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
-			animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[noteData]; //jic
+			setGraphicSize(Std.int(width * Note.scales[PlayfieldManager.mania[0]]));
+			animationArray[0] = Note.keysShit.get(PlayfieldManager.mania[0]).get('strumAnims')[noteData];
+			animationArray[1] = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData];
+			animationArray[2] = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData]; //jic
 			switch (Math.abs(noteData))
 			{
 				case 0:
@@ -214,9 +213,9 @@ class ChartingStrumNote extends FlxSprite
 		}
 
 		if(animation.curAnim != null){
-			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) 
+			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage)
 				centerOrigin();
-			
+
 		}
 		super.update(elapsed);
 	}

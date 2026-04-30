@@ -56,7 +56,7 @@ class SkewModifier extends NoteModifier {
 
 	override function getSubmods(){
 		var submods:Array<String> = ["skewY", "noteSkewX", "noteSkewY"];
-		for (i in 0...Note.ammo[PlayState.mania]) {
+		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {
 			submods.push('noteSkewX$i');
 			submods.push('noteSkewY$i');
 		}

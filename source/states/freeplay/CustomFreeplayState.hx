@@ -329,7 +329,7 @@ class CustomFreeplayState extends MusicBeatState {
                 difficultyId : 0; // Default to first difficulty (usually "normal" or "easy")
 
             var poop = Highscore.formatSong(songData.songName, difficultyIndex);
-            PlayState.SONG = Song.loadFromJson(poop, songData.songName);
+            PlayfieldManager.SONG = Song.loadFromJson(poop, songData.songName);
             PlayState.storyDifficulty = difficultyIndex;
             PlayState.isStoryMode = false;
 

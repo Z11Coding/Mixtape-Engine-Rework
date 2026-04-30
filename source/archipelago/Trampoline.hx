@@ -202,7 +202,7 @@ class Trampoline extends FlxSprite {
         var angle = APPlayState.instance.boyfriend.angle % 360;
 
         @:privateAccess {
-            if (!(safetyMode && PlayState.SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection)) {
+            if (!(safetyMode && PlayfieldManager.SONG.notes[MegaManager.conductor.currentMeasure].mustHitSection)) {
                 if (tricksLastBounce == 0) {
                     if (combo != 0) {
                         combo = 0;

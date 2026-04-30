@@ -52,9 +52,9 @@ class PicoCapableStage extends BaseStage
 	}
 	override function create() {
 
-		if (!(NENE_LIST.contains(PlayState.SONG.gfVersion) || forceABot))
+		if (!(NENE_LIST.contains(PlayfieldManager.SONG.gfVersion) || forceABot))
 			return;
-		var _song = PlayState.SONG;
+		var _song = PlayfieldManager.SONG;
 		if (_song.gameOverSound == null || _song.gameOverSound.trim().length < 1)
 			GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pico';
 		if (_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1)
@@ -69,18 +69,18 @@ class PicoCapableStage extends BaseStage
 		super.createPost();
 		abot = null;
 		var game = PlayState.instance;
-		if (!(NENE_LIST.contains(PlayState.SONG.gfVersion) || forceABot))
+		if (!(NENE_LIST.contains(PlayfieldManager.SONG.gfVersion) || forceABot))
 			return;
 		if (!forceABot) StickerSubState.STICKER_SET = "stickers-set-2"; //? yep, it's pico time!
 
 		game.gfGroup.y -= 200;
-		if(PIXEL_LIST.contains(PlayState.SONG.gfVersion) || PlayState.isPixelStage) {
+		if(PIXEL_LIST.contains(PlayfieldManager.SONG.gfVersion) || PlayState.isPixelStage) {
 			abotPixel = new ABotPixel(game.gfGroup.x - 165, game.gfGroup.y + 340 - 30);
 			updateABotEye(true);
 			game.addBehindGF(abotPixel);
 		}
 		else {
-			abot = new ABotSpeaker(game.gfGroup.x - 50, game.gfGroup.y + 550 - 30, PlayState.SONG.gfVersion == "nene-dark");
+			abot = new ABotSpeaker(game.gfGroup.x - 50, game.gfGroup.y + 550 - 30, PlayfieldManager.SONG.gfVersion == "nene-dark");
 			updateABotEye(true);
 			game.addBehindGF(abot);
 		}
@@ -145,7 +145,7 @@ class PicoCapableStage extends BaseStage
 	override function beatHit()
 	{
 		super.beatHit();
-		if (!NENE_LIST.contains(PlayState.SONG.gfVersion))
+		if (!NENE_LIST.contains(PlayfieldManager.SONG.gfVersion))
 			return;
 		if(abotPixel != null) abotPixel.speaker.animation.play('anim', true);
 		switch (currentNeneState)
@@ -170,7 +170,7 @@ class PicoCapableStage extends BaseStage
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
-		if (!NENE_LIST.contains(PlayState.SONG.gfVersion))
+		if (!NENE_LIST.contains(PlayfieldManager.SONG.gfVersion))
 			return;
 		@:privateAccess
 		if (gf == null || !game.startedCountdown)
@@ -183,7 +183,7 @@ class PicoCapableStage extends BaseStage
 	override function goodNoteHit(note:Note)
 	{
 		super.goodNoteHit(note);
-		if (!NENE_LIST.contains(PlayState.SONG.gfVersion))
+		if (!NENE_LIST.contains(PlayfieldManager.SONG.gfVersion))
 			return;
 		// 10% chance of playing combo50/combo100 animations for Nene
 		switch (game.comboManager?.combo)
@@ -265,8 +265,8 @@ class PicoCapableStage extends BaseStage
 	function updateABotEye(finishInstantly:Bool = false)
 	{
 		@:privateAccess // lol
-		if (PlayState.SONG.notes[
-			Std.int(FlxMath.bound(MegaManager.conductor.currentMeasure, 0, PlayState.SONG.notes.length - 1))
+		if (PlayfieldManager.SONG.notes[
+			Std.int(FlxMath.bound(MegaManager.conductor.currentMeasure, 0, PlayfieldManager.SONG.notes.length - 1))
 		].mustHitSection == true){
 			abot?.lookRight();
 			abotPixel?.lookRight();
@@ -314,7 +314,7 @@ class PicoCapableStage extends BaseStage
 				}
 			}
 
-			if (PlayState.instance.gf != null && NENE_LIST.contains(PlayState.SONG.gfVersion))
+			if (PlayState.instance.gf != null && NENE_LIST.contains(PlayfieldManager.SONG.gfVersion))
 			{
 				var neneKnife:FlxSprite = new FlxSprite(state.boyfriend.x - 450, state.boyfriend.y - 250);
 				if(PlayState.isPixelStage){

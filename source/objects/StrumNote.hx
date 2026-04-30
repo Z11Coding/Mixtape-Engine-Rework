@@ -79,14 +79,14 @@ class StrumNote extends NoteObject
 		animation = new PsychAnimationController(this);
 
 		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
-		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) {
+		if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) {
 			useRGBShader = false;
 			rgbShader.forceDisabled = true;
 		}
 		// Use colArray for color indexing on non-pixel stages, pixelAnimIndex for pixel stages
 		var colorIndex:Int = (PlayState.instance != null && PlayState.isPixelStage) ?
-			Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[leData] :
-			Note.keysShit.get(PlayState.mania).get('colArray')[leData];
+			Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex')[leData] :
+			Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[leData];
 		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[colorIndex];
 		if(PlayState.instance != null && PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[colorIndex];
 		if(leData <= arr.length)
@@ -109,7 +109,7 @@ class StrumNote extends NoteObject
 		this.ID = noteData;
 
 		var skin:String = null;
-		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
+		if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 1) skin = PlayfieldManager.SONG.arrowSkin;
 
 		if (skin == null || skin == '') {
 			if (Note.getNoteSkinPostfix() != '')
@@ -118,7 +118,7 @@ class StrumNote extends NoteObject
 				if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
 			}
 			else {
-				var customSkin:String = (PlayState.SONG != null && PlayState.SONG.arrowSkin != null ? PlayState.SONG.arrowSkin : 'NOTE_assets') + Note.getNoteSkinPostfix();
+				var customSkin:String = (PlayfieldManager.SONG != null && PlayfieldManager.SONG.arrowSkin != null ? PlayfieldManager.SONG.arrowSkin : 'NOTE_assets') + Note.getNoteSkinPostfix();
 				skin = (PlayState.isPixelStage ? customSkin : 'noteSkins/strums');
 			}
 		}
@@ -138,7 +138,7 @@ class StrumNote extends NoteObject
 		if (!PlayState.isPixelStage) {
 			if(texture.length < 1 || skin == 'null')
 			{
-				skin = (PlayState.SONG != null && PlayState.SONG.arrowSkin?.length != 0 ? PlayState.SONG.arrowSkin : (texture + postfix));
+				skin = (PlayfieldManager.SONG != null && PlayfieldManager.SONG.arrowSkin?.length != 0 ? PlayfieldManager.SONG.arrowSkin : (texture + postfix));
 				if (skin == null || skin.length < 1) {
 					if (postfix == null || postfix.length < 1)
 						skin = "noteSkins/strums";
@@ -166,9 +166,9 @@ class StrumNote extends NoteObject
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
 		var pxDV:Int = Note.pixelNotesDivisionValue[1];
 
-		animationArray[0] = Note.keysShit.get(PlayState.mania).get('strumAnims')[column];
-		animationArray[1] = Note.keysShit.get(PlayState.mania).get('letters')[column];
-		animationArray[2] = Note.keysShit.get(PlayState.mania).get('letters')[column]; //jic
+		animationArray[0] = Note.keysShit.get(PlayfieldManager.mania[0]).get('strumAnims')[column];
+		animationArray[1] = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[column];
+		animationArray[2] = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[column]; //jic
 
 		if(PlayState.isPixelStage)
 		{
@@ -178,9 +178,9 @@ class StrumNote extends NoteObject
 			height = height / 5;
 			antialiasing = false;
 			loadGraphic(Paths.image('pixelUI/' + skin), true, Math.floor(width), Math.floor(height));
-			var daFrames:Array<Int> = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex');
+			var daFrames:Array<Int> = Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex');
 
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayfieldManager.mania[0]]));
 			updateHitbox();
 			antialiasing = false;
 			animation.add('static', [daFrames[column]]);
@@ -195,7 +195,7 @@ class StrumNote extends NoteObject
 			//trace("Skin: " + skin);
 			if(texture.length < 1)
 			{
-				skin = (PlayState.SONG != null ? PlayState.SONG.arrowSkin : (texture + postfix));
+				skin = (PlayfieldManager.SONG != null ? PlayfieldManager.SONG.arrowSkin : (texture + postfix));
 				if (skin == 'noteSkins/NOTE_assets') {
 					skin = "noteSkins/strums";
 				}
@@ -205,7 +205,7 @@ class StrumNote extends NoteObject
 
 			frames = Paths.getSparrowAtlas(skin);
 			antialiasing = ClientPrefs.data.antialiasing;
-			setGraphicSize(Std.int(width * Note.scales[PlayState.mania]));
+			setGraphicSize(Std.int(width * Note.scales[PlayfieldManager.mania[0]]));
 
 			// Get the appropriate animation name for this column from the mania mapping
 			var strumAnim:String = animationArray[0]; // This is the strumAnims value
@@ -278,18 +278,18 @@ class StrumNote extends NoteObject
 	public function playerPosition()
 	{
 		playAnim('static');
-		switch (PlayState.mania)
+		switch (PlayfieldManager.mania[0])
 		{
 			case 0 | 1 | 2: x += width * column;
 			case 3: x += (Note.swagWidth * column);
-			default: x += ((width - Note.lessX[PlayState.mania]) * column);
+			default: x += ((width - Note.lessX[PlayfieldManager.mania[0]]) * column);
 		}
 
-		x += Note.xtra[PlayState.mania];
+		x += Note.xtra[PlayfieldManager.mania[0]];
 
 		x += 50;
 		x += ((FlxG.width / 2) * 1);
-		x -= Note.posRest[PlayState.mania];
+		x -= Note.posRest[PlayfieldManager.mania[0]];
 		formerPosition.set(x, y);
 	}
 

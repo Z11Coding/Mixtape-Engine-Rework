@@ -132,8 +132,8 @@ class FreeplayHelpers
 
     try
     {
-      PlayState.SONG = Song.loadFromJson(poop, songLowercase);
-      if(PlayState.SONG == null) throw "Song parsing failed!";
+      PlayfieldManager.SONG = Song.loadFromJson(poop, songLowercase);
+      if(PlayfieldManager.SONG == null) throw "Song parsing failed!";
       PlayState.isStoryMode = false;
       PlayState.storyDifficulty = diffId;
 

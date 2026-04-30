@@ -42,13 +42,13 @@ class RankingSubstate extends MusicBeatSubstate
 	public function new()
 	{
 		super();
-		// PlayState.songEndTriggered = false;
+		// PlayfieldManager.SONGEndTriggered = false;
 		Conductor.songPosition = 0;
 
 		generateRanking();
 
 		if (!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
-			backend.Highscore.saveRank(PlayState.SONG.song, rankingNum, PlayState.storyDifficulty);
+			backend.Highscore.saveRank(PlayfieldManager.SONG.song, rankingNum, PlayState.storyDifficulty);
 	}
 
 	function getPauseSong()
@@ -69,9 +69,9 @@ class RankingSubstate extends MusicBeatSubstate
 
 	override function create()
 	{
-		wasFC = backend.Highscore.getFCState(PlayState.SONG.song, PlayState.storyDifficulty);
-		prevScore = backend.Highscore.getScore(PlayState.SONG.song, PlayState.storyDifficulty);
-		prevAcc = backend.Highscore.getRating(PlayState.SONG.song, PlayState.storyDifficulty);
+		wasFC = backend.Highscore.getFCState(PlayfieldManager.SONG.song, PlayState.storyDifficulty);
+		prevScore = backend.Highscore.getScore(PlayfieldManager.SONG.song, PlayState.storyDifficulty);
+		prevAcc = backend.Highscore.getRating(PlayfieldManager.SONG.song, PlayState.storyDifficulty);
 		pauseMusic = new FlxSound();
 		try
 		{
@@ -259,7 +259,7 @@ class RankingSubstate extends MusicBeatSubstate
 							oldRank: prevRank,
 							playRankAnim: true,
 							newRank: fpRank,
-							songId: PlayState.SONG.song.toLowerCase(),
+							songId: PlayfieldManager.SONG.song.toLowerCase(),
 							difficultyId: Difficulty.getString().toLowerCase()
 						};
 						TransitionState.transitionState(states.freeplay.VSliceFreeplayState.build(), {transitionType: "stickers"});
@@ -308,7 +308,7 @@ class RankingSubstate extends MusicBeatSubstate
 
 						var locationId = (archipelago.APPlayState.currentSong != null && archipelago.APPlayState.currentSong.trim() != "")
 							? archipelago.APPlayState.currentSong
-							: PlayState.SONG.song;
+							: PlayfieldManager.SONG.song;
 						if (APInfo.unlockMethod != "Note Checks") {
 							trace(archipelago.APPlayState.currentMod);
 							// if (archipelago.APPlayState.currentMod.trim() != "")
@@ -325,8 +325,8 @@ class RankingSubstate extends MusicBeatSubstate
 								for (song in WeekData.getCurrentWeek().songs)
 								{
 									trace("Checking song: " + song[0]);
-									if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-										(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+									if ((cast song[0] : String).toLowerCase().trim() == PlayfieldManager.SONG.song.trim().toLowerCase() ||
+										(cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayfieldManager.SONG.song.trim().toLowerCase().replace(" ", "-"))
 									{
 										trace("Match found for song: " + song[0]);
 										locationId = song[0];
@@ -361,8 +361,8 @@ class RankingSubstate extends MusicBeatSubstate
 											if (songJson != null)
 											{
 												trace("Parsed JSON successfully for song: " + songJson.song);
-												trace("Checking against current song: " + PlayState.SONG.song + " vs " + songJson.song);
-												if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-"))
+												trace("Checking against current song: " + PlayfieldManager.SONG.song + " vs " + songJson.song);
+												if (songJson.song.trim().toLowerCase().replace(" ", "-") == PlayfieldManager.SONG.song.trim().toLowerCase().replace(" ", "-"))
 												{
 													trace("Song JSON matches current song: " + songJson.song);
 													locationId = song[0];
@@ -432,7 +432,7 @@ class RankingSubstate extends MusicBeatSubstate
 
 							if (archipelago.APEntryState.apGame != null)
 							{
-								var songName = PlayState.SONG.song;
+								var songName = PlayfieldManager.SONG.song;
 								var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
 								archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
 							}
@@ -440,9 +440,9 @@ class RankingSubstate extends MusicBeatSubstate
 							// for (locationIdInt in locationIdInts)
 							// {
 							// 	trace("Checking victory condition for Location ID: " + locationIdInt);
-							// 	if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayState.SONG.song, archipelago.APPlayState.currentMod))
+							// 	if (locationIdInt != 0 && states.FreeplayState.isVictorySong(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod))
 							// 	{
-							// 		trace("Victory condition met for song: " + PlayState.SONG.song);
+							// 		trace("Victory condition met for song: " + PlayfieldManager.SONG.song);
 							// 		archipelago.ArchPopup.startPopupCustom("You've completed your goal!", "You win!", "archipelago", function() {
 							// 			trace("Victory popup triggered.");
 							// 			FlxG.sound.playMusic(Paths.sound('secret'));
@@ -453,13 +453,13 @@ class RankingSubstate extends MusicBeatSubstate
 						}
 
 						if (backend.ClientPrefs.data.apNoticeStyle != "Achievement") {
-							if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+							if (archipelago.APEntryState.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
 								archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
 								trace("Goal achievement popup triggered.");
 								FlxG.sound.playMusic(Paths.sound('You Win'));
 							}
 						} else {
-							if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+							if (archipelago.APEntryState.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
 								trace("Congratulations! You've achieved your goal! Popup triggered.");
 							ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", 'Well Done!', 'archColor');
 							}

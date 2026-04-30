@@ -13,7 +13,7 @@ class SchoolEvil extends BaseStage
 	var wiggle:WiggleEffectRuntime;
 	override function create()
 	{
-		var _song = PlayState.SONG;
+		var _song = PlayfieldManager.SONG;
 		if(_song.gameOverSound == null || _song.gameOverSound.trim().length < 1) GameOverSubstate.deathSoundName = 'fnf_loss_sfx-pixel';
 		if(_song.gameOverLoop == null || _song.gameOverLoop.trim().length < 1) GameOverSubstate.loopSoundName = 'gameOver-pixel';
 		if(_song.gameOverEnd == null || _song.gameOverEnd.trim().length < 1) GameOverSubstate.endSoundName = 'gameOverEnd-pixel';
@@ -69,7 +69,7 @@ class SchoolEvil extends BaseStage
 				}
 		}
 	}
-	
+
 	override function eventPushed(event:objects.Note.EventNote)
 	{
 		// used for preloading assets used on events

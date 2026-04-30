@@ -135,7 +135,7 @@ class PauseSubState extends MusicBeatSubstate
 		bg.scrollFactor.set();
 		add(bg);
 
-		var levelInfo:FlxText = new FlxText(20, 15, 0, PlayState.SONG.song, 32);
+		var levelInfo:FlxText = new FlxText(20, 15, 0, PlayfieldManager.SONG.song, 32);
 		levelInfo.scrollFactor.set();
 		levelInfo.setFormat(Paths.font("vcr.ttf"), 32);
 		levelInfo.updateHitbox();
@@ -143,7 +143,7 @@ class PauseSubState extends MusicBeatSubstate
 
 		var levelDifficulty:FlxText = new FlxText(20, 15 + 32, 0,
 			(Difficulty.getString().toUpperCase() +
-			(PlayState.instance.chartModifier != "Normal" ? ' (' + PlayState.instance.chartModifier + ')'.toUpperCase() : '') +
+			(playfield.chartModifier != "Normal" ? ' (' + playfield.chartModifier + ')'.toUpperCase() : '') +
 			(Std.is(PlayState.instance, archipelago.APPlayState) ? ' (AP)' : '')), 32);
 
 		levelDifficulty.scrollFactor.set();
@@ -339,7 +339,7 @@ class PauseSubState extends MusicBeatSubstate
 						FlxG.sound.play(Paths.sound('confirmMenu'));
 					} else return;
 				}
-				var songLowercase:String = Paths.formatToSongPath(PlayState.SONG.song);
+				var songLowercase:String = Paths.formatToSongPath(PlayfieldManager.SONG.song);
 				var poop:String = Highscore.formatSong(songLowercase, curSelected);
 				try
 				{

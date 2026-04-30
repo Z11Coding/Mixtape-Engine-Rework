@@ -1,17 +1,15 @@
 package states.editors.content;
 
-import backend.Song;
 import backend.Rating;
-
-import objects.Note;
-import objects.charting.ChartingNote;
-import objects.NoteSplash;
-import objects.charting.ChartingStrumNote;
-
-import flixel.util.FlxSort;
-import flixel.util.FlxStringUtil;
+import backend.Song;
 import flixel.animation.FlxAnimationController;
 import flixel.input.keyboard.FlxKey;
+import flixel.util.FlxSort;
+import flixel.util.FlxStringUtil;
+import objects.Note;
+import objects.NoteSplash;
+import objects.charting.ChartingNote;
+import objects.charting.ChartingStrumNote;
 import openfl.events.KeyboardEvent;
 
 class EditorPlayStatePsych extends MusicBeatSubstate
@@ -26,17 +24,17 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 	var inst:FlxSound = new FlxSound();
 	var vocals:FlxSound;
 	var opponentVocals:FlxSound;
-	
+
 	var notes:FlxTypedGroup<ChartingNote>;
 	var unspawnNotes:Array<ChartingNote> = [];
 	var ratingsData:Array<Rating> = Rating.loadDefault();
-	
+
 	var comboGroup:FlxSpriteGroup;
 	var strumLineNotes:FlxTypedGroup<ChartingStrumNote>;
 	var opponentStrums:FlxTypedGroup<ChartingStrumNote>;
 	var playerStrums:FlxTypedGroup<ChartingStrumNote>;
 	var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
-	
+
 	var combo:Int = 0;
 	var lastRating:FlxSprite;
 	var lastCombo:FlxSprite;
@@ -47,12 +45,12 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		'note_up',
 		'note_right'
 	];
-	
+
 	var songHits:Int = 0;
 	var songMisses:Int = 0;
 	var songLength:Float = 0;
 	var songSpeed:Float = 1;
-	
+
 	var showCombo:Bool = false;
 	var showComboNum:Bool = true;
 	var showRating:Bool = true;
@@ -72,7 +70,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		super();
 
 		Cursor.hide();
-		
+
 		/* setting up some important data */
 		this.vocals = allVocals[0];
 		this.opponentVocals = allVocals[1];
@@ -103,7 +101,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		bg.color = 0xFF101010;
 		bg.alpha = 0.9;
 		add(bg);
-		
+
 		/**** NOTES ****/
 		comboGroup = new FlxSpriteGroup();
 		add(comboGroup);
@@ -111,25 +109,25 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		add(strumLineNotes);
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
 		add(grpNoteSplashes);
-		
+
 		var splash:NoteSplash = new NoteSplash();
 		grpNoteSplashes.add(splash);
 		splash.alpha = 0.000001; //cant make it invisible or it won't allow precaching
 
 		opponentStrums = new FlxTypedGroup<ChartingStrumNote>();
 		playerStrums = new FlxTypedGroup<ChartingStrumNote>();
-		
+
 		generateStaticArrows(0);
 		generateStaticArrows(1);
 		/***************/
-		
+
 		scoreTxt = new FlxText(10, FlxG.height - 50, FlxG.width - 20, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.scrollFactor.set();
 		scoreTxt.borderSize = 1.25;
 		scoreTxt.visible = !ClientPrefs.data.hideHud;
 		add(scoreTxt);
-		
+
 		dataTxt = new FlxText(10, 580, FlxG.width - 20, "Section: 0", 20);
 		dataTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		dataTxt.scrollFactor.set();
@@ -142,16 +140,16 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		tipText.scrollFactor.set();
 		add(tipText);
 		FlxG.mouse.visible = false;
-		
+
 		generateSong();
 		_noteList = null;
 
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
-		
+
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence (with Time Left)
-		DiscordClient.changePresence('Playtesting on Chart Editor', PlayState.SONG.song, null, true, songLength);
+		DiscordClient.changePresence('Playtesting on Chart Editor', PlayfieldManager.SONG.song, null, true, songLength);
 		#end
 		updateScore();
 		cachePopUpScore();
@@ -169,7 +167,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			super.update(elapsed);
 			return;
 		}
-		
+
 		if (startingSong)
 		{
 			timerToStart -= elapsed * 1000;
@@ -208,7 +206,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		keysCheck();
 		if(notes.length > 0)
 		{
-			var fakeCrochet:Float = (60 / PlayState.SONG.bpm) * 1000;
+			var fakeCrochet:Float = (60 / PlayfieldManager.SONG.bpm) * 1000;
 			notes.forEachAlive(function(daNote:ChartingNote)
 			{
 				var strumGroup:FlxTypedGroup<ChartingStrumNote> = playerStrums;
@@ -233,7 +231,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 				}
 			});
 		}
-		
+
 		var time:Float = CoolUtil.floorDecimal((Conductor.songPosition - ClientPrefs.data.noteOffset) / 1000, 1);
 		var songLen:Float = CoolUtil.floorDecimal(songLength / 1000, 1);
 		dataTxt.text = 'Time: $time / $songLen' +
@@ -255,13 +253,13 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		super.beatHit();
 		lastBeatHit = curBeat;
 	}
-	
+
 	override function sectionHit()
 	{
-		if (PlayState.SONG.notes[curSection] != null)
+		if (PlayfieldManager.SONG.notes[curSection] != null)
 		{
-			if (PlayState.SONG.notes[curSection].changeBPM)
-				Conductor.bpm = PlayState.SONG.notes[curSection].bpm;
+			if (PlayfieldManager.SONG.notes[curSection].changeBPM)
+				Conductor.bpm = PlayfieldManager.SONG.notes[curSection].bpm;
 		}
 		super.sectionHit();
 	}
@@ -276,7 +274,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		flixel.util.FlxDestroyUtil.destroy(inst);
 		super.destroy();
 	}
-	
+
 	function startSong():Void
 	{
 		startingSong = false;
@@ -308,18 +306,18 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 	function generateSong()
 	{
 		// FlxG.log.add(ChartParser.parse());
-		songSpeed = PlayState.SONG.speed;
+		songSpeed = PlayfieldManager.SONG.speed;
 		var songSpeedType:String = ClientPrefs.getGameplaySetting('scrolltype');
 		switch(songSpeedType)
 		{
 			case "multiplicative":
-				songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed');
+				songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed');
 			case "constant":
 				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
 		}
 		noteKillOffset = Math.max(Conductor.stepCrochet, 350 / songSpeed * playbackRate);
 
-		var songData = PlayState.SONG;
+		var songData = PlayfieldManager.SONG;
 		Conductor.bpm = songData.bpm;
 
 		inst.volume = 0;
@@ -329,7 +327,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		notes = new FlxTypedGroup<ChartingNote>();
 		add(notes);
 
-		var daBpm:Float = (PlayState.SONG.notes[0].changeBPM == true) ? PlayState.SONG.notes[0].bpm : PlayState.SONG.bpm;
+		var daBpm:Float = (PlayfieldManager.SONG.notes[0].changeBPM == true) ? PlayfieldManager.SONG.notes[0].bpm : PlayfieldManager.SONG.bpm;
 		var oldNote:ChartingNote = null;
 
 		// Section Time/Crochet
@@ -337,13 +335,13 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		var secTime:Float = 0;
 		var cachedSectionTimes:Array<Float> = [];
 		var cachedSectionCrochets:Array<Float> = [];
-		if(PlayState.SONG != null)
+		if(PlayfieldManager.SONG != null)
 		{
 			var tempBpm:Float = daBpm;
-			for (secNum => section in PlayState.SONG.notes)
+			for (secNum => section in PlayfieldManager.SONG.notes)
 			{
-				if(PlayState.SONG.notes[noteSec].changeBPM == true)
-					tempBpm = PlayState.SONG.notes[noteSec].bpm;
+				if(PlayfieldManager.SONG.notes[noteSec].changeBPM == true)
+					tempBpm = PlayfieldManager.SONG.notes[noteSec].bpm;
 
 				secTime += Conductor.calculateCrochet(tempBpm) * (Math.round(4 * section.sectionBeats) / 4);
 				cachedSectionTimes.push(secTime);
@@ -354,12 +352,12 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		for (note in _noteList)
 		{
 			if(note == null || note.strumTime < startPos) continue;
-			
+
 			while(cachedSectionTimes.length > noteSec + 1 && cachedSectionTimes[noteSec + 1] <= note.strumTime)
 			{
 				noteSec++;
-				if(PlayState.SONG.notes[noteSec].changeBPM == true)
-					daBpm = PlayState.SONG.notes[noteSec].bpm;
+				if(PlayfieldManager.SONG.notes[noteSec].changeBPM == true)
+					daBpm = PlayfieldManager.SONG.notes[noteSec].bpm;
 			}
 
 			var idx: Int = _noteList.indexOf(note);
@@ -452,10 +450,10 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		}
 		unspawnNotes.sort(PlayState.sortByTime);
 	}
-	
+
 	private function generateStaticArrows(player:Int):Void
 	{
-		var strumLineX:Float = ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X;
+		var strumLineX:Float = ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X;
 		var strumLineY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
 		for (i in 0...4)
 		{
@@ -520,7 +518,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		Cursor.show();
 		close();
 	}
-	
+
 	private function cachePopUpScore()
 	{
 		var uiFolder:String = "";
@@ -676,7 +674,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			//Prevents crash specifically on debug without needing to try catch shit
 			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
 			#end
-	
+
 			if(FlxG.keys.checkStatus(eventKey, JUST_PRESSED)) keyPressed(key);
 		}
 	}
@@ -759,7 +757,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			spr.resetAnim = 0;
 		}
 	}
-	
+
 	// Hold notes
 	private function keysCheck():Void
 	{
@@ -791,7 +789,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 
 				if (canHit && n.isSustainNote) {
 					var released:Bool = !holdArray[n.noteData];
-					
+
 					if (!released)
 						goodNoteHit(n);
 				}
@@ -805,10 +803,10 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 					keyReleased(i);
 	}
 
-	
+
 	function opponentNoteHit(note:ChartingNote):Void
 	{
-		if (PlayState.SONG.needsVoices && opponentVocals.length <= 0)
+		if (PlayfieldManager.SONG.needsVoices && opponentVocals.length <= 0)
 			vocals.volume = 1;
 
 		var strum:ChartingStrumNote = opponentStrums.members[Std.int(Math.abs(note.noteData))];
@@ -852,7 +850,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		if (!note.isSustainNote)
 			invalidateNote(note);
 	}
-	
+
 	function noteMiss(daNote:ChartingNote):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		//Dupe note remove
 		notes.forEachAlive(function(note:ChartingNote) {
@@ -880,8 +878,8 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 
 		if (daNote != null && guitarHeroSustains && daNote.parent != null && daNote.isSustainNote) {
 			if (daNote.missed)
-				return; 
-			
+				return;
+
 			var parentNote:ChartingNote = daNote.parent;
 			if (parentNote.wasGoodHit && parentNote.tail.length > 0) {
 				for (child in parentNote.tail) if (child != daNote) {

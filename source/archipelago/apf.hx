@@ -203,7 +203,7 @@ effectMap = [
         var ttl:Float = 20;
         var onEnd:(Void->Void) = function() {
             effectiveScrollSpeed -= changeAmount;
-            songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+            songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
         };
         var playSound:String = "scrollfaster";
         var playSoundVol:Float = 1;
@@ -211,7 +211,7 @@ effectMap = [
         var alwaysEnd:Bool = true;
 
         effectiveScrollSpeed += changeAmount;
-        songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+        songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
 
         applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);
     },
@@ -223,7 +223,7 @@ effectMap = [
         var ttl:Float = 20;
         var onEnd:(Void->Void) = function() {
             effectiveScrollSpeed += changeAmount;
-            songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+            songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
         };
         var playSound:String = "scrollslower";
         var playSoundVol:Float = 1;
@@ -231,7 +231,7 @@ effectMap = [
         var alwaysEnd:Bool = true;
 
         effectiveScrollSpeed -= changeAmount;
-        songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+        songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
 
         applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd);
     },
@@ -490,7 +490,7 @@ effectMap = [
         var noIcon:Bool = true;
         var startingPoint = FlxG.random.int(5, 9);
         var endingPoint = FlxG.random.int(startingPoint + 6, startingPoint + 12);
-        var dataPicked = FlxG.random.int(0, PlayState.mania);
+        var dataPicked = FlxG.random.int(0, PlayfieldManager.mania[0]);
         for (i in startingPoint...endingPoint) {
             addNote(0, i, i, dataPicked);
         }
@@ -770,7 +770,7 @@ effectMap = [
         var noIcon:Bool = false;
 
         available = [];
-        for (i in 0...PlayState.mania+1) {
+        for (i in 0...PlayfieldManager.mania[0]+1) {
             available.push(i);
             trace("available: " + available);
         }
@@ -892,9 +892,9 @@ effectMap = [
         applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
     },
     'songSwitch' => function() {
-        if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride == false) 
+        if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride == false)
             FlxG.save.data.manualOverride = true;
-        else if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride == true) 
+        else if (FlxG.save.data.manualOverride != null && FlxG.save.data.manualOverride == true)
             FlxG.save.data.manualOverride = false;
 
         trace('MANUAL OVERRIDE: ' + FlxG.save.data.manualOverride);
@@ -903,7 +903,7 @@ effectMap = [
             FlxG.save.data.storyWeek = PlayState.storyWeek;
             FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
             FlxG.save.data.difficulties = Difficulty.list; // just in case
-            FlxG.save.data.SONG = PlayState.SONG;
+            FlxG.save.data.SONG = PlayfieldManager.SONG;
             FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
             FlxG.save.data.songPos = Conductor.songPosition;
             FlxG.save.flush();
@@ -913,7 +913,7 @@ effectMap = [
             PlayState.storyWeek = 0;
             Mods.currentModDirectory = '';
             Difficulty.list = Difficulty.defaultList.copy();
-            PlayState.SONG = Song.loadFromJson(Highscore.formatSong('tutorial', curDifficulty), Paths.formatToSongPath('tutorial'));
+            PlayfieldManager.SONG = Song.loadFromJson(Highscore.formatSong('tutorial', curDifficulty), Paths.formatToSongPath('tutorial'));
             PlayState.storyDifficulty = curDifficulty;
             FlxG.save.flush();
         }

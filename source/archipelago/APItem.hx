@@ -412,8 +412,7 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        LoadingState.noteCache = [];
-                        states.PlayState.curChart = [];
+                        MegaManager.playfield?.curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
                     // Set second argument (difficulty) to range 1-5, with 1% chance of 6 (GOD)
@@ -491,8 +490,7 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        LoadingState.noteCache = [];
-                        states.PlayState.curChart = [];
+                        MegaManager.playfield?.curChart = [];
                         MusicBeatState.allowNuke = true;
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.Uno;
                     }
@@ -669,7 +667,7 @@ class APItem {
                             FlxG.save.data.storyWeek = states.PlayState.storyWeek;
                             FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                             FlxG.save.data.difficulties = Difficulty.list; // just in case
-                            FlxG.save.data.SONG = states.PlayState.SONG;
+                            FlxG.save.data.SONG = PlayfieldManager.SONG;
                             FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
                             FlxG.save.data.songPos = FlxG.sound.music.time;
                             FlxG.save.flush();
@@ -691,7 +689,7 @@ class APItem {
                         FlxG.save.data.storyWeek = states.PlayState.storyWeek;
                         FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                         FlxG.save.data.difficulties = Difficulty.list; // just in case
-                        FlxG.save.data.SONG = states.PlayState.SONG;
+                        FlxG.save.data.SONG = PlayfieldManager.SONG;
                         FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
                         FlxG.save.data.songPos = FlxG.sound.music.time;
                         FlxG.save.flush();
@@ -711,7 +709,7 @@ class APItem {
                             default:
                                 Difficulty.list = Difficulty.defaultList.copy();
                         }
-                        states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
+                        PlayfieldManager.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
                         states.PlayState.storyWeek = -1;
                         Mods.currentModDirectory = '';
                         states.PlayState.storyDifficulty = Difficulty.list.length-1;
@@ -1571,7 +1569,7 @@ class APItem {
                                     FlxG.save.data.storyWeek = states.PlayState.storyWeek;
                                     FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                                     FlxG.save.data.difficulties = Difficulty.list; // just in case
-                                    FlxG.save.data.SONG = states.PlayState.SONG;
+                                    FlxG.save.data.SONG = PlayfieldManager.SONG;
                                     FlxG.save.data.storyDifficulty = states.PlayState.storyDifficulty;
                                     FlxG.save.data.songPos = FlxG.sound.music.time;
                                     FlxG.save.flush();
@@ -1590,7 +1588,7 @@ class APItem {
                                         default:
                                             Difficulty.list = Difficulty.defaultList.copy();
                                     }
-                                    states.PlayState.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
+                                    PlayfieldManager.SONG = backend.Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
                                     states.PlayState.storyWeek = -1;
                                     Mods.currentModDirectory = '';
                                     states.PlayState.storyDifficulty = Difficulty.list.length-1;
@@ -1914,8 +1912,7 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        LoadingState.noteCache = [];
-                        states.PlayState.curChart = [];
+                        MegaManager.playfield?  .curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
                     FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));
@@ -2357,8 +2354,8 @@ class APChartModifier extends APTrap {
 
         this.chartModifier = modifiers[Std.random(modifiers.length)];
         this.chartModifier = (this.chartModifier == "ManiaConverter" &&
-            ((states.PlayState.mania > 3) ||
-             (states.PlayState.SONG != null && states.PlayState.SONG.mania != null && states.PlayState.SONG.mania > 3)))
+            ((PlayfieldManager.mania[0] > 3) ||
+             (PlayfieldManager.SONG != null && PlayfieldManager.SONG.mania != null && PlayfieldManager.SONG.mania > 3)))
             ? "4K Only" : this.chartModifier;
 
         super("Chart Modifier Trap (" + this.chartModifier + ")", ConditionHelper.PlayState(Song), function() {

@@ -1,11 +1,11 @@
 package backend.modchart.modifiers;
 
-import backend.ui.*;
-import backend.modchart.*;
-import flixel.math.FlxPoint;
-import flixel.math.FlxMath;
-import flixel.FlxG;
 import backend.math.*;
+import backend.modchart.*;
+import backend.ui.*;
+import flixel.FlxG;
+import flixel.math.FlxMath;
+import flixel.math.FlxPoint;
 
 class ReceptorScrollModifier extends NoteModifier {
   inline function lerp(a:Float,b:Float,c:Float){
@@ -39,8 +39,8 @@ class ReceptorScrollModifier extends NoteModifier {
 	override function updateNote(beat:Float, daNote:Note, player:Int)
   {
     if(getValue(player)==0)return;
-		var speed = PlayState.instance.songSpeed * daNote.multSpeed;
-		
+		var speed = MegaManager.playfield?.songSpeed * daNote.multSpeed;
+
 		var timeDiff = (Conductor.songPosition - daNote.strumTime);
 
 		var diff = timeDiff;

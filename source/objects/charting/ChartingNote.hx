@@ -280,7 +280,7 @@ class ChartingNote extends FlxSprite
 		texture: null,
 		antialiasing: !PlayState.isPixelStage,
 		useGlobalShader: false,
-		useRGBShader: (PlayState.SONG != null) ? !(PlayState.SONG.disableNoteRGB == true) : true,
+		useRGBShader: (PlayfieldManager.SONG != null) ? !(PlayfieldManager.SONG.disableNoteRGB == true) : true,
 		r: -1,
 		g: -1,
 		b: -1,
@@ -368,7 +368,7 @@ class ChartingNote extends FlxSprite
 	}
 
 	private function set_noteType(value:String):String {
-		noteSplashData.texture = PlayState.SONG != null ? PlayState.SONG.splashSkin : 'noteSplashes/noteSplashes';
+		noteSplashData.texture = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.splashSkin : 'noteSplashes/noteSplashes';
 		defaultRGB();
 
 		if(noteData > -1 && noteType != value) {
@@ -428,8 +428,8 @@ class ChartingNote extends FlxSprite
 		isSustainNote = sustainNote;
 		this.inEditor = inEditor;
 		this.moves = false;
-		mania = PlayState.mania;
-		x += (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
+		mania = PlayfieldManager.mania[0];
+		x += (ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X) + 50;
 		// MAKE SURE ITS DEFINITELY OFF SCREEN?
 		y -= 2000;
 		this.strumTime = strumTime;
@@ -440,10 +440,10 @@ class ChartingNote extends FlxSprite
 		if(noteData > -1)
 		{
 			rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
-			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) rgbShader.enabled = false;
+			if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) rgbShader.enabled = false;
 			texture = '';
 
-			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
+			x += swagWidth * (noteData % Note.ammo[PlayfieldManager.mania[0]]);
 			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
 				animToPlay = Note.keysShit.get(mania).get('letters')[noteData];
@@ -561,7 +561,7 @@ class ChartingNote extends FlxSprite
 		var skin:String = texture + postfix;
 		if(texture.length < 1)
 		{
-			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
+			skin = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.arrowSkin : null;
 			if(skin == null || skin.length < 1)
 				skin = "noteSkins/NOTE_assets" + postfix;
 		}
@@ -597,7 +597,7 @@ class ChartingNote extends FlxSprite
 				var graphic = Paths.image('pixelUI/' + skinPixel + skinPostfix);
 				loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[1]), Math.floor(graphic.height / 5));
 			}
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayState.mania]));
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayfieldManager.mania[0]]));
 			loadPixelNoteAnims();
 			antialiasing = false;
 
@@ -662,7 +662,7 @@ class ChartingNote extends FlxSprite
 
 	function loadPixelNoteAnims() {
 		// Optimize Anim Loading.
-		var colorIndex:Int = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData];
+		var colorIndex:Int = Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex')[noteData];
 		var animName:String = gfxLetter[noteData];
 
 		if (animName != null) {

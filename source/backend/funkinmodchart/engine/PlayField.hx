@@ -9,44 +9,54 @@ import flixel.FlxBasic;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.math.FlxAngle;
+import flixel.math.FlxPoint;
 import flixel.tweens.FlxEase.EaseFunction;
 import openfl.display.BitmapData;
+import openfl.geom.Matrix;
 import openfl.geom.Rectangle;
 
-// TODO: make this extend to flxsprite and use parented transformation matrix
+/**
+ * PARENTED TRANSFORMATION TODOS:
+ * - [!] `x` / `y` (this autoticly allows motion variables, which are unusable by default (`moves = false`))
+ * - [!] `origin`
+ * - [!] `offset`
+ * - [!] `scale`
+ * - [!] `angle`
+ * - [!] `scrollFactor`
+ * - `clipRect`
+ * - `color` / `colorTransform`
+ * - `shader` (i dont think this is possible..?... just in case leaving this in TODOs yet)
+ * - `blend` (same as shader...)
+ */
 #if !openfl_debug
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
 final class PlayField extends FlxSprite {
+	public var context:Context;
+
 	public var events:EventManager;
 	public var modifiers:ModifierGroup;
-	public var camera3D:ModchartCamera3D;
 
-	private var arrowRenderer:ModchartArrowRenderer;
-	private var receptorRenderer:ModchartArrowRenderer;
-	private var attachmentRenderer:ModchartArrowRenderer;
-	private var holdRenderer:ModchartHoldRenderer;
-	private var pathRenderer:ModchartPathRenderer;
+	public var view(get, never):View3D;
 
-	public var projection:ModchartPerspective;
+	public var skew(default, null):FlxPoint = FlxPoint.get();
+
+	var _skewMatrix:Matrix = new Matrix();
+
+	function get_view()
+		return context.view;
 
 	public function new() {
 		super();
 
 		moves = false;
 
-		this.events = new EventManager(this);
-		this.modifiers = new ModifierGroup(this);
+		events = new EventManager(this);
+		modifiers = new ModifierGroup(this);
 
-		arrowRenderer = new ModchartArrowRenderer(this);
-		receptorRenderer = new ModchartArrowRenderer(this);
-		attachmentRenderer = new ModchartArrowRenderer(this);
-		holdRenderer = new ModchartHoldRenderer(this);
-		pathRenderer = new ModchartPathRenderer(this);
-
-		camera3D = new ModchartCamera3D();
-		projection = new ModchartPerspective();
+		context = new Context(this);
 
 		// default mods
 		addModifier('reverse');
@@ -58,6 +68,11 @@ final class PlayField extends FlxSprite {
 		setPercent('arrowPathAlpha', 1, -1);
 		setPercent('arrowPathThickness', 2, -1);
 		setPercent('rotateHoldY', 1, -1);
+
+		frameWidth = FlxG.width;
+		frameHeight = FlxG.height;
+
+		updateHitbox();
 	}
 
 	public inline function setPercent(name:String, value:Float, player:Int = -1)
@@ -195,157 +210,73 @@ final class PlayField extends FlxSprite {
 		super.update(elapsed);
 	}
 
-	override public function draw() {
-		__drawPlayField();
-		modifiers.postRender();
-	}
+	override public function draw() {}
 
 	override public function destroy() {
-		arrowRenderer.dispose();
-		holdRenderer.dispose();
-		receptorRenderer.dispose();
-		attachmentRenderer.dispose();
-		pathRenderer.dispose();
 		super.destroy();
 	}
-
-	var drawCB:Array<{callback:Void->Void, z:Float}> = [];
 
 	private function getVisibility(obj:flixel.FlxObject) {
 		@:bypassAccessor obj.visible = false;
 		return obj._fmVisible;
 	}
 
-	private function __drawPlayField() {
-		drawCB = [];
+	private function transformCmd(cmd:DrawCommand) {
+		var vertex = cmd.vertices;
+		var vc = Std.int(vertex.length / 2);
 
-		// TODO: prepare arrow paths shit
-		var pathAlphaTotal = .0;
+		final matrix = this._matrix;
+		matrix.identity();
 
-		var playerItems:Array<Array<Array<FlxSprite>>> = Adapter.instance.getArrowItems();
-
-		// used for preallocate
-		var receptorLength = 0;
-		var arrowLength = 0;
-		var holdLength = 0;
-		var attachmentLength = 0;
-
-		for (i in 0...playerItems.length) {
-			final curItems = playerItems[i];
-
-			if (curItems[0] != null)
-				receptorLength = receptorLength + curItems[0].length;
-			if (curItems[1] != null)
-				arrowLength = arrowLength + curItems[1].length;
-			if (curItems[2] != null)
-				holdLength = holdLength + curItems[2].length;
-			if (curItems[3] != null)
-				attachmentLength = attachmentLength + curItems[3].length;
-			// curItems[4] (sustain splashes) are not processed here
+		if (flipX) {
+			matrix.scale(-1, 1);
+			matrix.translate(width, 0);
 		}
 
-		if (receptorLength != 0)
-			receptorRenderer.preallocate(receptorLength);
-		if (arrowLength != 0)
-			arrowRenderer.preallocate(arrowLength);
-		if (holdLength != 0)
-			holdRenderer.preallocate(holdLength);
-		if (attachmentLength != 0)
-			attachmentRenderer.preallocate(attachmentLength);
-
-		if (Config.RENDER_ARROW_PATHS)
-			pathRenderer.preallocate(receptorLength);
-
-		drawCB.resize(receptorLength + arrowLength + holdLength + attachmentLength);
-
-		var j = 0;
-		inline function queue(f:{callback:Void->Void, z:Float}) {
-			drawCB[j] = f;
-			j++;
+		if (flipY) {
+			matrix.scale(1, -1);
+			matrix.translate(0, height);
 		}
 
-		// i is player index
-		for (i in 0...playerItems.length) {
-			var curItems:Array<Array<FlxSprite>> = playerItems[i];
+		matrix.translate(-origin.x, -origin.y);
+		matrix.scale(scale.x, scale.y);
 
-			if (curItems == null || curItems.length == 0)
-				continue;
-
-			final drawHolds = () -> {
-				if (holdLength > 0) {
-					for (hold in curItems[2]) {
-						if (!getVisibility(hold))
-							continue;
-
-						holdRenderer.prepare(hold);
-						queue({
-							callback: holdRenderer.shift,
-							z: hold._z
-						});
-					}
-				}
-			};
-
-			// holds (behind strums)
-			if (Config.HOLDS_BEHIND_STRUM)
-				drawHolds();
-
-			// receptors
-			if (receptorLength > 0) {
-				for (receptor in curItems[0]) {
-					if (!getVisibility(receptor))
-						continue;
-
-					receptorRenderer.prepare(receptor);
-					if (Config.RENDER_ARROW_PATHS)
-						pathRenderer.prepare(receptor);
-					queue({
-						callback: receptorRenderer.shift,
-						z: receptor._z
-					});
-				}
-			}
-
-			// holds (infront of strums)
-			if (!Config.HOLDS_BEHIND_STRUM)
-				drawHolds();
-
-			// tap arrow
-			if (arrowLength > 0) {
-				for (arrow in curItems[1]) {
-					if (!getVisibility(arrow))
-						continue;
-
-					arrowRenderer.prepare(arrow);
-					queue({
-						callback: arrowRenderer.shift,
-						z: arrow._z
-					});
-				}
-			}
-
-			// attachments (splashes)
-			if (attachmentLength > 0) {
-				for (attachment in curItems[3]) {
-					if (!getVisibility(attachment))
-						continue;
-
-					attachmentRenderer.prepare(attachment);
-					queue({
-						callback: attachmentRenderer.shift,
-						z: attachment._z
-					});
-				}
-			}
-
-			// curItems[4] (sustain splashes) se omite intencionalmente
-			// Los sustain splashes se renderizan directamente por PlayState sin transformaciones de modchart
+		if (bakedRotationAngle <= 0) {
+			updateTrig();
+			if (angle != 0)
+				matrix.rotateWithTrig(_cosAngle, _sinAngle);
 		}
 
-		for (r in [receptorRenderer, arrowRenderer, holdRenderer, attachmentRenderer])
-			r.sort();
+		updateSkewMatrix();
+		_matrix.concat(_skewMatrix);
 
-		if (Config.RENDER_ARROW_PATHS)
-			pathRenderer.shift();
+		_point.set().subtractPoint(offset);
+		_point.add(origin.x, origin.y);
+		matrix.translate(_point.x, _point.y);
+
+		// if (isPixelPerfectRender(camera)) {
+		// 	matrix.tx = Math.floor(matrix.tx);
+		// 	matrix.ty = Math.floor(matrix.ty);
+		// }
+
+		for (c in 0...vc) {
+			var i = c * 2;
+			var x = vertex[i];
+			var y = vertex[i + 1];
+
+			vertex[i] = matrix.transformX(x, y);
+			vertex[i + 1] = matrix.transformY(x, y);
+		}
+
+		return cmd;
+	}
+
+	function updateSkewMatrix():Void {
+		_skewMatrix.identity();
+
+		if (skew.x != 0 || skew.y != 0) {
+			_skewMatrix.b = Math.tan(skew.y * FlxAngle.TO_RAD);
+			_skewMatrix.c = Math.tan(skew.x * FlxAngle.TO_RAD);
+		}
 	}
 }

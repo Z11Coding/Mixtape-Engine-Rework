@@ -70,25 +70,24 @@ class Reverse extends Modifier {
 
 	function applyScrollMods(scroll:Vector3, params:ModifierParameters) {
 		var player = params.player;
-		var receptorName = Std.string(params.lane);
 		var angleX = 0.;
 		var angleY = 0.;
 		var angleZ = 0.;
 
 		// Speed
-		scroll.y = scroll.y * (getPercent('xmod', player) + getPercent('xmod' + receptorName, player));
+		scroll.y = scroll.y * (getPercent('xmod', player) + getPercent('xmod' + Std.string(params.lane), player));
 
 		// Main
-		angleX = angleX + getPercent('scrollAngleX', player) + getPercent('scrollAngleX' + receptorName, player);
-		angleY = angleY + getPercent('scrollAngleY', player) + getPercent('scrollAngleY' + receptorName, player);
-		angleZ = angleZ + getPercent('scrollAngleZ', player) + getPercent('scrollAngleZ' + receptorName, player);
+		angleX = angleX + getPercent('scrollAngleX', player);
+		angleY = angleY + getPercent('scrollAngleY', player);
+		angleZ = angleZ + getPercent('scrollAngleZ', player);
 
 		// Curved
 		final shift:Float = params.distance * 0.25 * (1 + getPercent('curvedScrollPeriod', player));
 
-		angleX = angleX + shift * (getPercent('curvedScrollX', player) + getPercent('curvedScrollX' + receptorName, player));
-		angleY = angleY + shift * (getPercent('curvedScrollY', player) + getPercent('curvedScrollY' + receptorName, player));
-		angleZ = angleZ + shift * (getPercent('curvedScrollZ', player) + getPercent('curvedScrollZ' + receptorName, player));
+		angleX = angleX + shift * getPercent('curvedScrollX', player);
+		angleY = angleY + shift * getPercent('curvedScrollY', player);
+		angleZ = angleZ + shift * getPercent('curvedScrollZ', player);
 
 		// angleY doesnt do anything if angleX and angleZ are disabled
 		if (angleX == 0 && angleZ == 0)

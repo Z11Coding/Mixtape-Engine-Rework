@@ -132,8 +132,8 @@ class MasterEditorMenu extends MusicBeatState
 					MusicBeatState.switchState(new NoteSplashEditorState());
 				case 'Modchart Editor':
 					// Load a default song for modchart editing
-					if (PlayState.SONG == null) {
-						PlayState.SONG = Song.loadFromJson('tutorial', 'tutorial');
+					if (PlayfieldManager.SONG == null) {
+						PlayfieldManager.SONG = Song.loadFromJson('tutorial', 'tutorial');
 						PlayState.isStoryMode = false;
 						PlayState.storyDifficulty = 1;
 					}

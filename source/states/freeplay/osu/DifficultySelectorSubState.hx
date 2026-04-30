@@ -192,7 +192,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 
                     // Check if required characters and stage are unlocked via sanity system
                     if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-                        var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
+                        var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
                         if (missingItems.length > 0) {
                             trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
 

@@ -296,7 +296,7 @@ class LuaUtils
 
 	public static inline function getLowestCharacterGroup():FlxSpriteGroup
 	{
-		var stageData:StageFile = StageData.getStageFile(PlayState.SONG.stage);
+		var stageData:StageFile = StageData.getStageFile(PlayfieldManager.SONG.stage);
 		var group:FlxSpriteGroup = (stageData.hide_girlfriend ? PlayState.instance.boyfriendGroup : PlayState.instance.gfGroup);
 
 		var pos:Int = PlayState.instance.members.indexOf(group);

@@ -1,9 +1,9 @@
 package states.editors.content;
 
-import objects.charting.ChartingNote;
-import objects.Note;
-import shaders.RGBPalette;
 import flixel.util.FlxDestroyUtil;
+import objects.Note;
+import objects.charting.ChartingNote;
+import shaders.RGBPalette;
 
 class MetaNote extends ChartingNote
 {
@@ -38,7 +38,7 @@ class MetaNote extends ChartingNote
 		this.songData[1] = v;
 		this.noteData = v % ChartingState.GRID_COLUMNS_PER_PLAYER;
 		this.mustPress = (v < ChartingState.GRID_COLUMNS_PER_PLAYER);
-		
+
 		if(!PlayState.isPixelStage)
 			loadNoteAnims();
 		else
@@ -47,7 +47,7 @@ class MetaNote extends ChartingNote
 		if(ChartingNote.globalRgbShaders.contains(rgbShader.parent)) //Is using a default shader
 			rgbShader = new RGBShaderReference(this, ChartingNote.initializeGlobalRGBShader(noteData));
 
-		animation.play(Note.keysShit.get(PlayState.mania).get('letters')[noteData]);
+		animation.play(Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData]);
 		updateHitbox();
 		if(width > height)
 			setGraphicSize(ChartingState.GRID_SIZE);
@@ -98,7 +98,7 @@ class MetaNote extends ChartingNote
 		if(_lastZoom < 0) return;
 		setSustainLength(sustainLength, stepCrochet, _lastZoom, reverseScroll);
 	}
-	
+
 	var _noteTypeText:FlxText;
 	public function findNoteTypeText(num:Int)
 	{
@@ -163,7 +163,7 @@ class EditorSustain extends ChartingNote {
 
 		super(0, data, null, true, true);
 
-		animation.play(Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail');
+		animation.play(Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' tail');
 		scale.set(scale.x, scale.x);
 		updateHitbox();
 		flipY = false;
@@ -203,7 +203,7 @@ class EditorSustain extends ChartingNote {
 		sustainTile.frames = frames;
 		sustainTile.antialiasing = antialiasing;
 		sustainTile.animation.copyFrom(animation);
-		sustainTile.animation.play(Note.keysShit.get(PlayState.mania).get('letters')[noteData] + " hold");
+		sustainTile.animation.play(Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + " hold");
 		sustainTile.clipRect = new flixel.math.FlxRect(0, 1, sustainTile.frameWidth, 1);
 	}
 
@@ -216,7 +216,7 @@ class EditorSustain extends ChartingNote {
 			loadPixelNoteAnims();
 
 		reloadSustainTile();
-		animation.play(Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail');
+		animation.play(Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' tail');
 	}
 	public override function reloadNote(tex:String = '', postfix:String = '') {
 		super.reloadNote(tex, postfix);
@@ -233,7 +233,7 @@ class EventMetaNote extends MetaNote
 		this.isEvent = true;
 		events = eventData[1];
 		//trace('events: $events');
-		
+
 		loadGraphic(Paths.image('editors/eventIcon'));
 		setGraphicSize(ChartingState.GRID_SIZE);
 		updateHitbox();
@@ -243,7 +243,7 @@ class EventMetaNote extends MetaNote
 		eventText.scrollFactor.x = 0;
 		updateEventText();
 	}
-	
+
 	override function draw()
 	{
 		if(eventText != null && eventText.exists && eventText.visible)

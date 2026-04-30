@@ -178,7 +178,7 @@ class DiffSubState extends MusicBeatSubstate
 		if(ratingSplit.length < 2) { //No decimals, add an empty space
 			ratingSplit.push('');
 		}
-		
+
 		while(ratingSplit[1].length < 2) { //Less than 2 decimals in it, add decimals then
 			ratingSplit[1] += '0';
 		}
@@ -240,7 +240,7 @@ class DiffSubState extends MusicBeatSubstate
 				close();
 				var name:String = daSelected;
 				var poop = Highscore.formatSong(name, curDifficulty);
-				PlayState.SONG = Song.loadFromJson(poop, name);
+				PlayfieldManager.SONG = Song.loadFromJson(poop, name);
 				PlayState.isStoryMode = false;
 				PlayState.storyDifficulty = curDifficulty;
 				TransitionState.transitionState(PlayState, {transitionType: "stickers"});
@@ -306,7 +306,7 @@ class DiffSubState extends MusicBeatSubstate
 			curSelected = 0;
 
 		changeDiff();
-		
+
 		var bullShit:Int = 0;
 
 		if (songChoices[curSelected] == "BACK")

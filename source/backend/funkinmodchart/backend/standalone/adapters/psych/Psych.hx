@@ -10,7 +10,6 @@ import flixel.FlxSprite;
 import objects.Note;
 import objects.NoteSplash;
 import objects.StrumNote as Strum;
-import objects.SustainSplash;
 import states.PlayState;
 
 class Psych implements IAdapter {
@@ -23,6 +22,8 @@ class Psych implements IAdapter {
 			trace('[FunkinModchart Mixtape Adapter] Failed while adding lua functions: $e');
 		}
 	}
+
+	public function onModchartingDispose() {}
 
 	public function onModchartingInitialization() {
 		__fCrochet = (Conductor.crochet + 8) / 4;
@@ -40,7 +41,7 @@ class Psych implements IAdapter {
 
 	// Song related
 	public function getSongPosition():Float {
-		return Conductor.songPosition;
+		return MegaManager.conductor.musicPosition;
 	}
 
 	public function getCurrentBeat():Float {
@@ -49,7 +50,7 @@ class Psych implements IAdapter {
 	}
 
 	public function getCurrentCrochet():Float {
-		return Conductor.crochet;
+		return RConductor.crochet;
 	}
 
 	public function getBeatFromStep(step:Float)
@@ -101,7 +102,7 @@ class Psych implements IAdapter {
 	}
 
 	public function getPlayerCount():Int {
-		return 2;
+		return MegaManager.playfield.playfields.length;
 	}
 
 	public function getTimeFromArrow(arrow:FlxSprite) {
@@ -131,48 +132,29 @@ class Psych implements IAdapter {
 		#end
 	}
 
-	inline function getStrumFromInfo(lane:Int, player:Float) {
-		var group = player == 0 ? PlayState.instance.opponentStrums : PlayState.instance.playerStrums;
+	inline function getStrumFromInfo(lane:Int, player:Int):StrumNote {
+		var group = MegaManager.playfield.playfields.members[player].strumNotes;
 		var strum = null;
-		group.forEach(str -> {
-			@:privateAccess
-			if (str.noteData == lane)
+		for (str in group) {
+			if (str.column == lane)
 				strum = str;
-		});
+		};
 		return strum;
 	}
 
-	// Using the Troll Engine redition for consistancy
-	public var playerAmount:Int = 2;
-	public var playerOOBIsCentered:Bool = true; // Player Out of Bounds is centered
-	public var vPadding:Float = 45;
-
-	public function getDefaultReceptorX(lane:Int, player:Float):Float {
-		var strum = getStrumFromInfo(lane, player);
-		if (strum == null) return 0;
-		if (playerOOBIsCentered && (player >= playerAmount || player < 0))
-			player = 0.5; // replicating old behaviour for upcoming modcharts
-
-		var spaceWidth = FlxG.width / playerAmount;
-		var spaceX = spaceWidth * (playerAmount-1-player);
-
-		var baseX:Float = spaceX + (spaceWidth - (Note.swagWidthAlt * Note.scales[getKeyCount()]) * getKeyCount()) * 0.5;
-		var x:Float = baseX + (Note.swagWidthAlt * Note.scales[getKeyCount()]) * lane;
-
-		return x;
+	public function getDefaultReceptorX(lane:Int, player:Int):Float {
+		return getStrumFromInfo(lane, player).x;
 	}
 
 	public function getDefaultReceptorY(lane:Int, player:Int):Float {
-		var strum = getStrumFromInfo(lane, player);
-		if (strum == null) return 0;
-		return getDownscroll() ? FlxG.height - strum.y - Note.swagWidth : strum.y;
+		return getDownscroll() ? FlxG.height - getStrumFromInfo(lane, player).y - Note.swagWidth : getStrumFromInfo(lane, player).y;
 	}
 
 	public function getArrowCamera():Array<FlxCamera>
 		return [PlayState.instance.camHUD];
 
 	public function getCurrentScrollSpeed():Float {
-		return MegaManager.playfield.songSpeed * .45;
+		return PlayfieldManager.SONGSpeed * .45;
 	}
 
 	// 0 receptors

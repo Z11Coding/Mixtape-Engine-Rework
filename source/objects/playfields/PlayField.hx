@@ -94,7 +94,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var pathLines:Array<PathLine> = []; // lines
 	public var strumNotes:Array<StrumNote> = []; // receptors
 	public var characters:Array<Character> = []; // characters that sing when field is hit
-	public var singAnimations:Array<String> = ["singLEFT", "singDOWN", "singUP", "singRIGHT"]; // default character animations to play for each column
+	public var singAnimations:Array<String> = [] // default character animations to play for each column
 
 	public var noteField:NoteField; // renderer
 	public var modManager:ModManager; // the mod manager. will be set automatically by playstate so dw bout this
@@ -144,6 +144,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		setDefaultBaseXPositions();
 		setDefaultBaseYPositions();
+
+		PlayfieldManager.mania[modNumber] = cnt;
+		singAnimations = Note.keysShit.get(cnt).get('singAnims');
 
 		return keyCount = cnt;
 	}
@@ -215,7 +218,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public function new(modMgr:ModManager, ?keyCount:Int){
 		super();
 		this.modManager = modMgr;
-		this.keyCount = keyCount == null ? Note.ammo[PlayState.mania] : keyCount;
+		this.keyCount = keyCount == null ? Note.ammo[PlayfieldManager.mania[0]] : keyCount;
 
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
 		add(grpNoteSplashes);
@@ -781,7 +784,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 					if (dontCheck && possibleNotes.length > 0 || !ClientPrefs.data.noAntimash && possibleNotes.length > 0)
 					{
-						if (PlayState.instance.mashViolations > (Note.ammo[PlayState.mania]) && !ClientPrefs.data.noAntimash)
+						if (PlayState.instance.mashViolations > (Note.ammo[PlayfieldManager.mania[0]]) && !ClientPrefs.data.noAntimash)
 						{
 							trace('mash violations ' + PlayState.instance.mashViolations);
 							PlayState.instance.scoreTxt.color = FlxColor.RED;
@@ -819,17 +822,17 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					var ignoreList:Array<Int> = [];
 					var notesToHit:Array<Note> = [];
 
-					for (i in 0...Note.ammo[PlayState.mania]) notesToHit.push(null);
+					for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) notesToHit.push(null);
 					for (daNote in noteList)
 					{
 						if (daNote.canBeHit && daNote.mustPress && !daNote.tooLate && !daNote.wasGoodHit && !daNote.isSustainNote)
 						{
-							if (keysPressed[(daNote.noteData % Note.ammo[PlayState.mania]) % Note.ammo[PlayState.mania]]) {
+							if (keysPressed[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]]) {
 								var can = false;
-								if (notesToHit[(daNote.noteData % Note.ammo[PlayState.mania]) % Note.ammo[PlayState.mania]] != null) {
-									if (notesToHit[(daNote.noteData % Note.ammo[PlayState.mania]) % Note.ammo[PlayState.mania]].strumTime > daNote.strumTime)
+								if (notesToHit[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]] != null) {
+									if (notesToHit[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]].strumTime > daNote.strumTime)
 										can = true;
-									if (notesToHit[(daNote.noteData % Note.ammo[PlayState.mania]) % Note.ammo[PlayState.mania]].strumTime == daNote.strumTime) {
+									if (notesToHit[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]].strumTime == daNote.strumTime) {
 										if (!daNote.forceBlockHit)
 											noteHitCallback(daNote, this);
 										return daNote;
@@ -837,7 +840,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 								} else {
 									can = true;
 								}
-								if (can) notesToHit[(daNote.noteData % Note.ammo[PlayState.mania]) % Note.ammo[PlayState.mania]] = daNote;
+								if (can) notesToHit[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]] = daNote;
 							}
 						}
 					};
@@ -854,7 +857,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					{
 						if (daNote.canBeHit && daNote.mustPress && daNote.isSustainNote)
 						{
-							if (keysPressed[(daNote.noteData % Note.ammo[PlayState.mania]) % Note.ammo[PlayState.mania]])
+							if (keysPressed[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]])
 							{
 								if (!daNote.forceBlockHit)
 									noteHitCallback(daNote, this);
@@ -911,7 +914,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	// generates the receptors
 	public function generateStrums(){
 		var strumLineY:Float = ClientPrefs.data.downScroll ? (FlxG.height - 150) : 50;
-		var strumLineX:Float = ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X;
+		var strumLineX:Float = ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X;
 		for(i in 0...keyCount){
 			var babyArrow:StrumNote = new StrumNote(strumLineX, strumLineY, i, this);
 			babyArrow.downScroll = ClientPrefs.data.downScroll;
@@ -1258,7 +1261,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		if (inControl && AIPlayer)
 		{
-			for(i in 0...Note.ammo[PlayState.mania]){
+			for(i in 0...Note.ammo[PlayfieldManager.mania[0]]){
 				for (daNote in getNotes(i, (note:Note) -> !note.ignoreNote && !note.hitCausesMiss)){
 					var hitDiff = daNote.strumTime - Conductor.songPosition;
 					if (daNote.AIStrumTime != 0 && !daNote.AIMiss)

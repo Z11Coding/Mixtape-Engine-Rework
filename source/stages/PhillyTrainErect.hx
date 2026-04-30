@@ -56,7 +56,7 @@ class PhillyTrainErect extends BaseStage
 		add(phillyStreet);
 
 
-		if (!seenCutscene && PlayState.SONG.player1 == "pico-playable" && PlayState.SONG.player2 == "pico"){
+		if (!seenCutscene && PlayfieldManager.SONG.player1 == "pico-playable" && PlayfieldManager.SONG.player2 == "pico"){
 			cutsceneObj = new TwoPicos(this, colorShader);
 			setStartCallback(cutsceneObj.startCutscene);
 		}

@@ -458,15 +458,7 @@ class LoadingState extends MusicBeatState
 	{
 
 		// Check if preload setting is enabled and target is PlayState
-		if (ClientPrefs.data.preloadSong && Std.isOfType(target, states.PlayState)) {
-			trace("LoadingState: Preload enabled, starting async chart generation for PlayState");
-			// prepareToSong();
-			if (Std.isOfType(FlxG.state, states.PlayState) && Std.isOfType(target, states.PlayState) || !_doingRestart) { _doingRestart = true; trace("PlayState is restarting without proper flagging. Preventing crash!"); }
-			startPlayStatePreload(cast(target, states.PlayState));
-		} else if (preloadAsync != null) {
-			trace("LoadingState: Killing what shouldn't be there. (Preloader)");
-			preloadAsync = null;
-		}
+		preloadAsync = null;
 
 		#if !SHOW_LOADING_SCREEN
 		intrusive = false;
@@ -554,7 +546,7 @@ class LoadingState extends MusicBeatState
 
 	public static function prepareToSong()
 	{
-		if(PlayState.SONG == null)
+		if(PlayfieldManager.SONG == null)
 		{
 			imagesToPrepare = [];
 			soundsToPrepare = [];
@@ -568,10 +560,10 @@ class LoadingState extends MusicBeatState
 			return;
 		}
 
-		lastSong = PlayState.SONG.song;
+		lastSong = PlayfieldManager.SONG.song;
 		lastMod = Mods.currentModDirectory;
 
-		if(PlayState.SONG != null) {
+		if(PlayfieldManager.SONG != null) {
 			//trace('Preloading Chart');
 			chartLoaded = false;
 			//preloadChart();
@@ -597,12 +589,12 @@ class LoadingState extends MusicBeatState
 			}
 		}
 
-		var song:SwagSong = PlayState.SONG;
+		var song:SwagSong = PlayfieldManager.SONG;
 		var folder:String = Paths.formatToSongPath(Song.loadedSongName);
 		new Future<Bool>(() -> {
 			// LOAD NOTE IMAGE
 			var noteSkin:String = Note.defaultNoteSkin;
-			if(PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) noteSkin = PlayState.SONG.arrowSkin;
+			if(PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 1) noteSkin = PlayfieldManager.SONG.arrowSkin;
 
 			var customSkin:String = noteSkin + Note.getNoteSkinPostfix();
 			if(Paths.fileExists('images/$customSkin.png', IMAGE)) noteSkin = customSkin;
@@ -611,7 +603,7 @@ class LoadingState extends MusicBeatState
 
 			// LOAD NOTE SPLASH IMAGE
 			var noteSplash:String = NoteSplash.defaultNoteSplash;
-			if(PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) noteSplash = PlayState.SONG.splashSkin;
+			if(PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) noteSplash = PlayfieldManager.SONG.splashSkin;
 			else noteSplash += NoteSplash.getSplashSkinPostfix();
 			imagesToPrepare.push(noteSplash);
 
@@ -904,16 +896,8 @@ class LoadingState extends MusicBeatState
 		// for images, they get to have their own thread
 		for (image in imagesToPrepare) preloadGraphic(image); //initThread(() -> preloadGraphic(image), 'image $image');
 
-		//Preload Song
-		switch (ClientPrefs.data.chartPreload) {
-			case 'Off':
-				loaded++;
-				chartLoaded = true;
-			case 'No Threadding':
-				preloadChart();
-			case 'On':
-				initThreadAlt(preloadChart, 'chart');
-		}
+		loaded++;
+		chartLoaded = true;
 	}
 
 	static function initThread(func:Void->Dynamic, traceData:String)
@@ -942,29 +926,6 @@ class LoadingState extends MusicBeatState
 			// mutex.acquire();
 			loaded++;
 			// mutex.release();
-		});
-	}
-
-	static function initThreadAlt(func:Void->Void, traceData:String)
-	{
-		// trace('scheduled $func in threadPool');
-		#if debug
-		var threadSchedule = Sys.time();
-		#end
-		threadPool.run(() -> {
-			#if debug
-			var threadStart = Sys.time();
-			trace('$traceData took ${threadStart - threadSchedule}s to start preloading');
-			#end
-
-			try {
-				func();
-			}
-			catch(e:Dynamic) {
-				trace('ERROR! fail on preloading $traceData: $e');
-			}
-
-			loaded++;
 		});
 	}
 
@@ -1017,7 +978,7 @@ class LoadingState extends MusicBeatState
 			if (prefixVocals != null && character.vocals_file != null && character.vocals_file.length > 0)
 			{
 				songsToPrepare.push(prefixVocals + "-" + character.vocals_file);
-				if(char == PlayState.SONG.player1) dontPreloadDefaultVoices = true;
+				if(char == PlayfieldManager.SONG.player1) dontPreloadDefaultVoices = true;
 			}
 		}
 		catch(e:haxe.Exception)
@@ -1112,13 +1073,13 @@ class LoadingState extends MusicBeatState
 	 * Uses ASync to generate song chart without visual objects
 	 */
 	static function startPlayStatePreload(playStateTarget:states.PlayState):Void {
-		if (playStateTarget == null || states.PlayState.SONG == null) {
+		if (playStateTarget == null || PlayfieldManager.SONG == null) {
 			trace("LoadingState: Cannot preload - target or SONG is null");
 			return;
 		}
 		trace("Is Restarting: " + _doingRestart);
 
-		trace("LoadingState: Starting async preload for song: " + states.PlayState.SONG.song);
+		trace("LoadingState: Starting async preload for song: " + PlayfieldManager.SONG.song);
 
 
 		// Create async function for chart generation
@@ -1142,8 +1103,7 @@ class LoadingState extends MusicBeatState
 
 			// Call generateSong with preload=true on the target instance
 			@:privateAccess
-			playStateTarget.waitingForPreloadFinish = true;
-			states.PlayState.mania = states.PlayState.SONG.startMania ?? states.PlayState.SONG.mania ?? 3;
+			PlayfieldManager.mania[0] = PlayfieldManager.SONG.startMania ?? PlayfieldManager.SONG.mania ?? 3;
 			playStateTarget.forceGenerateSong(true);
 
 			trace("LoadingState: Async preload generation completed");

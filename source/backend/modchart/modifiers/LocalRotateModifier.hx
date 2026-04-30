@@ -66,7 +66,7 @@ class LocalRotateModifier extends NoteModifier { // this'll be rotateX in ModMan
 		var shid:Array<String> = ['rotateX', 'rotateY', 'rotateZ'];
 
 		var submods:Array<String> = [
-			for (d in 0...Note.ammo[PlayState.mania])
+			for (d in 0...Note.ammo[PlayfieldManager.mania[0]])
 			{
 				for (s in shid)
 					'$prefix$d$s';

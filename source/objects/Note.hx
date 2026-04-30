@@ -577,7 +577,7 @@ class Note extends NoteObject
 		texture: null,
 		antialiasing: !PlayState.isPixelStage,
 		useGlobalShader: false,
-		useRGBShader: (PlayState.SONG != null) ? !(PlayState.SONG.disableNoteRGB == true) : true,
+		useRGBShader: (PlayfieldManager.SONG != null) ? !(PlayfieldManager.SONG.disableNoteRGB == true) : true,
 		r: -1,
 		g: -1,
 		b: -1,
@@ -753,10 +753,10 @@ class Note extends NoteObject
 
 	public function defaultRGB()
 	{
-		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData]];
-		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData]];
+		var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex')[noteData]];
+		if(PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex')[noteData]];
 
-		if (arr != null && noteData > -1 && noteData <= PlayState.mania)
+		if (arr != null && noteData > -1 && noteData <= PlayfieldManager.mania[0])
 		{
 			// Store temporarily if in preload mode, otherwise set directly
 			if (isInPreloadMode && tempRGBColors != null) {
@@ -792,7 +792,7 @@ class Note extends NoteObject
 	}
 
 	private function set_noteType(value:String):String {
-		noteSplashData.texture = PlayState.SONG != null ? PlayState.SONG.splashSkin : 'noteSplashes/noteSplashes';
+		noteSplashData.texture = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.splashSkin : 'noteSplashes/noteSplashes';
 		defaultRGB();
 
 		if(noteData > -1 && noteType != value) {
@@ -977,7 +977,7 @@ class Note extends NoteObject
 			if (noteData > -1) {
 				tempRGBData = {
 					noteData: noteData,
-					disableRGB: PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck,
+					disableRGB: PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB && !isCheck,
 					isPixelStage: PlayState.isPixelStage,
 					postfix: getNoteSkinPostfix().toLowerCase()
 				};
@@ -997,13 +997,13 @@ class Note extends NoteObject
 
 		baseAlpha = 1;
 
-		x += (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
+		x += (ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X) + 50;
 		// MAKE SURE ITS DEFINITELY OFF SCREEN?
 		y -= 2000;
 		this.strumTime = strumTime;
 		if(!inEditor) {
 			this.strumTime += ClientPrefs.data.noteOffset;
-			visualTime = PlayState.getNoteInitialTime(this.strumTime);
+			visualTime = PlayfieldManager.getNoteInitialTime(this.strumTime);
 		}
 
 		this.noteData = noteData;
@@ -1011,7 +1011,7 @@ class Note extends NoteObject
 		if(noteData > -1)
 		{
 			rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
-			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
+			if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
 			texture = '';
 
 			if (PlayState.isPixelStage || getNoteSkinPostfix().toLowerCase() == '-retribution')
@@ -1019,17 +1019,17 @@ class Note extends NoteObject
 
 			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
-				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+				animToPlay = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData];
 				if (hasAnimation(animToPlay))
 					animation.play(animToPlay);
 				else
 				{
-					animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
+					animToPlay = colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]];
 					animation.play(animToPlay + 'Scroll');
 				}
 			}
 
-			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
+			x += swagWidth * (noteData % Note.ammo[PlayfieldManager.mania[0]]);
 		}
 
 		// trace(prevNote);
@@ -1054,10 +1054,10 @@ class Note extends NoteObject
 			//offsetY += height / 2;
 
 			var animToPlay:String = '';
-			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
+			animToPlay = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' tail';
 			if (!hasAnimation(animToPlay))
 			{
-				animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
+				animToPlay = colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + 'holdend';
 			}
 			animation.play(animToPlay);
 
@@ -1073,10 +1073,10 @@ class Note extends NoteObject
 			if (prevNote != null && prevNote.isSustainNote)
 			{
 				var animToPlay2:String = '';
-				animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
+				animToPlay2 = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' hold';
 				if (!hasAnimation(animToPlay2))
 				{
-					animToPlay2 = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
+					animToPlay2 = colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + 'hold';
 				}
 				prevNote.animation.play(animToPlay2);
 
@@ -1130,13 +1130,13 @@ class Note extends NoteObject
 
 		baseAlpha = 1;
 
-		x += (ClientPrefs.data.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X) + 50;
+		x += (ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X) + 50;
 		// MAKE SURE ITS DEFINITELY OFF SCREEN?
 		y -= 2000;
 
 		if(!inEditor) {
 			this.strumTime += ClientPrefs.data.noteOffset;
-			visualTime = PlayState.getNoteInitialTime(this.strumTime);
+			visualTime = PlayfieldManager.getNoteInitialTime(this.strumTime);
 		}
 
 		if(noteData > -1)
@@ -1164,7 +1164,7 @@ class Note extends NoteObject
 			} else {
 				// Fallback initialization if no temp data
 				rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData));
-				if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
+				if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
 				texture = '';
 
 				if (PlayState.isPixelStage || getNoteSkinPostfix().toLowerCase() == '-retribution')
@@ -1173,17 +1173,17 @@ class Note extends NoteObject
 
 			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
-				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+				animToPlay = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData];
 				if (hasAnimation(animToPlay))
 					animation.play(animToPlay);
 				else
 				{
-					animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
+					animToPlay = colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]];
 					animation.play(animToPlay + 'Scroll');
 				}
 			}
 
-			x += swagWidth * (noteData % Note.ammo[PlayState.mania]);
+			x += swagWidth * (noteData % Note.ammo[PlayfieldManager.mania[0]]);
 		}
 
 		// trace(prevNote);
@@ -1208,10 +1208,10 @@ class Note extends NoteObject
 			//offsetY += height / 2;
 
 			var animToPlay:String = '';
-			animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
+			animToPlay = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' tail';
 			if (!hasAnimation(animToPlay))
 			{
-				animToPlay = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
+				animToPlay = colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + 'holdend';
 			}
 			animation.play(animToPlay);
 
@@ -1227,10 +1227,10 @@ class Note extends NoteObject
 			if (prevNote != null && prevNote.isSustainNote)
 			{
 				var animToPlay2:String = '';
-				animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
+				animToPlay2 = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData] + ' hold';
 				if (!hasAnimation(animToPlay2))
 				{
-					animToPlay2 = colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
+					animToPlay2 = colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + 'hold';
 				}
 				prevNote.animation.play(animToPlay2);
 
@@ -1305,7 +1305,7 @@ class Note extends NoteObject
 		var skin:String = texture + postfix;
 		if(texture.length < 1)
 		{
-			skin = PlayState.SONG != null ? PlayState.SONG.arrowSkin : null;
+			skin = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.arrowSkin : null;
 			if (skin == null || skin.length < 1)
 				skin = "noteSkins/NOTE_assets" + postfix;
 		}
@@ -1354,7 +1354,7 @@ class Note extends NoteObject
 						var graphic = Paths.image('pixelUI/' + skinPixel + skinPostfix);
 						loadGraphic(graphic, true, Math.floor(graphic.width / pixelNotesDivisionValue[graphic.width == 306 ? 1 : 0]), Math.floor(graphic.height / 5));
 					}
-					setGraphicSize(Std.int(width * PlayState.daPixelZoom * pixelScales[PlayState.mania]));
+					setGraphicSize(Std.int(width * PlayState.daPixelZoom * pixelScales[PlayfieldManager.mania[0]]));
 					loadPixelNoteAnims();
 					antialiasing = false;
 			}
@@ -1405,15 +1405,15 @@ class Note extends NoteObject
 	function loadNoteAnims() {
 		/*for (i in 0...gfxLetter.length)
 		{
-			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + '0');
-			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[i]] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[i]] + '0');
 			attemptToAddAnimationByPrefix(gfxLetter[i], gfxLetter[i] + '0');
 
 			if (isSustainNote)
 			{
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', 'pruple end hold');
-				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + ' hold end');
-				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[i]] + ' hold piece');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[i]] + ' hold end');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[i]] + ' hold piece');
 
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', gfxLetter[i] + ' hold');
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', gfxLetter[i] + ' tail');
@@ -1423,33 +1423,33 @@ class Note extends NoteObject
 		for (i in 0...gfxLetter.length)
 		{
 			attemptToAddAnimationByPrefix(gfxLetter[i], gfxLetter[i] + '0');
-			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + '0');
-			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(gfxLetter[i], colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + '0');
 
 			if (isSustainNote)
 			{
-				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold end');
-				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold piece');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + ' hold end');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + ' hold piece');
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', gfxLetter[i] + ' hold');
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', gfxLetter[i] + ' tail');
 
 				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', 'pruple end hold');
-				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold end');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' tail', colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + ' hold end');
 
-				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + ' hold piece');
+				attemptToAddAnimationByPrefix(gfxLetter[i] + ' hold', colArray[Note.keysShit.get(PlayfieldManager.mania[0]).get('colArray')[noteData]] + ' hold piece');
 			}
 		}
 
 		if (isSustainNote)
-			setGraphicSize(Std.int(width * scales[PlayState.mania]), Std.int(defaultHeight * scales[PlayState.mania] * 5));
+			setGraphicSize(Std.int(width * scales[PlayfieldManager.mania[0]]), Std.int(defaultHeight * scales[PlayfieldManager.mania[0]] * 5));
 		else
-			setGraphicSize(Std.int(width * scales[PlayState.mania]));
+			setGraphicSize(Std.int(width * scales[PlayfieldManager.mania[0]]));
 		updateHitbox();
 	}
 
 	function loadPixelNoteAnims() {
 		// Optimize Anim Loading.
-		var colorIndex:Int = Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[noteData];
+		var colorIndex:Int = Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex')[noteData];
 		var animName:String = gfxLetter[noteData];
 
 		if (animName != null) {

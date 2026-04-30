@@ -13,69 +13,69 @@ class FMMFunctions
 
         // Add modifier
         Lua_helper.add_callback(lua, "addModifier", function(name:String, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null)
-                PlayState.instance?.fmManager?.addModifier(name, field);
+            if (MegaManager.playfield?.fmManager != null)
+                MegaManager.playfield?.fmManager?.addModifier(name, field);
             else
                 trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Set modifier percentage
         Lua_helper.add_callback(lua, "setPercentFMM", function(name:String, value:Float, ?player:Int = -1, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null)
-                PlayState.instance?.fmManager?.setPercent(name, value, player, field);
+            if (MegaManager.playfield?.fmManager != null)
+                MegaManager.playfield?.fmManager?.setPercent(name, value, player, field);
             else
                 trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Get modifier percentage
         Lua_helper.add_callback(lua, "getPercentFMM", function(name:String, ?player:Int = 0, ?field:Int = 0):Float {
-            if (PlayState.instance?.fmManager != null)
-                return PlayState.instance?.fmManager?.getPercent(name, player, field);
+            if (MegaManager.playfield?.fmManager != null)
+                return MegaManager.playfield?.fmManager?.getPercent(name, player, field);
             return 0.0;
         });
 
         // Set value to a specific beat
         Lua_helper.add_callback(lua, "set", function(name:String, beat:Float, value:Float, ?player:Int = -1, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null)
-                PlayState.instance?.fmManager?.set(name, beat, value, player, field);
+            if (MegaManager.playfield?.fmManager != null)
+                MegaManager.playfield?.fmManager?.set(name, beat, value, player, field);
             else
                 trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Easing a modifier
         Lua_helper.add_callback(lua, "ease", function(name:String, beat:Float, length:Float, value:Float, easeName:String, ?player:Int = -1, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null) {
+            if (MegaManager.playfield?.fmManager != null) {
                 var easeFunc = getEaseFunction(easeName);
-                PlayState.instance?.fmManager?.ease(name, beat, length, value, easeFunc, player, field);
+                MegaManager.playfield?.fmManager?.ease(name, beat, length, value, easeFunc, player, field);
             } else
                 trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Add value with easing
         Lua_helper.add_callback(lua, "add", function(name:String, beat:Float, length:Float, value:Float, easeName:String, ?player:Int = -1, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null) {
+            if (MegaManager.playfield?.fmManager != null) {
                 var easeFunc = getEaseFunction(easeName);
-                PlayState.instance?.fmManager?.add(name, beat, length, value, easeFunc, player, field);
+                MegaManager.playfield?.fmManager?.add(name, beat, length, value, easeFunc, player, field);
             } else
                 trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
 
         // Establish and add value
         Lua_helper.add_callback(lua, "setAdd", function(name:String, beat:Float, value:Float, ?player:Int = -1, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null)
-                PlayState.instance?.fmManager?.setAdd(name, beat, value, player, field);
+            if (MegaManager.playfield?.fmManager != null)
+                MegaManager.playfield?.fmManager?.setAdd(name, beat, value, player, field);
         });
 
         // Add new playfield
         Lua_helper.add_callback(lua, "addPlayfield", function() {
-            if (PlayState.instance?.fmManager != null)
-                PlayState.instance?.fmManager?.addPlayfield();
+            if (MegaManager.playfield?.fmManager != null)
+                MegaManager.playfield?.fmManager?.addPlayfield();
         });
 
         // Create alias for modifier
         Lua_helper.add_callback(lua, "alias", function(name:String, aliasName:String, field:Int) {
-            if (PlayState.instance?.fmManager != null)
-                PlayState.instance?.fmManager?.alias(name, aliasName, field);
+            if (MegaManager.playfield?.fmManager != null)
+                MegaManager.playfield?.fmManager?.alias(name, aliasName, field);
         });
 
         // Useful constants
@@ -97,8 +97,8 @@ class FMMFunctions
 
         // Callback event: execute a function on a specific beat
         Lua_helper.add_callback(lua, "fmmcallback", function(beat:Float, funcName:String, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null) {
-                PlayState.instance?.fmManager?.callback(beat, function(event) {
+            if (MegaManager.playfield?.fmManager != null) {
+                MegaManager.playfield?.fmManager?.callback(beat, function(event) {
                     funk.call(funcName, []); // Don't pass event object to Lua
                 }, field);
             } else
@@ -107,8 +107,8 @@ class FMMFunctions
 
         // repeater event: execute a function repeatedly over a period
         Lua_helper.add_callback(lua, "repeater", function(beat:Float, length:Float, funcName:String, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null) {
-                PlayState.instance?.fmManager?.repeater(beat, length, function(event) {
+            if (MegaManager.playfield?.fmManager != null) {
+                MegaManager.playfield?.fmManager?.repeater(beat, length, function(event) {
                     funk.call(funcName, []); // No pasar el objeto event a Lua
                 }, field);
             } else
@@ -117,9 +117,9 @@ class FMMFunctions
 
         // Add scripted modifier (custom)
         Lua_helper.add_callback(lua, "addScriptedModifier", function(name:String, modifierInstance:Dynamic, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null && modifierInstance != null) {
+            if (MegaManager.playfield?.fmManager != null && modifierInstance != null) {
                 // The modifierInstance must be a Modifier instance created from Lua/HScript
-                PlayState.instance?.fmManager?.addScriptedModifier(name, modifierInstance, field);
+                MegaManager.playfield?.fmManager?.addScriptedModifier(name, modifierInstance, field);
             } else
                 trace('FUNKIN MODCHART MANAGER IS NULL! Are you sure you meant to use this?');
         });
@@ -127,8 +127,8 @@ class FMMFunctions
         /*
         // Create node (node): link inputs and outputs with a function
         Lua_helper.add_callback(lua, "node", function(inputs:Array<String>, outputs:Array<String>, funcName:String, ?field:Int = -1) {
-            if (PlayState.instance?.fmManager != null) {
-                PlayState.instance?.fmManager?.node(inputs, outputs, function(curInput:Array<Float>, curOutput:Int):Int {
+            if (MegaManager.playfield?.fmManager != null) {
+                MegaManager.playfield?.fmManager?.node(inputs, outputs, function(curInput:Array<Float>, curOutput:Int):Int {
                     // Call Lua function with input values
                     var result:Dynamic = funk.call(funcName, [curInput]);
                     // Return result or current value if there is no result

@@ -26,7 +26,7 @@ class AngleModifier extends Modifier {
 		var shid:Array<String> = ['scrollAngle'];
 
 		var submods:Array<String> = [
-			for (d in 0...Note.ammo[PlayState.mania])
+			for (d in 0...Note.ammo[PlayfieldManager.mania[0]])
 			{
 				for (s in shid)
 					'$s$d';

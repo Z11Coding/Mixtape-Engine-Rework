@@ -220,7 +220,7 @@ class APPlayState extends PlayState {
             // If song is unlocked, also check if required characters and stage are unlocked via sanity system
             if (found && archipelago.APEntryState.apGame != null) {
                 // Check sanity items for this song's characters and stage
-                missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayState.SONG);
+                missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
                 if (missingItems.length > 0) {
                     trace('APPlayState: Song requires unlocked sanity items: ' + missingItems.join(", "));
                     found = false; // Mark as not accessible due to missing sanity items
@@ -241,7 +241,7 @@ class APPlayState extends PlayState {
             trace('Manual Override detected - verifying trap song consistency');
 
             var intendedTrapSong = FlxG.save.data.trapSONG; // The song the trap wanted to play
-            var currentSong = PlayState.SONG;
+            var currentSong = PlayfieldManager.SONG;
 
             // Check if the current song matches the intended trap song
             if (intendedTrapSong != null && currentSong != null) {
@@ -260,12 +260,12 @@ class APPlayState extends PlayState {
                     Mods.currentModDirectory = FlxG.save.data.trapCurrentModDirectory;
                     Difficulty.list = FlxG.save.data.trapDifficulties;
                     curDifficulty = FlxG.save.data.trapCurDifficulty;
-                    PlayState.SONG = FlxG.save.data.trapSONG;
+                    PlayfieldManager.SONG = FlxG.save.data.trapSONG;
                     PlayState.storyDifficulty = FlxG.save.data.trapStoryDifficulty;
 
                     trace('Trap song state corrected - resetting APPlayState');
                     PlayState.resettingState = true;
-                    StageData.loadDirectory(PlayState.SONG);
+                    StageData.loadDirectory(PlayfieldManager.SONG);
                     MusicBeatState.resetState();
                     return;
                 }
@@ -344,10 +344,10 @@ class APPlayState extends PlayState {
                 var originalShaders:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
-                    for (sprite in playerField.strumNotes) {
+                    for (sprite in playfield.playerField.strumNotes) {
                         sprite.shader = originalShaders.get(sprite);
                     };
-                    for (sprite in dadField.strumNotes) {
+                    for (sprite in playfield.dadField.strumNotes) {
                         sprite.shader = originalShaders.get(sprite);
                     };
                     for (daNote in unspawnNotes) {
@@ -376,11 +376,11 @@ class APPlayState extends PlayState {
                         blurEffect.setStrength(2, 2);
                     else
                         blurEffect.setStrength(32, 32);
-                    for (sprite in playerField.strumNotes) {
+                    for (sprite in playfield.playerField.strumNotes) {
                         originalShaders.set(sprite, sprite.shader);
                         sprite.shader = blurEffect.shader;
                     };
-                    for (sprite in dadField.strumNotes) {
+                    for (sprite in playfield.dadField.strumNotes) {
                         originalShaders.set(sprite, sprite.shader);
                         sprite.shader = blurEffect.shader;
                     };
@@ -504,7 +504,7 @@ class APPlayState extends PlayState {
                 var ttl:Float = 20;
                 var onEnd:(Void->Void) = function() {
                     effectiveScrollSpeed -= changeAmount;
-                    songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+                    songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
                 };
                 var playSound:String = "scrollfaster";
                 var playSoundVol:Float = 1;
@@ -512,7 +512,7 @@ class APPlayState extends PlayState {
                 var alwaysEnd:Bool = true;
 
                 effectiveScrollSpeed += changeAmount;
-                songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+                songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd, 'scrollfaster');
             },
@@ -524,7 +524,7 @@ class APPlayState extends PlayState {
                 var ttl:Float = 20;
                 var onEnd:(Void->Void) = function() {
                     effectiveScrollSpeed += changeAmount;
-                    songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+                    songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
                 };
                 var playSound:String = "scrollslower";
                 var playSoundVol:Float = 1;
@@ -532,7 +532,7 @@ class APPlayState extends PlayState {
                 var alwaysEnd:Bool = true;
 
                 effectiveScrollSpeed -= changeAmount;
-                songSpeed = PlayState.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
+                songSpeed = PlayfieldManager.SONG.speed * ClientPrefs.getGameplaySetting('scrollspeed', 1) * effectiveScrollSpeed;
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, alwaysEnd, 'scrollslower');
             },
@@ -862,7 +862,7 @@ class APPlayState extends PlayState {
                 var noIcon:Bool = true;
                 var startingPoint = FlxG.random.int(5, 9);
                 var endingPoint = FlxG.random.int(startingPoint + 6, startingPoint + 12);
-                var dataPicked = FlxG.random.int(0, PlayState.mania);
+                var dataPicked = FlxG.random.int(0, PlayfieldManager.mania[0]);
                 for (i in startingPoint...endingPoint) {
                     addNoteSvCLegacy(0, i, i, dataPicked);
                 }
@@ -1234,7 +1234,7 @@ class APPlayState extends PlayState {
                 var noIcon:Bool = false;
                 doRandomize = true;
                 available = [];
-                for (i in 0...PlayState.mania+1) {
+                for (i in 0...PlayfieldManager.mania[0]+1) {
                     available.push(i);
                     trace("available: " + available);
                 }
@@ -1370,7 +1370,7 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.difficulties = Difficulty.list; // just in case
                                 FlxG.save.data.curDifficulty = curDifficulty; // just in case
-                                FlxG.save.data.SONG = PlayState.SONG;
+                                FlxG.save.data.SONG = PlayfieldManager.SONG;
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
                                 FlxG.save.data.songPos = FlxG.sound.music.time;
                                 FlxG.save.data.score = comboManager.songScore;
@@ -1382,7 +1382,7 @@ class APPlayState extends PlayState {
                                 Difficulty.list = Difficulty.defaultList.copy();
                                 PlayState.storyWeek = 0;
                                 Mods.currentModDirectory = 'week1';
-                                PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', Difficulty.list.length-1), Paths.formatToSongPath('tutorial'));
+                                PlayfieldManager.SONG = Song.loadFromJson(backend.Highscore.formatSong('tutorial', Difficulty.list.length-1), Paths.formatToSongPath('tutorial'));
                                 PlayState.storyDifficulty = Difficulty.list.length-1;
 
                                 // Save trap song data for consistency checking
@@ -1390,7 +1390,7 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.trapCurrentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.trapDifficulties = Difficulty.list;
                                 FlxG.save.data.trapCurDifficulty = curDifficulty;
-                                FlxG.save.data.trapSONG = PlayState.SONG;
+                                FlxG.save.data.trapSONG = PlayfieldManager.SONG;
                                 FlxG.save.data.trapStoryDifficulty = PlayState.storyDifficulty;
 
                                 FlxG.save.flush();
@@ -1420,7 +1420,7 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.currentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.difficulties = Difficulty.list; // just in case
                                 FlxG.save.data.curDifficulty = curDifficulty; // just in case
-                                FlxG.save.data.SONG = PlayState.SONG;
+                                FlxG.save.data.SONG = PlayfieldManager.SONG;
                                 FlxG.save.data.storyDifficulty = PlayState.storyDifficulty;
                                 FlxG.save.data.songPos = FlxG.sound.music.time;
 
@@ -1431,7 +1431,7 @@ class APPlayState extends PlayState {
                                 Difficulty.list = Difficulty.defaultList.copy();
                                 PlayState.storyWeek = -1;
                                 Mods.currentModDirectory = '';
-                                PlayState.SONG = Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
+                                PlayfieldManager.SONG = Song.loadFromJson(backend.Highscore.formatSong(specialSongList[curSong], Difficulty.list.length-1), Paths.formatToSongPath(specialSongList[curSong]));
                                 PlayState.storyDifficulty = Difficulty.list.length-1;
 
                                 // Save trap song data for consistency checking
@@ -1439,7 +1439,7 @@ class APPlayState extends PlayState {
                                 FlxG.save.data.trapCurrentModDirectory = Mods.currentModDirectory;
                                 FlxG.save.data.trapDifficulties = Difficulty.list;
                                 FlxG.save.data.trapCurDifficulty = curDifficulty;
-                                FlxG.save.data.trapSONG = PlayState.SONG;
+                                FlxG.save.data.trapSONG = PlayfieldManager.SONG;
                                 FlxG.save.data.trapStoryDifficulty = PlayState.storyDifficulty;
 
                                 FlxG.save.flush();
@@ -1508,7 +1508,7 @@ class APPlayState extends PlayState {
 			var content:String = sys.io.File.getContent(Paths.txt("words"));
 			wordList = content.toLowerCase().split("\n");
 		}
-        wordList.push(PlayState.SONG?.song);
+        wordList.push(PlayfieldManager.SONG?.song);
 		trace(wordList.length + " words loaded");
 		trace(wordList);
         try {
@@ -1589,7 +1589,7 @@ class APPlayState extends PlayState {
         aliveVideos.cameras = [camOther];
         add(errorMessages);
 
-        for (i in 0...PlayState.mania + 1) {
+        for (i in 0...PlayfieldManager.mania[0] + 1) {
 			severInputs.push(false);
 		}
 
@@ -1692,7 +1692,7 @@ class APPlayState extends PlayState {
             return false;
         }
 
-        if (PlayState.SONG.player1.toLowerCase().contains('zenetta') || PlayState.SONG.player2.toLowerCase().contains('zenetta') || PlayState.SONG.gfVersion.toLowerCase().contains('zenetta'))
+        if (PlayfieldManager.SONG.player1.toLowerCase().contains('zenetta') || PlayfieldManager.SONG.player2.toLowerCase().contains('zenetta') || PlayfieldManager.SONG.gfVersion.toLowerCase().contains('zenetta'))
         {
             itemAmount = 69;
             trace("RESISTANCE OVERRIDE!"); // what are the chances
@@ -1769,7 +1769,7 @@ class APPlayState extends PlayState {
         // Check sanity locations on playing if enabled
         if (APPlayState.apGame != null)
         {
-            var songName = PlayState.SONG.song;
+            var songName = PlayfieldManager.SONG.song;
             var modName = APPlayState.currentMod != null && APPlayState.currentMod.trim() != "" ? APPlayState.currentMod.trim() : null;
             APPlayState.apGame.checkSanityLocationsOnPlaying(songName, modName);
         }
@@ -1947,7 +1947,7 @@ class APPlayState extends PlayState {
     private override function generateSong(preload:Bool = false):Void
     {
         super.generateSong(preload);
-        if (PlayState.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap" || preload) return;
+        if (PlayfieldManager.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap" || preload) return;
         try {
         apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
         } catch (e:Dynamic) {
@@ -1980,7 +1980,7 @@ class APPlayState extends PlayState {
 	{
 		timeTxt.y = (effectiveDownScroll ? FlxG.height - 44 : 19);
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
-        modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
+        playfield.modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		//healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
@@ -2089,22 +2089,22 @@ class APPlayState extends PlayState {
 		var pickTime = Conductor.songPosition + pickSteps * Conductor.stepCrochet;
 		var pickData:Int = 0;
 
-		if (PlayState.SONG.notes.length <= Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16))
+		if (PlayfieldManager.SONG.notes.length <= Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16))
 			return;
 
-		if (PlayState.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)] == null)
+		if (PlayfieldManager.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)] == null)
 			return;
 
 		if (specificData == null)
 		{
-			if (PlayState.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
+			if (PlayfieldManager.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
 			{
-				pickData = FlxG.random.int(0, PlayState.mania);
+				pickData = FlxG.random.int(0, PlayfieldManager.mania);
 			}
 			else
 			{
 				// pickData = FlxG.random.int(4, 7);
-				pickData = FlxG.random.int(0, PlayState.mania);
+				pickData = FlxG.random.int(0, PlayfieldManager.mania);
 			}
 		}
 		else if (specificData == -1)
@@ -2117,20 +2117,20 @@ class APPlayState extends PlayState {
 			}
 
 			if (chooseFrom.length <= 0)
-				pickData = FlxG.random.int(0, PlayState.mania);
+				pickData = FlxG.random.int(0, PlayfieldManager.mania);
 			else
 				pickData = chooseFrom[FlxG.random.int(0, chooseFrom.length - 1)];
 		}
 		else
 		{
-			if (PlayState.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
+			if (PlayfieldManager.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
 			{
-				pickData = specificData % Note.ammo[PlayState.mania];
+				pickData = specificData % Note.ammo[PlayfieldManager.mania];
 			}
 			else
 			{
 				// pickData = specificData % 4 + 4;
-				pickData = specificData % Note.ammo[PlayState.mania];
+				pickData = specificData % Note.ammo[PlayfieldManager.mania];
 			}
 		}
 		var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
@@ -2184,30 +2184,30 @@ class APPlayState extends PlayState {
                 swagNote.cod = 'Missed a Spam/Jack Note.';
 		}
 		swagNote.mustPress = true;
-		if (chartModifier == "SpeedRando")
+		if (playfield.chartModifier == "SpeedRando")
 			{swagNote.multSpeed = FlxG.random.float(0.1, 2);}
-		if (chartModifier == "SpeedUp")
+		if (playfield.chartModifier == "SpeedUp")
 			{}
 		swagNote.x += FlxG.width / 2;
 
         if (swagNote.fieldIndex == -1 && swagNote.field == null)
-            swagNote.field = swagNote.mustPress ? playerField : dadField;
+            swagNote.field = swagNote.mustPress ? playfield.playfield.playerField : playfield.playfield.dadField;
         if (swagNote.field != null)
-            swagNote.fieldIndex = playfields.members.indexOf(swagNote.field);
-        var playfield:PlayField = playfields.members[swagNote.fieldIndex];
+            swagNote.fieldIndex = playfield.playfields.members.indexOf(swagNote.field);
+        var playfield:PlayField = playfield.playfields.members[swagNote.fieldIndex];
         if (playfield != null)
         {
             playfield.queue(swagNote); // queues the note to be spawned
             unspawnNotes.push(swagNote);
-            allNotes.push(swagNote); // just for the sake of convenience
+            playfield.allNotes.push(swagNote); // just for the sake of convenience
         }
         else
         {
             swagNote.destroy();
         }
 		unspawnNotes.sort(PlayState.sortByTime);
-        allNotes.sort(PlayState.sortByTime);
-        for (field in playfields.members)
+        playfield.allNotes.sort(PlayState.sortByTime);
+        for (field in playfield.playfields.members)
 			field.clearStackedNotes();
 	}
 
@@ -2281,7 +2281,7 @@ class APPlayState extends PlayState {
                     "This doesn't affect you, right?",
                     "What a shame...",
                     "Better luck next time...",
-                    'Eh, you can always play ${PlayState.SONG.song} again...',
+                    'Eh, you can always play ${PlayfieldManager.SONG.song} again...',
                     "Dang...",
                     "RIP..."
                 ];
@@ -2754,13 +2754,13 @@ class APPlayState extends PlayState {
             Mods.currentModDirectory = FlxG.save.data.currentModDirectory;
             Difficulty.list = FlxG.save.data.difficulties;
             curDifficulty = FlxG.save.data.curDifficulty; // just in case
-            PlayState.SONG = FlxG.save.data.SONG;
+            PlayfieldManager.SONG = FlxG.save.data.SONG;
             PlayState.storyDifficulty = FlxG.save.data.storyDifficulty;
             FlxG.save.data.manualOverride = false;
             APPlayState.instance.playfields.forEach(function(pf) {
                 pf.autoPlayed = false;
             });
-			StageData.loadDirectory(PlayState.SONG);
+			StageData.loadDirectory(PlayfieldManager.SONG);
             FlxG.save.flush();
             FlxG.resetState();
             return true;
@@ -2778,7 +2778,7 @@ class APPlayState extends PlayState {
 
 
         paused = true;
-        APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(PlayState.SONG.song, currentMod);
+        APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(PlayfieldManager.SONG.song, currentMod);
 
         // Never open victory substate when running a playlist - playlist mode handles its own state transitions
         if (!PlayState.isPlaylist) {
@@ -2838,7 +2838,7 @@ class APPlayState extends PlayState {
 		{
 			var bindsTable:Array<String> = newBinds.split("");
 			midSwitched = true;
-			changeMania(PlayState.mania);
+			changeMania(PlayfieldManager.mania[0]);
 
 			keysArray = [];
 			ClientPrefs.keyBinds = createKeybinds(newBinds);
@@ -2994,7 +2994,7 @@ class APPlayState extends PlayState {
             if (note.noteType == 'Anti-Horny Note') resistanceAmount -= 0.03;
             if (note.noteType == 'Bat Note') resistanceAmount -= 0.5;
 
-            var animToPlay:String = Note.keysShit.get(PlayState.mania).get('singAnims')[note.noteData] + "-alt";
+            var animToPlay:String = Note.keysShit.get(PlayfieldManager.mania[0]).get('singAnims')[note.noteData] + "-alt";
             if(note.isSustainNote)
             {
                 var holdAnim:String = animToPlay + '-hold';

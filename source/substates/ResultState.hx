@@ -96,7 +96,7 @@ class ResultState extends MusicBeatSubState
     rank = Scoring.calculateRank(params.scoreData) ?? SHIT;
 
     if (!PlayState.instance.cpuControlled && !params.playlistMode)
-      backend.Highscore.saveRank(PlayState.SONG.song, ScoringRank.getValueFromRank(rank), PlayState.storyDifficulty);
+      backend.Highscore.saveRank(PlayfieldManager.SONG.song, ScoringRank.getValueFromRank(rank), PlayState.storyDifficulty);
 
     cameraBG = new FunkinCamera('resultsBG', 0, 0, FlxG.width, FlxG.height);
     cameraScroll = new FunkinCamera('resultsScroll', 0, 0, FlxG.width, FlxG.height);
@@ -817,7 +817,7 @@ class ResultState extends MusicBeatSubState
 
           var locationId = (archipelago.APPlayState.currentSong != null && archipelago.APPlayState.currentSong.trim() != "")
             ? archipelago.APPlayState.currentSong
-            : PlayState.SONG.song;
+            : PlayfieldManager.SONG.song;
 
           if (APInfo.unlockMethod != "Note Checks") {
             trace(archipelago.APPlayState.currentMod);
@@ -830,8 +830,8 @@ class ResultState extends MusicBeatSubState
               trace("Location ID not found or invalid, attempting to match song in current week...");
               for (song in WeekData.getCurrentWeek().songs) {
                 trace("Checking song: " + song[0]);
-                if ((cast song[0] : String).toLowerCase().trim() == PlayState.SONG.song.trim().toLowerCase() ||
-                    (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayState.SONG.song.trim().toLowerCase().replace(" ", "-")) {
+                if ((cast song[0] : String).toLowerCase().trim() == PlayfieldManager.SONG.song.trim().toLowerCase() ||
+                    (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayfieldManager.SONG.song.trim().toLowerCase().replace(" ", "-")) {
                   trace("Match found for song: " + song[0]);
                   locationId = song[0];
                   locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
@@ -858,7 +858,7 @@ class ResultState extends MusicBeatSubState
               trace("Location Check Result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
               trace("Location Name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
             }
-            trace("Current Song: " + PlayState.SONG.song);
+            trace("Current Song: " + PlayfieldManager.SONG.song);
 
             if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
               archipelago.console.obj.Alert.alert("You've completed a Song Check!", "Good Job!", function() {
@@ -882,13 +882,13 @@ class ResultState extends MusicBeatSubState
 
           // Check sanity locations on beating if enabled
           if (archipelago.APEntryState.apGame != null) {
-            var songName = PlayState.SONG.song;
+            var songName = PlayfieldManager.SONG.song;
             var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
             archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
           }
 
           if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
-            if (archipelago.APEntryState.apGame.checkGoal(PlayState.SONG.song, archipelago.APPlayState.currentMod)) {
+            if (archipelago.APEntryState.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
               archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
               trace("Goal achievement popup triggered.");
               FlxG.sound.playMusic(Paths.sound('You Win'));

@@ -248,29 +248,29 @@ class HighQualityTrapTestState extends MusicBeatState
                 trace('HighQualityTrapTestState: Previewing trap song: ${songName}');
 
                 try {
-                    PlayState.SONG = Song.loadFromJson(songName, songName);
+                    PlayfieldManager.SONG = Song.loadFromJson(songName, songName);
 
-                    if (PlayState.SONG != null)
+                    if (PlayfieldManager.SONG != null)
                     {
                         FlxG.sound.music.stop();
                         vocals = new FlxSound();
 
-                        var inst = Paths.inst(PlayState.SONG.song);
+                        var inst = Paths.inst(PlayfieldManager.SONG.song);
                         FlxG.sound.playMusic(inst, 0.7);
                         FlxG.sound.music.time = 0;
 
                         try {
-                            vocals.loadEmbedded(Paths.voices(PlayState.SONG.song));
+                            vocals.loadEmbedded(Paths.voices(PlayfieldManager.SONG.song));
                             FlxG.sound.list.add(vocals);
                             vocals.play();
                             vocals.time = 0;
-                            trace('HighQualityTrapTestState: Playing vocals for: ${PlayState.SONG.song}');
+                            trace('HighQualityTrapTestState: Playing vocals for: ${PlayfieldManager.SONG.song}');
                         } catch(e:Dynamic) {
-                            trace('HighQualityTrapTestState: No vocals found for ' + PlayState.SONG.song);
+                            trace('HighQualityTrapTestState: No vocals found for ' + PlayfieldManager.SONG.song);
                         }
 
                         instPlaying = curSelected;
-                        trace('HighQualityTrapTestState: Now playing preview: ${PlayState.SONG.song}');
+                        trace('HighQualityTrapTestState: Now playing preview: ${PlayfieldManager.SONG.song}');
                     } else {
                         trace('HighQualityTrapTestState: Failed to load song for preview');
                     }
@@ -451,9 +451,9 @@ class HighQualityTrapTestState extends MusicBeatState
 
         try {
             // Load the song JSON - variants will be handled automatically by Song.loadFromJson
-            PlayState.SONG = Song.loadFromJson(songLowercase, songLowercase);
+            PlayfieldManager.SONG = Song.loadFromJson(songLowercase, songLowercase);
 
-            if (PlayState.SONG != null) {
+            if (PlayfieldManager.SONG != null) {
                 // Set up PlayState variables
                 PlayState.isStoryMode = false;
                 PlayState.storyDifficulty = curDifficulty;
@@ -463,14 +463,14 @@ class HighQualityTrapTestState extends MusicBeatState
                 PlayState.seenCutscene = false;
                 PlayState.deathCounter = 0;
 
-                trace('HighQualityTrapTestState: Trap song loaded successfully: ${PlayState.SONG.song}');
-                trace('HighQualityTrapTestState: BPM: ${PlayState.SONG.bpm}');
+                trace('HighQualityTrapTestState: Trap song loaded successfully: ${PlayfieldManager.SONG.song}');
+                trace('HighQualityTrapTestState: BPM: ${PlayfieldManager.SONG.bpm}');
 
                 // Prepare and switch to PlayState
                 LoadingState.prepareToSong();
                 FlxG.switchState(new PlayState());
             } else {
-                trace('HighQualityTrapTestState: PlayState.SONG is null after loading');
+                trace('HighQualityTrapTestState: PlayfieldManager.SONG is null after loading');
                 FlxG.sound.play(Paths.sound('cancelMenu'));
             }
         } catch(e:Dynamic) {

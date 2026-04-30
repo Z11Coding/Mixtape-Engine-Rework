@@ -211,33 +211,33 @@ class SongSelectorDebugState extends MusicBeatState
                 trace('Previewing: ${songName} (${poop})');
 
                 try {
-                    PlayState.SONG = Song.loadFromJson(poop, songName);
-                    if (PlayState.SONG == null) {
+                    PlayfieldManager.SONG = Song.loadFromJson(poop, songName);
+                    if (PlayfieldManager.SONG == null) {
                         // Try without difficulty suffix
-                        PlayState.SONG = Song.loadFromJson(songName, songName);
+                        PlayfieldManager.SONG = Song.loadFromJson(songName, songName);
                     }
 
-                    if (PlayState.SONG != null)
+                    if (PlayfieldManager.SONG != null)
                     {
                         FlxG.sound.music.stop();
                         vocals = new FlxSound();
 
-                        var inst = Paths.inst(PlayState.SONG.song);
+                        var inst = Paths.inst(PlayfieldManager.SONG.song);
                         FlxG.sound.playMusic(inst, 0.7);
                         FlxG.sound.music.time = 0;
 
                         try {
-                            vocals.loadEmbedded(Paths.voices(PlayState.SONG.song));
+                            vocals.loadEmbedded(Paths.voices(PlayfieldManager.SONG.song));
                             FlxG.sound.list.add(vocals);
                             vocals.play();
                             vocals.time = 0;
-                            trace('Playing vocals for: ${PlayState.SONG.song}');
+                            trace('Playing vocals for: ${PlayfieldManager.SONG.song}');
                         } catch(e:Dynamic) {
-                            trace('No vocals found for ' + PlayState.SONG.song);
+                            trace('No vocals found for ' + PlayfieldManager.SONG.song);
                         }
 
                         instPlaying = curSelected;
-                        trace('Now playing preview: ${PlayState.SONG.song}');
+                        trace('Now playing preview: ${PlayfieldManager.SONG.song}');
                     } else {
                         trace('Failed to load song for preview');
                     }
@@ -424,15 +424,15 @@ class SongSelectorDebugState extends MusicBeatState
 
         try {
             // Load the song JSON
-            PlayState.SONG = Song.loadFromJson(poop, songLowercase);
+            PlayfieldManager.SONG = Song.loadFromJson(poop, songLowercase);
 
-            if (PlayState.SONG == null) {
+            if (PlayfieldManager.SONG == null) {
                 trace('Failed to load song JSON, trying alternative method');
                 // Try loading without difficulty suffix
-                PlayState.SONG = Song.loadFromJson(songLowercase, songLowercase);
+                PlayfieldManager.SONG = Song.loadFromJson(songLowercase, songLowercase);
             }
 
-            if (PlayState.SONG != null) {
+            if (PlayfieldManager.SONG != null) {
                 // Set up PlayState variables
                 PlayState.isStoryMode = false;
                 PlayState.storyDifficulty = curDifficulty;
@@ -442,14 +442,14 @@ class SongSelectorDebugState extends MusicBeatState
                 PlayState.seenCutscene = false;
                 PlayState.deathCounter = 0;
 
-                trace('Song loaded successfully: ${PlayState.SONG.song}');
-                trace('BPM: ${PlayState.SONG.bpm}');
+                trace('Song loaded successfully: ${PlayfieldManager.SONG.song}');
+                trace('BPM: ${PlayfieldManager.SONG.bpm}');
 
                 // Prepare and switch to PlayState
                 LoadingState.prepareToSong();
                 FlxG.switchState(new PlayState());
             } else {
-                trace('PlayState.SONG is null after loading');
+                trace('PlayfieldManager.SONG is null after loading');
                 FlxG.sound.play(Paths.sound('cancelMenu'));
             }
         } catch(e:Dynamic) {

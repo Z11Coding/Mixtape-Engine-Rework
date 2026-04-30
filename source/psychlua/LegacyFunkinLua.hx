@@ -125,15 +125,15 @@ class LegacyFunkinLua {
 
 		// Song/Week shit
 		set('curBpm', Conductor.bpm);
-		set('bpm', PlayState.SONG.bpm);
-		set('scrollSpeed', PlayState.SONG.speed);
+		set('bpm', PlayfieldManager.SONG.bpm);
+		set('scrollSpeed', PlayfieldManager.SONG.speed);
 		set('crochet', Conductor.crochet);
 		set('stepCrochet', Conductor.stepCrochet);
 		set('songLength', FlxG.sound.music.length);
-		set('songName', PlayState.SONG.song);
-		set('songPath', Paths.formatToSongPath(PlayState.SONG.song));
+		set('songName', PlayfieldManager.SONG.song);
+		set('songPath', Paths.formatToSongPath(PlayfieldManager.SONG.song));
 		set('startedCountdown', false);
-		set('curStage', PlayState.SONG.stage);
+		set('curStage', PlayfieldManager.SONG.stage);
 
 		set('isStoryMode', PlayState.isStoryMode);
 		set('difficulty', PlayState.storyDifficulty);
@@ -199,9 +199,9 @@ class LegacyFunkinLua {
 		set('defaultGirlfriendY', PlayState.instance.GF_Y);
 
 		// Character shit
-		set('boyfriendName', MegaManager.playfield.SONG.player1);
-		set('dadName', MegaManager.playfield.SONG.player2);
-		set('gfName', MegaManager.playfield.SONG.gfVersion);
+		set('boyfriendName', PlayfieldManager.SONG.player1);
+		set('dadName', PlayfieldManager.SONG.player2);
+		set('gfName', PlayfieldManager.SONG.gfVersion);
 
 		// Some settings, no jokes
 		set('downscroll', ClientPrefs.data.downScroll);
@@ -945,12 +945,12 @@ class LegacyFunkinLua {
 			#end
 
 			if(name == null || name.length < 1)
-				name = PlayState.SONG.song;
+				name = PlayfieldManager.SONG.song;
 			if (difficultyNum == -1)
 				difficultyNum = PlayState.storyDifficulty;
 
 			var poop = Highscore.formatSong(name, difficultyNum);
-			PlayState.SONG = Song.loadFromJson(poop, name);
+			PlayfieldManager.SONG = Song.loadFromJson(poop, name);
 			PlayState.storyDifficulty = difficultyNum;
 			PlayState.instance.persistentUpdate = false;
 			LoadingState.loadAndSwitchState(new PlayState());
@@ -2187,10 +2187,10 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "startDialogue", function(dialogueFile:String, music:String = null) {
 			var path:String;
 			#if MODS_ALLOWED
-			path = Paths.modsJson(Paths.formatToSongPath(PlayState.SONG.song) + '/' + dialogueFile);
+			path = Paths.modsJson(Paths.formatToSongPath(PlayfieldManager.SONG.song) + '/' + dialogueFile);
 			if(!FileSystem.exists(path))
 			#end
-				path = Paths.json(Paths.formatToSongPath(PlayState.SONG.song) + '/' + dialogueFile);
+				path = Paths.json(Paths.formatToSongPath(PlayfieldManager.SONG.song) + '/' + dialogueFile);
 
 			luaTrace('startDialogue: Trying to load dialogue: ' + path);
 

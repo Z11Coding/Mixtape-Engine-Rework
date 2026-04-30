@@ -17,7 +17,6 @@ class ModifiersMacro {
 		var request:String = 'package~${'backend.funkinmodchart.engine.modifiers.list'}~recursive';
 
 		classListsToGenerate.push(request);
-		trace(request);
 
 		return macro backend.funkinmodchart.backend.macros.CompiledClassList.get($v{request});
 	}

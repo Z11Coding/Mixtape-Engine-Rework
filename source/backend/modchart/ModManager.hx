@@ -168,7 +168,7 @@ class ModManager {
 		registerAux("xmod");
 		registerAux("cmod");
 		registerAux("movePastReceptors");
-		for (i in 0...Note.ammo[PlayState.mania]) {
+		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {
 			registerAux("xmod" + i);
 			registerAux("cmod" + i);
 			registerAux("noteSpawnTime" + i);
@@ -182,7 +182,7 @@ class ModManager {
 
 
 		var toAlternate:Array<String> = ["transformX", "transformY", "transformZ", "flashR", "flashG", "flashB", "vibrate"];
-		for (i in 0...Note.ammo[PlayState.mania]) {
+		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {
 			toAlternate.push('transform${i}X');
 			toAlternate.push('transform${i}Y');
 			toAlternate.push('transform${i}Z');
@@ -232,7 +232,7 @@ class ModManager {
 		setValue("arrowPathAlpha", 1, mN);
 		setValue("arrowPathThickness", 2, mN);
 
-		for (i in 0...Note.ammo[PlayState.mania]){
+		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]){
 			setValue('noteSpawnTime$i', 0, mN);
 			setValue('cmod$i', -1, mN);
 			setValue('xmod$i', 1, mN);
@@ -376,19 +376,14 @@ class ModManager {
 	inline public function getTargetValue(modName:String, player:Int)
 		return !register.exists(getActualModName(modName)) ? 0 : get(modName).getTargetValue(player);
 
-	public function getCMod(data:Int, player:Int, ?defaultSpeed:Float){
+	public function getCMod(data:Int, player:Int, ?defaultSpeed:Float):Float {
 		var daSpeed = getValue('cmod${data}', player);
 		if (daSpeed < 0){
 			daSpeed = getValue('cmod', player);
 
 			if (daSpeed < 0){
 				if (defaultSpeed == null)
-				{
-					if (MusicBeatState.getState() == PlayState.instance)
-						return PlayState.instance.songSpeed;
-					else
-						return 3;
-				}
+					return MegaManager.playfield?.songSpeed;
 				else
 					return defaultSpeed;
 			}

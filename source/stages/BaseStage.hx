@@ -129,11 +129,11 @@ class BaseStage extends FlxBasic
 	public function addBehindDad(obj:FlxBasic) return insert(members.indexOf(game.dadGroup), obj);
 	public function setDefaultGF(name:String) //Fix for the Chart Editor on Base Game stages
 	{
-		var gfVersion:String = PlayState.SONG.gfVersion;
+		var gfVersion:String = PlayfieldManager.SONG.gfVersion;
 		if(gfVersion == null || gfVersion.length < 1)
 		{
 			gfVersion = name;
-			PlayState.SONG.gfVersion = gfVersion;
+			PlayfieldManager.SONG.gfVersion = gfVersion;
 		}
 	}
 

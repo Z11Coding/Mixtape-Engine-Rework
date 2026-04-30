@@ -148,7 +148,7 @@ class AlphaModifier extends NoteModifier
 			"stealthPastReceptors"
 		];
 
-		for(i in 0...Note.ammo[PlayState.mania]){
+		for(i in 0...Note.ammo[PlayfieldManager.mania[0]]){
 			subMods.push('noteAlpha$i');
 			subMods.push('receptorAlpha$i');
 			subMods.push('alpha$i');

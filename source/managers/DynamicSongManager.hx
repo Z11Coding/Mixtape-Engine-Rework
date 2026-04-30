@@ -398,17 +398,17 @@ class DynamicSongManager
             events: [],
             bpm: firstChart.bpm,
             needsVoices: hasVocals(),
-            speed: PlayState.SONG?.speed ?? 1.0,
+            speed: PlayfieldManager.SONG?.speed ?? 1.0,
             offset: firstChart.offset,
-            player1: PlayState.SONG?.player1 ?? "bf",
-            player2: PlayState.SONG?.player2 ?? "dad",
-            player4: PlayState.SONG?.player4 ?? "",
-            player5: PlayState.SONG?.player5 ?? "",
-            gfVersion: PlayState.SONG?.gfVersion ?? "gf",
-            stage: PlayState.SONG?.stage ?? "stage",
+            player1: PlayfieldManager.SONG?.player1 ?? "bf",
+            player2: PlayfieldManager.SONG?.player2 ?? "dad",
+            player4: PlayfieldManager.SONG?.player4 ?? "",
+            player5: PlayfieldManager.SONG?.player5 ?? "",
+            gfVersion: PlayfieldManager.SONG?.gfVersion ?? "gf",
+            stage: PlayfieldManager.SONG?.stage ?? "stage",
             format: "mixtape_dynamic_v1",
-            mania: PlayState.SONG?.mania,
-            startMania: PlayState.SONG?.startMania
+            mania: PlayfieldManager.SONG?.mania,
+            startMania: PlayfieldManager.SONG?.startMania
         };
 
         // Stitch together chart data

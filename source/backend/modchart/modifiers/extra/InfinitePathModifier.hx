@@ -9,7 +9,7 @@ class InfinitePathModifier extends CustomPathModifier {
 
 	override function getPath():Array<Array<Vector3>>
 	{
-		var infPath:Array<Array<Vector3>> = [for(i in 0...Note.ammo[PlayState.mania]) []];
+		var infPath:Array<Array<Vector3>> = [for(i in 0...Note.ammo[PlayfieldManager.mania[0]]) []];
 
 		var r = 0;
 		while (r < 360) {

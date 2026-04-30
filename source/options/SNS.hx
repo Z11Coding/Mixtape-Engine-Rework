@@ -70,7 +70,7 @@ class NoteSplash extends FlxSprite
 		if(splash == null)
 		{
 			splash = defaultNoteSplash + getSplashSkinPostfix();
-			if (PlayState.SONG != null && PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) splash = PlayState.SONG.splashSkin;
+			if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) splash = PlayfieldManager.SONG.splashSkin;
 		}
 
 		texture = splash;
@@ -203,7 +203,7 @@ class NoteSplash extends FlxSprite
 		{
 			var loadedTexture:String = defaultNoteSplash + getSplashSkinPostfix();
 			if (note != null && note.noteSplashData.texture != null) loadedTexture = note.noteSplashData.texture;
-			else if (PlayState.SONG != null && PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0) loadedTexture = PlayState.SONG.splashSkin;
+			else if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) loadedTexture = PlayfieldManager.SONG.splashSkin;
 
 			if (texture != loadedTexture) loadSplash(loadedTexture);
 		}
@@ -229,7 +229,7 @@ class NoteSplash extends FlxSprite
 		if (config.allowRGB)
 		{
 			Note.initializeGlobalRGBShader(noteData % Note.colArray.length);
-			if (inEditor || (note == null || note.noteSplashData.useRGBShader) && (PlayState.SONG == null || !PlayState.SONG.disableNoteRGB))
+			if (inEditor || (note == null || note.noteSplashData.useRGBShader) && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB))
 			{
 				tempShader = new RGBPalette();
 				// If Note RGB is enabled:

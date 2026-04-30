@@ -92,18 +92,18 @@ class FunkinLua {
 
 		// Song/Week shit
 		set('curBpm', Conductor.bpm);
-		set('bpm', PlayState.SONG.bpm);
-		set('scrollSpeed', PlayState.SONG.speed);
+		set('bpm', PlayfieldManager.SONG.bpm);
+		set('scrollSpeed', PlayfieldManager.SONG.speed);
 		set('crochet', Conductor.crochet);
 		set('stepCrochet', Conductor.stepCrochet);
 		set('songLength', FlxG.sound.music?.length ?? 0);
-		set('songName', PlayState.SONG.song);
-		set('songPath', Paths.formatToSongPath(PlayState.SONG.song));
+		set('songName', PlayfieldManager.SONG.song);
+		set('songPath', Paths.formatToSongPath(PlayfieldManager.SONG.song));
 		set('loadedSongName', Song.loadedSongName);
 		set('loadedSongPath', Paths.formatToSongPath(Song.loadedSongName));
 		set('chartPath', Song.chartPath);
 		set('startedCountdown', false);
-		set('curStage', PlayState.SONG.stage);
+		set('curStage', PlayfieldManager.SONG.stage);
 
 		set('isStoryMode', PlayState.isStoryMode);
 		set('difficulty', PlayState.storyDifficulty);
@@ -114,7 +114,7 @@ class FunkinLua {
 		set('weekRaw', PlayState.storyWeek);
 		set('week', WeekData.weeksList[PlayState.storyWeek]);
 		set('seenCutscene', PlayState.seenCutscene);
-		set('hasVocals', PlayState.SONG.needsVoices);
+		set('hasVocals', PlayfieldManager.SONG.needsVoices);
 
 		// Screen stuff
 		set('screenWidth', FlxG.width);
@@ -125,7 +125,7 @@ class FunkinLua {
 		if(game != null)
 		@:privateAccess
 		{
-			var curSection:SwagSection = PlayState.SONG.notes[MegaManager.conductor.currentMeasure];
+			var curSection:SwagSection = PlayfieldManager.SONG.notes[MegaManager.conductor.currentMeasure];
 			set('curSection', MegaManager.conductor.currentMeasure);
 			set('curBeat', MegaManager.conductor.currentBeat);
 			set('curStep', MegaManager.conductor.currentStep);
@@ -178,9 +178,9 @@ class FunkinLua {
 			set('defaultGirlfriendX', game.GF_X);
 			set('defaultGirlfriendY', game.GF_Y);
 
-			set('boyfriendName', game.boyfriend != null ? game.boyfriend.curCharacter : PlayState.SONG.player1);
-			set('dadName', game.dad != null ? game.dad.curCharacter : PlayState.SONG.player2);
-			set('gfName', game.gf != null ? game.gf.curCharacter : PlayState.SONG.gfVersion);
+			set('boyfriendName', game.boyfriend != null ? game.boyfriend.curCharacter : PlayfieldManager.SONG.player1);
+			set('dadName', game.dad != null ? game.dad.curCharacter : PlayfieldManager.SONG.player2);
+			set('gfName', game.gf != null ? game.gf.curCharacter : PlayfieldManager.SONG.gfVersion);
 		}
 
 		// Other settings
@@ -212,8 +212,8 @@ class FunkinLua {
 		// build target (windows, mac, linux, etc.)
 		set('buildTarget', LuaUtils.getBuildTarget());
 
-		set('mania', PlayState.mania);
-		set('trueMania', Note.ammo[PlayState.mania]);
+		set('mania', PlayfieldManager.mania[0]);
+		set('trueMania', Note.ammo[PlayfieldManager.mania[0]]);
 
 		Lua_helper.add_callback(lua, "runInLegacyMode", function() {
 			this.closed = true;
@@ -1890,7 +1890,7 @@ class FunkinLua {
 		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});*/
 
 		if (ClientPrefs.data.modcharts) {
-			var keys:Int = PlayState.mania + 1;
+			var keys:Int = PlayfieldManager.mania[0] + 1;
 
 			// use original note index
 			var originalNote:Int = note;

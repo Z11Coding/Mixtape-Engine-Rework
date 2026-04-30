@@ -10,10 +10,10 @@ enum abstract ScriptType(String) from String to String {
 	var PSYCH_LUA = "lua";
 }
 
-/** 
-	Base class meant to be overridden so you can implement custom script types 
+/**
+	Base class meant to be overridden so you can implement custom script types
 **/
-abstract class FunkinScript 
+abstract class FunkinScript
 {
 	public var scriptName:String;
 	public var scriptType:String;
@@ -72,7 +72,7 @@ abstract class FunkinScript
 		#else
 		set('buildTarget', 'unknown');
 		#end
-		
+
 		set('downscroll', ClientPrefs.data.downScroll);
 		set('middlescroll', ClientPrefs.data.middleScroll);
 		set('framerate', ClientPrefs.data.framerate);
@@ -85,7 +85,7 @@ abstract class FunkinScript
 		set('noteOffset', ClientPrefs.data.noteOffset);
 		//set('healthBarAlpha', ClientPrefs.data.hpOpacity);
 		set('lowQuality', ClientPrefs.data.lowQuality);
-		
+
 		set('curBpm', Conductor.bpm);
 		set('crochet', Conductor.crochet);
 		set('stepCrochet', Conductor.stepCrochet);
@@ -103,10 +103,10 @@ abstract class FunkinScript
 
 		if (currentState is PlayState && currentState == PlayState.instance) {
 			set("inPlaystate", true);
-			
-			set('bpm', PlayState.SONG.bpm);
-			set('scrollSpeed', PlayState.SONG.speed);
-			set('songName', PlayState.SONG.song);
+
+			set('bpm', PlayfieldManager.SONG.bpm);
+			set('scrollSpeed', PlayfieldManager.SONG.speed);
+			set('songName', PlayfieldManager.SONG.song);
 			set('isStoryMode', PlayState.isStoryMode);
 			set('seenCutscene', PlayState.seenCutscene);
 			// set('week', WeekData.weeksList[PlayState.storyWeek]);
@@ -114,7 +114,7 @@ abstract class FunkinScript
 
 			//set("difficulty", PlayState.difficulty);
 			//set("difficultyName", PlayState.difficultyName);
-			
+
 			set('healthGainMult', PlayState.instance.healthGain);
 			set('healthLossMult', PlayState.instance.healthLoss);
 			set('instakillOnMiss', PlayState.instance.instakillOnMiss);

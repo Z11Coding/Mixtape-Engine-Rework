@@ -105,7 +105,7 @@ class APUnoTrapState extends UnoTestState {
                             if (previousState != null) {
                                 LoadingState.loadAndSwitchState(Type.createInstance(states.MainMenuState, []));
                             } else {
-                                StageData.loadDirectory(PlayState.SONG);
+                                StageData.loadDirectory(PlayfieldManager.SONG);
 							    LoadingState.loadAndSwitchState(new states.MainMenuState());
                             }
                         });

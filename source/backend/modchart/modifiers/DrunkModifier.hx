@@ -157,7 +157,7 @@ class DrunkModifier extends NoteModifier {
 				var p = props[i];
 				for(prop in p)submods.push('$mod$axe$prop');
 
-				for (d in 0...Note.ammo[PlayState.mania]) {
+				for (d in 0...Note.ammo[PlayfieldManager.mania[0]]) {
 					submods.push('$mod$axe$d');
 					for(prop in p)submods.push('$mod$axe$d$prop');
 				}

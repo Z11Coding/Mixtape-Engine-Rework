@@ -110,17 +110,17 @@ abstract Vector3(Vector3D) from Vector3D to Vector3D {
 	 * @param alpha The interpolation factor (0 = this vector, 1 = target vector).
 	 * @return A new interpolated vector.
 	 */
-	public function interpolate(target:Vector3, alpha:Float, ?vector:Vector3):Vector3 {
+	inline public function interpolate(target:Vector3, alpha:Float, ?vector:Vector3):Vector3 {
 		if (vector == null)
 			vector = new Vector3();
 
-		// @formatter:off
-		vector.setTo(
-				this.x + (target.x - this.x) * alpha,
-				this.y + (target.y - this.y) * alpha,
-				this.z + (target.z - this.z) * alpha
-		);
-		// @formatter:on
+        // @formatter:off
+        vector.setTo(
+            this.x + (target.x - this.x) * alpha,
+            this.y + (target.y - this.y) * alpha,
+            this.z + (target.z - this.z) * alpha
+        );
+        // @formatter:on
 		return vector;
 	}
 }

@@ -2,8 +2,8 @@ package backend.funkinmodchart.backend.graphics;
 
 #if !macro
 import backend.funkinmodchart.backend.core.ModifierOutput;
-import backend.funkinmodchart.backend.graphics.ModchartRenderer.FMDrawInstruction;
-import backend.funkinmodchart.backend.graphics.ModchartRenderer;
+import backend.funkinmodchart.backend.graphics.CtxRenderer;
+import backend.funkinmodchart.backend.graphics.DrawCommand;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;

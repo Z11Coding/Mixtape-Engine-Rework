@@ -73,7 +73,7 @@ class SchmovinUtil
 {
     public static inline function GetTotalColumn(note:Note)
     {
-        return note.noteData + GetPlayer(note) * Note.ammo[PlayState.mania];
+        return note.noteData + GetPlayer(note) * Note.ammo[PlayfieldManager.mania[0]];
     }
 
     public static inline function NoteWidthHalf()
@@ -107,7 +107,7 @@ class SchmovinUtil
 
     public static inline function GetPlayerOfTotalColumn(column:Int)
     {
-        return column > PlayState.mania ? 1 : 0;
+        return column > PlayfieldManager.mania[0] ? 1 : 0;
     }
 
     public static inline function GetReceptor(note:Note, state:PlayState)

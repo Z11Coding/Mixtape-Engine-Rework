@@ -178,7 +178,7 @@ class APVictorySubstate extends GameOverSubstate
 
 		// Save rank if not CPU controlled
 		if (!PlayState.instance.cpuControlled)
-			backend.Highscore.saveRank(PlayState.SONG.song, rankingNum, PlayState.storyDifficulty);
+			backend.Highscore.saveRank(PlayfieldManager.SONG.song, rankingNum, PlayState.storyDifficulty);
 	}
 
 	function setupRankingDisplay()

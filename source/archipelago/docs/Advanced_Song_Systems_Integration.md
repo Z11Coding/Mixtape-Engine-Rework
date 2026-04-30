@@ -194,11 +194,11 @@ Dynamic songs are processed **before** High Quality Trap replacement:
 if (DynamicSongManager.isDynamicSong(folder)) {
     // Process dynamic song...
     if (DynamicSongManager.instance.loadDynamicSong(folder)) {
-        PlayState.SONG = DynamicSongManager.instance.getStitchedSong();
+        PlayfieldManager.SONG = DynamicSongManager.instance.getStitchedSong();
         // Set flags for later High Quality Trap processing
-        PlayState.SONG.isDynamic = true;
-        PlayState.SONG.sectionSequence = currentSections;
-        return PlayState.SONG;
+        PlayfieldManager.SONG.isDynamic = true;
+        PlayfieldManager.SONG.sectionSequence = currentSections;
+        return PlayfieldManager.SONG;
     }
 }
 
@@ -379,8 +379,8 @@ This allows High Quality Trap content to:
 if (!loadDynamicSong(folder)) {
     var fallbackSong = DynamicSongManager.instance.getFallbackSong();
     if (fallbackSong != null) {
-        PlayState.SONG = fallbackSong;
-        return PlayState.SONG;
+        PlayfieldManager.SONG = fallbackSong;
+        return PlayfieldManager.SONG;
     }
     // Continue with normal loading
 }

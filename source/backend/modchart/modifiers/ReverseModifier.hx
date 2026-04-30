@@ -20,7 +20,7 @@ class ReverseModifier extends NoteModifier
 		return false;
 
 	public function getReverseValue(dir:Int, player:Int){
-		var kNum = Note.ammo[PlayState.mania];
+		var kNum = Note.ammo[PlayfieldManager.mania[0]];
 
 		var val:Float = 0;
 		if(dir>=kNum * 0.5)
@@ -95,7 +95,7 @@ class ReverseModifier extends NoteModifier
 	override function getSubmods() {
 		var subMods:Array<String> = ["cross", "split", "alternate", "centered", "unboundedReverse", "incomingAngleX", "incomingAngleY", "incomingAngleZ"];
 
-		for (i in 0...Note.ammo[PlayState.mania]) {
+		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {
 			subMods.push('reverse${i}');
 			subMods.push('incomingAngleX${i}');
 			subMods.push('incomingAngleY${i}');
