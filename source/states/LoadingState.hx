@@ -1058,63 +1058,13 @@ class LoadingState extends MusicBeatState
 	#if cpp
 	@:functionCode('
 		return std::thread::hardware_concurrency();
-    	')
+  ')
 	@:noCompletion
-    	public static function getCPUThreadsCount():Int
-    	{
-        	return -1;
-    	}
-    	#end
-
-			private static var _doingRestart:Bool = false;
-
-	/**
-	 * Start asynchronous preloading for PlayState
-	 * Uses ASync to generate song chart without visual objects
-	 */
-	static function startPlayStatePreload(playStateTarget:states.PlayState):Void {
-		if (playStateTarget == null || PlayfieldManager.SONG == null) {
-			trace("LoadingState: Cannot preload - target or SONG is null");
-			return;
-		}
-		trace("Is Restarting: " + _doingRestart);
-
-		trace("LoadingState: Starting async preload for song: " + PlayfieldManager.SONG.song);
-
-
-		// Create async function for chart generation
-		var preloadFunction = (function():Bool {
-			trace("LoadingState: Async preload thread started");
-
-			trace("LoadingState: Waiting for any ongoing GC behavior to finish...");
-
-
-			while (!MusicBeatState.getState().didGCBehavior || _doingRestart) {
-				// Wait for garbage collection behavior to be executed.
-				// trace("Restart State: " + _doingRestart + " | Did GC Behavior: " + MusicBeatState.getState().didGCBehavior);
-
-				if (_doingRestart && MusicBeatState.getState().didGCBehavior) {
-					_doingRestart = false;
-					trace("LoadingState: GC finished without detection. Fixing.");
-				}
-				Sys.sleep(1);
-			}
-
-
-			// Call generateSong with preload=true on the target instance
-			@:privateAccess
-			PlayfieldManager.mania[0] = PlayfieldManager.SONG.startMania ?? PlayfieldManager.SONG.mania ?? 3;
-			playStateTarget.forceGenerateSong(true);
-
-			trace("LoadingState: Async preload generation completed");
-			return true;
-		});
-
-		var A:ASync<Dynamic> = preloadFunction;
-
-
-		// Start the async operation
-		preloadAsync = cast A();
-
+	public static function getCPUThreadsCount():Int
+	{
+			return -1;
 	}
+	#end
+
+	private static var _doingRestart:Bool = false;
 }

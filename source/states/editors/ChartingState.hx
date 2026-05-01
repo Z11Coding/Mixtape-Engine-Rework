@@ -1690,7 +1690,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						stopMovingNotes();
 						resetSelectedNotes();
 						selectedNotes = pasteCopiedNotesToSection();
-						selectedNotes.sort(PlayState.sortByTime);
+						selectedNotes.sort(PlayfieldManager.sortByTime);
 
 						var didFind:Bool = false;
 						var minNoteData:Float = Math.POSITIVE_INFINITY;
@@ -1800,7 +1800,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					else
 						curZoom = zoomList[Std.int(Math.min(zoomList.indexOf(curZoom) + 1, zoomList.length - 1))];
 
-					notes.sort(PlayState.sortByTime);
+					notes.sort(PlayfieldManager.sortByTime);
 					var noteSec:Int = 0;
 					var nextSectionTime:Float = cachedSectionTimes[noteSec + 1];
 					var curSectionTime:Float = cachedSectionTimes[noteSec];
@@ -2450,8 +2450,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				pushedEvents.push(cast (note, EventMetaNote));
 			}
 		});
-		notes.sort(PlayState.sortByTime);
-		events.sort(PlayState.sortByTime);
+		notes.sort(PlayfieldManager.sortByTime);
+		events.sort(PlayfieldManager.sortByTime);
 		movingNotes.clear();
 		isMovingNotes = false;
 		softReloadNotes();
@@ -2850,8 +2850,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			if(event != null && (cachedSectionTimes.length < 1 || event[0] < cachedSectionTimes[cachedSectionTimes.length-1])) //dont spawn events over the time limit
 				events.push(createEvent(event));
 
-		notes.sort(PlayState.sortByTime);
-		events.sort(PlayState.sortByTime);
+		notes.sort(PlayfieldManager.sortByTime);
+		events.sort(PlayfieldManager.sortByTime);
 
 		trace('Note count: ${notes.length}');
 		trace('Events count: ${events.length}');
@@ -4174,7 +4174,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					pushedNotes.push(newNote);
 				}
 			}
-			notes.sort(PlayState.sortByTime);
+			notes.sort(PlayfieldManager.sortByTime);
 			softReloadNotes(true);
 
 			addUndoAction(ADD_NOTE, {notes: pushedNotes});
@@ -4316,7 +4316,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				pushedNotes.push(createdNote);
 				nts.push(createdNote);
 			}
-			notes.sort(PlayState.sortByTime);
+			notes.sort(PlayfieldManager.sortByTime);
 		}
 
 		if(canCopyEvents && copiedEvents.length > 0)
@@ -4332,7 +4332,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				pushedNotes.push(createdEvent);
 				evs.push(createdEvent);
 			}
-			events.sort(PlayState.sortByTime);
+			events.sort(PlayfieldManager.sortByTime);
 		}
 		loadSection();
 
@@ -5935,7 +5935,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		for (secNum => section in PlayfieldManager.SONG.notes)
 			PlayfieldManager.SONG.notes[secNum].sectionNotes = [];
 
-		notes.sort(PlayState.sortByTime);
+		notes.sort(PlayfieldManager.sortByTime);
 		var noteSec:Int = 0;
 		var nextSectionTime:Float = cachedSectionTimes[noteSec + 1];
 		var curSectionTime:Float = cachedSectionTimes[noteSec];
@@ -5956,7 +5956,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			arr.push(note.songData);
 		}
 
-		events.sort(PlayState.sortByTime);
+		events.sort(PlayfieldManager.sortByTime);
 		PlayfieldManager.SONG.events = [];
 		for (event in events)
 			PlayfieldManager.SONG.events.push(event.songData);
@@ -6037,7 +6037,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		undoActions = [];
 		setSongPlaying(false);
 		var gridLerp:Float = FlxMath.bound((scrollY + FlxG.height/2 - gridBg.y) / gridBg.height, 0.000001, 0.999999);
-		notes.sort(PlayState.sortByTime);
+		notes.sort(PlayfieldManager.sortByTime);
 		_cacheSections();
 
 		var noteSec:Int = 0;
@@ -6600,7 +6600,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					note.songData[1] = note.chartNoteData;
 				}
 			}
-			notes.sort(PlayState.sortByTime);
+			notes.sort(PlayfieldManager.sortByTime);
 		}
 		if(dataEvents != null && dataEvents.length > 0)
 		{
@@ -6613,7 +6613,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					event.songData[0] = event.strumTime;
 				}
 			}
-			events.sort(PlayState.sortByTime);
+			events.sort(PlayfieldManager.sortByTime);
 		}
 		softReloadNotes();
 	}

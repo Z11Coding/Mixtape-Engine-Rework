@@ -19,7 +19,7 @@ import haxe.ds.Vector;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
-@:allow(backend.funkinmodchart.engine.Modifier)
+@:allow(backend.funkinmodchart.engine.modifiers.Modifier)
 final class ModifierGroup {
 	/**
 	 * A `List` containing all compiled `Modifier` classes.

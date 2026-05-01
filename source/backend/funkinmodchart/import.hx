@@ -9,6 +9,7 @@ import backend.funkinmodchart.backend.util.ModchartUtil;
 import backend.funkinmodchart.engine.*;
 import backend.funkinmodchart.engine.events.*;
 import backend.funkinmodchart.engine.modifiers.*;
+import backend.funkinmodchart.engine.modifiers.Modifier;
 import flixel.math.FlxMath;
 import flixel.tweens.FlxEase;
 import openfl.geom.Vector3D;

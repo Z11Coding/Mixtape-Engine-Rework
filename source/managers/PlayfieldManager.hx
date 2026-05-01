@@ -2,6 +2,7 @@ package managers;
 import backend.Song.SwagSong;
 import backend.funkinmodchart.Manager;
 import backend.modchart.ModManager;
+import flixel.FlxState;
 import flixel.input.keyboard.FlxKey;
 import objects.Note;
 import objects.NoteManager;
@@ -9,6 +10,8 @@ import objects.NoteSplash;
 import objects.StrumNote;
 import objects.playfields.PlayField;
 import openfl.events.KeyboardEvent;
+import yutautil.modules.ASync.ASyncF;
+import yutautil.modules.ASync;
 
 class PlayfieldManager {
   public static var instance:PlayfieldManager;
@@ -53,25 +56,29 @@ class PlayfieldManager {
 	public var songSpeedType:String = "multiplicative";
 
   //Input
+	public var keysPressed:Array<Int> = [];
   private static var keysPressedSet:Map<Int, Bool> = new Map();
   public static var keysArray:Array<Array<Dynamic>>;
 	private var controlArray:Array<String>;
 
   // Cache for expensive operations
-	private var _cachedStrumPositions:Array<Float> = [];
-	private var _cachedNotePositions:Array<Float> = [];
+	public var _cachedStrumPositions:Array<Float> = [];
+	public var _cachedNotePositions:Array<Float> = [];
 
   // Misc.
-  var noteRows:Array<Array<Array<Note>>> = [[],[]];
+  public var noteRows:Array<Array<Array<Note>>> = [[],[]];
   public var ghostsAllowed:Bool = ClientPrefs.data.doubleGhosts;
-  var oppDifficulty:String = 'Average FNF Player'; // Mix-Up things. You wouldn't get it.
   public var freezeNotes:Bool = false;
 	public var localFreezeNotes:Bool = false;
+
+  // UNO mechanic instance for chart modifier
+	var unoMechanic:UnoMechanic;
 
   // Gameplay Modifiers
   public var chartModifier:String = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 	public var convertMania:Int = ClientPrefs.getGameplaySetting('convertMania', 3);
   public var opponentmode:Bool = ClientPrefs.getGameplaySetting('opponentplay', false);
+  public var oppDifficulty:String = 'Average FNF Player'; // Mix-Up things. You wouldn't get it.
 	public var bothMode:Bool = ClientPrefs.getGameplaySetting('bothMode', false);
   public var RandomSpeedChange:Bool = ClientPrefs.getGameplaySetting('randomspeedchange', false);
 	public var RandomSpeedChangeWild:Bool = false;
@@ -95,6 +102,8 @@ class PlayfieldManager {
 
   public var songName:String;
 
+  public var manualInputChecks:Bool = false;
+
   public function new() {
     instance = this;
     mania = [3, 3];
@@ -115,6 +124,7 @@ class PlayfieldManager {
 		resetSVDeltas();
 		#end
     speedChanges.sort(svSort);
+    manualInputChecks = false;
   }
 
   /// Mania
@@ -213,7 +223,7 @@ class PlayfieldManager {
 			{
 				// if (note.isSustainNote) {note.originalHeightForCalcs = note.height;}
 
-				note.setGraphicSize(Std.int(note.width * daPixelZoom * Note.pixelScales[mania]));
+				note.setGraphicSize(Std.int(note.width * PlayState.daPixelZoom * Note.pixelScales[mania[note.fieldIndex]]));
 			}
 			else
 			{
@@ -245,9 +255,9 @@ class PlayfieldManager {
 
 				if (note != null && prevNote != null && prevNote.isSustainNote && prevNote.animation != null)
 				{ // haxe flixel
-					prevNote.animation.play(Note.keysShit.get(mania).get('letters')[noteData % tMania] + ' hold');
+					prevNote.animation.play(Note.keysShit.get(mania[note.fieldIndex]).get('letters')[noteData % tMania] + ' hold');
 
-					prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
+					prevNote.scale.y *= MegaManager.conductor.stepLengthMs / 100 * 1.05;
 					prevNote.scale.y *= PlayfieldManager.instance.songSpeed;
 
 					if (PlayState.isPixelStage)
@@ -262,7 +272,7 @@ class PlayfieldManager {
 
 				if (PlayState.isPixelStage && prevNote != null)
 				{
-					prevNote.scale.y *= daPixelZoom * (Note.pixelScales[mania]); // Fuck urself
+					prevNote.scale.y *= PlayState.daPixelZoom * (Note.pixelScales[mania[prevNote.fieldIndex]]); // Fuck urself
 					prevNote.updateHitbox();
 				}
 			}
@@ -272,7 +282,7 @@ class PlayfieldManager {
 				{
 					var animToPlay:String = '';
 
-					animToPlay = Note.keysShit.get(mania).get('letters')[noteData % tMania];
+					animToPlay = Note.keysShit.get(mania[note.fieldIndex]).get('letters')[noteData % tMania];
 
 					note.animation.play(animToPlay);
 				}
@@ -293,16 +303,9 @@ class PlayfieldManager {
     }
 
 		for(field in playfields.members) {
-			field.keyCount = Note.ammo[mania];
+			field.keyCount = Note.ammo[mania[field.modNumber]];
 			field.generateStrums();
 		}
-
-    if (MusicBeatState.getState() == PlayState.instance) {
-      #if ALLOW_DEPRECATION
-      PlayState.instance?.callOnScripts('postReceptorGeneration'); // deprecated
-      #end
-      PlayState.instance?.callOnScripts('onReceptorGenerationPost');
-    }
 
 		for(field in playfields.members)
 			field.fadeIn(skipArrowStartTween);
@@ -317,8 +320,14 @@ class PlayfieldManager {
 			playerStrums.add(i);
 			strumLineNotes.add(i);
 		}
-
 		#end
+
+    if (MusicBeatState.getState() == PlayState.instance) {
+      #if ALLOW_DEPRECATION
+      PlayState.instance?.callOnScripts('postReceptorGeneration'); // deprecated
+      #end
+      PlayState.instance?.callOnScripts('onReceptorGenerationPost');
+    }
 	}
 
   private function generatePlayerStrums(player:Int):Void
@@ -331,7 +340,7 @@ class PlayfieldManager {
       PlayState.instance?.callOnScripts('onPlayerReceptorGeneration');
     }
 
-    playfields.members[player].keyCount = Note.ammo[mania];
+    playfields.members[player].keyCount = Note.ammo[mania[playfields.members[player].modNumber]];
     playfields.members[player].generateStrums();
 
 		playfields.members[player].fadeIn(skipArrowStartTween);
@@ -380,7 +389,7 @@ class PlayfieldManager {
 	public static function getNoteInitialTime(time:Float)
 	{
 		var event:SpeedEvent = getSV(time);
-		return PlayfieldManager.getTimeFromSV(time, event);
+		return MegaManager.playfield?.getTimeFromSV(time, event);
 	}
 
 	#if EASED_SVs
@@ -452,20 +461,14 @@ class PlayfieldManager {
 	public function initPlayfield(field:PlayField){
 		notefields.add(field.noteField);
 
-		field.holdPressCallback = pressHold;
-		field.holdStepCallback = stepHold;
-		field.holdReleaseCallback = releaseHold;
+		field.holdPressCallback.add(pressHold);
+		field.holdStepCallback.add(stepHold);
+		field.holdReleaseCallback.add(releaseHold);
 
 		field.noteRemoved.add((note:Note, field:PlayField) -> {
 			allNotes.remove(note);
 			unspawnNotes.remove(note);
 			notes.remove(note, true);
-		});
-		field.noteMissed.add((daNote:Note, field:PlayField) -> {
-			//trace("Missed!");
-			if (field.isPlayer && !field.autoPlayed && !daNote.ignoreNote && !endingSong && (daNote.tooLate || !daNote.wasGoodHit))
-				noteMiss(daNote, field);
-
 		});
 
 		field.noteSpawned.add((dunceNote:Note, field:PlayField) -> {
@@ -502,11 +505,56 @@ class PlayfieldManager {
 
 	}
 
+  public function addHoldPressCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.holdPressCallback.add(callback);
+  public function addHoldStepCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.holdStepCallback.add(callback);
+  public function addHoldReleaseCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.holdReleaseCallback.add(callback);
+  public function addNoteRemovedCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.noteRemoved.add(callback);
+  public function addNoteMissCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.noteMissed.add(callback);
+  public function addNoteHitCallbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.noteHitCallback.add(callback);
+  public function addNoteSpawnedCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.noteSpawned.add(callback);
+  public function addHoldDroppedCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.holdDropped.add(callback);
+  public function addHoldFinishedCalbackToField(callback:PlayField.NoteCallback, field:PlayField)
+    field.holdFinished.add(callback);
+
+  //Yes this is all these do
+	inline function stepHold(note:Note, field:PlayField)
+	{
+		if (MusicBeatState.getState() == PlayState.instance)
+      PlayState.instance?.callOnScripts("onHoldStep", [note, field]);
+
+    if (MusicBeatState.getState() == PlayState.instance) {
+      if(field.isPlayer){
+        if (PlayState.instance?.holdsGiveHP #if MECHANICS_MOD_ALLOWED && (PlayState.mechanicsMod != null && !PlayState.mechanicsMod.restoreActivated) #end){
+          PlayState.instance.health += note.hitHealth * PlayState.instance.healthGain;
+        }
+      }
+    }
+	}
+	inline function pressHold(note:Note, field:PlayField) {
+		if (MusicBeatState.getState() == PlayState.instance)
+      PlayState.instance?.callOnScripts("onHoldPress", [note, field]);
+	}
+
+	inline function releaseHold(note:Note, field:PlayField):Void {
+		if (MusicBeatState.getState() == PlayState.instance)
+      PlayState.instance?.callOnScripts("onHoldRelease", [note, field]);
+	}
+	//No im not kidding
+
   /// Chart Loading
-  var genChartInBG:ASync<Void -> String> = generateChart;
   public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = true) {
-    if (chartCache.exists(songName)) {
-      allNotes = chartCache.get(songName).copy();
+    var genChartInBG:ASyncF<(?songData:backend.SwagSong, ?preload:Null<Bool>) -> Void> = generateChart;
+    var noteQueueCheck:ASync<() -> Void> = addNotesToQueue;
+    if (chartCache.exists({songName: songName, modName: folder})) {
+      allNotes = chartCache.get({songName: songName, modName: folder}).copyChart();
       unspawnNotes = curChart = allNotes;
   		noteQueueCheck();
     } else {
@@ -519,8 +567,7 @@ class PlayfieldManager {
     songName = Paths.formatToSongPath(SONG.song);
   }
 
-  var noteQueueCheck:ASync<Void -> String> = addNotesToQueue;
-  function addNotesToQueue():String {
+  private function addNotesToQueue() {
     for (note in allNotes) {
       if (playerField != null)
         if (note.mustPress)
@@ -530,11 +577,10 @@ class PlayfieldManager {
         if (!note.mustPress)
           dadField.queue(note);
     }
-    return "Notes Queued";
   }
 
-  private var noteTypes:Array<String> = [];
-	private var eventsPushed:Array<String> = [];
+  public var noteTypes:Array<String> = [];
+	public var eventsPushed:Array<String> = [];
 	private var totalColumns:Int = Note.ammo[SONG?.mania != null ? SONG?.mania : 3];
 	var prevNoteData:Int = -1;
 	var initialNoteData:Int = -1;
@@ -542,7 +588,7 @@ class PlayfieldManager {
 	var currentModifier:Int = -1;
 	var stair:Int = 0;
 
-  public function generateChart(songData:SwagSong = null, ?preload:Bool = false):Void
+  private function generateChart(songData:SwagSong = null, ?preload:Bool = false):Void
 	{
     if (songData == null) {
       trace("The chart file was null! Canceling generation...");
@@ -679,14 +725,14 @@ class PlayfieldManager {
           switch (chartModifier)
           {
             case "Random":
-              noteColumn = FlxG.random.int(0, mania);
+              noteColumn = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
             case "RandomBasic":
               var randomDirection:Int;
               do
               {
-                randomDirection = FlxG.random.int(0, mania);
+                randomDirection = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
               }
-              while (randomDirection == prevNoteData && mania > 1);
+              while (randomDirection == prevNoteData && mania[gottaHitNote ? 1 : 0] > 1);
               prevNoteData = randomDirection;
               noteColumn = randomDirection;
             case "RandomComplex":
@@ -694,16 +740,16 @@ class PlayfieldManager {
               if (initialNoteData == -1)
               {
                 initialNoteData = noteColumn;
-                noteColumn = FlxG.random.int(0, mania);
+                noteColumn = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
               }
               else
               {
                 var newNoteData:Int;
                 do
                 {
-                  newNoteData = FlxG.random.int(0, mania);
+                  newNoteData = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
                 }
-                while (newNoteData == prevNoteData && mania > 1);
+                while (newNoteData == prevNoteData && mania[gottaHitNote ? 1 : 0] > 1);
                 if (thisNoteData == initialNoteData)
                 {
                   noteColumn = prevNoteData;
@@ -720,15 +766,15 @@ class PlayfieldManager {
             // 	if (prevNoteData == 0) {
             // 		noteColumn = 1;
             // 		direction = 1;
-            // 	} else if (prevNoteData == mania - 1) {
-            // 		noteColumn = mania - 2;
+            // 	} else if (prevNoteData == mania[gottaHitNote ? 1 : 0] - 1) {
+            // 		noteColumn = mania[gottaHitNote ? 1 : 0] - 2;
             // 		direction = -1;
             // 	} else {
             // 		noteColumn = prevNoteData + direction;
             // 	}
             // 	break;
             case "Mirror": // Broken
-              var length = mania;
+              var length = mania[gottaHitNote ? 1 : 0];
               var mirroredIndex:Int;
               var middle = Math.floor(length / 2);
               if (noteColumn < middle)
@@ -745,7 +791,7 @@ class PlayfieldManager {
               }
               noteColumn = mirroredIndex;
             case "ReverseMirror":
-              var median:Float = (mania + 1) / 2;
+              var median:Float = (mania[gottaHitNote ? 1 : 0] + 1) / 2;
               if (noteColumn <= median)
               {
                 // For values below the median, mirror downwards
@@ -756,34 +802,34 @@ class PlayfieldManager {
                 // For values above the median, mirror upwards
                 noteColumn = Std.int(median + (noteColumn - median) + 1);
               }
-              noteColumn = Std.int(Math.max(0, Math.min(noteColumn, mania - 1)));
+              noteColumn = Std.int(Math.max(0, Math.min(noteColumn, mania[gottaHitNote ? 1 : 0] - 1)));
 
             case "Skip":
               var skipStep = 2; // Define the step size for skipping notes.
-              var randomLane = Math.random() < 0.5 ? prevNoteData : (prevNoteData + skipStep) % mania;
+              var randomLane = Math.random() < 0.5 ? prevNoteData : (prevNoteData + skipStep) % mania[gottaHitNote ? 1 : 0];
               var randomDuration = Math.random() * 30; // Randomize the duration before switching lanes (in notes).
               noteColumn = randomLane;
             case "Flip":
               if (gottaHitNote)
               {
-                noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
+                noteColumn = mania[gottaHitNote ? 1 : 0] - Std.int(songNotes[1] % Note.ammo[mania[gottaHitNote ? 1 : 0]]);
               }
             case "Pain":
-              noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
+              noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania[gottaHitNote ? 1 : 0]]);
             case "4K Only":
               //trace("4K Only: " + noteColumn);
               noteColumn = getNumberFromAnimsSmall(noteColumn, 3);
-              //trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
-            case "ManiaConverter":
-              //trace("ManiaConverter: " + noteColumn);
-              noteColumn = getNumberFromAnims(noteColumn, mania);
-              //trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
+              //trace("Note: " + noteColumn + " mania[gottaHitNote ? 1 : 0]: " + mania[gottaHitNote ? 1 : 0] + " GottaHit: " + gottaHitNote);
+            case "mania[gottaHitNote ? 1 : 0]Converter":
+              //trace("mania[gottaHitNote ? 1 : 0]Converter: " + noteColumn);
+              noteColumn = getNumberFromAnims(noteColumn, mania[gottaHitNote ? 1 : 0]);
+              //trace("Note: " + noteColumn + " mania[gottaHitNote ? 1 : 0]: " + mania[gottaHitNote ? 1 : 0] + " GottaHit: " + gottaHitNote);
             case "Stairs":
-              noteColumn = stair % Note.ammo[mania];
+              noteColumn = stair % Note.ammo[mania[gottaHitNote ? 1 : 0]];
               stair++;
             case "Wave":
               // Sketchie... WHY?!
-              var ammoFromFortnite:Int = Note.ammo[mania];
+              var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
               var luigiSex:Int = (ammoFromFortnite * 2 - 2);
               var marioSex:Int = stair++ % luigiSex;
               if (marioSex < ammoFromFortnite)
@@ -795,7 +841,7 @@ class PlayfieldManager {
                 noteColumn = luigiSex - marioSex;
               }
             case "Trills":
-              var ammoFromFortnite:Int = Note.ammo[mania];
+              var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
               var luigiSex:Int = (ammoFromFortnite * 2 - 2);
               var marioSex:Int;
               do
@@ -810,11 +856,11 @@ class PlayfieldManager {
                   noteColumn = luigiSex - marioSex;
                 }
               }
-              while (noteColumn == prevNoteData && mania > 1);
+              while (noteColumn == prevNoteData && mania[gottaHitNote ? 1 : 0] > 1);
               prevNoteData = noteColumn;
             case "Ew":
               // I hate that I used Sketchie's variables as a base for this... ;-;
-              var ammoFromFortnite:Int = Note.ammo[mania];
+              var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
               var luigiSex:Int = (ammoFromFortnite * 2 - 2);
               var marioSex:Int = stair++ % luigiSex;
               var noteIndex:Int = Std.int(marioSex / 2);
@@ -830,7 +876,7 @@ class PlayfieldManager {
                 noteColumn = ammoFromFortnite - 2;
               }
             case "Death":
-              var ammoFromFortnite:Int = Note.ammo[mania];
+              var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
               var luigiSex:Int = (ammoFromFortnite * 4 - 4);
               var marioSex:Int = stair++ % luigiSex;
               var step:Int = Std.int(luigiSex / 3);
@@ -852,16 +898,16 @@ class PlayfieldManager {
                 noteColumn = (marioSex - ammoFromFortnite * 3) % step + step * 3;
               }
             case "What":
-              switch (stair % (2 * Note.ammo[mania]))
+              switch (stair % (2 * Note.ammo[mania[gottaHitNote ? 1 : 0]]))
               {
                 case 0:
                 case 1:
                 case 2:
                 case 3:
                 case 4:
-                  noteColumn = stair % Note.ammo[mania];
+                  noteColumn = stair % Note.ammo[mania[gottaHitNote ? 1 : 0]];
                 default:
-                  noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
+                  noteColumn = Note.ammo[mania[gottaHitNote ? 1 : 0]] - 1 - (stair % Note.ammo[mania[gottaHitNote ? 1 : 0]]);
               }
               stair++;
             case "Amalgam":
@@ -893,14 +939,14 @@ class PlayfieldManager {
                 switch (currentModifier)
                 {
                   case 0: // "Random"
-                    noteColumn = FlxG.random.int(0, mania);
+                    noteColumn = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
                   case 1: // "RandomBasic"
                     var randomDirection:Int;
                     do
                     {
-                      randomDirection = FlxG.random.int(0, mania);
+                      randomDirection = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
                     }
-                    while (randomDirection == prevNoteData && mania > 1);
+                    while (randomDirection == prevNoteData && mania[gottaHitNote ? 1 : 0] > 1);
                     prevNoteData = randomDirection;
                     noteColumn = randomDirection;
                   case 2: // "RandomComplex"
@@ -908,16 +954,16 @@ class PlayfieldManager {
                     if (initialNoteData == -1)
                     {
                       initialNoteData = noteColumn;
-                      noteColumn = FlxG.random.int(0, mania);
+                      noteColumn = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
                     }
                     else
                     {
                       var newNoteData:Int;
                       do
                       {
-                        newNoteData = FlxG.random.int(0, mania);
+                        newNoteData = FlxG.random.int(0, mania[gottaHitNote ? 1 : 0]);
                       }
-                      while (newNoteData == prevNoteData && mania > 1);
+                      while (newNoteData == prevNoteData && mania[gottaHitNote ? 1 : 0] > 1);
                       if (thisNoteData == initialNoteData)
                       {
                         noteColumn = prevNoteData;
@@ -932,16 +978,16 @@ class PlayfieldManager {
                   case 3: // "Flip"
                     if (gottaHitNote)
                     {
-                      noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
+                      noteColumn = mania[gottaHitNote ? 1 : 0] - Std.int(songNotes[1] % Note.ammo[mania[gottaHitNote ? 1 : 0]]);
                     }
                   case 4: // "Pain"
-                    noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
+                    noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania[gottaHitNote ? 1 : 0]]);
                   case 5: // "Stairs"
-                    noteColumn = stair % Note.ammo[mania];
+                    noteColumn = stair % Note.ammo[mania[gottaHitNote ? 1 : 0]];
                     stair++;
                   case 6: // "Wave"
                     // Sketchie... WHY?!
-                    var ammoFromFortnite:Int = Note.ammo[mania];
+                    var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
                     var luigiSex:Int = (ammoFromFortnite * 2 - 2);
                     var marioSex:Int = stair++ % luigiSex;
                     if (marioSex < ammoFromFortnite)
@@ -953,7 +999,7 @@ class PlayfieldManager {
                       noteColumn = luigiSex - marioSex;
                     }
                   case 7: // "Huh"
-                    var ammoFromFortnite:Int = Note.ammo[mania];
+                    var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
                     var luigiSex:Int = (ammoFromFortnite * 4 - 4);
                     var marioSex:Int = stair++ % luigiSex;
                     var step:Int = Std.int(luigiSex / 3);
@@ -979,7 +1025,7 @@ class PlayfieldManager {
                     }
                   case 8: // "Ew"
                     // I hate that I used Sketchie's variables as a base for this... ;-;
-                    var ammoFromFortnite:Int = Note.ammo[mania];
+                    var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
                     var luigiSex:Int = (ammoFromFortnite * 2 - 2);
                     var marioSex:Int = stair++ % luigiSex;
                     var noteIndex:Int = Std.int(marioSex / 2);
@@ -995,20 +1041,20 @@ class PlayfieldManager {
                       noteColumn = ammoFromFortnite - 2;
                     }
                   case 9: // "What"
-                    switch (stair % (2 * Note.ammo[mania]))
+                    switch (stair % (2 * Note.ammo[mania[gottaHitNote ? 1 : 0]]))
                     {
                       case 0:
                       case 1:
                       case 2:
                       case 3:
                       case 4:
-                        noteColumn = stair % Note.ammo[mania];
+                        noteColumn = stair % Note.ammo[mania[gottaHitNote ? 1 : 0]];
                       default:
-                        noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
+                        noteColumn = Note.ammo[mania[gottaHitNote ? 1 : 0]] - 1 - (stair % Note.ammo[mania[gottaHitNote ? 1 : 0]]);
                     }
                     stair++;
                   case 10: // Jack Wave
-                    var ammoFromFortnite:Int = Note.ammo[mania];
+                    var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
                     var luigiSex:Int = (ammoFromFortnite * 2 - 2);
                     var marioSex:Int = Std.int((stair++ % (luigiSex * 4)) / 4);
                     if (marioSex < ammoFromFortnite)
@@ -1022,7 +1068,7 @@ class PlayfieldManager {
                   case 11: // SpeedRando
                     // Handled by SpeedRando Code below!
                   case 12: // Trills
-                    var ammoFromFortnite:Int = Note.ammo[mania];
+                    var ammoFromFortnite:Int = Note.ammo[mania[gottaHitNote ? 1 : 0]];
                     var luigiSex:Int = (ammoFromFortnite * 2 - 2);
                     var marioSex:Int;
                     do
@@ -1037,7 +1083,7 @@ class PlayfieldManager {
                         noteColumn = luigiSex - marioSex;
                       }
                     }
-                    while (noteColumn == prevNoteData && mania > 1);
+                    while (noteColumn == prevNoteData && mania[gottaHitNote ? 1 : 0] > 1);
                     prevNoteData = noteColumn;
                   default:
                     // Default case (optional)
@@ -1063,7 +1109,7 @@ class PlayfieldManager {
             if (unoMechanic == null) {
               unoMechanic = new UnoMechanic();
             }
-            unoMechanic.processNote(swagNote, mania, spawnTime, gottaHitNote);
+            unoMechanic.processNote(swagNote, mania[gottaHitNote ? 1 : 0], spawnTime, gottaHitNote);
           }
         }
 
@@ -1143,7 +1189,7 @@ class PlayfieldManager {
         if (!preload) {
           // Generate special UNO notes (skip, wrong, +2, +4)
           if (chartModifier == "UNO" && unoMechanic != null) {
-            var specialNotes = unoMechanic.generateSpecialNotes(swagNote, mania, allNotes);
+            var specialNotes = unoMechanic.generateSpecialNotes(swagNote, mania[swagNote.fieldIndex], allNotes);
             for (specialNote in specialNotes) {
               if (playfield != null) {
                 specialNote.field = playfield;
@@ -1183,7 +1229,7 @@ class PlayfieldManager {
           {
             oldNote = allNotes[Std.int(allNotes.length - 1)];
 
-            var sustainNote:Note = Note(spawnTime + (stepCrochet * susNote) + stepCrochet, noteColumn, oldNote, true, false, null, false);
+            var sustainNote:Note = new Note(spawnTime + (stepCrochet * susNote) + stepCrochet, noteColumn, oldNote, true, false, null, false);
 
             // Set properties using cached values
             sustainNote.mustPress = parentMustPress;
@@ -1238,7 +1284,7 @@ class PlayfieldManager {
           noteTypes.push(swagNote.noteType);
 
         if (!preload && MusicBeatState.getState() == PlayState.instance) {
-          if (PlayState.instance.mechanicsMod != null) {
+          if (PlayState.mechanicsMod != null) {
             var sectionLength = (section.sectionBeats*4);
 
             var sectionStartTime:Float = (Conductor.stepCrochet * sectionLoopCount) * sectionLength;
@@ -1370,12 +1416,12 @@ class PlayfieldManager {
 
             if (FlxG.random.bool(FlxMath.remapToRange(strumSwapPoints, 0, 20, 0, 8) + getChance(7)))
             {
-              moveStrumSections[sectionLoopCount] = true;
+              PlayState.moveStrumSections[sectionLoopCount] = true;
               weightedChances[7] = 0;
             }
             else
             {
-              moveStrumSections[sectionLoopCount] = false;
+              PlayState.moveStrumSections[sectionLoopCount] = false;
               weightedChances[7] += FlxG.random.float(FlxMath.remapToRange(strumSwapPoints, 0, 20, 0, 0.4));
             }
 
@@ -1424,7 +1470,7 @@ class PlayfieldManager {
             sectionLoopCount += 1;
           }
 
-          if (mechanicsMod != null) {
+          if (PlayState.mechanicsMod != null) {
             if (MechanicManager.mechanics["note_speed"].points > 0)
             {
               for (note in allNotes)
@@ -1700,7 +1746,7 @@ class PlayfieldManager {
 		var hitNotes:Array<Note> = []; // what could scripts possibly do with this information
 		var controlledFields:Array<PlayField> = [];
 
-		if (inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
+		if (APEntryState.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
 			return;
 
 		for (field in playfields.members) {
@@ -1710,7 +1756,7 @@ class PlayfieldManager {
 			controlledFields.push(field);
 			field.keysPressed[column] = true;
 
-			if (endingSong)
+			if (PlayState.instance?.endingSong)
 				continue;
 
 			var note:Note = {
@@ -1737,11 +1783,13 @@ class PlayfieldManager {
 
 		if (hitNotes.length == 0) {
 			for (field in controlledFields) {
-        if (MusicBeatState.getState() == PlayState.instance)
+        if (MusicBeatState.getState() == PlayState.instance) {
           PlayState.instance?.callOnScripts('onGhostTap', [column, field]);
 
-				if (!ClientPrefs.data.ghostTapping)
-					noteMissPress(column, field);
+          @:privateAccess
+          if (!ClientPrefs.data.ghostTapping)
+            PlayState.instance?.noteMissPress(column, field);
+        }
 			}
 		}
 
@@ -1776,7 +1824,7 @@ class PlayfieldManager {
 	public var strumsBlocked:Array<Bool> = [];
 	var closestNotes:Array<Note> = [];
 	var pressed:Array<FlxKey> = [];
-	var reverseNoteRules:Bool = false;
+	public var reverseNoteRules:Bool = false;
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
@@ -1793,16 +1841,16 @@ class PlayfieldManager {
 			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
 			#end
 			if (ClientPrefs.data.inputSystem == "Native-old") {
-				if (!controls.controllerMode)
+				if (!Controls.instance.controllerMode)
 				{
-					if (paused || !startedCountdown || inCutscene) return;
+					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 					if (pressed.contains(eventKey)) return;
 					pressed.push(eventKey);
 					if (key != -1) strumKeyDown(key);
 				}
 			}
 			else {
-				if (paused || !startedCountdown || inCutscene) return;
+				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
         if (MusicBeatState.getState() == PlayState.instance)
@@ -1822,7 +1870,8 @@ class PlayfieldManager {
 						{
 							controlledFields.push(field);
 							field.keysPressed[key] = true;
-							if (generatedMusic && !endingSong)
+              @:privateAccess
+							if (PlayState.instance?.generatedMusic && !PlayState.instance?.endingSong)
 							{
 								var note:Note = null;
                 if (MusicBeatState.getState() == PlayState.instance) {
@@ -1846,11 +1895,13 @@ class PlayfieldManager {
 						}
 						if (hitNotes.length == 0 && controlledFields.length > 0)
 						{
-              if (MusicBeatState.getState() == PlayState.instance)
+              if (MusicBeatState.getState() == PlayState.instance) {
                 PlayState.instance?.callOnScripts('onGhostTap', [key]);
 
-							if (!ClientPrefs.data.ghostTapping)
-								noteMissPress(key, field);
+                @:privateAccess
+                if (!ClientPrefs.data.ghostTapping)
+                  PlayState.instance?.noteMissPress(key, field);
+              }
 						}
 					}
 				}
@@ -1860,11 +1911,12 @@ class PlayfieldManager {
 
   private function keyPressed(key:Int, player:Int = -1)
 	{
-		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || paused || inCutscene || key < 0 || key >= playerStrums.length || !generatedMusic || endingSong || boyfriend.stunned) return;
+    @:privateAccess
+		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= playerStrums.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
 		if (strumsBlocked[key]) return;
 
 		// Early script callback optimization - only call if scripts exist
-		if (hasLuaScripts || hasHScripts) {
+		if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
       if (MusicBeatState.getState() == PlayState.instance) {
         var ret:Dynamic = PlayState.instance?.callOnScripts('onKeyPressPre', [key]);
         if(ret == LuaUtils.Function_Stop) return;
@@ -1889,12 +1941,12 @@ class PlayfieldManager {
 		for (field in controlledFields) {
 			field.keysPressed[key] = true;
 
-			if (endingSong) continue;
+			if (PlayState.instance?.endingSong) continue;
 
 			var note:Note = null;
 
 			// Optimize script callback - only call if scripts exist and return early if stopped
-			if (hasLuaScripts || hasHScripts) {
+			if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
         if (MusicBeatState.getState() == PlayState.instance) {
           var ret:Dynamic = PlayState.instance?.callOnScripts("onFieldInput", [field, key, hitNotes]);
           if (ret == LuaUtils.Function_Stop) {
@@ -1923,13 +1975,15 @@ class PlayfieldManager {
 		// Handle ghost tapping
 		if (hitNotes.length == 0) {
 			for (field in controlledFields) {
-				if (hasLuaScripts || hasHScripts) {
+				if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
           if (MusicBeatState.getState() == PlayState.instance)
             PlayState.instance?.callOnScripts('onGhostTap', [key, field]);
 				}
 
-				if (!ClientPrefs.data.ghostTapping)
-					noteMissPress(key, field);
+        @:privateAccess
+        if (MusicBeatState.getState() == PlayState.instance)
+          if (!ClientPrefs.data.ghostTapping)
+            PlayState.instance?.noteMissPress(key, field);
 			}
 		}
 
@@ -1941,7 +1995,7 @@ class PlayfieldManager {
 		Conductor.songPosition = lastTime;
 
 		// Final script callback - only if scripts exist
-		if (hasLuaScripts || hasHScripts) {
+		if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
       if (MusicBeatState.getState() == PlayState.instance)
         PlayState.instance?.callOnScripts('onKeyPress', [key]);
 		}
@@ -1975,14 +2029,14 @@ class PlayfieldManager {
 			if (keyDirection != -1) strumKeyUp(keyDirection);
 		} else {
 			if (ClientPrefs.data.inputSystem == "Native-old") {
-				if (!controls.controllerMode)
+				if (!Controls.instance.controllerMode)
 				{
-					if (paused || !startedCountdown || inCutscene) return;
+					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 					if (keyDirection != -1) strumKeyDown(keyDirection);
 				}
 			}
 			else {
-				if (paused || !startedCountdown || inCutscene) return;
+				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
         if (MusicBeatState.getState() == PlayState.instance)
           if (PlayState.instance?.callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
 
@@ -2000,7 +2054,8 @@ class PlayfieldManager {
 						{
 							controlledFields.push(field);
 							field.keysPressed[keyDirection] = true;
-							if (generatedMusic && !endingSong)
+              @:privateAccess
+							if (PlayState.instance?.generatedMusic && !PlayState.instance?.endingSong)
 							{
 								var note:Note = null;
                 if (MusicBeatState.getState() == PlayState.instance) {
@@ -2024,11 +2079,13 @@ class PlayfieldManager {
 						}
 						if (hitNotes.length == 0 && controlledFields.length > 0)
 						{
-              if (MusicBeatState.getState() == PlayState.instance)
+              if (MusicBeatState.getState() == PlayState.instance) {
                 PlayState.instance?.callOnScripts('onGhostTap', [keyDirection]);
 
-							if (!ClientPrefs.data.ghostTapping)
-								noteMissPress(keyDirection, field);
+                @:privateAccess
+                if (!ClientPrefs.data.ghostTapping)
+                  PlayState.instance?.noteMissPress(keyDirection, field);
+              }
 						}
 					}
 				}
@@ -2040,7 +2097,7 @@ class PlayfieldManager {
 	{
 		var direction:Int = getMouseFromEvent(key);
 		if (reverseNoteRules) {
-			if (paused || !startedCountdown || inCutscene) return;
+			if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 			if (MusicBeatState.getState() == PlayState.instance)
         if (PlayState.instance?.callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
 
@@ -2058,7 +2115,8 @@ class PlayfieldManager {
 					{
 						controlledFields.push(field);
 						field.keysPressed[direction] = true;
-						if (generatedMusic && !endingSong)
+            @:privateAccess
+						if (PlayState.instance?.generatedMusic && !PlayState.instance?.endingSong)
 						{
 							var note:Note = null;
               if (MusicBeatState.getState() == PlayState.instance) {
@@ -2082,11 +2140,13 @@ class PlayfieldManager {
 					}
 					if (hitNotes.length == 0 && controlledFields.length > 0)
 					{
-            if (MusicBeatState.getState() == PlayState.instance)
+            if (MusicBeatState.getState() == PlayState.instance) {
               PlayState.instance?.callOnScripts('onGhostTap', [direction]);
 
-						if (!ClientPrefs.data.ghostTapping)
-							noteMissPress(direction, field);
+              @:privateAccess
+              if (!ClientPrefs.data.ghostTapping)
+                PlayState.instance?.noteMissPress(direction, field);
+            }
 					}
 				}
 			}
@@ -2107,16 +2167,16 @@ class PlayfieldManager {
 			@:privateAccess if (!FlxG.keys._keyListMap.exists(eventKey)) return;
 			#end
 			if (ClientPrefs.data.inputSystem == "Native-old") {
-				if (!controls.controllerMode)
+				if (!Controls.instance.controllerMode)
 				{
-					if (paused || !startedCountdown || inCutscene) return;
+					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 					if (pressed.contains(eventKey)) return;
 					pressed.push(eventKey);
 					if (key != -1) strumKeyDown(key);
 				}
 			}
 			else {
-				if (paused || !startedCountdown || inCutscene) return;
+				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
         if (MusicBeatState.getState() == PlayState.instance)
@@ -2136,7 +2196,8 @@ class PlayfieldManager {
 						{
 							controlledFields.push(field);
 							field.keysPressed[key] = true;
-							if (generatedMusic && !endingSong)
+              @:privateAccess
+							if (PlayState.instance?.generatedMusic && !PlayState.instance?.endingSong)
 							{
 								var note:Note = null;
                 if (MusicBeatState.getState() == PlayState.instance) {
@@ -2160,11 +2221,13 @@ class PlayfieldManager {
 						}
 						if (hitNotes.length == 0 && controlledFields.length > 0)
 						{
-              if (MusicBeatState.getState() == PlayState.instance)
+              if (MusicBeatState.getState() == PlayState.instance) {
                 PlayState.instance?.callOnScripts('onGhostTap', [key]);
 
-							if (!ClientPrefs.data.ghostTapping)
-								noteMissPress(key, field);
+                @:privateAccess
+                if (!ClientPrefs.data.ghostTapping)
+                  PlayState.instance?.noteMissPress(key, field);
+              }
 						}
 					}
 				}
@@ -2179,11 +2242,12 @@ class PlayfieldManager {
 
 	private function keyReleased(key:Int, ?player:Int = -1)
 	{
-		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || !startedCountdown || paused || key < 0 || key >= playerStrums.length) return;
+		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || !PlayState.instance?.startedCountdown || PlayState.instance?.paused || key < 0 || key >= playerStrums.length) return;
 
-    if (MusicBeatState.getState() == PlayState.instance)
+    if (MusicBeatState.getState() == PlayState.instance) {
       var ret:Dynamic = PlayState.instance?.callOnScripts('onKeyReleasePre', [key]);
-		if(ret == LuaUtils.Function_Stop) return;
+  		if(ret == LuaUtils.Function_Stop) return;
+    }
 
 		for (field in playfields.members) {
 			if ((player != -1 && field.playerId != player) || !field.isPlayer || !field.inControl || field.autoPlayed)
@@ -2203,12 +2267,13 @@ class PlayfieldManager {
       PlayState.instance?.callOnScripts('onKeyRelease', [key]);
 	}
 
+  // TODO: Find a better way to do this so that Both Play and Opponent Mode can be accounted for
 	public static function getKeyFromEvent(key:FlxKey):Int
 	{
 		if (key != NONE)
-			for (i in 0...keysArray[mania].length)
-				for (j in 0...keysArray[mania][i].length)
-					if (key == keysArray[mania][i][j])
+			for (i in 0...keysArray[mania[instance.playerField?.modNumber]].length)
+				for (j in 0...keysArray[mania[instance.playerField?.modNumber]][i].length)
+					if (key == keysArray[mania[instance.playerField?.modNumber]][i][j])
 						return i;
 		return -1;
 	}
@@ -2216,9 +2281,9 @@ class PlayfieldManager {
 	public static function getMouseFromEvent(pressed:Int):Int
 	{
 		if (pressed != -1)
-			for (i in 0...keysArray[mania].length)
-				for (j in 0...keysArray[mania][i].length)
-					if (pressed == keysArray[mania][i][j])
+			for (i in 0...keysArray[18].length)
+				for (j in 0...keysArray[18][i].length)
+					if (pressed == keysArray[18][i][j])
 						return i;
 		return -1;
 	}
@@ -2228,7 +2293,7 @@ class PlayfieldManager {
 		var ret:Array<Bool> = [];
 		for (i in 0...controlArray.length)
 		{
-			ret[i] = Reflect.getProperty(controls, controlArray[i] + suffix);
+			ret[i] = Reflect.getProperty(Controls.instance, controlArray[i] + suffix);
 		}
 		return ret;
 	}
@@ -2255,21 +2320,21 @@ class PlayfieldManager {
 			pressArray.splice(0, pressArray.length);
 			releaseArray.splice(0, releaseArray.length);
 
-			var keyArrayLength = keysArray[mania].length;
+			var keyArrayLength = keysArray[mania[1]].length;
 			holdArray.resize(keyArrayLength);
 			pressArray.resize(keyArrayLength);
 			releaseArray.resize(keyArrayLength);
 
 			// Use direct indexing instead of push
 			for (i in 0...keyArrayLength) {
-				var key = keysArray[mania][i];
-				holdArray[i] = controls.pressed(key);
-				pressArray[i] = controls.justPressed(key);
-				releaseArray[i] = controls.justReleased(key);
+				var key = keysArray[mania[1]][i];
+				holdArray[i] = Controls.instance.pressed(key);
+				pressArray[i] = Controls.instance.justPressed(key);
+				releaseArray[i] = Controls.instance.justReleased(key);
 			}
 
 			// Optimize controller input handling
-			if(controls.controllerMode) {
+			if(Controls.instance.controllerMode) {
 				for (i in 0...pressArray.length) {
 					if(pressArray[i] && strumsBlocked[i] != true) {
 						keyPressed(i);
@@ -2278,27 +2343,30 @@ class PlayfieldManager {
 			}
 
 			// Optimize hold checking
-			if (startedCountdown && !inCutscene && !boyfriend.stunned && generatedMusic) {
-				var hasHoldInput = false;
-				for (hold in holdArray) {
-					if (hold) {
-						hasHoldInput = true;
-						break;
-					}
-				}
+      if (MusicBeatState.getState() == PlayState.instance) {
+        @:privateAccess
+        if (PlayState.instance?.startedCountdown && !PlayState.instance?.inCutscene && PlayState.instance?.generatedMusic) {
+          var hasHoldInput = false;
+          for (hold in holdArray) {
+            if (hold) {
+              hasHoldInput = true;
+              break;
+            }
+          }
 
-				if (!hasHoldInput && !endingSong) {
-					playerDance();
-				}
-				#if ACHIEVEMENTS_ALLOWED
-				else if (hasHoldInput) {
-					checkForAchievement(['oversinging']);
-				}
-				#end
-			}
+          if (!hasHoldInput && !PlayState.instance?.endingSong) {
+            PlayState.instance.playerDance();
+          }
+          #if ACHIEVEMENTS_ALLOWED
+          else if (hasHoldInput) {
+            PlayState.instance.checkForAchievement(['oversinging']);
+          }
+          #end
+        }
+      }
 
 			// Optimize release handling
-			if((controls.controllerMode || strumsBlocked.contains(true))) {
+			if((Controls.instance.controllerMode || strumsBlocked.contains(true))) {
 				for (i in 0...releaseArray.length) {
 					if(releaseArray[i] || strumsBlocked[i] == true) {
 						keyReleased(i);
@@ -2310,29 +2378,33 @@ class PlayfieldManager {
 			var parsedHoldArray:Array<Bool> = parseKeys();
 			pressedGameplayKeys = parsedHoldArray;
 			// FlxG.watch.addQuick('asdfa', upP);
-			if (startedCountdown && !boyfriend.stunned && generatedMusic)
-			{
-				// rewritten inputs???
-				notes.forEachAlive(function(daNote:Note)
-				{
-					// hold note functions
-					if (parsedHoldArray.contains(true) && !endingSong)
-					{
-						#if ACHIEVEMENTS_ALLOWED
-						checkForAchievement(['oversinging']);
-						#end
-					}
-				});
+      if (MusicBeatState.getState() == PlayState.instance) {
+        @:privateAccess
+        if (PlayState.instance?.startedCountdown && PlayState.instance?.generatedMusic)
+        {
+          // rewritten inputs???
+          notes.forEachAlive(function(daNote:Note)
+          {
+            // hold note functions
+            if (parsedHoldArray.contains(true) && !PlayState.instance?.endingSong)
+            {
+              #if ACHIEVEMENTS_ALLOWED
+              PlayState.instance.checkForAchievement(['oversinging']);
+              #end
+            }
+          });
 
-				if (boyfriend != null && boyfriend.holdTimer > Conductor.stepCrochet * 0.001 * boyfriend.singDuration
-					&& boyfriend.animation.curAnim.name.startsWith('sing')
-					&& !boyfriend.animation.curAnim.name.endsWith('miss'))
-					boyfriend.dance();
 
-				if (bf2 != null && bf2.holdTimer > Conductor.stepCrochet * 0.001 * bf2.singDuration
-					&& bf2.animation.curAnim.name.startsWith('sing')
-					&& !bf2.animation.curAnim.name.endsWith('miss'))
-					bf2.dance();
+          if (PlayState.instance.boyfriend != null && PlayState.instance.boyfriend.holdTimer > MegaManager.conductor.stepLengthMs * 0.001 * PlayState.instance.boyfriend.singDuration
+            && PlayState.instance.boyfriend.animation.curAnim.name.startsWith('sing')
+            && !PlayState.instance.boyfriend.animation.curAnim.name.endsWith('miss'))
+            PlayState.instance.boyfriend.dance();
+
+          if (PlayState.instance.bf2 != null && PlayState.instance.bf2.holdTimer > MegaManager.conductor.stepLengthMs * 0.001 * PlayState.instance.bf2.singDuration
+            && PlayState.instance.bf2.animation.curAnim.name.startsWith('sing')
+            && !PlayState.instance.bf2.animation.curAnim.name.endsWith('miss'))
+            PlayState.instance.bf2.dance();
+        }
 
 				if (strumsBlocked.contains(true))
 				{
@@ -2342,7 +2414,7 @@ class PlayfieldManager {
 						for (i in 0...parsedArray.length)
 						{
 							if (parsedArray[i] || strumsBlocked[i] == true)
-								onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[mania][i][0]));
+								onKeyRelease(new KeyboardEvent(KeyboardEvent.KEY_UP, true, true, -1, keysArray[mania[1]][i][0]));
 						}
 					}
 				}
@@ -2354,8 +2426,10 @@ class PlayfieldManager {
   public function resetFields() {
     allNotes = unspawnNotes = curChart = [];
     for (field in playfields.members) {
-      field.destroy();
-      field = null;
+      if (field != null) {
+        field.destroy();
+        field = null;
+      }
     }
     playfields.clear();
     playfields = new FlxTypedGroup<PlayField>();
@@ -2378,6 +2452,9 @@ class PlayfieldManager {
 		}
 
 		if (strumLineNotes != null) {
+      strumLineNotes.forEachAlive(function(strum:StrumNote) {
+				if (strum != null) strum.destroy();
+			});
 			strumLineNotes.clear();
 			strumLineNotes = null;
 		}
@@ -2425,16 +2502,22 @@ class PlayfieldManager {
     noteRows = [[],[]];
     freezeNotes = false;
     localFreezeNotes = false;
+    modManager = null;
 
-    for (nField in notefields) {
-      nField.destroy();
-      nField = null;
+    for (nField in notefields.members) {
+      if (nField != null) {
+        nField.destroy();
+        nField = null;
+      }
     }
-    notefields.clear();
+    notefields.destroy();
+    notefields = new NotefieldRenderer();
 
     for (pField in playfields) {
-      pField.destroy();
-      pField = null;
+      if (pField != null) {
+        pField.destroy();
+        pField = null;
+      }
     }
     playfields.clear();
 
@@ -2453,6 +2536,8 @@ class PlayfieldManager {
       fmManager.destroy();
       fmManager = null;
     }
+
+    manualInputChecks = false;
   }
 
   function svSort(Obj1:SpeedEvent, Obj2:SpeedEvent):Int
@@ -2472,7 +2557,8 @@ class PlayfieldManager {
 		eventNotes.push(subEvent);
 		curEvents.push(subEvent);
 		eventPushed(subEvent);
-		callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
+    if (MusicBeatState.getState() == PlayState.instance)
+      PlayState.instance?.callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
 	}
 
   // called only once per different event (Used for precaching)
@@ -2483,7 +2569,9 @@ class PlayfieldManager {
 				return;
 			}
 
-			stagesFunc(function(stage:BaseStage) stage.eventPushed(event));
+      @:privateAccess
+			if (MusicBeatState.getState() == PlayState.instance)
+        PlayState.instance?.stagesFunc(function(stage:BaseStage) stage.eventPushed(event));
 			eventsPushed.push(event.event);
 		}
 	}
@@ -2573,22 +2661,25 @@ class PlayfieldManager {
 
 			case 'False Timer':
         if (MusicBeatState.getState() == PlayState.instance) {
-          if (timerExtensions == null)
-            timerExtensions = new Array();
+          if (PlayState.instance?.timerExtensions == null)
+            PlayState.instance.timerExtensions = new Array();
 
-          timerExtensions.push(event.strumTime);
-          maskedSongLength = timerExtensions[0];
+          PlayState.instance?.timerExtensions.push(event.strumTime);
+          PlayState.instance.maskedSongLength = PlayState.instance?.timerExtensions[0];
         }
 		}
+    @:privateAccess
 		if (MusicBeatState.getState() == PlayState.instance)
       PlayState.instance?.stagesFunc(function(stage:BaseStage) stage.eventPushedUnique(event));
 	}
 
 	function eventEarlyTrigger(event:EventNote):Float {
-		var returnedValue:Null<Float> = callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true);
-		if(returnedValue != null && returnedValue != 0) {
-			return returnedValue;
-		}
+    if (MusicBeatState.getState() == PlayState.instance) {
+      var returnedValue:Null<Float> = PlayState.instance.callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true);
+      if(returnedValue != null && returnedValue != 0) {
+        return returnedValue;
+      }
+    }
 
 		switch(event.event) {
 			case 'Kill Henchmen': //Better timing so that the kill sound matches the beat intended
@@ -2603,6 +2694,12 @@ class PlayfieldManager {
 			for (event in eventNotes) event.strumTime -= eventEarlyTrigger(event);
 			eventNotes.sort(sortByTime);
 		}
+  }
+
+  public function update(elapsed:Float) {
+    updateVisualPosition();
+		modManager.update(elapsed, MegaManager.conductor.beatLengthMs, MegaManager.conductor.stepLengthMs);
+    if (!manualInputChecks) keysCheck();
   }
 }
 
@@ -2622,15 +2719,19 @@ class SpeedEvent
 @:structInit
 class SongObject
 {
-	public var songName:String; // the y position where the change happens (modManager.getVisPos(songTime))
-	public var modName:Float; // the song position (conductor.songTime) where the change starts
-  public var chart:Array<Note>; // the song position (conductor.songTime) where the change starts
-  public var events:Array<EventNote>; // the song position (conductor.songTime) where the change starts
-  public var noteTypes:Array<Note>; // the song position (conductor.songTime) where the change starts
+	public var songName:String;
+	public var modName:String;
+  public var chart:Array<Note>;
+  public var events:Array<EventNote>;
+  public var noteTypes:Array<String>;
   public function new (?name:String, ?mod:String) {
     if (name != null)
       this.songName = name;
     if (mod != null)
       this.modName = mod;
+  }
+
+  public inline function copyChart() {
+    return this.chart;
   }
 }

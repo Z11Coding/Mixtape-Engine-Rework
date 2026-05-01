@@ -166,10 +166,10 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 	public static var extraStuff:FlxTypedGroup<FlxBasic>; // things that get added above the receptors.
 
-	public var noteHitCallback:NoteCallback; // function that gets called when the note is hit. goodNoteHit and opponentNoteHit in playstate for eg
-	public var holdPressCallback:NoteCallback; // function that gets called when a hold is stepped on. Only really used for calling script events. Return 'false' to not do hold logic
-	public var holdReleaseCallback:NoteCallback; // function that gets called when a hold is released. Only really used for calling script events.
-	public var holdStepCallback:NoteCallback; // function that gets called for every 'step' that a hold is pressed for.
+	public var noteHitCallback:Event<NoteCallback> = new Event<NoteCallback>(); // function that gets called when the note is hit. goodNoteHit and opponentNoteHit in playstate for eg
+	public var holdPressCallback:Event<NoteCallback> = new Event<NoteCallback>(); // function that gets called when a hold is stepped on. Only really used for calling script events. Return 'false' to not do hold logic
+	public var holdReleaseCallback:Event<NoteCallback> = new Event<NoteCallback>(); // function that gets called when a hold is released. Only really used for calling script events.
+	public var holdStepCallback:Event<NoteCallback> = new Event<NoteCallback>(); // function that gets called for every 'step' that a hold is pressed for.
 
 	public var grpNoteSplashes:FlxTypedGroup<NoteSplash>; // notesplashes
 	public var strumAttachments:FlxTypedGroup<NoteObject>; // things that get "attached" to the receptors. custom splashes, etc.
@@ -282,7 +282,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public function requeue()
 	{
 		for (column in 0...noteQueueCache.length) {
-			noteQueue[column] = column;
+			noteQueue[column] = noteQueueCache[column];
 			noteQueue[column].sort(sortNotesAscend);
 		}
 	}
@@ -434,7 +434,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 								continue;
 
 							if (!note.forceBlockHit)
-								noteHitCallback(note, this);
+								noteHitCallback.dispatch(note, this);
 							return note;
 						}
 					}
@@ -452,7 +452,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					while (noteList.length > 0)
 					{
 						var note:Note = noteList.pop();
-						if (!note.blockHit || !note.forceBlockHit) noteHitCallback(note, this);
+						if (!note.blockHit || !note.forceBlockHit) noteHitCallback.dispatch(note, this);
 						return note;
 					}
 				case "Native-old":
@@ -474,7 +474,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						else {
 							if (note.wasGoodHit)
 								continue;
-							if (!note.blockHit || !note.forceBlockHit) noteHitCallback(note, this);
+							if (!note.blockHit || !note.forceBlockHit) noteHitCallback.dispatch(note, this);
 							return note;
 						}
 					}
@@ -490,7 +490,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						if (hitDiff <= allowedError)
 						{
 							if (!note.forceBlockHit)
-								noteHitCallback(note, this);
+								noteHitCallback.dispatch(note, this);
 							return note;
 						}
 					}
@@ -549,7 +549,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							{
 								pressNotes.push(epicNote);
 								var note:Note = noteList.pop();
-								noteHitCallback(note, this);
+								noteHitCallback.dispatch(note, this);
 								return note;
 							}
 						}
@@ -620,7 +620,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 						var note:Note = dataNotes.pop();
 						if (!note.forceBlockHit)
-							noteHitCallback(note, this);
+							noteHitCallback.dispatch(note, this);
 						return note;
 					}
 					else if (canMiss)
@@ -666,19 +666,19 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 								if (shitNote.strumTime == daNote.strumTime)
 								{
 									if (!shitNote.forceBlockHit)
-										noteHitCallback(shitNote, this);
+										noteHitCallback.dispatch(shitNote, this);
 									return shitNote;
 								}
 								else if ((!shitNote.isSustainNote && (shitNote.strumTime - daNote.strumTime) < 15))
 								{
 									if (!shitNote.forceBlockHit)
-										noteHitCallback(shitNote, this);
+										noteHitCallback.dispatch(shitNote, this);
 									return shitNote;
 								}
 							}
 						}
 						if (!daNote.forceBlockHit)
-							noteHitCallback(daNote, this);
+							noteHitCallback.dispatch(daNote, this);
 					}
 					else if (!ClientPrefs.data.ghostTapping)
 						PlayState.instance.ogNoteMissPress(data);
@@ -689,7 +689,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						if (daNote.isSustainNote && daNote.canBeHit && daNote.mustPress && keysPressed[daNote.noteData])
 						{
 							if (!daNote.forceBlockHit)
-								noteHitCallback(daNote, this);
+								noteHitCallback.dispatch(daNote, this);
 						}
 					});
 
@@ -763,14 +763,14 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 								if (!coolNote.prevNote.isSustainNote && coolNote.isSustainNote && coolNote.prevNote != null && !ClientPrefs.data.guitarHeroSustains)
 								{
 									if (!coolNote.forceBlockHit)
-										noteHitCallback(coolNote.prevNote, this);
+										noteHitCallback.dispatch(coolNote.prevNote, this);
 									return coolNote.prevNote;
 								}
 								if (PlayState.instance.mashViolations != 0)
 									PlayState.instance.mashViolations--;
 								PlayState.instance.scoreTxt.color = FlxColor.WHITE;
 								if (!coolNote.forceBlockHit)
-									noteHitCallback(coolNote, this);
+									noteHitCallback.dispatch(coolNote, this);
 								return coolNote;
 							}
 						}
@@ -806,7 +806,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						var hitNote = noteList[0];
 						if(!hitNote.wasGoodHit) // because parent tap notes
 						{
-							if (!hitNote.blockHit || !hitNote.forceBlockHit) noteHitCallback(hitNote, this);
+							if (!hitNote.blockHit || !hitNote.forceBlockHit) noteHitCallback.dispatch(hitNote, this);
 							return hitNote;
 						}
 					}else{
@@ -834,7 +834,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 										can = true;
 									if (notesToHit[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]].strumTime == daNote.strumTime) {
 										if (!daNote.forceBlockHit)
-											noteHitCallback(daNote, this);
+											noteHitCallback.dispatch(daNote, this);
 										return daNote;
 									}
 								} else {
@@ -847,7 +847,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					for (note in notesToHit) {
 						if (note != null) {
 							if (!note.forceBlockHit)
-								noteHitCallback(note, this);
+								noteHitCallback.dispatch(note, this);
 							return note;
 						}
 					}
@@ -860,7 +860,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 							if (keysPressed[(daNote.noteData % Note.ammo[PlayfieldManager.mania[0]]) % Note.ammo[PlayfieldManager.mania[0]]])
 							{
 								if (!daNote.forceBlockHit)
-									noteHitCallback(daNote, this);
+									noteHitCallback.dispatch(daNote, this);
 								return daNote;
 							}
 						}
@@ -898,7 +898,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						}
 
 						if (!coolNote.forceBlockHit)
-							noteHitCallback(coolNote, this);
+							noteHitCallback.dispatch(coolNote, this);
 						return coolNote;
 					}
 					else if (!ClientPrefs.data.ghostTapping)
@@ -1177,9 +1177,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						if(wasHeld != isHeld){
 							if(isHeld){
 								if(holdPressCallback != null)
-									holdPressCallback(daNote, this);
+									holdPressCallback.dispatch(daNote, this);
 							}else if(holdReleaseCallback!=null)
-								holdReleaseCallback(daNote, this);
+								holdReleaseCallback.dispatch(daNote, this);
 						}
 
 						// Update receptor animations (every frame for responsiveness)
@@ -1269,11 +1269,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						if (Math.abs(daNote.strumTime - daNote.AIStrumTime) > Conductor.safeZoneOffset)
 						{
 							if (daNote.strumTime - daNote.AIStrumTime <= Conductor.songPosition)
-								noteHitCallback(daNote, this);
+								noteHitCallback.dispatch(daNote, this);
 						}
 					}
 					else if ((hitDiff + ClientPrefs.data.ratingOffset) <= (5 * 1) || hitDiff <= 0){
-						noteHitCallback(daNote, this);
+						noteHitCallback.dispatch(daNote, this);
 					}
 
 				}
@@ -1285,7 +1285,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				for (daNote in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && !note.ignoreNote && !note.hitCausesMiss)){
 					var hitDiff = Conductor.songPosition - daNote.strumTime;
 					if (!daNote.isSustainNote && hitDiff >= 0 || daNote.isSustainNote && hitDiff + 80 >= 0){
-						noteHitCallback(daNote, this);
+						noteHitCallback.dispatch(daNote, this);
 					}
 				}
 			}
@@ -1295,7 +1295,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				for (daNote in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && !note.ignoreNote && !note.hitCausesMiss && note.botNote)){
 					var hitDiff = Conductor.songPosition - daNote.strumTime;
 					if (!daNote.isSustainNote && hitDiff >= 0 || daNote.isSustainNote && hitDiff + 80 >= 0){
-						noteHitCallback(daNote, this);
+						noteHitCallback.dispatch(daNote, this);
 					}
 				}
 			}
@@ -1310,7 +1310,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					{
 						var note:Note = noteList.pop();
 						if (!note.forceBlockHit)
-							noteHitCallback(note, this);
+							noteHitCallback.dispatch(note, this);
 					}
 				}
 			}
@@ -1542,7 +1542,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		var currentSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
 		if(oldSteps < currentSteps)
 			if(holdStepCallback != null)
-				holdStepCallback(daNote, this);
+				holdStepCallback.dispatch(daNote, this);
 
 		// Throttled event dispatching (reduce event spam)
 		var timeDiff = daNote.holdingTime - lastTime;
@@ -1560,7 +1560,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 		// Handle roll notes
 		if(daNote.isRoll && autoPlayed && daNote.tripProgress <= 0.5)
-			holdPressCallback(daNote, this);
+			holdPressCallback.dispatch(daNote, this);
 
 		// Check if hold was dropped
 		if(daNote.tripProgress <= 0){
@@ -1629,7 +1629,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			if ((tail.strumTime - 25) <= Conductor.songPosition) {
 				if (!tail.wasGoodHit && !tail.tooLate) {
 					if (!tail.forceBlockHit)
-						noteHitCallback(tail, this);
+						noteHitCallback.dispatch(tail, this);
 					processedCount++;
 				}
 			} else {

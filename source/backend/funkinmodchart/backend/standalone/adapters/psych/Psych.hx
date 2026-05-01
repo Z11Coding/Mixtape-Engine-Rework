@@ -154,7 +154,7 @@ class Psych implements IAdapter {
 		return [PlayState.instance.camHUD];
 
 	public function getCurrentScrollSpeed():Float {
-		return PlayfieldManager.SONGSpeed * .45;
+		return MegaManager.playfield.songSpeed * .45;
 	}
 
 	// 0 receptors

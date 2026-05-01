@@ -67,9 +67,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	var guitarHeroSustains:Bool = false;
 
 	//Mixtape
-	var speedChanges:Array<SpeedEvent> = [];
-	public var currentSV:SpeedEvent = {position: 0, startTime: 0, speed: 1 #if EASED_SVs , startSpeed: 1 #end};
-  public var keysArray:Array<Dynamic>;
+	public var keysArray:Array<Dynamic>;
 	public var modManager:ModManager;
 	public var playerField:PlayField;
 	public var dadField:PlayField;
@@ -120,16 +118,16 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		playerField.isPlayer = true;
 		playerField.autoPlayed = false;
-        playerField.isEditor = true;
-		playerField.noteHitCallback = goodNoteHit;
+    playerField.isEditor = true;
+		playerField.noteHitCallback.add(goodNoteHit);
 
 		dadField = new PlayField(modManager);
 		dadField.isPlayer = false;
 		dadField.autoPlayed = true;
-        dadField.isEditor = true;
+    dadField.isEditor = true;
 		dadField.modNumber = 1;
 		dadField.characters = [];
-		dadField.noteHitCallback = opponentNoteHit;
+		dadField.noteHitCallback.add(opponentNoteHit);
 
 		playfields.add(dadField);
 		playfields.add(playerField);
@@ -147,15 +145,6 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		modManager.registerDefaultModifiers();
 		/***************/
-
-    speedChanges.push({
-			position: -6000 * 0.45,
-			startTime: -6000,
-			speed: 1,
-			#if EASED_SVs
-			startSpeed: 1,
-			#end
-		});
 
     add(playfields);
 		add(notefields);
@@ -216,77 +205,11 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		});
 	}
 
-    public function getSV(time:Float){
-		var svIndex:Int = 0;
-
-		var event:SpeedEvent = speedChanges[svIndex];
-		if (svIndex < speedChanges.length - 1) {
-			while (speedChanges[svIndex + 1] != null && speedChanges[svIndex + 1].startTime <= time) {
-				event = speedChanges[svIndex + 1];
-				svIndex++;
-			}
-		}
-
-		return event;
-	}
-
-	public function getNoteInitialTime(time:Float)
+  override function update(elapsed:Float)
 	{
-		var event:SpeedEvent = getSV(time);
-		return getTimeFromSV(time, event);
-	}
+		modManager.update(elapsed, curDecBeat, curDecStep);
 
-	public inline function getVisualPosition()
-		return getTimeFromSV(Conductor.songPosition, currentSV);
-
-	#if EASED_SVs
-	var lastSVTime:Float = 0;
-	var lastSVElapsed:Float = 0;
-	var lastSVPos:Float = 0;
-
-	inline function resetSVDeltas(){
-		if(speedChanges.length > 0){
-			lastSVTime = speedChanges[0].startTime;
-			lastSVElapsed = 0;
-			lastSVPos = speedChanges[0].position;
-		}else{
-			lastSVTime = -5000;
-			lastSVElapsed = 0;
-			lastSVPos = -5000 * 0.45;
-		}
-	}
-	#end
-
-	public function getTimeFromSV(time:Float, event:SpeedEvent):Float {
-		#if EASED_SVs
-		var func:EaseFunction = event.easeFunc == null ? FlxEase.linear : event.easeFunc;
-		if (event.endTime != null) {
-			var timeElapsed:Float = FlxMath.remapToRange(time, event.startTime, event.endTime, 0, 1);
-			if(timeElapsed > 1)timeElapsed = 1;
-			if(timeElapsed < 0)timeElapsed = 0;
-			var currentSpeed = FlxMath.lerp(event.startSpeed, event.speed, func(lastSVElapsed));
-
-			var toAdd:Float = time - lastSVTime;
-			var finalPosition:Float = lastSVPos + toAdd * currentSpeed;
-
-			lastSVPos = finalPosition;
-			lastSVTime = time;
-			lastSVElapsed = timeElapsed;
-			return finalPosition;
-		}
-		#end
-
-		return event.position + ((time - event.startTime) * 0.45 * event.speed);
-	}
-
-	override function update(elapsed:Float)
-	{
-        currentSV = getSV(Conductor.songPosition);
-        Conductor.visualPosition = getVisualPosition();
-
-        modManager.update(elapsed, curDecBeat, curDecStep);
-
-        for (field in playfields)
+		for (field in playfields)
 			field.noteField.songSpeed = songSpeed;
 
 		if(controls.BACK || FlxG.keys.justPressed.ESCAPE)
@@ -298,8 +221,8 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		if (startingSong)
 		{
-            modManager.setValue('transformX', -400);
-            modManager.setValue('transformY', -300);
+			modManager.setValue('transformX', -400);
+			modManager.setValue('transformY', -300);
 			timerToStart -= elapsed * 1000;
 			Conductor.songPosition = startPos - timerToStart;
 			if(timerToStart < 0) startSong();
@@ -661,7 +584,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		}
 
 		trace('["${PlayfieldManager.SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
-		allNotes.sort(PlayState.sortByTime);
+		allNotes.sort(PlayfieldManager.sortByTime);
 
 		for (fuck in allNotes)
 			unspawnNotes.push(fuck);
@@ -670,7 +593,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			field.clearStackedNotes();
 	}
 
-    function sortByNotes(Obj1:Note, Obj2:Note):Int
+  function sortByNotes(Obj1:Note, Obj2:Note):Int
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 
 	public function finishSong():Void

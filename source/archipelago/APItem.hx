@@ -412,7 +412,7 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        MegaManager.playfield?.curChart = [];
+                        PlayfieldManager.curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
                     // Set second argument (difficulty) to range 1-5, with 1% chance of 6 (GOD)
@@ -490,7 +490,7 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        MegaManager.playfield?.curChart = [];
+                        PlayfieldManager.curChart = [];
                         MusicBeatState.allowNuke = true;
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.Uno;
                     }
@@ -737,10 +737,12 @@ class APItem {
                     states.PlayState.instance.opponentmode = true;
                     states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
-                    states.PlayState.instance.playerField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit;
+                    states.PlayState.instance.playerField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.playerField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
                     states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
-                    states.PlayState.instance.dadField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit;
+                    states.PlayState.instance.dadField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
                     FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
                 }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -758,10 +760,10 @@ class APItem {
                     states.PlayState.instance.bothMode = true;
                     states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
-                    states.PlayState.instance.playerField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit;
+                    states.PlayState.instance.playerField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
                     states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
-                    states.PlayState.instance.dadField.noteHitCallback = states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit;
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
                     FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
                 }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1083,13 +1085,13 @@ class APItem {
 
             case "My Turn! Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    APPlayState.instance.bothMode = true;
-                    APPlayState.instance.playerField.isPlayer = APPlayState.instance.bothMode;
-                    APPlayState.instance.playerField.autoPlayed = false;
-                    APPlayState.instance.playerField.noteHitCallback = APPlayState.instance.goodNoteHit;
-                    APPlayState.instance.dadField.isPlayer = APPlayState.instance.bothMode;
-                    APPlayState.instance.dadField.autoPlayed = false;
-                    APPlayState.instance.dadField.noteHitCallback = APPlayState.instance.opponentNoteHit;
+                    states.PlayState.instance.bothMode = true;
+                    states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
+                    states.PlayState.instance.playerField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
+                    states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
                     popup('Now you have to play BOTH sides!', "TrapLink: My Turn! Trap");
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1541,13 +1543,15 @@ class APItem {
 
             case "Posession Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    APPlayState.instance.opponentmode = true;
-                    APPlayState.instance.playerField.isPlayer = !APPlayState.instance.opponentmode;
-                    APPlayState.instance.playerField.autoPlayed = APPlayState.instance.opponentmode;
-                    APPlayState.instance.playerField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.opponentNoteHit : APPlayState.instance.goodNoteHit;
-                    APPlayState.instance.dadField.isPlayer = APPlayState.instance.opponentmode;
-                    APPlayState.instance.dadField.autoPlayed = !APPlayState.instance.opponentmode;
-                    APPlayState.instance.dadField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.goodNoteHit : APPlayState.instance.opponentNoteHit;
+                    states.PlayState.instance.opponentmode = true;
+                    states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
+                    states.PlayState.instance.playerField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.playerField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
+                    states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
+                    states.PlayState.instance.dadField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
                     popup('You\'re the opponent now!', 'TrapLink: Posession Trap');
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1625,13 +1629,15 @@ class APItem {
             //TODO: make the opponent stums use a different set of keybinds from the normal ones
             case "Gooey Bag":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    APPlayState.instance.opponentmode = true;
-                    APPlayState.instance.playerField.isPlayer = !APPlayState.instance.opponentmode;
-                    APPlayState.instance.playerField.autoPlayed = APPlayState.instance.opponentmode;
-                    APPlayState.instance.playerField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.opponentNoteHit : APPlayState.instance.goodNoteHit;
-                    APPlayState.instance.dadField.isPlayer = APPlayState.instance.opponentmode;
-                    APPlayState.instance.dadField.autoPlayed = !APPlayState.instance.opponentmode;
-                    APPlayState.instance.dadField.noteHitCallback = APPlayState.instance.opponentmode ? APPlayState.instance.goodNoteHit : APPlayState.instance.opponentNoteHit;
+                    states.PlayState.instance.opponentmode = true;
+                    states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
+                    states.PlayState.instance.playerField.noteHitCallback.remove(!states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.playerField.noteHitCallback.add(!states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
+                    states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
+                    states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
+                    states.PlayState.instance.dadField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
                     popup('Two-Player Mode Activated!', 'TrapLink: Gooey Bag');
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1912,7 +1918,7 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        PlaydfieldManager.curChart = [];
+                        PlayfieldManager.curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
                     FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));

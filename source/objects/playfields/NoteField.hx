@@ -447,9 +447,9 @@ class NoteField extends FieldBase
 
 
 
-		var strumDiff = (Conductor.songPosition - hold.strumTime);
-		var visualDiff = (Conductor.visualPosition - hold.visualTime); // TODO: get the start and end visualDiff and interpolate so that changing speeds mid-hold will look better
-		var sv = PlayState.getSV(hold.strumTime).speed;
+	var strumDiff = (Conductor.songPosition - hold.strumTime);
+	var visualDiff = (Conductor.visualPosition - hold.visualTime); // TODO: get the start and end visualDiff and interpolate so that changing speeds mid-hold will look better
+	var sv = PlayfieldManager.getSV(hold.strumTime).speed;
 
 
 /* 		var basePos = simpleDraw ? hold.vec3Cache : modManager.getPos(visualDiff, strumDiff, curDecBeat, hold.column, modNumber, hold, this,

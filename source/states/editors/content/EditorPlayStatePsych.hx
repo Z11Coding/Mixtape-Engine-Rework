@@ -448,7 +448,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			}
 			oldNote = swagNote;
 		}
-		unspawnNotes.sort(PlayState.sortByTime);
+		unspawnNotes.sort(PlayfieldManager.sortByTime);
 	}
 
 	private function generateStaticArrows(player:Int):Void
@@ -665,7 +665,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
-		var key:Int = PlayState.getKeyFromEvent(eventKey);
+		var key:Int = PlayfieldManager.getKeyFromEvent(eventKey);
 		//trace('Pressed: ' + eventKey);
 
 		if (!controls.controllerMode)
@@ -742,7 +742,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 	private function onKeyRelease(event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
-		var key:Int = PlayState.getKeyFromEvent(eventKey);
+		var key:Int = PlayfieldManager.getKeyFromEvent(eventKey);
 		//trace('Pressed: ' + eventKey);
 
 		if(!controls.controllerMode && key > -1) keyReleased(key);
