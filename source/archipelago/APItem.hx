@@ -1912,7 +1912,7 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        MegaManager.playfield?  .curChart = [];
+                        PlaydfieldManager.curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
                     FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));

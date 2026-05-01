@@ -357,7 +357,7 @@ class PlayfieldManager {
 
   /// Playfields
   public function setModMan(state:FlxState) {
-    modManager = new ModManager(this);
+    modManager = new ModManager(state);
   }
 
   private var svIndex:Int = 0;

@@ -94,7 +94,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var pathLines:Array<PathLine> = []; // lines
 	public var strumNotes:Array<StrumNote> = []; // receptors
 	public var characters:Array<Character> = []; // characters that sing when field is hit
-	public var singAnimations:Array<String> = [] // default character animations to play for each column
+	public var singAnimations:Array<String> = []; // default character animations to play for each column
 
 	public var noteField:NoteField; // renderer
 	public var modManager:ModManager; // the mod manager. will be set automatically by playstate so dw bout this
