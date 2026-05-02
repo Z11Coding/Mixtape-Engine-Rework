@@ -143,7 +143,7 @@ class PauseSubState extends MusicBeatSubstate
 
 		var levelDifficulty:FlxText = new FlxText(20, 15 + 32, 0,
 			(Difficulty.getString().toUpperCase() +
-			(MegaManager.playfield.chartModifier != "Normal" ? ' (' + playfield.chartModifier + ')'.toUpperCase() : '') +
+			(MegaManager.playfield.chartModifier != "Normal" ? ' (' + MegaManager.playfield.chartModifier + ')'.toUpperCase() : '') +
 			(Std.is(PlayState.instance, archipelago.APPlayState) ? ' (AP)' : '')), 32);
 
 		levelDifficulty.scrollFactor.set();

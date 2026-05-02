@@ -1471,7 +1471,7 @@ class PlayState extends MusicBeatState
 		}
 
 		var prevTime = Sys.time();
-		playfield.loadChart(Paths.formatToSongPath(curSong)+Difficulty.getFilePath(), Paths.formatToSongPath(curSong));
+		playfield.loadChart(Paths.formatToSongPath(_cachedSongName)+Difficulty.getFilePath(), Paths.formatToSongPath(_cachedSongName));
 		postGen();
 		trace('Chart Generation took ${Sys.time() - prevTime} seconds');
 
@@ -3385,14 +3385,14 @@ class PlayState extends MusicBeatState
 
 			for (field in playfield.playfields.members) {
 				for (i in 0...Note.ammo[mania[field.modNumber]]) {
-					field.baseXPositions[i] = field.strumNotes[i].x;
-					if (field.modNumber == 1) {
-						setOnScripts('defaultPlayerStrumX' + i, playerField.strumNotes[i].x);
-						setOnScripts('defaultPlayerStrumY' + i, playerField.strumNotes[i].y);
+					//field.baseXPositions[i] = field.strumNotes[i].x;
+					/*if (field.modNumber == 1) {
+						setOnScripts('defaultPlayerStrumX' + i, field.strumNotes[i].x);
+						setOnScripts('defaultPlayerStrumY' + i, field.strumNotes[i].y);
 					} else if (field.modNumber == 0) {
-						setOnScripts('defaultOpponentStrumX' + i, dadField.strumNotes[i].x);
-						setOnScripts('defaultOpponentStrumY' + i, dadField.strumNotes[i].y);
-					}
+						setOnScripts('defaultOpponentStrumX' + i, field.strumNotes[i].x);
+						setOnScripts('defaultOpponentStrumY' + i, field.strumNotes[i].y);
+					}*/
 				}
 			}
 
@@ -3403,11 +3403,11 @@ class PlayState extends MusicBeatState
 			for (field in playfields.members) {
 				if (SONG.startMania != null && SONG.startMania != mania[field.modNumber]) {
 					trace("Fixing Mania");
-					playfield.changeMania(chartModifier != 'ManiaConverter' ? SONG.startMania : convertMania, isStoryMode || playfield.skipArrowStartTween);
+					//playfield.changeMania(chartModifier != 'ManiaConverter' ? SONG.startMania : convertMania, field, isStoryMode || playfield.skipArrowStartTween);
 				}
 				else if (chartModifier == "ManiaConverter") {
 					trace("Setting the mania");
-					playfield.changeMania(convertMania, isStoryMode || playfield.skipArrowStartTween);
+					//playfield.changeMania(convertMania, field, isStoryMode || playfield.skipArrowStartTween);
 				}
 			}
 

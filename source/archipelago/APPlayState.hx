@@ -2844,7 +2844,7 @@ class APPlayState extends PlayState {
 		switchKeys(keybind);
 	}*/
 
-    override public function keysCheck()
+    public function keysCheck()
     {
         // FlxG.watch.addQuick('asdfa', upP);
 		if (startedCountdown && !boyfriend.stunned && generatedMusic)
@@ -2874,7 +2874,6 @@ class APPlayState extends PlayState {
                 });
             }
         }
-		super.keysCheck();
     }
 
     override function noteMiss(daNote:Note, field:PlayField)
@@ -3076,7 +3075,7 @@ class APPlayState extends PlayState {
 
 			if (note.visible)
             {
-                if (/*field.autoPlayed*/ cpuControlled)
+                if (cpuControlled)
                 {
                     var time:Float = 0.15;
                     if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
@@ -3086,10 +3085,6 @@ class APPlayState extends PlayState {
                 }
                 else
                 {
-                    /*
-                    var spr = field.strumNotes[note.noteData];
-                    if (spr != null && field.keysPressed[note.noteData])
-                        spr.playAnim('confirm', true, note);*/
                     var spr = playerStrums.members[note.noteData];
     				if(spr != null) spr.playAnim('confirm', true);
                 }
@@ -3161,16 +3156,16 @@ class APPlayState extends PlayState {
 
         MegaManager.conductor.addStepCallback((curStep:Int, backward:Bool) ->
 		{
-            if (!localFreezeNotes) // so that the event doen't get overriden
+            if (!MegaManager.playfield.localFreezeNotes) // so that the event doen't get overriden
             {
                 if (lagOn)
                 {
                     if (curStep % 2 == 0)
-                        freezeNotes = true;
+                        MegaManager.playfield.freezeNotes = true;
                     else if (curStep % 2 == 1)
-                        freezeNotes = false;
+                        MegaManager.playfield.freezeNotes = false;
                 }
-                else freezeNotes = false;
+                else MegaManager.playfield.freezeNotes = false;
             }
 
             if (doRandomize)
@@ -3271,6 +3266,8 @@ class TerminateTimestamp extends FlxObject
 	override public function update(elapsed:Float)
 	{
 		super.update(elapsed);
+
+        if (!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) APPlayState.instance.keysCheck();
 
 		canBeHit = (strumTime > Conductor.songPosition - Conductor.safeZoneOffset
 			&& strumTime < Conductor.songPosition + Conductor.safeZoneOffset);

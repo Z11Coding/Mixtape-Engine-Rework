@@ -296,7 +296,7 @@ class PlayfieldManager {
 
   public function generateStrums():Void
 	{
-		//trace('GENERATING STRUMS!');
+		trace('GENERATING STRUMS!');
 		if (MusicBeatState.getState() == PlayState.instance) {
       #if ALLOW_DEPRECATION PlayState.instance?.callOnScripts('preReceptorGeneration'); #end // backwards compat, deprecated
 		  PlayState.instance?.callOnScripts('onReceptorGeneration');
@@ -551,32 +551,27 @@ class PlayfieldManager {
 
   /// Chart Loading
   public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = true) {
-    var genChartInBG:ASyncF<(?songData:backend.SwagSong, ?preload:Null<Bool>) -> Void> = generateChart;
+    function addNotesToQueue() {
+      for (note in allNotes) {
+        if (playerField != null)
+          if (note.mustPress)
+            playerField.queue(note);
+
+        if (dadField != null)
+          if (!note.mustPress)
+            dadField.queue(note);
+      }
+    }
+
     var noteQueueCheck:ASync<() -> Void> = addNotesToQueue;
     if (chartCache.exists({songName: songName, modName: folder})) {
       allNotes = chartCache.get({songName: songName, modName: folder}).copyChart();
       unspawnNotes = curChart = allNotes;
   		noteQueueCheck();
     } else {
-      var ss:SwagSong = Song.getChart(songName, folder);
-      if (loadDirectly)
-        generateChart(ss, preload);
-      else
-        cast genChartInBG(ss, preload);
+      generateChart(Song.getChart(songName, folder), preload);
     }
     songName = Paths.formatToSongPath(SONG.song);
-  }
-
-  private function addNotesToQueue() {
-    for (note in allNotes) {
-      if (playerField != null)
-        if (note.mustPress)
-          playerField.queue(note);
-
-      if (dadField != null)
-        if (!note.mustPress)
-          dadField.queue(note);
-    }
   }
 
   public var noteTypes:Array<String> = [];
@@ -588,7 +583,7 @@ class PlayfieldManager {
 	var currentModifier:Int = -1;
 	var stair:Int = 0;
 
-  private function generateChart(songData:SwagSong = null, ?preload:Bool = false):Void
+  private function generateChart(songData:SwagSong, ?preload:Bool = false):Void
 	{
     if (songData == null) {
       trace("The chart file was null! Canceling generation...");
@@ -652,31 +647,6 @@ class PlayfieldManager {
       chartModifier = "Normal";
     else if (!preload)
       chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
-
-    for (key in mania) {
-      if (!preload) {
-        var convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
-        if (chartModifier == "4K Only")
-          key = 3;
-        else if (chartModifier == "ManiaConverter")
-          key = convertMania;
-      }
-
-      if (key > Note.maxMania)
-        key = Note.defaultMania;
-      else if (songData.mania != null)
-        if (songData.mania >= 3) //Make sure it's even there
-          key = songData.mania;
-        else {
-          key = switch (songData.mania) { //Convert it to make sure the older versions still work
-            case 0: 3;
-            case 1: 4;
-            default: songData.mania;
-          }
-        }
-      else key = 3;
-    }
-    trace("Mania set: " + mania);
 
     for (section in sectionsData)
     {
@@ -1491,44 +1461,43 @@ class PlayfieldManager {
           }
         }
 		  }
-
-
-      trace('["${songData.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
-      if (!preload) {
-        for (event in songData.events) //Event Notes
-          for (i in 0...event[1].length)
-            makeEventPreload(event, i, preload);
-      }
-
-      allNotes.sort(sortByTime);
-
-      if (!preload) {
-        if (curChart == null || curChart.isNotEmpty())
-          curChart = new Array<Note>();
-
-        for (fuck in allNotes) {
-          unspawnNotes.push(fuck);
-          curChart.push(fuck);
-        }
-
-        for (field in playfields.members)
-          field.clearStackedNotes();
-      }
-
-      // curChart = cast (curChart:objects.NotePool.NoteArray);
-
-      if (preload) {
-        if (!chartCache.exists({songName: songData.song, modName: Mods.softloadDirectory})) {
-          var songObject:SongObject = new SongObject(songData.song, Mods.softloadDirectory);
-          songObject.chart = allNotes;
-          songObject.events = eventNotes;
-          songObject.noteTypes = noteTypes;
-          chartCache.set({songName: songData.song, modName: Mods.softloadDirectory}, songObject);
-        }
-      }
-      generatedChart = true;
-      trace('Finished Generating Notes for ${songData.song}!');
     }
+
+    trace('["${songData.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
+    if (!preload) {
+      for (event in songData.events) //Event Notes
+        for (i in 0...event[1].length)
+          makeEventPreload(event, i, preload);
+    }
+
+    allNotes.sort(sortByTime);
+
+    if (!preload) {
+      if (curChart == null || curChart.isNotEmpty())
+        curChart = new Array<Note>();
+
+      for (fuck in allNotes) {
+        unspawnNotes.push(fuck);
+        curChart.push(fuck);
+      }
+
+      for (field in playfields.members)
+        field.clearStackedNotes();
+    }
+
+    // curChart = cast (curChart:objects.NotePool.NoteArray);
+
+    if (preload) {
+      if (!chartCache.exists({songName: songData.song, modName: Mods.softloadDirectory})) {
+        var songObject:SongObject = new SongObject(songData.song, Mods.softloadDirectory);
+        songObject.chart = allNotes;
+        songObject.events = eventNotes;
+        songObject.noteTypes = noteTypes;
+        chartCache.set({songName: songData.song, modName: Mods.softloadDirectory}, songObject);
+      }
+    }
+    generatedChart = true;
+    trace('Finished Generating Notes for ${songData.song}!');
   }
 
   private function placeNote(chance:Float, noteType:String, attributes:Array<Dynamic>):Note
@@ -2504,12 +2473,6 @@ class PlayfieldManager {
     localFreezeNotes = false;
     modManager = null;
 
-    for (nField in notefields.members) {
-      if (nField != null) {
-        nField.destroy();
-        nField = null;
-      }
-    }
     notefields.destroy();
     notefields = new NotefieldRenderer();
 
