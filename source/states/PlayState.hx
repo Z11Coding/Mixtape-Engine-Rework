@@ -1122,7 +1122,7 @@ class PlayState extends MusicBeatState
 		persistentUpdate = true;
 		persistentDraw = true;
 
-		playfield.fixMania();
+		//playfield.fixMania();
 
 		// Initialize experimental NotePool system if enabled
 		if (ClientPrefs.data.useExperimentalNotePool) {
@@ -4466,6 +4466,7 @@ class PlayState extends MusicBeatState
 		if (vocals != null) vocals.volume *= (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 		FlxG.sound.music.volume = 1 * (instVolumeMultiplier * instVolumeMultiplierHardMode);
 		updateSyncedVideos(); // Update synced video system
+		playfield.update(elapsed);
 
 		//Band-Aid patch but HEY IT WORKS SO I AM NOT COMPLAINING LMAO
 		//This has no right to work as well as it does lmao

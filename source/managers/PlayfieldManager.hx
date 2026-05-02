@@ -303,24 +303,20 @@ class PlayfieldManager {
     }
 
 		for(field in playfields.members) {
-			field.keyCount = Note.ammo[mania[field.modNumber]];
+      trace('Generating Strums for field ${field.modNumber}');
+			field.keyCount = Note.ammo[3];
 			field.generateStrums();
-		}
 
-		for(field in playfields.members)
-			field.fadeIn(skipArrowStartTween);
+      field.fadeIn(skipArrowStartTween);
 
-		#if PE_MOD_COMPATIBILITY
-		for (i in dadField.strumNotes) {
-			opponentStrums.add(i);
-			strumLineNotes.add(i);
+      if (field.modNumber == 0) {
+        playerStrums.add(i);
+        strumLineNotes.add(i);
+      } else if (field.modNumber == 1) {
+        opponentStrums.add(i);
+        strumLineNotes.add(i);
+      }
 		}
-
-		for (i in playerField.strumNotes) {
-			playerStrums.add(i);
-			strumLineNotes.add(i);
-		}
-		#end
 
     if (MusicBeatState.getState() == PlayState.instance) {
       #if ALLOW_DEPRECATION
@@ -328,6 +324,7 @@ class PlayfieldManager {
       #end
       PlayState.instance?.callOnScripts('onReceptorGenerationPost');
     }
+    trace("Finished Note Generation!");
 	}
 
   private function generatePlayerStrums(player:Int):Void
