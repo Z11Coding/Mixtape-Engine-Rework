@@ -359,7 +359,8 @@ class HScript extends Iris
 		set('parentLua', null);
 		#end
 		set('this', this);
-		set('game', FlxG.state);
+		set('game', states.PlayState.instance);
+		set('state', FlxG.state);
 		set('controls', Controls.instance);
 
 		// Health-related functions

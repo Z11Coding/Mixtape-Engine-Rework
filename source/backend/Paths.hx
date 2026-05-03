@@ -322,6 +322,10 @@ class Paths
 				vertFile==null ? null : File.getContent(vertPath));
 		}catch(e:Dynamic){
 			trace("Shader compilation error:" + e.message);
+			if (fragFile != null)
+				trace("For Shader "+ fragFile);
+			else if (vertFile != null)
+				trace("For Shader "+ vertFile);
 		}
 
 		return null;

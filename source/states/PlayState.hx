@@ -4299,34 +4299,34 @@ class PlayState extends MusicBeatState
 			var sectionLoopCount:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
 
 
-								if (chartingMode)
-						chartModifier = "Normal";
-					else if (preload)
-						chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
+			if (chartingMode)
+				chartModifier = "Normal";
+			else if (preload)
+				chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 
-					if (preload) {
-								var convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
-									if (mania > Note.maxMania)
-										mania = Note.defaultMania;
-									else if (chartModifier == "4K Only")
-										mania = 3;
-									else if (chartModifier == "ManiaConverter")
-										mania = convertMania;
-									else if (SONG.mania != null)
-										if (SONG.mania >= 3) //Make sure it's even there
-											mania = SONG.mania;
-										else {
-											mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
-												case 0: 3;
-												case 1: 4;
-												default: SONG.mania;
-											}
-										}
-									else mania = 3;
+			if (preload) {
+				var convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
+				if (mania > Note.maxMania)
+					mania = Note.defaultMania;
+				else if (chartModifier == "4K Only")
+					mania = 3;
+				else if (chartModifier == "ManiaConverter")
+					mania = convertMania;
+				else if (SONG.mania != null)
+					if (SONG.mania >= 3) //Make sure it's even there
+						mania = SONG.mania;
+					else {
+						mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
+							case 0: 3;
+							case 1: 4;
+							default: SONG.mania;
+						}
+					}
+				else mania = 3;
 
-											trace("Mania set: " + mania);
+				trace("Mania set: " + mania);
 
-		}
+			}
 
 			for (section in sectionsData)
 			{
@@ -4335,7 +4335,7 @@ class PlayState extends MusicBeatState
 
 				for (i in 0...section.sectionNotes.length)
 				{
-					final songNotes: Array<Dynamic> = section.sectionNotes[i];
+					final songNotes:Array<Dynamic> = section.sectionNotes[i];
 					var spawnTime:Float = songNotes[0];
 					var noteColumn:Int = Std.int(songNotes[1]);
 					var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[SONG.mania != null ? SONG.mania : 3]);
@@ -8997,7 +8997,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					localFreezeNotes = false;
 				}
 		}
-		else {overriddenEventNames.push(eventName); trace('Event ' + eventName + ' was overridden by a script!');}
+		else {overriddenEventNames.push(eventName);} //trace('Event ' + eventName + ' was overridden by a script!');}
 
 		stagesFunc(function(stage:BaseStage) stage.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime));
 		callOnScripts('onEvent', [eventName, value1, value2, strumTime]);
