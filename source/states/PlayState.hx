@@ -6913,7 +6913,7 @@ class PlayState extends MusicBeatState
 					playfield.localFreezeNotes = false;
 				}
 		}
-		else {overriddenEventNames.push(eventName); trace('Event ' + eventName + ' was overridden by a script!');}
+		else {overriddenEventNames.push(eventName);} //trace('Event ' + eventName + ' was overridden by a script!');}
 
 		stagesFunc(function(stage:BaseStage) stage.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime));
 		callOnScripts('onEvent', [eventName, value1, value2, strumTime]);
