@@ -75,8 +75,8 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		this.vocals = allVocals[0];
 		this.opponentVocals = allVocals[1];
 		this._noteList = noteList;
-		this.startPos = Conductor.songPosition;
-		Conductor.songPosition = startPos;
+		this.startPos = conductor.musicPosition;
+		//conductor.musicPosition = startPos;
 
 		#if FLX_PITCH
 		playbackRate = FlxG.sound.music.pitch;
@@ -171,19 +171,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		if (startingSong)
 		{
 			timerToStart -= elapsed * 1000;
-			Conductor.songPosition = startPos - timerToStart;
 			if(timerToStart < 0) startSong();
-		}
-		else
-		{
-			Conductor.songPosition += elapsed * 1000 * playbackRate;
-			if (Conductor.songPosition >= 0)
-			{
-				var timeDiff:Float = Math.abs((inst.time + Conductor.offset) - Conductor.songPosition);
-				Conductor.songPosition = FlxMath.lerp(inst.time + Conductor.offset, Conductor.songPosition, Math.exp(-elapsed * 2.5));
-				if (timeDiff > 1000 * playbackRate)
-					Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
-			}
 		}
 
 		if (unspawnNotes[0] != null)
@@ -192,7 +180,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			if(songSpeed < 1) time /= songSpeed;
 			if(unspawnNotes[0].multSpeed < 1) time /= unspawnNotes[0].multSpeed;
 
-			while (unspawnNotes.length > 0 && unspawnNotes[0].strumTime - Conductor.songPosition < time)
+			while (unspawnNotes.length > 0 && unspawnNotes[0].strumTime - conductor.musicPosition < time)
 			{
 				var dunceNote:ChartingNote = unspawnNotes[0];
 				notes.insert(0, dunceNote);
@@ -203,65 +191,13 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 			}
 		}
 
-		keysCheck();
-		if(notes.length > 0)
-		{
-			var fakeCrochet:Float = (60 / PlayfieldManager.SONG.bpm) * 1000;
-			notes.forEachAlive(function(daNote:ChartingNote)
-			{
-				var strumGroup:FlxTypedGroup<ChartingStrumNote> = playerStrums;
-				if(!daNote.mustPress) strumGroup = opponentStrums;
-
-				var strum:ChartingStrumNote = strumGroup.members[daNote.noteData];
-				daNote.followChartingStrumNote(strum, fakeCrochet, songSpeed / playbackRate);
-
-				if(!daNote.mustPress && daNote.wasGoodHit && !daNote.hitByOpponent && !daNote.ignoreNote)
-					opponentNoteHit(daNote);
-
-				if(daNote.isSustainNote && strum.sustainReduce) daNote.clipToStrumNote(strum);
-
-				// Kill extremely late notes and cause misses
-				if (Conductor.songPosition - daNote.strumTime > noteKillOffset)
-				{
-					if (daNote.mustPress && !daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit))
-						noteMiss(daNote);
-
-					daNote.active = daNote.visible = false;
-					invalidateNote(daNote);
-				}
-			});
-		}
-
-		var time:Float = CoolUtil.floorDecimal((Conductor.songPosition - ClientPrefs.data.noteOffset) / 1000, 1);
+		var time:Float = CoolUtil.floorDecimal((conductor.musicPosition - ClientPrefs.data.noteOffset) / 1000, 1);
 		var songLen:Float = CoolUtil.floorDecimal(songLength / 1000, 1);
 		dataTxt.text = 'Time: $time / $songLen' +
-						'\n\nSection: $curSection' +
-						'\nBeat: $curBeat' +
-						'\nStep: $curStep';
+		'\n\nSection: ${conductor.currentMeasure}' +
+		'\nBeat: ${conductor.currentBeat}' +
+		'\nStep: ${conductor.currentStep}';
 		super.update(elapsed);
-	}
-
-	var lastBeatHit:Int = -1;
-	override function beatHit()
-	{
-		if(lastBeatHit >= curBeat) {
-			//trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
-			return;
-		}
-		notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
-
-		super.beatHit();
-		lastBeatHit = curBeat;
-	}
-
-	override function sectionHit()
-	{
-		if (PlayfieldManager.SONG.notes[curSection] != null)
-		{
-			if (PlayfieldManager.SONG.notes[curSection].changeBPM)
-				Conductor.bpm = PlayfieldManager.SONG.notes[curSection].bpm;
-		}
-		super.sectionHit();
 	}
 
 	override function destroy()

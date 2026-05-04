@@ -960,6 +960,35 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			enterFromCharSel();
 			onDJIntroDone();
 		}
+
+		addManagerCallbacks();
+	}
+
+	function addManagerCallbacks() {
+		conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			// Only prevent duplicate beat hits if it's actually the same beat
+			// if (djLastBeatHit == curBeat) {
+			// 	return;
+			// }
+
+			backingCard?.beatHit(curBeat);
+
+			if (dj != null) {
+				// Only bop DJ on appropriate beats based on calculated frequency
+				if (curBeat % djDanceEveryNumBeats == 0) {
+					@:privateAccess {
+						var animPrefix = dj.playableCharData.getAnimationPrefix('idle');
+						if (dj.currentState == Idle)
+						{
+							dj.playFlashAnimation(animPrefix, true, false, false);
+						}
+					}
+				}
+			}
+
+			djLastBeatHit = curBeat;
+		});
 	}
 
 	var currentFilter:SongFilter = null;
@@ -2398,32 +2427,6 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 
 		trace('DJ Dance Frequency: BPM=$currentBpm, DanceEvery=$djDanceEveryNumBeats beats');
-	}
-
-	override function beatHit()
-	{
-		// // Only prevent duplicate beat hits if it's actually the same beat
-		// if (djLastBeatHit == curBeat) {
-		// 	return;
-		// }
-
-		backingCard?.beatHit(curBeat);
-
-		if (dj != null) {
-			// Only bop DJ on appropriate beats based on calculated frequency
-			if (curBeat % djDanceEveryNumBeats == 0) {
-				@:privateAccess {
-					var animPrefix = dj.playableCharData.getAnimationPrefix('idle');
-					if (dj.currentState == Idle)
-					{
-						dj.playFlashAnimation(animPrefix, true, false, false);
-					}
-				}
-			}
-		}
-
-		super.beatHit();
-		djLastBeatHit = curBeat;
 	}
 
 	public override function destroy():Void

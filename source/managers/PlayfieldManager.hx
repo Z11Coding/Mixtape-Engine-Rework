@@ -310,11 +310,15 @@ class PlayfieldManager {
       field.fadeIn(skipArrowStartTween);
 
       if (field.modNumber == 0) {
-        playerStrums.add(i);
-        strumLineNotes.add(i);
+        for (strum in field.strumNotes) {
+          playerStrums.add(strum);
+          strumLineNotes.add(strum);
+        }
       } else if (field.modNumber == 1) {
-        opponentStrums.add(i);
-        strumLineNotes.add(i);
+        for (strum in field.strumNotes) {
+          opponentStrums.add(strum);
+          strumLineNotes.add(strum);
+        }
       }
 		}
 
@@ -548,8 +552,11 @@ class PlayfieldManager {
 
   /// Chart Loading
   public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = true) {
-    function addNotesToQueue() {
-      for (note in allNotes) {
+    if (chartCache.exists({songName: songName, modName: folder})) {
+      trace("USING CACHED CHART FOR: "+songName+"\nFROM MOD: "+folder);
+      allNotes = chartCache.get({songName: songName, modName: folder}).copyChart();
+      unspawnNotes = curChart = allNotes;
+  		for (note in allNotes) {
         if (playerField != null)
           if (note.mustPress)
             playerField.queue(note);
@@ -558,17 +565,12 @@ class PlayfieldManager {
           if (!note.mustPress)
             dadField.queue(note);
       }
-    }
-
-    var noteQueueCheck:ASync<() -> Void> = addNotesToQueue;
-    if (chartCache.exists({songName: songName, modName: folder})) {
-      allNotes = chartCache.get({songName: songName, modName: folder}).copyChart();
-      unspawnNotes = curChart = allNotes;
-  		noteQueueCheck();
     } else {
+      trace("Generate chart normally");
       generateChart(Song.getChart(songName, folder), preload);
     }
     songName = Paths.formatToSongPath(SONG.song);
+    trace("Chart Generated");
   }
 
   public var noteTypes:Array<String> = [];
@@ -2470,7 +2472,12 @@ class PlayfieldManager {
     localFreezeNotes = false;
     modManager = null;
 
-    notefields.destroy();
+    for (nField in notefields.members) {
+      if (nField != null) {
+        nField.destroy();
+        nField = null;
+      }
+    }
     notefields = new NotefieldRenderer();
 
     for (pField in playfields) {

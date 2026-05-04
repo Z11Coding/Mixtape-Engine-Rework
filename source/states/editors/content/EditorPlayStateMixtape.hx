@@ -34,9 +34,6 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	var ratingsData:Array<Rating> = Rating.loadDefault();
 
 	var strumLineNotes:FlxTypedGroup<StrumNote>;
-	var opponentStrums:FlxTypedGroup<StrumNote>;
-	var playerStrums:FlxTypedGroup<StrumNote>;
-	var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
 
 	var combo:Int = 0;
 	var lastRating:FlxSprite;
@@ -83,16 +80,18 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		Cursor.hide();
 		/* setting up some important data */
 		this.playbackRate = playbackRate;
-		this.startPos = Conductor.songPosition;
+		this.startPos = conductor.musicPosition;
 
-		Conductor.safeZoneOffset = (ClientPrefs.data.safeFrames / 60) * 1000 * playbackRate;
-		Conductor.songPosition -= startOffset;
-		startOffset = Conductor.crochet;
+		RConductor.safeZoneOffset = (ClientPrefs.data.safeFrames / 60) * 1000 * playbackRate;
+		startOffset = conductor.beatLengthMs;
 		timerToStart = startOffset;
 
 		/* borrowed from PlayState */
 		if (FlxG.sound.music != null)
 			FlxG.sound.music.stop();
+
+		if (conductor.target != null)
+			conductor.target.stop();
 
 		cachePopUpScore();
 		guitarHeroSustains = ClientPrefs.data.guitarHeroSustains;
@@ -106,48 +105,63 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		bg.alpha = 0.9;
 		add(bg);
 
-        instance = this;
+    instance = this;
 
 		/**** NOTES ****/
-		keysArray = backend.Keybinds.fill();
-		modManager = new ModManager(this);
+		playfield.setModMan(cast this);
+		playfield.modManager.playerAmount = 2;
+		for (i in 0...playfield.modManager.playerAmount)
+			playfield.newPlayfield();
 
-		playerField = new PlayField(modManager);
-		playerField.modNumber = 0;
-		playerField.characters = [];
+		//trace("Making PlayerField!");
+		playfield.playerField = playfield.playfields.members[0];
+		if (playfield.playerField != null) {
+			playfield.playerField.noteField.isEditor = false;
+			playfield.playerField.isPlayer = true;
+			playfield.playerField.autoPlayed = false;
+			playfield.playerField.noteHitCallback.add(goodNoteHit);
+		}
 
-		playerField.isPlayer = true;
-		playerField.autoPlayed = false;
-    playerField.isEditor = true;
-		playerField.noteHitCallback.add(goodNoteHit);
+		//trace("Making DadField!");
+		playfield.dadField = playfield.playfields.members[1];
+		if (playfield.dadField != null) {
+			playfield.dadField.noteField.isEditor = false;
+			playfield.dadField.isPlayer = false;
+			playfield.dadField.autoPlayed = true;
+			playfield.dadField.AIPlayer = false;
+			playfield.dadField.noteHitCallback.add(opponentNoteHit);
+		}
 
-		dadField = new PlayField(modManager);
-		dadField.isPlayer = false;
-		dadField.autoPlayed = true;
-    dadField.isEditor = true;
-		dadField.modNumber = 1;
-		dadField.characters = [];
-		dadField.noteHitCallback.add(opponentNoteHit);
+		PlayField.initExtras();
 
-		playfields.add(dadField);
-		playfields.add(playerField);
+		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
+			if (MusicBeatState.getState() == PlayState.instance) {
+        if (!field.autoPlayed && !daNote.ignoreNote && !PlayState.instance?.endingSong && (daNote.tooLate || !daNote.wasGoodHit))
+          noteMiss(daNote, field);
+      }
+		}, playerField);
 
-		initPlayfield(dadField);
-		initPlayfield(playerField);
+		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
+			if (MusicBeatState.getState() == PlayState.instance) {
+        if (!field.autoPlayed && !daNote.ignoreNote && !PlayState.instance?.endingSong && (daNote.tooLate || !daNote.wasGoodHit))
+          noteMiss(daNote, field);
+      }
+		}, dadField);
 
-		for (field in playfields.members)
+		for (field in playfield.playfields.members)
 		{
-			field.keyCount = Note.ammo[PlayfieldManager.mania[0]];
+			field.keyCount = Note.ammo[PlayfieldManager.mania[field.modNumber]];
 			field.generateStrums();
 		}
-		for (field in playfields.members)
+		for (field in playfield.playfields.members)
 			field.fadeIn(true); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
 
-		modManager.registerDefaultModifiers();
+		playfield.modManager.registerDefaultModifiers();
 		/***************/
 
     add(playfields);
 		add(notefields);
+		add(PlayField.extraStuff);
 
 		scoreTxt = new FlxText(10, FlxG.height - 50, FlxG.width - 20, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -171,8 +185,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		generateSong();
 
-		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-		FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
+		playfield.addInput();
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence (with Time Left)
@@ -181,35 +194,28 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		RecalculateRating();
 	}
 
-    // good to call this whenever you make a playfield
-	public function initPlayfield(field:PlayField)
-	{
-		notefields.add(field.noteField);
-
-		field.noteRemoved.add((note:Note, field:PlayField) ->
+	function manCalls() {
+		conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
 		{
-			allNotes.remove(note);
-			unspawnNotes.remove(note);
-			notes.remove(note);
-		});
-		field.noteMissed.add((daNote:Note, field:PlayField) ->
-		{
-			if (field.isPlayer && !field.autoPlayed && !daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit))
-				noteMiss(daNote, field);
-		});
-		field.noteSpawned.add((dunceNote:Note, field:PlayField) ->
-		{
-			notes.add(dunceNote);
-			var index:Int = unspawnNotes.indexOf(dunceNote);
-			unspawnNotes.splice(index, 1);
+			if (PlayfieldManager.SONG.needsVoices && conductor.target.time >= -ClientPrefs.data.noteOffset)
+			{
+				var timeSub:Float = conductor.musicPosition - conductor.musicPositionOffset;
+				var syncTime:Float = 20 * playbackRate;
+				if (Math.abs(conductor.target.time - timeSub) > syncTime ||
+				(vocals.length > 0 && Math.abs(vocals.time - timeSub) > syncTime) ||
+				(opponentVocals.length > 0 && Math.abs(opponentVocals.time - timeSub) > syncTime))
+				{
+					resyncVocals();
+				}
+			}
 		});
 	}
 
   override function update(elapsed:Float)
 	{
-		modManager.update(elapsed, curDecBeat, curDecStep);
+		playfield.modManager.update(elapsed, conductor.currentBeatTime, conductor.currentStepTime);
 
-		for (field in playfields)
+		for (field in playfield.playfields)
 			field.noteField.songSpeed = songSpeed;
 
 		if(controls.BACK || FlxG.keys.justPressed.ESCAPE)
@@ -221,78 +227,30 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		if (startingSong)
 		{
-			modManager.setValue('transformX', -400);
-			modManager.setValue('transformY', -300);
+			playfield.modManager.setValue('transformX', -400);
+			playfield.modManager.setValue('transformY', -300);
 			timerToStart -= elapsed * 1000;
-			Conductor.songPosition = startPos - timerToStart;
 			if(timerToStart < 0) startSong();
 		}
 		else
 		{
-			for (field in playfields.members)
-				field.fadeIn(true); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
-			modManager.setValue('transformX', -400);
-            modManager.setValue('transformY', -300);
-			Conductor.songPosition += elapsed * 1000 * playbackRate;
+			for (field in playfield.playfields.members)
+				field.fadeIn(false); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
+			playfield.modManager.setValue('transformX', -400);
+      playfield.modManager.setValue('transformY', -300);
 		}
 
-		var time:Float = CoolUtil.floorDecimal((Conductor.songPosition - ClientPrefs.data.noteOffset) / 1000, 1);
+		var time:Float = CoolUtil.floorDecimal((conductor.musicPosition - ClientPrefs.data.noteOffset) / 1000, 1);
 		dataTxt.text = 'Time: $time / ${songLength/1000}
-						\nSection: $curSection
-						\nBeat: $curBeat
-						\nStep: $curStep';
+		\nSection: ${conductor.currentMeasure}
+		\nBeat: ${conductor.currentBeat}
+		\nStep: ${conductor.currentStep}';
 		super.update(elapsed);
-	}
-
-	var lastStepHit:Int = -1;
-	override function stepHit()
-	{
-		if (PlayfieldManager.SONG.needsVoices && FlxG.sound.music.time >= -ClientPrefs.data.noteOffset)
-		{
-			var timeSub:Float = Conductor.songPosition - Conductor.offset;
-			var syncTime:Float = 20 * playbackRate;
-			if (Math.abs(FlxG.sound.music.time - timeSub) > syncTime ||
-			(vocals.length > 0 && Math.abs(vocals.time - timeSub) > syncTime) ||
-			(opponentVocals.length > 0 && Math.abs(opponentVocals.time - timeSub) > syncTime))
-			{
-				resyncVocals();
-			}
-		}
-		super.stepHit();
-
-		if(curStep == lastStepHit) {
-			return;
-		}
-		lastStepHit = curStep;
-	}
-
-	var lastBeatHit:Int = -1;
-	override function beatHit()
-	{
-		if(lastBeatHit >= curBeat) {
-			//trace('BEAT HIT: ' + curBeat + ', LAST HIT: ' + lastBeatHit);
-			return;
-		}
-		//notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
-
-		super.beatHit();
-		lastBeatHit = curBeat;
-	}
-
-	override function sectionHit()
-	{
-		if (PlayfieldManager.SONG.notes[curSection] != null)
-		{
-			if (PlayfieldManager.SONG.notes[curSection].changeBPM)
-				Conductor.bpm = PlayfieldManager.SONG.notes[curSection].bpm;
-		}
-		super.sectionHit();
 	}
 
 	override function destroy()
 	{
-		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-		FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
+		playfield.removeInput();
 		FlxG.mouse.visible = true;
 		super.destroy();
 	}
@@ -301,10 +259,11 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	{
 		startingSong = false;
 		@:privateAccess
-		FlxG.sound.playMusic(inst._sound, 1, false);
-		FlxG.sound.music.time = startPos;
-		#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
-		FlxG.sound.music.onComplete = finishSong;
+		conductor.target.loadEmbedded(inst._sound);
+		conductor.target.play();
+		conductor.target.time = startPos;
+		#if FLX_PITCH conductor.target.pitch = playbackRate; #end
+		conductor.target.onComplete = finishSong;
 		vocals.volume = 1;
 		vocals.time = startPos;
 		vocals.play();
@@ -313,7 +272,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		opponentVocals.play();
 
 		// Song duration in a float, useful for the time left feature
-		songLength = FlxG.sound.music.length;
+		songLength = conductor.target.length;
 	}
 
 	var characterFailed:Bool = false;
@@ -363,16 +322,9 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		}
 	}
 
-	// Borrowed from PlayState
-    var noteIndex:Int = -1;
 	function generateSong():Void
 	{
-		// FlxG.log.add(ChartParser.parse());
-		songSpeed = PlayfieldManager.SONG.speed;
-
 		var songData = PlayfieldManager.SONG;
-		Conductor.bpm = songData.bpm;
-
 		vocals = new FlxSound();
 		opponentVocals = new FlxSound();
 		try
@@ -423,174 +375,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		}
 		catch (e:Dynamic) {}
 		FlxG.sound.list.add(inst);
-
-		notes = new FlxTypedGroup<Note>();
-		add(notes);
-
-		var oldNote:Note = null;
-		var sectionsData:Array<SwagSection> = PlayfieldManager.SONG.notes;
-		var ghostNotesCaught:Int = 0;
-		var daBpm:Float = Conductor.bpm;
-
-		for (section in sectionsData)
-		{
-			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm)
-				daBpm = section.bpm;
-
-			// Function to get random mappings from available indexes and a list of special integers
-			/*function getAPLocations(max:Int, loc:Array<Int>, gottaHit:Array<Bool>):Array<{index:Int, loc:Int}> {
-				var mappings:Array<{index:Int, loc:Int}> = [];
-				var indexes:Array<Int> = [for (i in 0...max) if (gottaHit[i]) i];
-				//trace(indexes.length);
-				for (i in 0...Std.int(Math.min(indexes.length, loc.length))) {
-					mappings.push({index: indexes[i], loc: loc[i]});
-				}
-				return mappings;
-			}*/
-
-			//var gottaHit:Array<Bool> = [for (note in section.sectionNotes) note[1] < (SONG.mania != null ? totalColumns : Note.ammo[3])];
-			//var APNotes:Array<{index:Int, loc:Int}> = (this is archipelago.APPlayState) ? getAPLocations(section.sectionNotes.length, archipelago.APGameState.instance.noteData(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod), gottaHit) : [];
-
-			for (i in 0...section.sectionNotes.length)
-			{
-				final songNotes: Array<Dynamic> = section.sectionNotes[i];
-				var spawnTime:Float = songNotes[0];
-				var noteColumn:Int = Std.int(songNotes[1]);
-				var noteStartColumn:Int = Std.int(songNotes[1] % Note.ammo[PlayfieldManager.SONG.mania != null ? PlayfieldManager.SONG.mania : 3]);
-				var holdLength:Float = songNotes[2];
-				var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
-				/*var apNote:Bool = (function() {
-					for (apNoteData in APNotes) {
-						if (apNoteData.index == i) {
-							return true;
-						}
-					}
-					return false;
-				})();*/
-				//var apLoc = APNotes.filter(function(apNoteData) return apNoteData.index == i)[0]?.loc;
-				if (Math.isNaN(holdLength)) holdLength = 0.0;
-
-				var gottaHitNote:Bool;
-				noteColumn = Std.int(songNotes[1] % Note.ammo[PlayfieldManager.SONG.mania != null ? PlayfieldManager.SONG.mania : 3]);
-				gottaHitNote = (songNotes[1] < (PlayfieldManager.SONG.mania != null ? PlayfieldManager.SONG.mania : Note.ammo[3]));
-
-				//if (songData.format.contains("mixtape_v1")) gottaHitNote = section.mustHitSection;
-
-				if (i != 0) {
-					// CLEAR ANY POSSIBLE GHOST NOTES
-					for (evilNote in allNotes) {
-						var matches:Bool = (noteColumn == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType);
-						if (matches && Math.abs(spawnTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
-							var playfield:PlayField = playfields.members[evilNote.fieldIndex];
-							if (evilNote.tail.length > 0) {
-								for (tail in evilNote.tail)
-								{
-									tail.destroy();
-									allNotes.remove(tail);
-									if (playfield != null) playfield.unqueue(tail);
-								}
-							}
-							evilNote.destroy();
-							allNotes.remove(evilNote);
-							if (playfield != null) playfield.unqueue(evilNote);
-							ghostNotesCaught++;
-							//continue;
-						}
-					}
-				}
-
-				var curStepCrochet:Float = 60 / daBpm * 1000 / 4.0;
-				holdLength = Math.round(songNotes[2] / curStepCrochet) - 1;
-				if (allNotes.length > 0)
-					oldNote = allNotes[Std.int(allNotes.length - 1)];
-				else
-					oldNote = null;
-
-				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
-				swagNote.noteIndex = Std.int(allNotes.length);
-				swagNote.mustPress = gottaHitNote;
-				var isAlt: Bool = section.altAnim && !gottaHitNote;
-				swagNote.gfNote = (section.gfSection && gottaHitNote == section.mustHitSection);
-				swagNote.animSuffix = isAlt ? "-alt" : "";
-				swagNote.sustainLength = songNotes[2] <= curStepCrochet ? songNotes[2] : (holdLength + 1) * curStepCrochet; // +1 because hold end
-				swagNote.noteType = noteType;
-				swagNote.ID = allNotes.length;
-				swagNote.holdType = swagNote.sustainLength > 0 ? HEAD : TAP;
-				swagNote.isParent = swagNote.sustainLength > 0;
-				swagNote.scrollFactor.set();
-				////
-				var playfield:PlayField = swagNote.field;
-
-				if (playfield == null && playfields.length > 0) {
-					if (swagNote.fieldIndex == -1)
-						swagNote.fieldIndex = swagNote.mustPress ? 0 : 1;
-
-					if (playfields.members[swagNote.fieldIndex] != null) {
-						playfield = playfields.members[swagNote.fieldIndex];
-						swagNote.field = playfield;
-					}
-				}
-
-				playfield = swagNote.field;
-				swagNote.fieldIndex = playfield.modNumber;
-				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
-
-				if (playfield != null)
-				{
-					playfield.queue(swagNote); // queues the note to be spawned
-					allNotes.push(swagNote); // just for the sake of convenience
-				}
-
-				var spot = 0;
-				final roundSus:Int = Math.round(swagNote.sustainLength / Conductor.stepCrochet) -1;
-				if (roundSus > 0)
-				{
-					for (susNote in 0...roundSus)
-					{
-						oldNote = allNotes[Std.int(allNotes.length - 1)];
-
-						var sustainNote:Note = new Note(spawnTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), noteColumn, oldNote, true);
-						sustainNote.mustPress = gottaHitNote;
-						sustainNote.gfNote = swagNote.gfNote;
-						sustainNote.exNote = swagNote.exNote;
-						sustainNote.animSuffix = swagNote.animSuffix;
-						sustainNote.noteType = swagNote.noteType;
-						sustainNote.noteIndex = swagNote.noteIndex;
-						if (sustainNote == null || !sustainNote.alive)
-							break;
-						sustainNote.ID = allNotes.length;
-						sustainNote.scrollFactor.set();
-						sustainNote.holdType = roundSus > 0 ? PART : END;
-						sustainNote.parent = swagNote;
-						sustainNote.fieldIndex = swagNote.fieldIndex;
-						sustainNote.field = swagNote.field;
-						swagNote.tail.push(sustainNote);
-						swagNote.unhitTail.push(sustainNote);
-						playfield.queue(sustainNote);
-						allNotes.push(sustainNote);
-
-						if (sustainNote.mustPress)
-						{
-							sustainNote.x += FlxG.width * 0.5; // general offset
-						}
-
-						sustainNote.parent = swagNote;
-						swagNote.childs.push(sustainNote);
-						sustainNote.spotInLine = spot;
-						spot++;
-					}
-				}
-			}
-		}
-
-		trace('["${PlayfieldManager.SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
-		allNotes.sort(PlayfieldManager.sortByTime);
-
-		for (fuck in allNotes)
-			unspawnNotes.push(fuck);
-
-		for (field in playfields.members)
-			field.clearStackedNotes();
+		playfield.loadChart(Paths.formatToSongPath(songData.song)+Difficulty.getFilePath(), Paths.formatToSongPath(songData.song));
 	}
 
   function sortByNotes(Obj1:Note, Obj2:Note):Int
@@ -634,8 +419,8 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 	private function popUpScore(note:Note = null):Void
 	{
-		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.data.ratingOffset);
-		//trace(noteDiff, ' ' + Math.abs(note.strumTime - Conductor.songPosition));
+		var noteDiff:Float = Math.abs(note.strumTime - conductor.musicPosition + ClientPrefs.data.ratingOffset);
+		//trace(noteDiff, ' ' + Math.abs(note.strumTime - conductor.musicPosition));
 
 		vocals.volume = 1;
 		var placement:String = Std.string(combo);
@@ -648,7 +433,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		var score:Int = 350;
 
 		//tryna do MS based judgment due to popular demand
-		var daRating:Rating = Conductor.judgeNote(ratingsData, noteDiff / playbackRate);
+		var daRating:Rating = Rating.judgeNote(ratingsData, noteDiff / playbackRate);
 
 		totalNotesHit += daRating.ratingMod;
 		note.ratingMod = daRating.ratingMod;
@@ -756,7 +541,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 				{
 					numScore.destroy();
 				},
-				startDelay: Conductor.crochet * 0.002 / playbackRate
+				startDelay: conductor.beatLengthMs * 0.002 / playbackRate
 			});
 
 			daLoop++;
@@ -772,7 +557,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		// add(coolText);
 
 		FlxTween.tween(rating, {alpha: 0}, 0.2 / playbackRate, {
-			startDelay: Conductor.crochet * 0.001 / playbackRate
+			startDelay: conductor.beatLengthMs * 0.001 / playbackRate
 		});
 
 		FlxTween.tween(comboSpr, {alpha: 0}, 0.2 / playbackRate, {
@@ -783,104 +568,9 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 				rating.destroy();
 			},
-			startDelay: Conductor.crochet * 0.002 / playbackRate
+			startDelay: conductor.beatLengthMs * 0.002 / playbackRate
 		});
 	}
-
-	private function onKeyPress(event:KeyboardEvent):Void
-	{
-		var eventKey:FlxKey = event.keyCode;
-		var key:Int = getKeyFromEvent(eventKey);
-		//trace('Pressed: ' + eventKey);
-
-		if (!controls.controllerMode)
-		{
-			if (key > -1)
-            {
-                var hitNotes:Array<Note> = [];
-                var controlledFields:Array<PlayField> = [];
-
-                for (field in playfields.members)
-                {
-                    if (!field.autoPlayed && field.isPlayer && field.inControl)
-                    {
-                        controlledFields.push(field);
-                        field.keysPressed[key] = true;
-                        var note:Note = null;
-                        note = field.input(key);
-
-                        if (note == null)
-                        {
-                            var spr:StrumNote = field.strumNotes[key];
-                            if (spr != null && spr.animation.curAnim.name != 'confirm')
-                            {
-                                spr.playAnim('pressed');
-                                spr.resetAnim = 0;
-                            }
-                        }
-                        else
-                        {
-                            hitNotes.push(note);
-                        }
-                    }
-                }
-            }
-		}
-	}
-
-    public function getKeyFromEvent(key:FlxKey):Int
-	{
-		// var tempKeys:Array<Dynamic> = backend.Keybinds.fill();
-		if (key != NONE)
-		{
-			for (i in 0...keysArray[PlayfieldManager.mania[0]].length)
-			{
-				for (j in 0...keysArray[PlayfieldManager.mania[0]][i].length)
-				{
-					if (key == keysArray[PlayfieldManager.mania[0]][i][j])
-					{
-						return i;
-					}
-				}
-			}
-		}
-		return -1;
-	}
-
-	private function onKeyRelease(event:KeyboardEvent):Void
-	{
-		var eventKey:FlxKey = event.keyCode;
-		var key:Int = getKeyFromEvent(eventKey);
-		//trace('Pressed: ' + eventKey);
-
-		if(!controls.controllerMode && key > -1) keyReleased(key);
-	}
-
-	private function keyReleased(key:Int)
-	{
-		// doesnt matter if THIS is done while paused
-        // only worry would be if we implemented Lifts
-        // but afaik we arent doing that
-        // (though could be interesting to add)
-        for (field in playfields.members)
-        {
-            if (field.inControl && !field.autoPlayed && field.isPlayer)
-            {
-                field.keysPressed[key] = false;
-
-                if (!field.isHolding[key])
-                {
-                    var spr:StrumNote = field.strumNotes[key];
-                    if (spr != null)
-                    {
-                        spr.playAnim('static');
-                        spr.resetAnim = 0;
-                    }
-                }
-            }
-        }
-	}
-
 
 	function opponentNoteHit(note:Note, field:PlayField):Void
 	{
@@ -888,26 +578,25 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			vocals.volume = 1;
 
 		if (note.visible)
-        {
-            var time:Float = 0.15;
-            if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
-                time += 0.15;
-            var spr:StrumNote = field.strumNotes[note.noteData];
-            if (spr != null)
-            {
-                spr.playAnim('confirm', true, note);
-                spr.resetAnim = time;
-            }
-        }
+		{
+			var time:Float = 0.15;
+			if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail')) time += 0.15;
+			var spr:StrumNote = field.strumNotes[note.noteData];
+			if (spr != null)
+			{
+				spr.playAnim('confirm', true, note);
+				spr.resetAnim = time;
+			}
+		}
 		note.hitByOpponent = true;
 
 		if (!note.isSustainNote && note.sustainLength == 0)
-        {
-            field.removeNote(note);
-        }
-        else if (note.isSustainNote)
-            if (note.parent.unhitTail.contains(note))
-                note.parent.unhitTail.remove(note);
+		{
+			field.removeNote(note);
+		}
+		else if (note.isSustainNote)
+			if (note.parent.unhitTail.contains(note))
+				note.parent.unhitTail.remove(note);
 	}
 
 	function goodNoteHit(note:Note, field:PlayField):Void
@@ -980,18 +669,17 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	{
 		if(finishTimer != null) return;
 
-		FlxG.sound.music.play();
-		#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
-		Conductor.songPosition = FlxG.sound.music.time;
-		if (Conductor.songPosition <= vocals.length)
+		conductor.target.play();
+		#if FLX_PITCH conductor.target.pitch = playbackRate; #end
+		if (conductor.musicPosition <= vocals.length)
 		{
-			vocals.time = Conductor.songPosition;
+			vocals.time = conductor.musicPosition;
 			#if FLX_PITCH vocals.pitch = playbackRate; #end
 		}
 
-		if (Conductor.songPosition <= opponentVocals.length)
+		if (conductor.musicPosition <= opponentVocals.length)
 		{
-			opponentVocals.time = Conductor.songPosition;
+			opponentVocals.time = conductor.musicPosition;
 			#if FLX_PITCH opponentVocals.pitch = playbackRate; #end
 		}
 		vocals.play();

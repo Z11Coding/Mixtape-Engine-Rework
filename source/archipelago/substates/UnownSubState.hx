@@ -1,9 +1,9 @@
 package archipelago.substates;
 
-import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
-import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.input.keyboard.FlxKey;
 import flixel.effects.FlxFlicker;
+import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+import flixel.input.keyboard.FlxKey;
 
 class UnownSubState extends MusicBeatSubstate
 {
@@ -117,37 +117,37 @@ class UnownSubState extends MusicBeatSubstate
 
 		if (FlxG.random.int(0, 1000) == 50)
 			words = zeropointonePercentWords;
-		
+
 		selectedWord = words[FlxG.random.int(0, words.length - 1)];
-		
+
 		if (word != '')
 			selectedWord = word;
 		//i forgor if there's a function to do this
 		selectedWord = selectedWord.toUpperCase();
 		var splitWord = selectedWord.split(' ');
-		
+
 		var dum:Bool = false;
 		for (i in splitWord) {
 			realWord += i;
 		}
 		trace(realWord);
-		
+
 		lines = new FlxTypedGroup<FlxSprite>();
 		add(lines);
 
 		unowns = new FlxTypedSpriteGroup<FlxSprite>();
 		add(unowns);
-		
+
 		var realThing:Int = 0;
 		for (i in 0...selectedWord.length) {
-			if (!selectedWord.isSpace(i)) 
+			if (!selectedWord.isSpace(i))
 			{
 				var unown:Alphabet = new Alphabet(0, 90, "");
 				if (260 - (15 * selectedWord.length) <= 0)
 					unown.x += 40 * i;
 				else
 					unown.x += (260 - (15 * selectedWord.length)) * i;
-				var realScale = 1 - (0.05 * selectedWord.length); 
+				var realScale = 1 - (0.05 * selectedWord.length);
 				if (realScale < 0.2)
 					realScale = 0.2;
 				unown.scale.set(realScale, realScale);
@@ -174,6 +174,27 @@ class UnownSubState extends MusicBeatSubstate
 		timerTxt.font = Paths.font('pixel.otf');
 		add(timerTxt);
 		timerTxt.text = Std.string(timer);
+	}
+
+	override function create() {
+		super.create();
+		manCall();
+	}
+
+	function manCall() {
+		conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		{
+			if (timer > 0)
+				timer--;
+			else {
+				close();
+				if (loseArgs != null)
+					Reflect.callMethod(null, lose, cast loseArgs);
+				else
+					lose();
+			}
+			timerTxt.text = Std.string(timer);
+		});
 	}
 
 
@@ -223,22 +244,6 @@ class UnownSubState extends MusicBeatSubstate
 			close();
 			win();
 		}*/
-	}
-
-	override function beatHit()
-	{
-		super.beatHit();
-		if (timer > 0)
-			timer--;
-		else {
-			close();
-			if (loseArgs != null)
-				Reflect.callMethod(null, lose, cast loseArgs);
-			else
-				lose();
-			
-		}
-		timerTxt.text = Std.string(timer);
 	}
 
 	override public function close() {

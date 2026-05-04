@@ -39,7 +39,6 @@ package states;
 	EDIT: not EXACTLY how it works but its a good enough summary
 */
 
-@:noScripting
 class PlayState extends MusicBeatState
 {
 	public var dad(get, set):Character;
@@ -197,15 +196,15 @@ class PlayState extends MusicBeatState
 	// Charts, Playfields, and Notes Manager
 	public var SONG(get, never):SwagSong;
 	public var mania(get, never):Array<Int>;
-	public var notes(get, default):FlxTypedGroup<Note>;
-	public var unspawnNotes(get, default):Array<Note>;
-	public var eventNotes(get, default):Array<EventNote>;
-	public var curEvents(get, default):Array<EventNote>;
+	public var notes(get, set):FlxTypedGroup<Note>;
+	public var unspawnNotes(get, set):Array<Note>;
+	public var eventNotes(get, set):Array<EventNote>;
+	public var curEvents(get, set):Array<EventNote>;
 
-	public var strumLineNotes(get, default):FlxTypedGroup<StrumNote>;
-	public var opponentStrums(get, default):FlxTypedGroup<StrumNote>;
-	public var playerStrums(get, default):FlxTypedGroup<StrumNote>;
-	public var grpNoteSplashes(get, default):FlxTypedGroup<NoteSplash>;
+	public var strumLineNotes(get, set):FlxTypedGroup<StrumNote>;
+	public var opponentStrums(get, set):FlxTypedGroup<StrumNote>;
+	public var playerStrums(get, set):FlxTypedGroup<StrumNote>;
+	public var grpNoteSplashes(get, set):FlxTypedGroup<NoteSplash>;
 
 	public var modManager(get, never):ModManager;
 	public var notefields(get, never):NotefieldRenderer;
@@ -238,25 +237,57 @@ class PlayState extends MusicBeatState
 	private function get_notes():FlxTypedGroup<Note> {
 		return playfield.notes;
 	}
+	private function set_notes(value:FlxTypedGroup<Note>):FlxTypedGroup<Note> {
+		playfield.notes = value;
+		return playfield.notes;
+	}
 	private function get_unspawnNotes():Array<Note> {
+		return playfield.unspawnNotes;
+	}
+	private function set_unspawnNotes(value:Array<Note>):Array<Note> {
+		playfield.unspawnNotes = value;
 		return playfield.unspawnNotes;
 	}
 	private function get_eventNotes():Array<EventNote> {
 		return playfield.eventNotes;
 	}
+	private function set_eventNotes(value:Array<EventNote>):Array<EventNote> {
+		playfield.eventNotes = value;
+		return playfield.eventNotes;
+	}
 	private function get_curEvents():Array<EventNote> {
+		return playfield.curEvents;
+	}
+	private function set_curEvents(value:Array<EventNote>):Array<EventNote> {
+		playfield.curEvents = value;
 		return playfield.curEvents;
 	}
 	private function get_strumLineNotes():FlxTypedGroup<StrumNote> {
 		return playfield.strumLineNotes;
 	}
+	private function set_strumLineNotes(value:FlxTypedGroup<StrumNote>):FlxTypedGroup<StrumNote> {
+		playfield.strumLineNotes = value;
+		return playfield.strumLineNotes;
+	}
 	private function get_opponentStrums():FlxTypedGroup<StrumNote> {
+		return playfield.opponentStrums;
+	}
+	private function set_opponentStrums(value:FlxTypedGroup<StrumNote>):FlxTypedGroup<StrumNote> {
+		playfield.opponentStrums = value;
 		return playfield.opponentStrums;
 	}
 	private function get_playerStrums():FlxTypedGroup<StrumNote> {
 		return playfield.playerStrums;
 	}
+	private function set_playerStrums(value:FlxTypedGroup<StrumNote>):FlxTypedGroup<StrumNote> {
+		playfield.playerStrums = value;
+		return playfield.playerStrums;
+	}
 	private function get_grpNoteSplashes():FlxTypedGroup<NoteSplash> {
+		return playfield.grpNoteSplashes;
+	}
+	private function set_grpNoteSplashes(value:FlxTypedGroup<NoteSplash>):FlxTypedGroup<NoteSplash> {
+		playfield.grpNoteSplashes = value;
 		return playfield.grpNoteSplashes;
 	}
 
@@ -265,14 +296,14 @@ class PlayState extends MusicBeatState
 	}
 	private function set_cpuControlled(value:Bool):Bool {
 		playfield.cpuControlled = value;
-		return value;
+		return playfield.cpuControlled;
 	}
 	private function get_curSong():String {
 		return playfield.curSong;
 	}
 	private function set_curSong(value:String):String {
 		playfield.curSong = value;
-		return value;
+		return playfield.curSong;
 	}
 	private function get_songSpeedType():String {
 		return playfield.songSpeedType;
@@ -282,7 +313,7 @@ class PlayState extends MusicBeatState
 	}
 	private function set_songSpeed(value:Float):Float {
 		playfield.songSpeed = value;
-		return value;
+		return playfield.songSpeed;
 	}
 
 	private function get_chartModifier():String {
@@ -1012,10 +1043,12 @@ class PlayState extends MusicBeatState
 		#end
 		endCallback = endSong;
 
-		playfield.setModMan(this);
+		trace("Setting Up Mod Manager");
+		playfield.setModMan(cast this);
 		setOnScripts("modManager", playfield.modManager);
 		setOnScripts("newPlayField", playfield.newPlayfield);
 		setOnScripts("initPlayfield", playfield.initPlayfield);
+		trace("Mod Manager Now Loaded!");
 
 		switch(ClientPrefs.data.skipWhen) {
 			case "Freeplay": allowSkip = !isStoryMode;
@@ -1081,6 +1114,8 @@ class PlayState extends MusicBeatState
 				AIPlayer.diff = 6;
 		}
 
+		trace("Gameplay Changers Loaded!");
+
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
 		camHUD = new FlxCamera();
@@ -1122,7 +1157,9 @@ class PlayState extends MusicBeatState
 		persistentUpdate = true;
 		persistentDraw = true;
 
+		trace("Fixing Mania");
 		//playfield.fixMania();
+		trace("Mania Fixed");
 
 		// Initialize experimental NotePool system if enabled
 		if (ClientPrefs.data.useExperimentalNotePool) {
@@ -1398,7 +1435,8 @@ class PlayState extends MusicBeatState
 
 		//noteGroup.add(strumLineNotes);
 
-		//// Generate playfields so you can actually, well, play the game
+		// Generate playfields so you can actually, well, play the game
+		trace("Setting Up Playfields!");
 		#if ALLOW_DEPRECATION
 		callOnScripts("prePlayfieldCreation"); // backwards compat
 		// TODO: add deprecation messages to function callbacks somehow
@@ -1462,6 +1500,8 @@ class PlayState extends MusicBeatState
 		add(notefields);
 		add(PlayField.extraStuff);
 		//trace("Playfields Created!");
+
+		trace("Playfields Loaded!");
 		////
 
 		if(ClientPrefs.data.timeBarType == 'Song Name')
@@ -1470,8 +1510,10 @@ class PlayState extends MusicBeatState
 			timeTxt.y += 3;
 		}
 
+		trace("Generating Chart");
 		var prevTime = Sys.time();
 		playfield.loadChart(Paths.formatToSongPath(_cachedSongName)+Difficulty.getFilePath(), Paths.formatToSongPath(_cachedSongName));
+		loadSongAudio();
 		postGen();
 		trace('Chart Generation took ${Sys.time() - prevTime} seconds');
 
@@ -1766,6 +1808,7 @@ class PlayState extends MusicBeatState
 
 		startingSong = true;
 
+		trace("Setting Up NoteType Scripts");
 		#if LUA_ALLOWED
 		for (notetype in playfield.noteTypes)
 			startLuasNamed('custom_notetypes/' + notetype + '.lua');
@@ -1784,8 +1827,7 @@ class PlayState extends MusicBeatState
 			startYScriptsNamed('custom_notetypes/' + notetype + '.ys');
 		for (event in playfield.eventsPushed)
 			startYScriptsNamed('custom_events/' + event + '.ys');
-		playfield.noteTypes = null;
-		playfield.eventsPushed = null;
+		trace("NoteType Scripts Loaded");
 
 		// SONG SPECIFIC SCRIPTS
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
@@ -1809,12 +1851,14 @@ class PlayState extends MusicBeatState
 			}
 		#end
 
+		trace("Triggering Early Events");
 		playfield.triggerEarlyEvents();
 
 		// Register dynamic song scripting functions after all scripts are loaded
 		//registerDynamicSongScripting();
 		comboManager.RecalculateRating(false, false);
 
+		trace("Adding input to state");
 		playfield.addInput();
 
 		if (ClientPrefs.data.showRenderText)
@@ -1841,8 +1885,11 @@ class PlayState extends MusicBeatState
 
 		super.create();
 
+		trace("Running Start Callback");
 		startCallback();
+		trace("Callback Complete");
 
+		trace("Adding Event Overlays/Underlays/Effects");
 		add(blackOverlay);
 
 		daStatic = new FlxSprite(0, 0);
@@ -1875,7 +1922,9 @@ class PlayState extends MusicBeatState
 		daStatic.cameras = [camOther];
 		daStatic.alpha = 0;
 		add(daStatic);
+		trace("Complete");
 
+		trace("Adding Misc. Things");
 		lyrics = new FlxText(0, 100, 1280, "", 32, true);
 		lyrics.scrollFactor.set();
 		lyrics.cameras = [camOther];
@@ -1900,7 +1949,9 @@ class PlayState extends MusicBeatState
 			heartSprite.animation.play('Idle');
 			hearts.add(heartSprite);
 		}
+		trace("Done");
 
+		trace("Finishing Up...");
 		cacheCountdown();
 		cachePopUpScore();
 
@@ -2090,11 +2141,15 @@ class PlayState extends MusicBeatState
 
 		resettingState = false;
 
+		trace("Create Finished!");
+
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
 		// Paths.nukeMemory(true); // LIGHTLY nuke everything
 
+		trace("Adding last-minute manager things");
 		doMegaManagerStuff(); // do it at the END
+		trace("State is now fully loaded!");
 	}
 
 	public function doMegaManagerStuff() {
@@ -2108,10 +2163,9 @@ class PlayState extends MusicBeatState
 
 				if (SONG.notes[curSec].changeBPM)
 				{
-					Conductor.bpm = SONG.notes[curSec].bpm;
-					setOnScripts('curBpm', Conductor.bpm);
-					setOnScripts('crochet', Conductor.crochet);
-					setOnScripts('stepCrochet', Conductor.stepCrochet);
+					setOnScripts('curBpm', conductor.currentBpm);
+					setOnScripts('crochet', conductor.beatLengthMs);
+					setOnScripts('stepCrochet', conductor.stepLengthMs);
 				}
 				setOnScripts('mustHitSection', SONG.notes[curSec].mustHitSection);
 				setOnScripts('altAnim', SONG.notes[curSec].altAnim);
@@ -2207,9 +2261,9 @@ class PlayState extends MusicBeatState
 					iconP2.scale.set(1.1, 0.8);
 					if (iconP22 != null) iconP22.scale.set(1.1, 0.8);
 
-					FlxTween.angle(iconP1, -15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
-					if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
-					FlxTween.angle(iconP2, 15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
+					FlxTween.angle(iconP1, -15, 0, conductor.beatLengthMs / 1300 * gfSpeed, {ease: FlxEase.quadOut});
+					if (iconP12 != null) FlxTween.angle(iconP12, -15, 0, conductor.beatLengthMs / 1300 * gfSpeed, {ease: FlxEase.quadOut});
+					FlxTween.angle(iconP2, 15, 0, conductor.beatLengthMs / 1300 * gfSpeed, {ease: FlxEase.quadOut});
 					if (iconP22 != null) FlxTween.angle(iconP22, 15, 0, Conductor.crochet / 1300 * gfSpeed, {ease: FlxEase.quadOut});
 
 					FlxTween.tween(iconP1, {'scale.x': 1, 'scale.y': 1}, Conductor.crochet / 1250 * gfSpeed / playbackRate, {ease: FlxEase.quadOut});
@@ -3338,7 +3392,15 @@ class PlayState extends MusicBeatState
 			if (skipCountdown || startOnTime > 0)
 				playfield.skipArrowStartTween = true;
 
-			try {playfield.generateStrums();}catch(e){trace("Strums are NULL!");}
+			trace("Generating Strums");
+			try {
+				playfield.generateStrums();
+				trace("Strums Loaded!");
+			}
+			catch(e){
+				trace("Strums are NULL!");
+				trace("Failed to generate Strums: " + e);
+			}
 
 			#if ALLOW_DEPRECATION
 			callOnScripts('preModifierRegister'); // deprecated
@@ -3383,6 +3445,7 @@ class PlayState extends MusicBeatState
 			#end
 			callOnScripts('onModifierRegisterPost');
 
+			trace("Setting Strum Base Positions");
 			for (field in playfield.playfields.members) {
 				for (i in 0...Note.ammo[mania[field.modNumber]]) {
 					//field.baseXPositions[i] = field.strumNotes[i].x;
@@ -3395,11 +3458,13 @@ class PlayState extends MusicBeatState
 					}*/
 				}
 			}
+			trace("Base Positions Set");
 
 			startedCountdown = true;
 			Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
 			setOnScripts('startedCountdown', true);
 			callOnScripts('onCountdownStarted');
+			trace("Finalizing Maina for strums");
 			for (field in playfields.members) {
 				if (SONG.startMania != null && SONG.startMania != mania[field.modNumber]) {
 					trace("Fixing Mania");
@@ -3410,7 +3475,9 @@ class PlayState extends MusicBeatState
 					//playfield.changeMania(convertMania, field, isStoryMode || playfield.skipArrowStartTween);
 				}
 			}
+			trace("Maina's Corrected");
 
+			trace("Running Modchart Checks");
 			// Initialize any Funkin Modchart modcharts after all scripts and strums are loaded
 			initModchart();
 
@@ -3419,6 +3486,7 @@ class PlayState extends MusicBeatState
 			// if there's a Funkin Modchart present, Load that too
 			if (hasModchart())
 				callOnScripts('onInitModchart');
+			trace("Check Complete");
 
 			var swagCounter:Int = 0;
 			if (startOnTime > 0) {
@@ -3433,7 +3501,7 @@ class PlayState extends MusicBeatState
 			}
 			moveCameraSection();
 
-			//trace("Started Countdown!");
+			trace("Started Countdown!");
 
 			startTimer = new FlxTimer().start(Conductor.crochet / 1000 / playbackRate, function(tmr:FlxTimer)
 			{
@@ -3509,6 +3577,7 @@ class PlayState extends MusicBeatState
 				swagCounter += 1;
 			}, 5);
 		}
+		trace("Countdown Loaded!");
 		return true;
 	}
 
@@ -4604,10 +4673,24 @@ class PlayState extends MusicBeatState
 		if (judgementCounter != null)
 			judgementCounter.updateCounter(comboManager.ratingsData, comboManager.songMisses, comboManager.combo, comboManager.maxCombo);
 
+		if (startedCountdown && !paused)
+		{
+			Conductor.songPosition += elapsed * 1000 * playbackRate;
+			if (Conductor.songPosition >= Conductor.offset)
+			{
+				Conductor.songPosition = FlxMath.lerp(FlxG.sound.music.time + Conductor.offset, Conductor.songPosition, Math.exp(-elapsed * 5));
+				var timeDiff:Float = Math.abs((FlxG.sound.music.time + Conductor.offset) - Conductor.songPosition);
+				if (timeDiff > 1000 * playbackRate)
+					Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
+			}
+		}
+
 		if (startingSong)
 		{
-			if (startedCountdown && conductor.musicPosition >= conductor.musicPositionOffset)
+			if (startedCountdown && Conductor.songPosition >= Conductor.offset)
 				startSong();
+			else if(!startedCountdown)
+				Conductor.songPosition = -Conductor.crochet * 5 + Conductor.offset;
 		}
 		else if (!paused && updateTime)
 		{

@@ -191,6 +191,7 @@ class NotefieldRenderer extends FlxBasic {
 		for(field in members)
 			field.update(elapsed);
 	}
+
 	override function destroy()
 	{
 		point = FlxDestroyUtil.put(point);
