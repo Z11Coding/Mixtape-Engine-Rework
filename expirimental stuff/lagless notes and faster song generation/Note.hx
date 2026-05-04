@@ -843,8 +843,7 @@ class Note extends NoteObject
 			this.strumTime = strumTime;
 			this.beat = Conductor.getBeat(strumTime);
 			if(!inEditor) {
-				this.strumTime += ClientPrefs.data.noteOffset;
-				visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
+				visualTime = PlayState.instance.getNoteInitialTime(this.strumTime) += ClientPrefs.data.noteOffset;
 			}
 		}
 
@@ -995,8 +994,7 @@ class Note extends NoteObject
 		if (!isSustainNote) y -= 2000;
 		this.strumTime = strumTime;
 		if(!inEditor) {
-			this.strumTime += ClientPrefs.data.noteOffset;
-			visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
+			visualTime = PlayState.instance.getNoteInitialTime(this.strumTime) + ClientPrefs.data.noteOffset;
 		}
 
 		this.noteData = noteData;
