@@ -315,6 +315,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		justgothere = true;
 		allowNuke = true;
+		useLite = false;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
 

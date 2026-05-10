@@ -288,6 +288,7 @@ class SplashScreen extends MusicBeatState
                 // On completion, proceed to the intended state
                 trace("Initialization complete, proceeding to title state");
                 haxe.Timer.delay(function() {
+                    MusicBeatState.allowNuke = false;
                     TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
                 }, 300);
             },
@@ -295,10 +296,12 @@ class SplashScreen extends MusicBeatState
                 trace('Error during initialization: $error');
                 // Still proceed to title state even if initialization failed
                 haxe.Timer.delay(function() {
+                    MusicBeatState.allowNuke = false;
                     TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
                 }, 300);
             },
             function() {
+                MusicBeatState.allowNuke = false;
                 // Cancel - still go to title state
                 TransitionState.transitionState(FirstCheckState.relaunch ? MainMenuState : TitleState, {duration: 1.5, transitionType: "stickers", color: FlxColor.BLACK});
             }

@@ -297,7 +297,7 @@ class LoadingState extends MusicBeatState
 			bar.scale.x = barWidth * curPercent;
 			bar.updateHitbox();
 
-			if (curPercent > 90 && timePassed > 6000) {
+			if (curPercent > 90 && timePassed > 600) {
 				var yourtakingtoolong:FlxText = new FlxText(520, 400, 400, 'IF YOU\'RE READING THIS, IT\'S STUCK!\nPRESS F4 TO ESCAPE TO THE MAIN MENU!', 32);
 				yourtakingtoolong.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, LEFT, OUTLINE_FAST, FlxColor.BLACK);
 				yourtakingtoolong.borderSize = 2;
@@ -313,8 +313,8 @@ class LoadingState extends MusicBeatState
 		}
 		#end
 
+		timePassed += 1;
 		#if PSYCH_WATERMARKS // PSYCH LOADING SCREEN
-		timePassed += elapsed;
 		shakeFl += elapsed * 3000;
 		var dots:String = '';
 		switch(Math.floor(timePassed % 1 * 3))
@@ -633,30 +633,30 @@ class LoadingState extends MusicBeatState
 
 					}
 				}
-		} catch(e:Dynamic) {
-			trace('Failed to load events chart: $e');
-		}
+			} catch(e:Dynamic) {
+				trace('Failed to load events chart: $e');
+			}
 
-		try {
-			// SONG EVENTS
-			if (song.events != null)
-			{
-				for (event in song.events)
+			try {
+				// SONG EVENTS
+				if (song.events != null)
 				{
-					if (event[0] == 'Change Character')
+					for (event in song.events)
 					{
-						var char = objects.Character.grabCharInfo(event[1][0]);
-						if (char != null)
+						if (event[0] == 'Change Character')
 						{
-							imagesToPrepare.push(char['Health Icon']);
-							imagesToPrepare.push(char['Image']);
+							var char = objects.Character.grabCharInfo(event[1][0]);
+							if (char != null)
+							{
+								imagesToPrepare.push(char['Health Icon']);
+								imagesToPrepare.push(char['Image']);
+							}
 						}
 					}
 				}
+			} catch(e:Dynamic) {
+				trace('Failed to load song events: $e');
 			}
-		} catch(e:Dynamic) {
-			trace('Failed to load song events: $e');
-		}
 
 
 			try
@@ -815,6 +815,11 @@ class LoadingState extends MusicBeatState
 				startThreads();
 				initialThreadCompleted = true;
 			}
+			return true;
+		}, isIntrusive))
+		.then((_) -> new Future<Bool>(() -> {
+			var song:SwagSong = PlayfieldManager.SONG;
+			MegaManager.playfield.loadChart(Paths.formatToSongPath(song.song.toLowerCase())+Difficulty.getFilePath(), Mods.currentModDirectory, true);
 			return true;
 		}, isIntrusive))
 		.onError((err:Dynamic) -> {

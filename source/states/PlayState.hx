@@ -1512,7 +1512,7 @@ class PlayState extends MusicBeatState
 
 		trace("Generating Chart");
 		var prevTime = Sys.time();
-		playfield.loadChart(Paths.formatToSongPath(_cachedSongName)+Difficulty.getFilePath(), Paths.formatToSongPath(_cachedSongName));
+		playfield.loadChart(Paths.formatToSongPath(_cachedSongName)+Difficulty.getFilePath(), Mods.currentModDirectory);
 		loadSongAudio();
 		postGen();
 		trace('Chart Generation took ${Sys.time() - prevTime} seconds');

@@ -21,7 +21,7 @@ class PlayfieldManager {
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
   public static var curChart:Array<Note> = [];
-  public static var chartCache:Map<{songName:String, modName:String}, SongObject> = new Map<{songName:String, modName:String}, SongObject>();
+  public static var chartCache:Map<String, SongObject> = new Map<String, SongObject>();
 
   public var notes:FlxTypedGroup<Note>;
 	public var unspawnNotes:Array<Note> = [];
@@ -551,10 +551,12 @@ class PlayfieldManager {
 	//No im not kidding
 
   /// Chart Loading
-  public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = true) {
-    if (chartCache.exists({songName: songName, modName: folder})) {
+  public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = false) {
+    var tempSongObj:String = new SongObjectType(songName, folder).toString();
+    trace('Song Info: $tempSongObj\nCache: $chartCache\nDoes it exist?: ${chartCache.exists(tempSongObj)}');
+    if (chartCache.exists(tempSongObj) && !loadDirectly) {
       trace("USING CACHED CHART FOR: "+songName+"\nFROM MOD: "+folder);
-      allNotes = chartCache.get({songName: songName, modName: folder}).copyChart();
+      allNotes = chartCache.get(tempSongObj).copyChart();
       unspawnNotes = curChart = allNotes;
   		for (note in allNotes) {
         if (playerField != null)
@@ -567,7 +569,7 @@ class PlayfieldManager {
       }
     } else {
       trace("Generate chart normally");
-      generateChart(Song.getChart(songName, folder), preload);
+      generateChart(SONG, preload);
     }
     songName = Paths.formatToSongPath(SONG.song);
     trace("Chart Generated");
@@ -589,7 +591,7 @@ class PlayfieldManager {
       return;
     }
 
-    songName = Paths.formatToSongPath(SONG.song);
+    songName = Paths.formatToSongPath(SONG.song).toLowerCase();
 
 		// If this is a preload call, just note it
 		if (preload) {
@@ -1487,15 +1489,16 @@ class PlayfieldManager {
     // curChart = cast (curChart:objects.NotePool.NoteArray);
 
     if (preload) {
-      if (!chartCache.exists({songName: songData.song, modName: Mods.softloadDirectory})) {
-        var songObject:SongObject = new SongObject(songData.song, Mods.softloadDirectory);
+      var tempSongObj:String = new SongObjectType(songName+Difficulty.getFilePath(), Mods.currentModDirectory).toString();
+      if (!chartCache.exists(tempSongObj)) {
+        var songObject:SongObject = new SongObject();
         songObject.chart = allNotes;
         songObject.events = eventNotes;
         songObject.noteTypes = noteTypes;
-        chartCache.set({songName: songData.song, modName: Mods.softloadDirectory}, songObject);
+        chartCache.set(tempSongObj, songObject);
       }
-    }
-    generatedChart = true;
+      resetChartStuff();
+    } else generatedChart = true;
     trace('Finished Generating Notes for ${songData.song}!');
   }
 
@@ -2507,6 +2510,38 @@ class PlayfieldManager {
     manualInputChecks = false;
   }
 
+  public function resetChartStuff() { //Specifically for preload stuff
+    allNotes = unspawnNotes = curChart = [];
+    // Clear event and callback references
+		if (eventNotes != null) {
+			eventNotes.splice(0, eventNotes.length);
+		}
+
+		if (curEvents != null) {
+			curEvents.splice(0, curEvents.length);
+		}
+
+    speedChanges = [];
+    speedChanges.push({
+			position: -6000 * 0.45,
+			startTime: -6000,
+			speed: 1,
+			#if EASED_SVs
+			startSpeed: 1,
+			#end
+		});
+    #if EASED_SVs
+		resetSVDeltas();
+		#end
+    speedChanges.sort(svSort);
+    mania = [3, 3];
+    generatedChart = false;
+    curSong = "";
+    songSpeed = 1;
+    songSpeedType = "multiplicative";
+    noteRows = [[],[]];
+  }
+
   function svSort(Obj1:SpeedEvent, Obj2:SpeedEvent):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.startTime, Obj2.startTime);
@@ -2684,21 +2719,33 @@ class SpeedEvent
 }
 
 @:structInit
+class SongObjectType {
+	public var songName:String;
+	public var folder:String;
+
+  public function new (?songName:String, ?folder:String) {
+    this.songName = (songName!=null ? songName : "");
+    this.folder = (folder!=null ? folder : "");
+  }
+
+  public inline function toString():String {
+    return '${this.songName}(${(this.folder.length<=0?"base":this.folder)})';
+  }
+}
+
+@:structInit
 class SongObject
 {
-	public var songName:String;
-	public var modName:String;
   public var chart:Array<Note>;
   public var events:Array<EventNote>;
   public var noteTypes:Array<String>;
-  public function new (?name:String, ?mod:String) {
-    if (name != null)
-      this.songName = name;
-    if (mod != null)
-      this.modName = mod;
-  }
+  public function new () {}
 
   public inline function copyChart() {
     return this.chart;
+  }
+
+  public inline function toString():String {
+    return 'Chart Info: Note Count(${this.chart.length}) Event Count(${this.events.length}) NoteTypes Count(${this.noteTypes.length})';
   }
 }
