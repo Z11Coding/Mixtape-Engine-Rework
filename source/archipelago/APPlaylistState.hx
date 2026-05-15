@@ -465,30 +465,49 @@ class APPlaylistState extends MusicBeatState {
 		}
 
     for (i in 0...loadedPlaylists.length) {
-			if (loadedPlaylists[i] != null) {
-				var listText:Alphabet = null;
+		if (loadedPlaylists[i] != null) {
+			var listText:Alphabet = null;
 
-				// Check AP locations and color the playlist accordingly
-				#if ARCHIPELAGO_ALLOWED
-				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-					// Check if playlist contains victory song
-					var containsVictorySong = false || loadedPlaylists[i].contains_victory; // Short-circuit with metadata flag to avoid unnecessary checks
-					if (loadedPlaylists[i].songList != null && !containsVictorySong) {
-						for (song in loadedPlaylists[i].songList) {
-							if (APFreeplayManager.isVictorySong(song.songName, song.folder)) {
-								containsVictorySong = true;
-								break;
-							}
+			// Check AP locations and color the playlist accordingly
+			#if ARCHIPELAGO_ALLOWED
+			if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+				// Check if all song locations are already completed and send playlist location if so
+				var checkedLocations = archipelago.APEntryState.apGame.info().checkedLocations;
+				var allSongsCompleted = true;
+				if (loadedPlaylists[i].songLocations != null && loadedPlaylists[i].songLocations.length > 0) {
+					for (songLocationId in loadedPlaylists[i].songLocations) {
+						if (!checkedLocations.contains(songLocationId)) {
+							allSongsCompleted = false;
+							break;
 						}
 					}
+				} else {
+					allSongsCompleted = false; // No song locations to check
+				}
 
-					// Check completion status
-					var allLocations:Array<Int> = [];
-					if (loadedPlaylists[i].location_id > 0) {
-						allLocations.push(loadedPlaylists[i].location_id);
+				// If all songs are completed and we have a playlist location ID, send it
+				if (allSongsCompleted && loadedPlaylists[i].location_id > 0) {
+					trace('All songs in playlist "${loadedPlaylists[i].playlistName}" completed - sending playlist location ${loadedPlaylists[i].location_id}');
+					archipelago.APPlayState.apGame.info().LocationChecks([loadedPlaylists[i].location_id]);
+				}
+
+				// Check if playlist contains victory song
+				var containsVictorySong = false || loadedPlaylists[i].contains_victory; // Short-circuit with metadata flag to avoid unnecessary checks
+				if (loadedPlaylists[i].songList != null && !containsVictorySong) {
+					for (song in loadedPlaylists[i].songList) {
+						if (APFreeplayManager.isVictorySong(song.songName, song.folder)) {
+							containsVictorySong = true;
+							break;
+						}
 					}
-					if (loadedPlaylists[i].songLocations != null) {
-						allLocations = allLocations.concat(loadedPlaylists[i].songLocations);
+				}
+
+				// Check completion status
+				var allLocations:Array<Int> = [];
+				if (loadedPlaylists[i].location_id > 0) {
+					allLocations.push(loadedPlaylists[i].location_id);
+				}
+				if (loadedPlaylists[i].songLocations != null) {
 					}
 
 					var checkedCount = 0;

@@ -145,9 +145,13 @@ class TitleState extends MusicBeatState
 			var allLists:Array<PlaylistMetadata> = PlaylistState.loadPlaylists();
 			if (allLists.length > 0) {
 				for (playlistItem in allLists) {
-					if (playlistItem.isWarmup) {
+					try {
+					if (playlistItem?.isWarmup) {
 						warmupPlaylists.push(playlistItem);
 					}
+				}	catch (e:haxe.Exception) {
+					if (!playlistItem.isWarmup.isReal(true)) playlistItem.isWarmup = false; // Fix old playlists.
+				}
 				}
 			}
 

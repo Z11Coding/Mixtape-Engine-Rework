@@ -3,7 +3,7 @@ package archipelago.assetdownloader;
 import haxe.io.Path;
 import sys.FileSystem;
 import sys.io.File;
-import yutautil.modules.AResult;
+import yutautil.modules.ASync.AResult;
 import yutautil.modules.ASync;
 
 /**

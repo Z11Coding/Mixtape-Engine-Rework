@@ -64,9 +64,48 @@ class FirstCheckState extends MusicBeatState
 	{
 		//backend.window.Priority.setPriority(0);
 		if (!Paths.exists(Paths.imagePath('fred'))) {
-			NativeAPI.showMessageBox('WHERE IS HE!?!?', "WHERE'S FRED???\nYOU CAN'T COME HERE WITHOUT FRED!", MSG_ERROR);
-			Sys.exit(1);
+			trace("It seems like FNF cannot find files. If you're using Wine, this is likely why.");
+			var save:flixel.util.FlxSave = new flixel.util.FlxSave();
+			save.bind("MixtapeEngine");
+
+			if (save.data.wineDir != null) {
+				Sys.setCwd(save.data.wineDir);
+				save.flush();
+				trace("Set working directory to " + save.data.wineDir);
+			} else {
+
+			var message = "**Wine Compatibility Notice**\n\n"
+				+ "If you are using Mixtape Engine with Wine, this may be the reason why certain files cannot be loaded.\n\n"
+				+ "To fix this issue, you'll need to tell the game where to load its assets from.";
+
+			archipelago.substates.InfoPanelSubstate.show(
+				"Asset Loading Help",
+				message,
+				null,
+				function() {
+					var mixtape = yutautil.ImprovedFileHandling.selectFolder("Tell me where Mixtape is.");
+					if (mixtape != null && mixtape.trim() != "") {
+						Sys.setCwd(mixtape);
+						save.data.wineDir = mixtape;
+						save.flush();
+						archipelago.substates.InfoPanelSubstate.show(
+							"Success!",
+							"Thanks for telling me where Mixtape is! I'll try to remember this for next time.",
+							null,
+							null
+						);
+					} else {
+						archipelago.substates.InfoPanelSubstate.show(
+							"Error",
+							"You didn't tell me where Mixtape is. I can't continue without it!",
+							null,
+							null
+						);
+					}
+				}
+			);
 		}
+	}
 
 		if (!relaunch) {
 			ClientPrefs.loadPrefs();

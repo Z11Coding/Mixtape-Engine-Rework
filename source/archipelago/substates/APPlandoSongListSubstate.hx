@@ -27,14 +27,14 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 	private var background:FlxSprite;
 	private var selectedDisplay:FlxText;
 	private var instructionText:FlxText;
-	
+
 	private static inline var GRID_COLS:Int = 3;
 	private static inline var GRID_ROWS:Int = 4;
 	private static inline var CELL_WIDTH:Float = 220;
 	private static inline var CELL_HEIGHT:Float = 160;
 	private static inline var GRID_START_X:Float = 60;
 	private static inline var GRID_START_Y:Float = 200;
-	
+
 	public function new(plandoData:PlandoData, fieldName:String, ?startingSelection:Array<String>)
 	{
 		super();
@@ -44,48 +44,48 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 			selectedSongs = startingSelection.copy();
 	}
 
-	
+
 	override function create()
 	{
 		super.create();
-		
+
 		// Full-screen semi-transparent background
 		background = new FlxSprite(0, 0).makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		background.alpha = 0.75;
 		add(background);
-		
+
 		// Load songs from WeekData
 		loadSongsFromWeekData();
-		
+
 		// Title
 		var titleText = new FlxText(20, 15, FlxG.width - 40, "SELECT SONGS FOR PLANDO");
 		titleText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.CYAN, CENTER, OUTLINE, FlxColor.BLACK);
 		titleText.borderSize = 2;
 		add(titleText);
-		
+
 		// Instructions
-		instructionText = new FlxText(20, 60, FlxG.width - 40, 
+		instructionText = new FlxText(20, 60, FlxG.width - 40,
 			"Arrow Keys: Navigate | SPACE: Select | Z/ENTER: Confirm | ESC/X: Cancel | Mouse: Click to select");
 		instructionText.setFormat(Paths.font("vcr.ttf"), 12, FlxColor.YELLOW, CENTER);
 		add(instructionText);
-		
+
 		// Create grid of song buttons
 		createSongGrid();
-		
+
 		// Selected songs display
 		selectedDisplay = new FlxText(20, FlxG.height - 100, FlxG.width - 40, "Selected Songs: None");
 		selectedDisplay.setFormat(Paths.font("vcr.ttf"), 14, FlxColor.LIME, LEFT, OUTLINE, FlxColor.BLACK);
 		selectedDisplay.borderSize = 1;
 		add(selectedDisplay);
-		
+
 		updateSelectedDisplay();
 	}
-	
+
 	private function loadSongsFromWeekData():Void
 	{
 		songList = [];
 		var addedSongs:Map<String, Bool> = new Map(); // Prevent duplicates
-		
+
 		if (WeekData.weeksList != null)
 		{
 			for (weekName in WeekData.weeksList)
@@ -99,7 +99,7 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 						{
 							var modName = (week.folder != null && week.folder.length > 0) ? week.folder : "";
 							var uniqueId = songName + "|" + modName;
-							
+
 							if (!addedSongs.exists(uniqueId))
 							{
 								songList.push({name: songName, mod: modName});
@@ -110,7 +110,7 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 				}
 			}
 		}
-		
+
 		// Sort alphabetically
 		songList.sort((a, b) -> {
 			var aLower = (a.mod.length > 0 ? a.name + " (" + a.mod + ")" : a.name).toLowerCase();
@@ -118,33 +118,33 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 			return aLower < bLower ? -1 : (aLower > bLower ? 1 : 0);
 		});
 	}
-	
+
 	private function createSongGrid():Void
 	{
 		songButtons = [];
-		
+
 		var maxIndex = GRID_COLS * GRID_ROWS;
 		for (i in 0...maxIndex)
 		{
 			if (i >= songList.length) break;
-			
+
 			var col = i % GRID_COLS;
 			var row = Math.floor(i / GRID_COLS);
 			var x = GRID_START_X + (col * CELL_WIDTH);
 			var y = GRID_START_Y + (row * CELL_HEIGHT);
-			
+
 			var song = songList[i];
 			var button = new SongSelectionButton(x, y, CELL_WIDTH - 10, CELL_HEIGHT - 10, song.name, song.mod);
 			add(button);
 			songButtons.push(button);
 		}
 	}
-	
+
 	private function getSongDisplayName(song:{name:String, mod:String}):String
 	{
 		return song.mod.length > 0 ? song.name + " (" + song.mod + ")" : song.name;
 	}
-	
+
 	private function updateSelectedDisplay():Void
 	{
 		if (selectedSongs.length == 0)
@@ -156,7 +156,7 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 			selectedDisplay.text = "Selected Songs (" + selectedSongs.length + "): " + selectedSongs.join(" | ");
 		}
 	}
-	
+
 	private function updateButtonVisuals():Void
 	{
 		for (i in 0...songButtons.length)
@@ -166,19 +166,19 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 			var displayName = getSongDisplayName(song);
 			var isSelected = selectedSongs.contains(displayName);
 			var isHovered = (i == hoveredIndex);
-			
+
 			button.setSelected(isSelected);
 			button.setHovered(isHovered);
 		}
 	}
-	
+
 	private function toggleSongSelection(index:Int):Void
 	{
 		if (index < 0 || index >= songList.length) return;
-		
+
 		var song = songList[index];
 		var displayName = getSongDisplayName(song);
-		
+
 		var existingIdx = selectedSongs.indexOf(displayName);
 		if (existingIdx >= 0)
 		{
@@ -188,20 +188,20 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 		{
 			selectedSongs.push(displayName);
 		}
-		
+
 		updateSelectedDisplay();
 		updateButtonVisuals();
 	}
-	
+
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
-		
+
 		handleKeyboardInput();
 		handleMouseInput();
 		updateButtonVisuals();
 	}
-	
+
 	private function handleKeyboardInput():Void
 	{
 		// Arrow key navigation
@@ -221,45 +221,45 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 		{
 			hoveredIndex = Std.int(Math.min(songList.length - 1, hoveredIndex + GRID_COLS));
 		}
-		
+
 		// Initialize selection if not set
 		if (hoveredIndex < 0 && songList.length > 0)
 			hoveredIndex = 0;
-		
+
 		// Select with space
 		if (controls.justPressed('accept'))
 		{
 			if (hoveredIndex >= 0 && hoveredIndex < songList.length)
 				toggleSongSelection(hoveredIndex);
 		}
-		
+
 		// Confirm
 		if (FlxG.keys.justPressed.Z || FlxG.keys.justPressed.ENTER)
 		{
 			onConfirm();
 		}
-		
+
 		// Cancel
 		if (controls.justPressed('back'))
 		{
 			close();
 		}
 	}
-	
+
 	private function handleMouseInput():Void
 	{
 		var mouseX = FlxG.mouse.x;
 		var mouseY = FlxG.mouse.y;
-		
+
 		hoveredIndex = -1;
-		
+
 		for (i in 0...songButtons.length)
 		{
 			var button = songButtons[i];
 			if (button.overlapsPoint(FlxG.mouse.getWorldPosition()))
 			{
 				hoveredIndex = i;
-				
+
 				if (FlxG.mouse.justPressed)
 				{
 					toggleSongSelection(i);
@@ -267,7 +267,7 @@ class APPlandoSongListSubstate extends MusicBeatSubstate
 			}
 		}
 	}
-	
+
 	private function onConfirm():Void
 	{
 		// Update the correct field in plandoData based on fieldName

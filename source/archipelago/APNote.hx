@@ -46,7 +46,7 @@ class APNote extends objects.Note {
         for (i in 0...randomIndices.length) {
             var note:objects.Note = notes[randomIndices[i]];
             var location:Int = locations[i % locations.length];
-            var apNote = new APNote(note, location, null); // Create a new APNote with the location
+            var apNote = new APNote(note, location); // Create a new APNote with the location
             // apNote.noteIndex = note.noteIndex;
             newNotes.push(apNote);
 
@@ -56,8 +56,6 @@ class APNote extends objects.Note {
             notes[randomIndices[i]].rgbShader.g = 0xFFFFFFFF;
             notes[randomIndices[i]].rgbShader.b = 0xFFB4B4B4;
             notes[randomIndices[i]] = apNote;
-
-            apNote.index = i; // Set the index for the new note
 
             // Set the checkInfo for the new note
             apNote.checkInfo = {note: apNote, loc: location};
