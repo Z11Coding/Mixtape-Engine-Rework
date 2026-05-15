@@ -41,8 +41,8 @@ class APPlayState extends PlayState {
     public static var alreadyKilledByLink:Bool = false;
     public static var resisting:Bool = false;
 
-    public var instanceDeferredLocationChecks:Array<Int> = []; // Instance checks collected during this song
-    public var instanceDeferredNoteChecks:Array<Int> = []; // Instance note checks collected during this song
+    public var instanceDeferredLocationChecks:Array<Int> = []; // All location checks (accumulated + this song)
+    public var instanceDeferredNoteChecks:Array<Int> = []; // All note checks (accumulated + this song)
     public var antiHornySpray:Bool = false;
     public var noHorny(get, never):Bool;
 

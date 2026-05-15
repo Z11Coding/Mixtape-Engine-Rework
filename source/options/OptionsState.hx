@@ -18,7 +18,13 @@ class OptionsState extends MusicBeatState
 		"Save Management",
 		"UNO Options",
 		"Legacy Lua Settings"
-	];
+	].funcAndReturn(function(opt) {
+		// Check for wineDir, and add the option to reset it if it exists
+		var wineSave:flixel.util.FlxSave = new flixel.util.FlxSave();
+		wineSave.bind("MixtapeEngine");
+		if (wineSave.data.wineDir != null) {
+			opt.push('Reset Wine Mixtape Directory');
+		}});
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
@@ -54,6 +60,13 @@ class OptionsState extends MusicBeatState
 				openSubState(new games.uno.UnoOptionsSubState());
 			case 'Legacy Lua Settings':
 				MusicBeatState.switchState(new options.legacylua.LegacyLuaSettingsState());
+			case 'Reset Wine Mixtape Directory':
+			var save:flixel.util.FlxSave = new flixel.util.FlxSave();
+			save.bind("MixtapeEngine");
+			save.data.wineDir = null;
+			save.flush();
+			states.FirstCheckState.relaunch = true;
+			FlxG.switchState(new states.FirstCheckState());
 		}
 	}
 
@@ -74,6 +87,13 @@ class OptionsState extends MusicBeatState
 		#end
 
 		if (archipelago.APEntryState.inArchipelagoMode) options.push('Archipelago');
+
+		// Check if Wine directory has been set
+		var wineSave:flixel.util.FlxSave = new flixel.util.FlxSave();
+		wineSave.bind("MixtapeEngine");
+		if (wineSave.data.wineDir != null) {
+			options.push('Reset Wine Mixtape Directory');
+		}
 
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(ClientPrefs.getBGImage()));

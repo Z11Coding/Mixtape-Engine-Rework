@@ -25,8 +25,9 @@ import archipelago.APDisconnectSubstate;
 import archipelago.APInfo;
 import archipelago.Client;
 import archipelago.PacketTypes;
+import archipelago.assetdownloader.ArchipelagoItemSprites.IAssetLocation;
 import archipelago.assetdownloader.ArchipelagoItemSprites;
-import archipelago.assetdownloader.IAssetLocation;
+import archipelago.assetdownloader.ItemSpriteAliases;
 import archipelago.substates.ConnectionSubstate;
 import backend.Paths;
 import backend.WeekData.WeekFile;
@@ -4129,11 +4130,12 @@ class APGameState
 			spriteManager.prepareGameAssets(game);
 		}
 	}
+}
 
 	/**
 	 * Simple implementation of IAssetLocation for internal use
 	 */
-	private static class APItemLocation implements IAssetLocation
+	private class APItemLocation implements IAssetLocation
 	{
 		public var gameName(get, null):String;
 		public var itemName(get, null):String;

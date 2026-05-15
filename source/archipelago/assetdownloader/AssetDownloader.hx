@@ -2,6 +2,7 @@ package archipelago.assetdownloader;
 
 import haxe.Http;
 import haxe.io.Bytes;
+import haxe.io.BytesInput;
 import haxe.io.Path;
 import haxe.zip.Reader;
 import openfl.events.Event;
@@ -132,15 +133,16 @@ class AssetDownloader
 					var data:Dynamic = e.target.data;
 					if (data != null)
 					{
-						// Convert OpenFL ByteArray to haxe.io.Bytes
-						if (Std.isOfType(data, openfl.utils.ByteArray))
+						// ByteArray should already be available as binary data
+						// Just cast and convert to Bytes
+						try
 						{
 							var byteArray:openfl.utils.ByteArray = cast data;
 							bytes = Bytes.ofData(byteArray);
 						}
-						else
+						catch (castError:Dynamic)
 						{
-							// Fallback: try direct conversion
+							// Fallback: try direct conversion if cast fails
 							bytes = cast data;
 						}
 					}
@@ -209,8 +211,9 @@ class AssetDownloader
 		try
 		{
 			var bytes = File.getBytes(zipPath);
-			var reader = new Reader(bytes);
-			var entries = reader.read();
+		var bytesInput = new BytesInput(bytes);
+		var reader = new Reader(bytesInput);
+		var entries = reader.read();
 
 			for (entry in entries)
 			{

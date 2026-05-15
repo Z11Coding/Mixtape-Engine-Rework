@@ -211,7 +211,7 @@ class ArchipelagoItemSprites
 					if (gameMap.exists(cleanAliasName))
 					{
 						var aliasSprite = gameMap.get(cleanAliasName);
-						registerSprite(gameName, aliasItemName, aliasSprite, false);
+						registerSpriteInternal(gameName, aliasItemName, aliasSprite, false);
 					}
 				}
 			}
@@ -226,7 +226,7 @@ class ArchipelagoItemSprites
 		try
 		{
 			var sprite = new ItemSprite(file);
-			registerSprite(sprite.game, sprite.item, sprite, true);
+			registerSpriteInternal(sprite.game, sprite.item, sprite, true);
 		}
 		catch (e:Dynamic)
 		{
@@ -235,9 +235,9 @@ class ArchipelagoItemSprites
 	}
 
 	/**
-	 * Registers a sprite with game and item names
+	 * Registers a sprite with game and item names (internal helper)
 	 */
-	private function registerSprite(game:String, item:String, sprite:ItemSprite, overrideIfExists:Bool):Void
+	private function registerSpriteInternal(game:String, item:String, sprite:ItemSprite, overrideIfExists:Bool):Void
 	{
 		var cleanGame = nameCleaner.cleanName(game);
 		var cleanItem = nameCleaner.cleanName(item);

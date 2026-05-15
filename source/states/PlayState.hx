@@ -7315,12 +7315,21 @@ class PlayState extends MusicBeatState
 					if (archipelago.APEntryState.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
 						var apPlayState = cast(this, archipelago.APPlayState);
 
-						// Collect all checks to send
-						var allNoteChecks = apPlayState.instanceDeferredNoteChecks.copy();
-						var allLocationChecks = apPlayState.instanceDeferredLocationChecks.copy();
+						// Collect all checks: accumulated + this song's final checks
+						var allNoteChecks:Array<Int> = [];
+						var allLocationChecks:Array<Int> = [];
 
-						// Add final song's checks
+						// Transfer accumulated checks via explicit iteration
+						for (checkId in apPlayState.instanceDeferredNoteChecks) {
+							allNoteChecks.push(checkId);
+						}
+						for (checkId in apPlayState.instanceDeferredLocationChecks) {
+							allLocationChecks.push(checkId);
+						}
+
+						// Add final song's note checks
 						if (apPlayState.checkedNotes != null && apPlayState.checkedNotes.length > 0) {
+							trace('Adding ${apPlayState.checkedNotes.length} final song note checks');
 							for (note in apPlayState.checkedNotes) {
 								@:privateAccess {
 									allNoteChecks.push(note.checkInfo.loc);
@@ -7332,6 +7341,7 @@ class PlayState extends MusicBeatState
 						if (archipelago.APInfo.unlockMethod != "Note Checks") {
 							var songLocationIds = archipelago.APEntryState.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
 							if (songLocationIds != null) {
+								trace('Adding ${songLocationIds.length} final song location checks');
 								for (locId in songLocationIds) {
 									if (locId != 0) {
 										allLocationChecks.push(locId);
@@ -7339,6 +7349,10 @@ class PlayState extends MusicBeatState
 								}
 							}
 						}
+
+						trace('=== PLAYLIST COMPLETE - SENDING ALL CHECKS ===');
+						trace('Total note checks to send: ${allNoteChecks.length}');
+						trace('Total location checks to send: ${allLocationChecks.length}');
 
 						// Send all checks at once
 						if (allNoteChecks.length > 0) {
@@ -7438,16 +7452,22 @@ class PlayState extends MusicBeatState
 						archipelago.APPlayState.currentSong = curSonglist[0].songName;
 						archipelago.APPlayState.currentMod = curSonglist[0].folder != null ? curSonglist[0].folder : '';
 
-						// Create next APPlayState with deferred checks transferred via funcAndReturn
-						// Only pass songlist for progression (like normal PlayState), no playlist
+						// Create next APPlayState with proper accumulated check transfer
 						nextState = new archipelago.APPlayState(null, curSonglist).funcAndReturn((state) -> {
-							// Transfer accumulated checks from current instance
-							state.instanceDeferredLocationChecks = apPlayState.instanceDeferredLocationChecks.copy();
-							state.instanceDeferredNoteChecks = apPlayState.instanceDeferredNoteChecks.copy();
+							// Transfer accumulated checks from previous songs via explicit iteration
+							trace('Transferring ${apPlayState.instanceDeferredNoteChecks.length} accumulated note checks');
+							for (checkId in apPlayState.instanceDeferredNoteChecks) {
+								state.instanceDeferredNoteChecks.push(checkId);
+							}
 
-							// Add note checks from this song
+							trace('Transferring ${apPlayState.instanceDeferredLocationChecks.length} accumulated location checks');
+							for (checkId in apPlayState.instanceDeferredLocationChecks) {
+								state.instanceDeferredLocationChecks.push(checkId);
+							}
+
+							// Add current song's note checks
 							if (apPlayState.checkedNotes != null && apPlayState.checkedNotes.length > 0) {
-								trace('Adding ${apPlayState.checkedNotes.length} note checks to deferred');
+								trace('Adding ${apPlayState.checkedNotes.length} note checks from this song');
 								for (note in apPlayState.checkedNotes) {
 									@:privateAccess {
 										state.instanceDeferredNoteChecks.push(note.checkInfo.loc);
@@ -7455,11 +7475,11 @@ class PlayState extends MusicBeatState
 								}
 							}
 
-							// Add song location checks based on unlock method
+							// Add current song's location checks
 							if (archipelago.APInfo.unlockMethod != "Note Checks") {
 								var songLocationIds = archipelago.APEntryState.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
 								if (songLocationIds != null && songLocationIds.length > 0) {
-									trace('Adding ${songLocationIds.length} location checks to deferred');
+									trace('Adding ${songLocationIds.length} location checks from this song');
 									for (locId in songLocationIds) {
 										if (locId != 0) {
 											state.instanceDeferredLocationChecks.push(locId);
@@ -7467,6 +7487,8 @@ class PlayState extends MusicBeatState
 									}
 								}
 							}
+
+							trace('Total accumulated - Notes: ${state.instanceDeferredNoteChecks.length}, Locations: ${state.instanceDeferredLocationChecks.length}');
 						});
 					}
 					#end

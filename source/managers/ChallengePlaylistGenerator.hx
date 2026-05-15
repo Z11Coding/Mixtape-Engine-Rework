@@ -28,6 +28,7 @@ class ChallengePlaylistGenerator {
 	private var onGenerationComplete:(PlaylistMetadata)->Bool;
 	private var onGenerationCancelled:Void->Void;
 	public var forceQuiet:Bool = false;
+	public var uniqueSongsOnly:Bool = true;
 
 	public function new(parentState:backend.MusicBeatState, ?onComplete:(PlaylistMetadata)->Bool, ?onCancel:Void->Void) {
 		this.parentState = parentState;
@@ -222,15 +223,28 @@ class ChallengePlaylistGenerator {
 		var selectedCount:Int = Std.int(Math.min(songCount, selectedCountPercent));
 
 		var selectedSongs:Array<Dynamic> = [];
+		var selectedIndices:Map<Int, Bool> = new Map();
 
 		// Select from top tier with some randomization
 		for (i in 0...selectedCount) {
 			if (i < scoredSongs.length) {
 				var tierSize:Int = Std.int(Math.max(1, Math.ceil(scoredSongs.length * 0.2)));
-				var songIndex:Int = Std.int(Math.floor(i / tierSize) * tierSize) + FlxG.random.int(0, tierSize - 1);
-				songIndex = Std.int(Math.min(songIndex, scoredSongs.length - 1));
+				var songIndex:Int;
+				var attempts = 0;
+				var maxAttempts = 100;
 
-				selectedSongs.push(scoredSongs[songIndex]);
+				// Keep trying until we find a valid song or hit max attempts
+				do {
+					songIndex = Std.int(Math.floor(i / tierSize) * tierSize) + FlxG.random.int(0, tierSize - 1);
+					songIndex = Std.int(Math.min(songIndex, scoredSongs.length - 1));
+					attempts++;
+				} while (uniqueSongsOnly && selectedIndices.exists(songIndex) && attempts < maxAttempts);
+
+				// Only add if it's unique (or if we're allowing duplicates)
+				if (!uniqueSongsOnly || !selectedIndices.exists(songIndex)) {
+					selectedIndices.set(songIndex, true);
+					selectedSongs.push(scoredSongs[songIndex]);
+				}
 			}
 		}
 
@@ -364,16 +378,29 @@ class ChallengePlaylistGenerator {
 				var selectedCount:Int = Std.int(Math.min(songCount, selectedCountPercent));
 
 				var selectedSongs:Array<Dynamic> = [];
+				var selectedIndices:Map<Int, Bool> = new Map();
 
 				// Select from top tier with some randomization
 				for (i in 0...selectedCount) {
 					if (i < scoredSongs.length) {
 						// Add some variance: prefer top tier but allow picking from next tier down
 						var tierSize:Int = Std.int(Math.max(1, Math.ceil(scoredSongs.length * 0.2)));
-						var songIndex:Int = Std.int(Math.floor(i / tierSize) * tierSize) + FlxG.random.int(0, tierSize - 1);
-						songIndex = Std.int(Math.min(songIndex, scoredSongs.length - 1));
+						var songIndex:Int;
+						var attempts = 0;
+						var maxAttempts = 100;
 
-						selectedSongs.push(scoredSongs[songIndex]);
+						// Keep trying until we find a valid song or hit max attempts
+						do {
+							songIndex = Std.int(Math.floor(i / tierSize) * tierSize) + FlxG.random.int(0, tierSize - 1);
+							songIndex = Std.int(Math.min(songIndex, scoredSongs.length - 1));
+							attempts++;
+						} while (this.uniqueSongsOnly && selectedIndices.exists(songIndex) && attempts < maxAttempts);
+
+						// Only add if it's unique (or if we're allowing duplicates)
+						if (!this.uniqueSongsOnly || !selectedIndices.exists(songIndex)) {
+							selectedIndices.set(songIndex, true);
+							selectedSongs.push(scoredSongs[songIndex]);
+						}
 					}
 				}
 

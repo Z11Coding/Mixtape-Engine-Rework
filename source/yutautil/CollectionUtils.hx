@@ -792,14 +792,14 @@ class CollectionUtils
 		return state;
 	}
 
-	public static inline function objectIterator(input:Dynamic):Iterator<{key:String, value:Dynamic}>
+	public static inline function objectIterator(input:Dynamic):Iterable<{key:Dynamic, value:Dynamic}>
 	{
-		var result = [];
+		var result:Array<{key:Dynamic, value:Dynamic}> = [];
 		if (Std.is(input, Array))
 		{
 			for (i in 0...(input : Array<Dynamic>).length)
 			{
-				result.push({key: Std.string(i), value: input[i]});
+				result.push({key: (i), value: input[i]});
 			}
 		}
 		else if (Std.is(input, IMap))
@@ -816,7 +816,7 @@ class CollectionUtils
 				result.push({key: key, value: Reflect.field(input, key)});
 			}
 		}
-		return result.iterator();
+		return result;
 	}
 
 	// public static inline function objectKeyPairIterator(input:Dynamic):Iterator<{key:String, value:Dynamic}>
