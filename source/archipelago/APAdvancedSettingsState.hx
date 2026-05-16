@@ -2836,7 +2836,7 @@ class APAdvancedSettingsState extends MusicBeatState
 								if (songData != null)
 								{
 									// Extract stage information
-									var stageName:String = songData.stage ?? StageData.vanillaSongStage(songName);
+									var stageName:String = songData.stage ?? StageData.vanillaSongStage(Paths.formatToSongPath(songName));
 
 									if (stageName != null && stageName.trim().length > 0)
 									{
