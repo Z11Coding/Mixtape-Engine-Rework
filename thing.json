@@ -1,0 +1,3393 @@
+{
+  "Stage": [
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Satin Panties (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "High (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Milf (Spooky Mix)"
+        }
+      ],
+      "name": "limoRideSpooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 4 [MOD TITANS]",
+          "difficulties": ["Normal"],
+          "song": "Parched"
+        }
+      ],
+      "name": "street"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "The End"
+        }
+      ],
+      "name": "endstage"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["hard"], "song": "mania" }
+      ],
+      "name": "tailsplace"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Erect", "Nightmare"], "song": "Bopeebo Erect" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Fresh Erect" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Dad Battle Erect" },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Bopeebo (Pico mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Fresh (Pico mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Dad Battle (Pico mix)"
+        },
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Fresh (Sky Mix)"
+        }
+      ],
+      "name": "mainStageErect"
+    },
+    {
+      "songs": [
+        { "mod": "vs 900n1 real", "difficulties": ["extras"], "song": "REBORN" }
+      ],
+      "name": "recursed"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Tabi Rework",
+          "difficulties": ["Normal", "Hard", "Old", "Easy"],
+          "song": "Genocide"
+        }
+      ],
+      "name": "genocide"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "inopia" },
+        { "mod": "dustin", "difficulties": ["hard"], "song": "inopia-final" }
+      ],
+      "name": "inopia_bg"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Normal", "Hard"],
+          "song": "thrashed"
+        }
+      ],
+      "name": "throsh"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["original", "STARWALKER"],
+          "song": "astra-perambulis"
+        }
+      ],
+      "name": "starwalker"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Pizza Tower PSYCH ENGINE PORT",
+          "difficulties": ["Normal"],
+          "song": "Delivery"
+        }
+      ],
+      "name": "tower"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "digitalized"
+        }
+      ],
+      "name": "saturn"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Paranoia"
+        }
+      ],
+      "name": "virtual"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "imscared"
+        }
+      ],
+      "name": "whitefaceBG"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Battleworn Funkmaniac"
+        }
+      ],
+      "name": "battleworn"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Serious"
+        }
+      ],
+      "name": "darkness"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Danganronpa Meme in FNF",
+          "difficulties": ["Normal"],
+          "song": "Thick Of It"
+        }
+      ],
+      "name": "non"
+    },
+    {
+      "songs": [
+        { "mod": "vs 900n1 real", "difficulties": ["hard"], "song": "Tobu" }
+      ],
+      "name": "tobu"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH WEIRD FUNNY GAMES",
+          "difficulties": ["Normal"],
+          "song": "Pegging Arent I Hilarious"
+        }
+      ],
+      "name": "peggle"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["hard"],
+          "song": "Meowgen"
+        },
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["hard"],
+          "song": "Scratch Post"
+        }
+      ],
+      "name": "arcade"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Standing Here"
+        }
+      ],
+      "name": "standinghereirealise"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH BAD GUYS",
+          "difficulties": ["Normal"],
+          "song": "Luminary Clock"
+        }
+      ],
+      "name": "mithrix"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["Hard", "Angelic"],
+          "song": "VERMILLION SHARD."
+        }
+      ],
+      "name": "yomiHustle-VS"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["hard"], "song": "Fate" },
+        { "mod": "Sonic.exe 2.5", "difficulties": ["Hard"], "song": "cycles" },
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "cycles-old"
+        }
+      ],
+      "name": "cycles-hills"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Tabi Rework",
+          "difficulties": ["Normal", "Hard", "Old", "Easy"],
+          "song": "My Battle"
+        },
+        {
+          "mod": "Tabi Rework",
+          "difficulties": ["Normal", "Hard", "Old", "Easy"],
+          "song": "Last Chance"
+        },
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "malediction"
+        }
+      ],
+      "name": "curse"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Perseverance" },
+        {
+          "mod": "dustin",
+          "difficulties": ["hard"],
+          "song": "perseverance-final"
+        }
+      ],
+      "name": "ruins_exit"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Chillspace-sans-chara",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Sans Chara"
+        },
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Cornered" },
+        { "mod": "dustin", "difficulties": ["hard"], "song": "cornered-final" }
+      ],
+      "name": "waterfall"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Powerdown"
+        }
+      ],
+      "name": "exeport"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "Septicemia"
+        }
+      ],
+      "name": "s9boss"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH WEIRD FUNNY GAMES",
+          "difficulties": ["Normal"],
+          "song": "Joink"
+        }
+      ],
+      "name": "zoi"
+    },
+    {
+      "songs": [
+        { "mod": "shaggy", "difficulties": ["Mania"], "song": "talladega" }
+      ],
+      "name": "zeph-stage"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "uncreate" }
+      ],
+      "name": "uncreate"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Last Course"
+        }
+      ],
+      "name": "turmoilsweep"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "SketchHumor"
+        }
+      ],
+      "name": "whiteVoidNH"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "genocides" }
+      ],
+      "name": "og_undertale"
+    },
+    {
+      "songs": [
+        { "mod": "vs 900n1 real", "difficulties": ["hard"], "song": "PONG" },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Fireflies"
+        },
+        { "mod": "vs 900n1 real", "difficulties": ["hard"], "song": "LIMBO" },
+        { "mod": "vs 900n1 real", "difficulties": ["hard"], "song": "dogbonk" },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["brazil"],
+          "song": "Ciclos"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Little Bumblebee"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "deez nuts in yo mouth"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Snoozehouse"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "FNF Community Summerized"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Content Hungry"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Legalized Weed"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["whar"],
+          "song": "Very Eye Catching"
+        }
+      ],
+      "name": "og"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 7 [FLASH_FRENZY]",
+          "difficulties": ["Normal"],
+          "song": "Legend"
+        }
+      ],
+      "name": "tazer"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "scene-4ever! :3"
+        }
+      ],
+      "name": "theShiftScenecore"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["hard"], "song": "chaos" }
+      ],
+      "name": "chamber"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 3 [CHECK NEWGROUNDS]",
+          "difficulties": ["Normal"],
+          "song": "Crimson Fog"
+        }
+      ],
+      "name": "nevada"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Satin Panties" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "High" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Milf" }
+      ],
+      "name": "limo"
+    },
+    {
+      "songs": [
+        {
+          "mod": "shaggy",
+          "difficulties": ["Hard", "mania"],
+          "song": "Revenge"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Hard"],
+          "song": "Final Destination"
+        }
+      ],
+      "name": "boxma"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Manifest"
+        }
+      ],
+      "name": "theShiftManifest"
+    },
+    {
+      "songs": [
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Darnell (BF Mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Lit Up (BF Mix)"
+        },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Darnell Erect" },
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "2hot (Sky Mix)"
+        }
+      ],
+      "name": "phillyStreetsErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Zeventeen"
+        }
+      ],
+      "name": "17buck"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Hard"],
+          "song": "Sky Erect Lyrics"
+        }
+      ],
+      "name": "theShiftDarkErect"
+    },
+    {
+      "songs": [
+        { "mod": "vs 900n1 real", "difficulties": ["italy"], "song": "Italy" },
+        { "mod": "vs 900n1 real", "difficulties": ["italy"], "song": "Italy 2" }
+      ],
+      "name": "italy"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "Chills"
+        }
+      ],
+      "name": "spookyMansion"
+    },
+    {
+      "songs": [
+        { "mod": "SURVEY_PROGRAM", "difficulties": ["Hard"], "song": "the-end" }
+      ],
+      "name": "shelter"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["ERECT"],
+          "song": "KILLING DRIVE"
+        }
+      ],
+      "name": "yomiHustle-KD-E"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Overdue"
+        }
+      ],
+      "name": "meatworld"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Sky (Pico Mix)"
+        }
+      ],
+      "name": "theShiftDarkErectPico"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Normal"],
+          "song": "Pack-A-Punch"
+        }
+      ],
+      "name": "wiiStage"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Thorns" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Thorns Erect" }
+      ],
+      "name": "schoolEvil"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Easy", "Normal", "Hard", "Chaos"],
+          "song": "ragdoll-chaos"
+        }
+      ],
+      "name": "society"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Bad Day"
+        }
+      ],
+      "name": "superbad"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 4 [MOD TITANS]",
+          "difficulties": ["Normal"],
+          "song": "Mischief"
+        },
+        {
+          "mod": "VS IMPOSTER 2025",
+          "difficulties": ["hard"],
+          "song": "Sussus Moogus"
+        },
+        {
+          "mod": "VS IMPOSTER 2025",
+          "difficulties": ["hard"],
+          "song": "Sabotage"
+        },
+        {
+          "mod": "VS IMPOSTER 2025",
+          "difficulties": ["hard"],
+          "song": "Meltdown"
+        },
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "sussus-moogus"
+        },
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "sabotage"
+        },
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "meltdown"
+        }
+      ],
+      "name": "polus"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["Hard", "Angelic"],
+          "song": "Sakuramin'yo"
+        }
+      ],
+      "name": "yomiHustle-SMY"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "the uprising" }
+      ],
+      "name": "surface"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["ERECT"],
+          "song": "Hoverkinesis"
+        }
+      ],
+      "name": "yomiHustle-Hk-E"
+    },
+    {
+      "songs": [
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Spookpostor"
+        }
+      ],
+      "name": "stageSpook"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Blazin" }
+      ],
+      "name": "phillyBlazin"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "Full-Body Amputation"
+        }
+      ],
+      "name": "specimen9"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Pizza Tower PSYCH ENGINE PORT",
+          "difficulties": ["Normal"],
+          "song": "Crustavo"
+        }
+      ],
+      "name": "crustavo"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Thorns (Spooky Mix)"
+        }
+      ],
+      "name": "schoolEvilSpooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "goner"
+        },
+        { "mod": "SURVEY_PROGRAM", "difficulties": ["Hard"], "song": "lore" }
+      ],
+      "name": "goner"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["normal"],
+          "song": "Come Along With Me"
+        }
+      ],
+      "name": "cawm"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Dictator"
+        }
+      ],
+      "name": "secretbg"
+    },
+    {
+      "songs": [
+        { "mod": "soincwmv", "difficulties": ["Normal"], "song": "rainbow" },
+        { "mod": "soincwmv", "difficulties": ["Normal"], "song": "rme" },
+        { "mod": "soincwmv", "difficulties": ["Normal"], "song": "icu" },
+        { "mod": "soincwmv", "difficulties": ["Normal"], "song": "tol" }
+      ],
+      "name": "rainbow"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Erect", "Nightmare"], "song": "Ugh Erect" },
+        { "difficulties": ["Hard"], "song": "Ugh (Pico mix)" },
+        { "difficulties": ["Hard"], "song": "Guns (Pico mix)" },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Stress (Pico Mix)"
+        },
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Ugh (Sky Mix)"
+        }
+      ],
+      "name": "tankmanBattlefieldErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Normal", "Hard", "Neo"],
+          "song": "HYPERLINK"
+        }
+      ],
+      "name": "NEO"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Tutorial (Spooky Mix)"
+        }
+      ],
+      "name": "skidsAtticTutorial"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "triple trouble"
+        }
+      ],
+      "name": "trioStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Reconciliation"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "My Sweets"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Baka"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "NEET"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Rain Clouds"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "My Confession"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Constricted"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Baka-alt"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["natsuki", "yuri"],
+          "song": "Catfight"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Deep Breaths"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Obsession"
+        }
+      ],
+      "name": "dokiclubroom"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Asdf Endless (Official) [Psych Port]",
+          "difficulties": ["Normal"],
+          "song": "die"
+        }
+      ],
+      "name": "corleyIsAFart"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["Hard"], "song": "prey" }
+      ],
+      "name": "starved-pixel"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH BAD GUYS",
+          "difficulties": ["Normal"],
+          "song": "Dustloop"
+        }
+      ],
+      "name": "venom"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Hard"],
+          "song": "boingo-doo"
+        }
+      ],
+      "name": "clown"
+    },
+    {
+      "songs": [
+        {
+          "mod": "shaggy",
+          "difficulties": ["Hard", "mania"],
+          "song": "Power Link"
+        }
+      ],
+      "name": "shagbg"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Hot Air Balloon"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Shrinking Violet"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Joyride"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Our Harmony"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Love n Funkin"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Love n Funkin-alt"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Shrinking Violet-alt"
+        }
+      ],
+      "name": "musicroom"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["hard"], "song": "faker" }
+      ],
+      "name": "fakerStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Fuckation"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Fuck You"
+        }
+      ],
+      "name": "plunky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Spookeez (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "South (Spooky Mix)"
+        }
+      ],
+      "name": "skidsAtticWeek2"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "bonetravaganza" }
+      ],
+      "name": "bone_stage"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["hard"], "song": "sunshine" }
+      ],
+      "name": "DDDDD"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Erect", "Nightmare"], "song": "Spookeez Erect" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "South Erect" },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Spookeez (Pico mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "South (Pico mix)"
+        },
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "South (Sky Mix)"
+        }
+      ],
+      "name": "spookyMansionErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 7 [FLASH_FRENZY]",
+          "difficulties": ["Normal"],
+          "song": "Doodlequest"
+        }
+      ],
+      "name": "fancy"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Manifest (Pico Mix)"
+        }
+      ],
+      "name": "theShiftManifestErect-Pico"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Pizza Tower PSYCH ENGINE PORT",
+          "difficulties": ["Normal"],
+          "song": "Sweet Mayhem"
+        }
+      ],
+      "name": "mayhem"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Promotion"
+        }
+      ],
+      "name": "promoshow"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "rigor-chorus"
+        }
+      ],
+      "name": "RCroom"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Tag And Seek"
+        }
+      ],
+      "name": "hideandseek"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Avulsion" }
+      ],
+      "name": "lab"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["Hard"],
+          "song": "round-a-bout"
+        }
+      ],
+      "name": "needle"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Mod Showcase Rage"
+        }
+      ],
+      "name": "modrage"
+    },
+    {
+      "songs": [
+        { "mod": "VS Sunday", "difficulties": ["Hard"], "song": "valentine" },
+        {
+          "mod": "VS Sunday",
+          "difficulties": ["hard"],
+          "song": "madness-sunday"
+        }
+      ],
+      "name": "sunday"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Wife Forever"
+        }
+      ],
+      "name": "theShift"
+    },
+    {
+      "songs": [
+        { "mod": "Modpack Mixup", "difficulties": ["Hard"], "song": "ULS" }
+      ],
+      "name": "leancity"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["official", "nikocover", "orycover"],
+          "song": "soulless"
+        }
+      ],
+      "name": "TDP2"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "Antagonized"
+        }
+      ],
+      "name": "protagBG"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["Hard"], "song": "personel" }
+      ],
+      "name": "void"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "mansion"
+        }
+      ],
+      "name": "mansionBG"
+    },
+    {
+      "songs": [
+        { "mod": "Modpack Mixup", "difficulties": ["Hard"], "song": "EverLost" }
+      ],
+      "name": "voidalt"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 6 [TWEAK 666]",
+          "difficulties": ["Normal"],
+          "song": "CAN YOU HEAR ME"
+        }
+      ],
+      "name": "pokepasta"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Hard"],
+          "song": "clown-around-town"
+        },
+        { "mod": "SURVEY_PROGRAM", "difficulties": ["Hard"], "song": "my-man" }
+      ],
+      "name": "divorce"
+    },
+    {
+      "songs": [
+        { "mod": "Modpack Mixup", "difficulties": ["Hard"], "song": "rawr" }
+      ],
+      "name": "cafe"
+    },
+    {
+      "songs": [
+        { "mod": "Modpack Mixup", "difficulties": ["Hard"], "song": "Skylight" }
+      ],
+      "name": "notSpooky"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Thermal Shock" },
+        {
+          "mod": "dustin",
+          "difficulties": ["hard"],
+          "song": "thermal-shock-final"
+        }
+      ],
+      "name": "core"
+    },
+    {
+      "songs": [
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "reactor"
+        }
+      ],
+      "name": "reactor"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["Hard"],
+          "song": "too-fest"
+        },
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "too-fest-old"
+        }
+      ],
+      "name": "sanicStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "tomato town"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "toast"
+        }
+      ],
+      "name": "bobmellia"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 5 [RHYTHM RALLY]",
+          "difficulties": ["Normal"],
+          "song": "Chorale"
+        }
+      ],
+      "name": "chorus"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Cocoa (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Eggnog (Spooky Mix)"
+        }
+      ],
+      "name": "mallXmasSpooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Sky"
+        }
+      ],
+      "name": "theShiftDark"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "So cool"
+        }
+      ],
+      "name": "directstream"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Erect", "Nightmare"], "song": "Pico Erect" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Philly Nice Erect" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Blammed Erect" },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Pico (Pico mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Philly Nice (Pico mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Blammed (Pico mix)"
+        },
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Pico (Sky Mix)"
+        },
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Blammed (Sky Mix)"
+        }
+      ],
+      "name": "phillyTrainErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Gibberish"
+        }
+      ],
+      "name": "nonsenseRoomSpace"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard"],
+          "song": "Libitina"
+        }
+      ],
+      "name": "libitina"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["Hard", "Angelic"],
+          "song": "KILLING DRIVE"
+        }
+      ],
+      "name": "yomiHustle-KD"
+    },
+    {
+      "songs": [
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "sussus-toogus"
+        },
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "lights-down"
+        }
+      ],
+      "name": "toogus"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Feminine"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Breedability"
+        }
+      ],
+      "name": "love"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Kinemorto" }
+      ],
+      "name": "snowdin_river"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["hard"], "song": "Forced" }
+      ],
+      "name": "lutherStage"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Senpai" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Roses" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Senpai Erect" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Roses Erect" },
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "sussy-bussy"
+        },
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "rivals"
+        },
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "chewmate"
+        }
+      ],
+      "name": "school"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "in-my-way"
+        }
+      ],
+      "name": "sussy"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH BAD GUYS",
+          "difficulties": ["Normal"],
+          "song": "Pirate Indie Games"
+        }
+      ],
+      "name": "trash"
+    },
+    {
+      "songs": [
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Senpai (Pico mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Roses (Pico mix)"
+        }
+      ],
+      "name": "schoolPico"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "psychopath" }
+      ],
+      "name": "psychopath"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Bleeding"
+        }
+      ],
+      "name": "bleed"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Senpai (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Roses (Spooky Mix)"
+        }
+      ],
+      "name": "schoolSpooky"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Haunted" }
+      ],
+      "name": "haunted"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["hard"],
+          "song": "pyoro"
+        }
+      ],
+      "name": "pyoro"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Apparition"
+        }
+      ],
+      "name": "warioworld"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["hard"], "song": "milk-old" }
+      ],
+      "name": "sunk-oldStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["Hard", "Angelic"],
+          "song": "Caustic Toxic"
+        }
+      ],
+      "name": "yomiHustle-CT"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 3 [CHECK NEWGROUNDS]",
+          "difficulties": ["Normal"],
+          "song": "Spaceblasterz"
+        }
+      ],
+      "name": "hominid"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Normal"],
+          "song": "Driller"
+        }
+      ],
+      "name": "boxingStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 7 [FLASH_FRENZY]",
+          "difficulties": ["Normal"],
+          "song": "Evolution"
+        }
+      ],
+      "name": "finalrace"
+    },
+    {
+      "songs": [
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Winter Horrorland"
+        }
+      ],
+      "name": "mallEvil"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Sky (Mobile-Mix)"
+        }
+      ],
+      "name": "theShiftMini"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Pico (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Philly Nice (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Blammed (Spooky Mix)"
+        }
+      ],
+      "name": "phillyTrainSpooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "GMS Showdown"
+        }
+      ],
+      "name": "gms"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Racetraitors"
+        }
+      ],
+      "name": "racing"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Newcomer Original"
+        }
+      ],
+      "name": "newcomer"
+    },
+    {
+      "songs": [
+        { "mod": "vs 900n1 real", "difficulties": ["whar"], "song": "Neverita" }
+      ],
+      "name": "menkissing"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Bopeebo (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Normal", "Hard"],
+          "song": "Fresh (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "DadBattle (Spooky Mix)"
+        }
+      ],
+      "name": "mainStageSpooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 5 [RHYTHM RALLY]",
+          "difficulties": ["Normal"],
+          "song": "Off the Cuff"
+        }
+      ],
+      "name": "baseball"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Ice Cube"
+        }
+      ],
+      "name": "algodoo"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["ERECT"],
+          "song": "Bullet HUSTLE"
+        }
+      ],
+      "name": "yomiHustle-BH-E"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Final Destination Lunatic"
+        }
+      ],
+      "name": "sml"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Winter Horrorland (Spooky Mix)"
+        }
+      ],
+      "name": "mallEvilSpooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "High School Conflict"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Bara no Yume"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Your Reality"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Poems n Thorns"
+        }
+      ],
+      "name": "School"
+    },
+    {
+      "songs": [
+        { "mod": "SURVEY_PROGRAM", "difficulties": ["Hard"], "song": "proceed" }
+      ],
+      "name": "frozenchicken"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Sanguinary"
+        }
+      ],
+      "name": "sanguinary"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["Hard"], "song": "endless" },
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "endless-og"
+        }
+      ],
+      "name": "endless-forest"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 7 [FLASH_FRENZY]",
+          "difficulties": ["Normal"],
+          "song": "KB5K"
+        },
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Hairball"
+        }
+      ],
+      "name": "sunset"
+    },
+    {
+      "songs": [
+        {
+          "mod": "TooMuchBoykisser",
+          "difficulties": ["Normal"],
+          "song": "Boykisser mayhem"
+        }
+      ],
+      "name": "Boykisser"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["hard"],
+          "song": "sanctuary"
+        }
+      ],
+      "name": "meatchip"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "execution"
+        }
+      ],
+      "name": "execution"
+    },
+    {
+      "songs": [{ "mod": "dustin", "difficulties": ["hard"], "song": "yolo" }],
+      "name": "yolo_stage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Christmas"
+        }
+      ],
+      "name": "stageNotSpook"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "too slow"
+        },
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["encore"],
+          "song": "too-slow-encore"
+        }
+      ],
+      "name": "too-slow"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["Hard", "Angelic"],
+          "song": "Bullet HUSTLE"
+        }
+      ],
+      "name": "yomiHustle-BH"
+    },
+    {
+      "songs": [
+        {
+          "mod": "TooMuchBoykisser",
+          "difficulties": ["Hard"],
+          "song": "No More Boykisser"
+        }
+      ],
+      "name": "collagebk"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 5 [RHYTHM RALLY]",
+          "difficulties": ["Normal"],
+          "song": "Funky Flow"
+        }
+      ],
+      "name": "rapper"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Homie Cide" }
+      ],
+      "name": "grillbys"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "No Party"
+        }
+      ],
+      "name": "piracy"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Easy", "Normal", "Hard", "Bonus"],
+          "song": "all-stars"
+        }
+      ],
+      "name": "allstars"
+    },
+    {
+      "songs": [
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "soothing-power"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "thunderstorm"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "dissasembler"
+        }
+      ],
+      "name": "shaggy-hill"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Crucify (Yuri)"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Beathoven (Natsuki)"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "It's Complicated (Sayori)"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Titular (MC)"
+        }
+      ],
+      "name": "dokifestival"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH WEIRD FUNNY GAMES",
+          "difficulties": ["Normal"],
+          "song": "Fruity"
+        }
+      ],
+      "name": "suikaStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Glitcher (Monika)"
+        }
+      ],
+      "name": "glitcher"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Thalassophobia"
+        }
+      ],
+      "name": "realbg"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "quaoar"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "crystallized"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "nacreous snowmelt"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "lioness pride"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "dance with silence"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "burning aquamarine"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "tremendous"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "ghost"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "ghoul"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "ghost vip"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "boyfriend"
+        }
+      ],
+      "name": "camellia2"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Pizza Tower PSYCH ENGINE PORT",
+          "difficulties": ["Normal"],
+          "song": "Bloodsauce"
+        }
+      ],
+      "name": "tower-alt"
+    },
+    {
+      "songs": [
+        {
+          "mod": "VS Sunday",
+          "difficulties": ["Easy", "Normal"],
+          "song": "valentine"
+        },
+        {
+          "mod": "VS Sunday",
+          "difficulties": ["Easy", "Normal"],
+          "song": "bi-nb"
+        },
+        {
+          "mod": "VS Sunday",
+          "difficulties": ["Easy", "Normal"],
+          "song": "marx"
+        }
+      ],
+      "name": "garage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Mario Sing and Game Rythm 9"
+        }
+      ],
+      "name": "somari"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Normal"],
+          "song": "Ghost Remix"
+        }
+      ],
+      "name": "blackplace"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Hard", "Happy"],
+          "song": "smile-award"
+        }
+      ],
+      "name": "Smile"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["Hard"], "song": "fatality" }
+      ],
+      "name": "fatality"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "We Hate You"
+        }
+      ],
+      "name": "hate"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Better Content"
+        }
+      ],
+      "name": "megaman69"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Crystalized"
+        },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["4k", "Canon"],
+          "song": "Testimony"
+        }
+      ],
+      "name": "portal"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Nyaw"
+        },
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["Hard"],
+          "song": "Fuzzy Distortion"
+        }
+      ],
+      "name": "closed"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Reoccurance (Pico Mix)"
+        },
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Baffled (Pico Mix)"
+        },
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Contextual (Pico Mix)"
+        }
+      ],
+      "name": "nonsenseRoomErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 7 [FLASH_FRENZY]",
+          "difficulties": ["Normal"],
+          "song": "Brilliance"
+        }
+      ],
+      "name": "pico3"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Fangirl Frenzy"
+        }
+      ],
+      "name": "manifest"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "chips-ahoyeth"
+        }
+      ],
+      "name": "acidriver"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Monster (Spooky Mix)"
+        }
+      ],
+      "name": "skidsAtticEvil"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Ticking"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["cheating"],
+          "song": "CHEATING"
+        }
+      ],
+      "name": "notehell"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Personel"],
+          "song": "Personel (Z11 Mix)"
+        }
+      ],
+      "name": "voidPersonel"
+    },
+    {
+      "songs": [
+        {
+          "mod": "shaggy",
+          "difficulties": ["mania"],
+          "song": "Final Destination"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Hard", "mania"],
+          "song": "Final Destination God"
+        }
+      ],
+      "name": "boxin"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["Monika", "Natsuki", "Sayori", "Yuri"],
+          "song": "You and Me"
+        }
+      ],
+      "name": "youandme"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 4 [MOD TITANS]",
+          "difficulties": ["Normal"],
+          "song": "Champions Ring"
+        }
+      ],
+      "name": "ring"
+    },
+    {
+      "songs": [
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "ejected"
+        }
+      ],
+      "name": "ejected"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH WEIRD FUNNY GAMES",
+          "difficulties": ["Normal"],
+          "song": "Chef Blasting"
+        }
+      ],
+      "name": "chefblast"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 5 [RHYTHM RALLY]",
+          "difficulties": ["Normal"],
+          "song": "Transient Tribulation"
+        }
+      ],
+      "name": "geometry"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "All Stars"
+        }
+      ],
+      "name": "allfinal"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNAF 4",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "NIGHT"
+        }
+      ],
+      "name": "NIGHT"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Broken Reality" }
+      ],
+      "name": "hall"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Blazin (Sky Mix)"
+        }
+      ],
+      "name": "phillyBlazinErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Wife Forever (Pico Mix)"
+        }
+      ],
+      "name": "theShiftErect-Pico"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Your Demise"
+        },
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Dual Demise"
+        }
+      ],
+      "name": "schoolEvilEx"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 6 [TWEAK 666]",
+          "difficulties": ["Normal"],
+          "song": "jeff the kill you"
+        }
+      ],
+      "name": "jeff"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "False Paradise"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Newcomer V2"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "All Time"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Every Other Day"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Colon Three"
+        },
+        { "mod": "vs 900n1 real", "difficulties": ["hard"], "song": "Boinky" },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Out of Character"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Illusion"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "One Like The Other"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Months In The Making"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["finale"],
+          "song": "One Last Time"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["erect"],
+          "song": "Newcomer ERECT"
+        }
+      ],
+      "name": "900n1"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Reoccurance"
+        },
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Baffled"
+        },
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Contextual"
+        },
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Get Out"
+        },
+        {
+          "mod": "Vs Nonsense v1.5 (Community Update) P-Slice!",
+          "difficulties": ["Hard"],
+          "song": "Full Of Nonsense"
+        }
+      ],
+      "name": "nonsenseRoom"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Tutorial" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Bopeebo" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Fresh" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Dad Battle" },
+        { "difficulties": ["Easy", "Normal"], "song": "Spookeez" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "South" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Monster" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Pico" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Philly Nice" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Blammed" },
+        {
+          "mod": "Skill Issue",
+          "difficulties": ["Hard"],
+          "song": "Skill Issue"
+        },
+        { "mod": "ZIsAmongUs", "difficulties": ["Normal"], "song": "guardian" },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": [
+            "Normal",
+            "Reasonable",
+            "Unreasonable",
+            "Semi-Impossible",
+            "Impossible"
+          ],
+          "song": "Beat Battle"
+        },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Beat Battle 2"
+        },
+        { "mod": "Modpack Mixup", "difficulties": ["Hard"], "song": "Rise" },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Savestate"
+        },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Resistance"
+        },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Resistalovania"
+        },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["FNF", "NITG", "POSSESSED"],
+          "song": "Possessed By The Blood Moon"
+        },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Truly Lost"
+        },
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Gas Station Groovin"
+        },
+        {
+          "mod": "FNF WEEKLY PART 5 [RHYTHM RALLY]",
+          "difficulties": ["Normal"],
+          "song": "Love Groove"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["hard"],
+          "song": "Tutorial"
+        },
+        { "mod": "vs 900n1 real", "difficulties": ["extras"], "song": "Quiz" },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Intrusive Thoughts"
+        },
+        { "difficulties": ["Hard"], "song": "Small Argument" },
+        { "difficulties": ["Hard"], "song": "GeoStar" }
+      ],
+      "name": "stage"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "free play" }
+      ],
+      "name": "freePlay"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sisters of Joy",
+          "difficulties": ["Normal"],
+          "song": "Starwave"
+        },
+        {
+          "mod": "Sisters of Joy",
+          "difficulties": ["Normal"],
+          "song": "Starlight"
+        },
+        {
+          "mod": "Sisters of Joy",
+          "difficulties": ["Normal"],
+          "song": "Starlight Remix"
+        }
+      ],
+      "name": "Cliff"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Its a me"
+        }
+      ],
+      "name": "execlassic"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["whar"],
+          "song": "Banger Beat"
+        }
+      ],
+      "name": "bb"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Normal"],
+          "song": "Test Field"
+        }
+      ],
+      "name": "hill"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 7 [FLASH_FRENZY]",
+          "difficulties": ["Normal"],
+          "song": "Lifeless"
+        }
+      ],
+      "name": "chest"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["Hard"],
+          "song": "fight or flight"
+        }
+      ],
+      "name": "starved"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Stress (Spooky Mix)"
+        }
+      ],
+      "name": "tankmanBattlefieldSpooky-stress"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Darnell" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Lit Up" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "2Hot" }
+      ],
+      "name": "phillyStreets"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "No Hope"
+        }
+      ],
+      "name": "castlestar"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "black-sun"
+        }
+      ],
+      "name": "exeStage"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "overthrone" },
+        { "mod": "dustin", "difficulties": ["hard"], "song": "red demon o" }
+      ],
+      "name": "throne_room_fell"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH BAD GUYS",
+          "difficulties": ["Normal"],
+          "song": "Undead"
+        }
+      ],
+      "name": "lawn"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "first town of this journey"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "liquated"
+        },
+        {
+          "mod": "Vs Camellia 2.5 Psych Engine Port Android Optimizado",
+          "difficulties": ["hard"],
+          "song": "why do you hate me"
+        }
+      ],
+      "name": "camellia"
+    },
+    {
+      "songs": [
+        { "mod": "VS Sunday", "difficulties": ["Hard"], "song": "marx" }
+      ],
+      "name": "sunday3uwu"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Redscreen" }
+      ],
+      "name": "dustshift"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH WEIRD FUNNY GAMES",
+          "difficulties": ["Normal"],
+          "song": "Johnny Round"
+        }
+      ],
+      "name": "stomachithink"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "900n1 x BYOK Shipping Cute"
+        }
+      ],
+      "name": "shippingcute"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "bargain" }
+      ],
+      "name": "bargain"
+    },
+    {
+      "songs": [
+        {
+          "difficulties": ["Erect", "Nightmare"],
+          "song": "Satin Panties Erect"
+        },
+        { "difficulties": ["Erect", "Nightmare"], "song": "High Erect" },
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Milf (Sky Mix)"
+        },
+        {
+          "mod": "Fnf Satin Panties [Jersey Club Remix]",
+          "difficulties": ["jersey club", "hell"],
+          "song": "satin panties"
+        }
+      ],
+      "name": "limoRideErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Unbeatable"
+        }
+      ],
+      "name": "nesbeat"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "vindication" }
+      ],
+      "name": "spacetime"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Darnell (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Lit Up (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "2Hot (Spooky Mix)"
+        }
+      ],
+      "name": "phillyStreetsSpooky"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Cocoa" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Eggnog" }
+      ],
+      "name": "mall"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Astral Calamity 2"
+        }
+      ],
+      "name": "shagggyexe"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "you are" }
+      ],
+      "name": "youare"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Funky Fanta"
+        },
+        { "mod": "Modpack Mixup", "difficulties": ["Hard"], "song": "Slowdown" }
+      ],
+      "name": "alley"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "cutout"
+        }
+      ],
+      "name": "cardboard"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Blazin (Spooky Mix)"
+        }
+      ],
+      "name": "blazinNeighborhood"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["golden"],
+          "song": "Wayback"
+        }
+      ],
+      "name": "wayback"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "Detrimental"
+        },
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "IMMORTAL"
+        }
+      ],
+      "name": "anarchy"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 3 [CHECK NEWGROUNDS]",
+          "difficulties": ["Normal"],
+          "song": "Mental Temple"
+        }
+      ],
+      "name": "ena"
+    },
+    {
+      "songs": [
+        { "mod": "vs 900n1 real", "difficulties": ["extras"], "song": "Smack" }
+      ],
+      "name": "whack"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["very-hard"],
+          "song": "hyperlink-reloaded"
+        }
+      ],
+      "name": "neo2"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Sky Reborn V2.1 P-Slice",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Blissful (Sky Mix)"
+        }
+      ],
+      "name": "qtStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "astral-calamity"
+        },
+        { "mod": "shaggy", "difficulties": ["canon"], "song": "talladega" }
+      ],
+      "name": "WBG"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Nourishing Blood"
+        }
+      ],
+      "name": "bootleg"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 4 [MOD TITANS]",
+          "difficulties": ["Normal"],
+          "song": "Plectrum"
+        }
+      ],
+      "name": "bedroom"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 6 [TWEAK 666]",
+          "difficulties": ["Normal"],
+          "song": "Good Will"
+        }
+      ],
+      "name": "desktop"
+    },
+    {
+      "songs": [
+        { "mod": "golf_3e2df", "difficulties": ["Normal"], "song": "golf" },
+        { "mod": "golf_3e2df", "difficulties": ["Normal"], "song": "endless" }
+      ],
+      "name": "golfstage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Drinks on Me"
+        }
+      ],
+      "name": "va11halla"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Dark Forest"
+        },
+        {
+          "mod": "FNF WEEKLY PART 6 [TWEAK 666]",
+          "difficulties": ["Normal"],
+          "song": "7OF8"
+        }
+      ],
+      "name": "forest"
+    },
+    {
+      "songs": [
+        { "mod": "Sonic.exe 2.5", "difficulties": ["Hard"], "song": "milk" }
+      ],
+      "name": "sunkStage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Alone"
+        }
+      ],
+      "name": "betamansion"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Modpack Mixup",
+          "difficulties": ["Hard"],
+          "song": "Fightback"
+        }
+      ],
+      "name": "sky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Cage of Abyss",
+          "difficulties": ["Normal"],
+          "song": "The Pioneer The Terminator-pixel"
+        }
+      ],
+      "name": "E&B"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Wocky"
+        }
+      ],
+      "name": "stageback"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Beathoven"
+        }
+      ],
+      "name": "stageBop"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs BorraBodrio",
+          "difficulties": ["Normal"],
+          "song": "papercraft"
+        }
+      ],
+      "name": "mesa"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 6 [TWEAK 666]",
+          "difficulties": ["Normal"],
+          "song": "Devil's Ditty"
+        }
+      ],
+      "name": "ink"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["hard"],
+          "song": "Ooga-Boogey"
+        }
+      ],
+      "name": "oogasHouse"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Ugh" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Guns" },
+        { "difficulties": ["Easy", "Normal", "Hard"], "song": "Stress" },
+        { "difficulties": ["Easy", "Normal"], "song": "Ugh (Pico mix)" },
+        { "difficulties": ["Easy", "Normal"], "song": "Guns (Pico mix)" }
+      ],
+      "name": "tank"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 4 [MOD TITANS]",
+          "difficulties": ["Normal"],
+          "song": "Philly Mice"
+        }
+      ],
+      "name": "park"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Spookys Saturday Scare",
+          "difficulties": ["hard"],
+          "song": "off-the-goop"
+        }
+      ],
+      "name": "leanBG"
+    },
+    {
+      "songs": [{ "difficulties": ["Hard"], "song": "Spookeez" }],
+      "name": "spooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "where-are-you"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "eruption"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "kaio-ken"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "whats-new"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "blast"
+        },
+        {
+          "mod": "shaggy",
+          "difficulties": ["Mania", "canon"],
+          "song": "super-saiyan"
+        }
+      ],
+      "name": "shaggy Stage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Abandoned"
+        }
+      ],
+      "name": "wetworld"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Day Out"
+        }
+      ],
+      "name": "luigiout"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 6 [TWEAK 666]",
+          "difficulties": ["Normal"],
+          "song": "BOX24"
+        }
+      ],
+      "name": "academy"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "upernovae"
+        }
+      ],
+      "name": "dave"
+    },
+    {
+      "songs": [
+        { "difficulties": ["Erect", "Nightmare"], "song": "Cocoa Erect" },
+        { "difficulties": ["Erect", "Nightmare"], "song": "Eggnog Erect" },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Eggnog (Pico mix)"
+        },
+        {
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Cocoa (Pico Mix)"
+        }
+      ],
+      "name": "mallXmasErect"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Starman Slaughter"
+        }
+      ],
+      "name": "exesequel"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Oh God No"
+        },
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "I Hate You"
+        }
+      ],
+      "name": "hatebg"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Demise"
+        }
+      ],
+      "name": "demiseport"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH BAD GUYS",
+          "difficulties": ["Normal"],
+          "song": "Termina"
+        }
+      ],
+      "name": "termina"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Vs Kapi - Arcade Showdown [P-Slice]",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "flatzone"
+        }
+      ],
+      "name": "flatfuck"
+    },
+    {
+      "songs": [
+        { "mod": "VS Sunday", "difficulties": ["Hard"], "song": "bi-nb" }
+      ],
+      "name": "sunday2(Ulisegas2)"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Mario Madness V2 - Lua Port",
+          "difficulties": ["Normal"],
+          "song": "Golden Land"
+        }
+      ],
+      "name": "landstage"
+    },
+    {
+      "songs": [
+        {
+          "mod": "VsImposterFNF",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "defeat"
+        }
+      ],
+      "name": "defeat"
+    },
+    {
+      "songs": [
+        {
+          "mod": "GAME OVER",
+          "difficulties": ["Hard", "hell"],
+          "song": "Game-Over"
+        }
+      ],
+      "name": "pcport"
+    },
+    {
+      "songs": [
+        {
+          "mod": "shaggy",
+          "difficulties": ["mania", "canon"],
+          "song": "god-eater"
+        }
+      ],
+      "name": "god-eater"
+    },
+    {
+      "songs": [
+        {
+          "mod": "vs 900n1 real",
+          "difficulties": ["extras"],
+          "song": "You Wanna"
+        }
+      ],
+      "name": "isotope"
+    },
+    {
+      "songs": [
+        {
+          "mod": "SURVEY_PROGRAM",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "showstopping"
+        }
+      ],
+      "name": "mike"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonic.exe 2.5",
+          "difficulties": ["hard"],
+          "song": "you cant run"
+        }
+      ],
+      "name": "cant-run-xd"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Sonnets of HUSTLIN' vol. 2 - Olympus",
+          "difficulties": ["Hard", "Angelic"],
+          "song": "Hoverkinesis"
+        }
+      ],
+      "name": "yomiHustle-Hk"
+    },
+    {
+      "songs": [
+        { "mod": "dustin", "difficulties": ["hard"], "song": "Heatwave" }
+      ],
+      "name": "hotland"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF BOSS RUSH BAD GUYS",
+          "difficulties": ["Normal"],
+          "song": "Koopa Karnage"
+        }
+      ],
+      "name": "castle"
+    },
+    {
+      "songs": [
+        {
+          "mod": "Doki Doki Takeover Plus",
+          "difficulties": ["hard", "mirror"],
+          "song": "Wilted"
+        }
+      ],
+      "name": "wilted"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Ugh (Spooky Mix)"
+        },
+        {
+          "mod": "FNF Spooky Mix V2 P-Slice Port",
+          "difficulties": ["Easy", "Normal", "Hard"],
+          "song": "Guns (Spooky Mix)"
+        }
+      ],
+      "name": "tankmanBattlefieldSpooky"
+    },
+    {
+      "songs": [
+        {
+          "mod": "FNF WEEKLY PART 4 [MOD TITANS]",
+          "difficulties": ["Normal"],
+          "song": "Haystack"
+        }
+      ],
+      "name": "maze"
+    }
+  ]
+}
