@@ -288,8 +288,7 @@ import states.TitleState;
 
 	//Warm-Up Stuff
 	public var warmupCompleted:Bool = false;
-	public var skipWarmup:Bool = false;
-	public var alwaysWarmup:Bool = false;
+	public var warmupMode:String = 'Ask';
 
 	//SplashScreen
 	public var memeSplash:Bool = false;

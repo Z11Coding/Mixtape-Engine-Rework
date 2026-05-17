@@ -79,7 +79,7 @@ class PlayState extends MusicBeatState
 		return mcm.bf2 = value;
 	}
 
-	public var boyfriendMap(get, default):Map<String, Character>;
+	public var boyfriendMap(get, default):Map<String, Character> = new Map<String, Character>();
 	public var boyfriendMap2(get, default):Map<String, Character> = new Map<String, Character>();
 	public var dadMap(get, default):Map<String, Character> = new Map<String, Character>();
 	public var dadMap2(get, default):Map<String, Character> = new Map<String, Character>();
@@ -106,7 +106,7 @@ class PlayState extends MusicBeatState
 	public var dadGroup2(get, default):FlxSpriteGroup;
 	public var gfGroup(get, default):FlxSpriteGroup;
 	private function get_boyfriendGroup():FlxSpriteGroup {
-		return mcm.characterGroupMap.get("boyfriendMap");
+		return mcm.characterGroupMap.get("boyfriendGroup");
 	}
 	private function get_boyfriendGroup2():FlxSpriteGroup {
 		return mcm.characterGroupMap.get("boyfriendGroup2");
@@ -1158,7 +1158,7 @@ class PlayState extends MusicBeatState
 		persistentDraw = true;
 
 		trace("Fixing Mania");
-		//playfield.fixMania();
+		playfield.fixMania();
 		trace("Mania Fixed");
 
 		// Initialize experimental NotePool system if enabled
@@ -1515,6 +1515,7 @@ class PlayState extends MusicBeatState
 		playfield.loadChart(Paths.formatToSongPath(_cachedSongName)+Difficulty.getFilePath(), Mods.currentModDirectory);
 		loadSongAudio();
 		postGen();
+		generatedMusic = true;
 		trace('Chart Generation took ${Sys.time() - prevTime} seconds');
 
 		noteGroup.add(grpNoteSplashes);
@@ -2424,12 +2425,14 @@ class PlayState extends MusicBeatState
 
 			setOnScripts('curBeat', curBeat);
 			callOnScripts('onBeatHit');
+			stagesFunc(function(stage:BaseStage) stage.beatHit());
 		});
 
 		conductor.addStepCallback((curStep:Int, backward:Bool) ->
 		{
 			setOnScripts('curStep', curStep);
 			callOnScripts('onStepHit');
+			stagesFunc(function(stage:BaseStage) stage.stepHit());
 		});
 	}
 
@@ -3448,14 +3451,14 @@ class PlayState extends MusicBeatState
 			trace("Setting Strum Base Positions");
 			for (field in playfield.playfields.members) {
 				for (i in 0...Note.ammo[mania[field.modNumber]]) {
-					//field.baseXPositions[i] = field.strumNotes[i].x;
-					/*if (field.modNumber == 1) {
+					field.baseXPositions[i] = field.strumNotes[i].x;
+					if (field.modNumber == 1) {
 						setOnScripts('defaultPlayerStrumX' + i, field.strumNotes[i].x);
 						setOnScripts('defaultPlayerStrumY' + i, field.strumNotes[i].y);
 					} else if (field.modNumber == 0) {
 						setOnScripts('defaultOpponentStrumX' + i, field.strumNotes[i].x);
 						setOnScripts('defaultOpponentStrumY' + i, field.strumNotes[i].y);
-					}*/
+					}
 				}
 			}
 			trace("Base Positions Set");
@@ -3468,11 +3471,11 @@ class PlayState extends MusicBeatState
 			for (field in playfields.members) {
 				if (SONG.startMania != null && SONG.startMania != mania[field.modNumber]) {
 					trace("Fixing Mania");
-					//playfield.changeMania(chartModifier != 'ManiaConverter' ? SONG.startMania : convertMania, field, isStoryMode || playfield.skipArrowStartTween);
+					playfield.changeMania(chartModifier != 'ManiaConverter' ? SONG.startMania : convertMania, field, isStoryMode || playfield.skipArrowStartTween);
 				}
 				else if (chartModifier == "ManiaConverter") {
 					trace("Setting the mania");
-					//playfield.changeMania(convertMania, field, isStoryMode || playfield.skipArrowStartTween);
+					playfield.changeMania(convertMania, field, isStoryMode || playfield.skipArrowStartTween);
 				}
 			}
 			trace("Maina's Corrected");
@@ -4035,6 +4038,7 @@ class PlayState extends MusicBeatState
 		FlxG.sound.playMusic(inst._sound, 1, false);
 		#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
 		FlxG.sound.music.onComplete = finishSong.bind();
+		conductor.target = FlxG.sound.music;
 		vocals.play();
 		opponentVocals.play();
 		gfVocals.play();
@@ -9801,49 +9805,42 @@ class PlayState extends MusicBeatState
 	public var ModchartScrollType:Int = 0; // 0 = none, 1 = Downscroll, 3 = Rotate.
 	public var curDownscroll:Bool = ClientPrefs.data.downScroll; // Used to check if the downscroll has changed.
 	public function modchartSync(directChange:Bool = false):Void {
-		for (strumNote in strumLineNotes.members) {
-			if (strumNote != null) {
-				for (field in playfields.members) {
-					if (field.strumNotes.contains(strumNote)) {
-						var i = field.strumNotes.indexOf(strumNote);
-						if (i != -1) {
-							if (directChange) {
-								// Directly change the x, y, angle, and alpha of the strumNote in the field
-								strumNote.x = field.baseXPositions[i];
-								strumNote.y = field.getBaseY(i);
-								strumNote.angle = modManager.getValue('localRotate${i}', field.playerId);
-								// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
-							} else {
-								// Sync X position
-								var baseX = field.getBaseX(i);
-								var offsetX = strumNote.x - baseX;
-								modManager.setValue('transform${i}X-a', offsetX, field.playerId);
-
-								// Sync Y position
-								var baseY = field.getBaseY(i);
-								var offsetY = strumNote.y - baseY;
-
-								// Only sync if the strum is close to its expected position
-								// This prevents overriding custom positions set by scripts
-								// Allow some tolerance for modchart transforms
-								if (Math.abs(offsetY) < 200 && Math.abs(offsetY) > -200) { //Give it a zone to work in so that if it steps outside that zone it updates it instead of whatever it was doing before
-									modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
+		if (strumLineNotes != null && strumLineNotes.members != null) {
+			for (strumNote in strumLineNotes.members) {
+				if (strumNote != null) {
+					for (field in playfields.members) {
+						if (field.strumNotes.contains(strumNote)) {
+							var i = field.strumNotes.indexOf(strumNote);
+							if (i != -1) {
+								if (directChange) {
+									// Directly change the x, y, angle, and alpha of the strumNote in the field
+									strumNote.x = field.baseXPositions[i];
+									strumNote.y = field.getBaseY(i);
+									strumNote.angle = modManager.getValue('localRotate${i}', field.playerId);
+									// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
 								} else {
-									// If the strum has been moved significantly, update the base position
-									//trace('ModchartSync: Strum ${i} moved significantly (${Math.abs(offsetY)}px), updating base Y from ${baseY} to ${strumNote.y}');
-									field.updateBaseYPosition(i, strumNote.y);
+									// Sync X position
+									var baseX = field.getBaseX(i);
+									var offsetX = strumNote.x - baseX;
+									modManager.setValue('transform${i}X-a', offsetX, field.playerId);
+
+									// Sync Y position
+									var baseY = field.getBaseY(i);
+									var offsetY = strumNote.y - baseY;
+
+									modManager.setValue('transform${i}Y-a', offsetY, field.playerId);
+									//strumNote.y = strumNote.y;
+
+									// Sync angle
+									//modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
+									//strumNote.angle = strumNote.angle;
+
+									modManager.setValue('noteTweenDirection', strumNote.direction, field.playerId);
+
+									// // Sync alpha
+									// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
+									// strumNote.alpha = strumNote.alpha;
 								}
-								//strumNote.y = strumNote.y;
-
-								// Sync angle
-								//modManager.setValue('note${i}Angle', strumNote.angle, field.playerId);
-								//strumNote.angle = strumNote.angle;
-
-								modManager.setValue('noteTweenDirection', strumNote.direction, field.playerId);
-
-								// // Sync alpha
-								// modManager.setValue('alpha${i}', strumNote.alpha, field.playerId);
-								// strumNote.alpha = strumNote.alpha;
 							}
 						}
 					}

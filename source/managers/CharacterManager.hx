@@ -101,6 +101,61 @@ class CharacterManager {
     return null;
   }
 
+  public function makeExistingCharacter(character:Character, manType:CManType):Character {
+    startCharacterPos(character, (character.charType != GF));
+    var charGroup:FlxSpriteGroup = switch(manType) {
+      case BF:
+        if (!characterGroupMap.exists("boyfriendGroup")) characterGroupMap.set("boyfriendGroup", new FlxSpriteGroup(BF_X, BF_Y));
+        characterGroupMap.get("boyfriendGroup");
+      case DAD:
+        if (!characterGroupMap.exists("dadGroup")) characterGroupMap.set("dadGroup", new FlxSpriteGroup(DAD_X, DAD_Y));
+        characterGroupMap.get("dadGroup");
+      case GF:
+        if ((!characterGroupMap.exists("gfGroup") || characterGroupMap.exists("gfGroup") && characterGroupMap.get("gfGroup") == null)) characterGroupMap.set("gfGroup", new FlxSpriteGroup(GF_X, GF_Y));
+        characterGroupMap.get("gfGroup");
+      case BF2:
+        if (!characterGroupMap.exists("boyfriendGroup2")) characterGroupMap.set("boyfriendGroup2", new FlxSpriteGroup(BF2_X, BF2_Y));
+        characterGroupMap.get("boyfriendGroup2");
+      case DAD2:
+        if (!characterGroupMap.exists("dadGroup2")) characterGroupMap.set("dadGroup2", new FlxSpriteGroup(DAD2_X, DAD2_Y));
+        characterGroupMap.get("dadGroup2");
+      case NONE:
+        if (!characterGroupMap.exists("exGroup")) characterGroupMap.set("exGroup", new FlxSpriteGroup());
+        characterGroupMap.get("exGroup");
+    }
+    charGroup.add(character);
+    return character;
+  }
+
+  public function preloadExistingCharacter(charaName:String, character:Character, manType:CManType):Character {
+    var charMap = switch(manType) {
+      case BF:
+        if (!characterMap.exists("boyfriendMap")) characterMap.set("boyfriendMap", new Map<String, Character>());
+        characterMap.get("boyfriendMap");
+      case DAD:
+        if (!characterMap.exists("dadMap")) characterMap.set("dadMap", new Map<String, Character>());
+        characterMap.get("dadMap");
+      case GF:
+        if (!characterMap.exists("gfMap")) characterMap.set("gfMap", new Map<String, Character>());
+        characterMap.get("gfMap");
+      case BF2:
+        if (!characterMap.exists("boyfriendMap2")) characterMap.set("boyfriendMap2", new Map<String, Character>());
+        characterMap.get("boyfriendMap2");
+      case DAD2:
+        if (!characterMap.exists("dadMap2")) characterMap.set("dadMap2", new Map<String, Character>());
+        characterMap.get("dadMap2");
+      case NONE:
+        if (!characterMap.exists("exMap")) characterMap.set("exMap", new Map<String, Character>());
+        characterMap.get("exMap");
+    }
+
+    if (!charMap.exists(charaName)) {
+      charMap.set(charaName, character);
+      return character;
+    }
+    return null;
+  }
+
   public function startCharacterScripts(name:String)
 	{
 		// Lua

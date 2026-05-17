@@ -479,7 +479,6 @@ class PauseSubState extends MusicBeatSubstate
 						MusicBeatState.switchState(new StoryMenuState());
 					else if (PlayState.isWarmUp) {
 						PlayState.isWarmUp = false;
-						ClientPrefs.data.skipWarmup = true;
 						MusicBeatState.switchState(new states.TitleState());
 					}
 					else if(PlayState.isPlaylist)

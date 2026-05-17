@@ -86,7 +86,7 @@ class TitleState extends MusicBeatState
 
 		trace(new test.TestYScript(0, 0).getStatus()); // Just to make sure YScript is compiled properly
 
-		MusicBeatState.allowNuke = true; // COMMENCE THE MEMORY CLEARAGE
+		MusicBeatState.allowNuke = false; // COMMENCE THE MEMORY CLEARAGE
 		// ticker.update(0);
 		trace(ticker.metadata());
 		Paths.clearStoredWithoutStickers();
@@ -136,7 +136,7 @@ class TitleState extends MusicBeatState
 			FlxTransitionableState.skipNextTransOut = true;
 			MusicBeatState.switchState(new setup.SetupGuideState());
 		}
-		else if(!ClientPrefs.data.warmupCompleted && (!ClientPrefs.data.skipWarmup || ClientPrefs.data.alwaysWarmup))
+		else if(!ClientPrefs.data.warmupCompleted && (ClientPrefs.data.warmupMode != "Skip" || ClientPrefs.data.warmupMode == "Always"))
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
@@ -301,7 +301,7 @@ class TitleState extends MusicBeatState
 	private function proceedWithWarmupCheck(hasWarmup:Bool, playlist:PlaylistMetadata, allLists:Array<PlaylistMetadata>, warmupPlaylists:Array<PlaylistMetadata>):Void
 	{
 		if (hasWarmup && playlist != null) {
-			if (ClientPrefs.data.alwaysWarmup) {
+			if (ClientPrefs.data.warmupMode == "Always") {
 				persistentUpdate = true;
 				PlayState.isWarmUp = true;
 				PlayState.altInstrumentals = null; // ? P-Slice
@@ -413,6 +413,7 @@ class TitleState extends MusicBeatState
 
 	function startIntro()
 	{
+		MusicBeatState.allowNuke = true;
 		persistentUpdate = true;
 		if (!initialized && FlxG.sound.music == null)
 			MusicManager.setMenuMusic(ClientPrefs.data.menuSong, null, 0, true);

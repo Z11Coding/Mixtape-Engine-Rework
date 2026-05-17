@@ -314,8 +314,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 		handleGarbageCollection();
 
 		justgothere = true;
-		allowNuke = true;
-		useLite = false;
+		//allowNuke = true;
+		//useLite = false;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
 
@@ -715,19 +715,19 @@ class MusicBeatState extends yutautil.SafeManagedState
 			// }
 
 			// done like this so that it actually does it once as to not blow out your ears lol
-		// 	if (getState() == PlayState.instance) {
-		// 		for (vocal in [PlayState.instance.vocals, PlayState.instance.opponentVocals, PlayState.instance.gfVocals]) {
-		// 			if (vocal != null && vocal.playing) {
-		// 				afm.applyFilter(vocal);
-		// 			}
-		// 		}
-		// 	}
+			// 	if (getState() == PlayState.instance) {
+			// 		for (vocal in [PlayState.instance.vocals, PlayState.instance.opponentVocals, PlayState.instance.gfVocals]) {
+			// 			if (vocal != null && vocal.playing) {
+			// 				afm.applyFilter(vocal);
+			// 			}
+			// 		}
+			// 	}
 
-		// 	for (sound in FlxG.sound.list) {
-		// 		if (sound != null && sound.playing) {
-		// 			afm.applyFilter(sound);
-		// 		}
-		// 	}
+			// 	for (sound in FlxG.sound.list) {
+			// 		if (sound != null && sound.playing) {
+			// 			afm.applyFilter(sound);
+			// 		}
+			// 	}
 		}
 
 		#if ARCHIPELAGO_ALLOWED

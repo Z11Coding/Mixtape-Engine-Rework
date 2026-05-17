@@ -207,9 +207,9 @@ class SserafimStage extends BaseStage
     game.dadGroup.add(ssDad);
     ssDad.alpha = 0;
 
-    game.dadGroup2.add(yunjin);
-    game.gfGroup.add(chaewon);
-    game.dadGroup2.add(eunchae);
+    game.mcm.makeExistingCharacter(yunjin, DAD2);
+    game.mcm.makeExistingCharacter(chaewon, GF);
+    game.mcm.makeExistingCharacter(eunchae, DAD2);
 
     add(dust1);
     add(dust2);

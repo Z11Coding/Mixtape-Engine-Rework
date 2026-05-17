@@ -145,7 +145,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		setDefaultBaseXPositions();
 		setDefaultBaseYPositions();
 
-		PlayfieldManager.mania[modNumber] = cnt;
 		singAnimations = Note.keysShit.get(cnt).get('singAnims');
 
 		return keyCount = cnt;
@@ -1027,7 +1026,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	var spawned = 0;
 	// spawns notes, deals w/ hold inputs, etc.
 	var aliveNoteCount:Int = 0;
-	var aliveNoteLimiter:Int = 35;
+	var aliveNoteLimiter:Int = 75;
 	override public function update(elapsed:Float){
 		noteField.modNumber = modNumber;
 		noteField.cameras = cameras;
@@ -1092,13 +1091,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				}
 				#end
 
-				while (column.length > 0 && (spawned < maxSpawnsPerFrame || aliveNoteCount <= aliveNoteLimiter)) {
-					if (!column[0].spawned && column[0].strumTime - Conductor.songPosition < time) {
-						spawnNote(column[0]);
-						spawned++;
-					}
-					else if (column[0].spawned)
-						column.remove(column[0]);
+				while (column.length > 0 && column[0].strumTime - Conductor.songPosition < time && (spawned < maxSpawnsPerFrame || aliveNoteCount <= aliveNoteLimiter)) {
+					((column[0].spawned) ? column.remove(column[0]) : spawnNote(column[0]));
+					spawned++;
 				}
 			}
 		}

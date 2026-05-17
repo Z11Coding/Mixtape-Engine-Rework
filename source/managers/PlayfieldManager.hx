@@ -130,7 +130,6 @@ class PlayfieldManager {
   /// Mania
   public function fixMania() {
     convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
-
     for (fMania in mania) {
       if (fMania > Note.maxMania || fMania < Note.minMania)
         fMania = Note.defaultMania;
@@ -159,7 +158,7 @@ class PlayfieldManager {
   public function changeMania(newValue:Int, field:PlayField = null, skipStrumFadeOut:Bool = false)
 	{
 		if (MusicBeatState.getState() == PlayState.instance)
-      PlayState.instance?.callOnScripts('preChangeMania', [mania, newValue, skipStrumFadeOut]);
+      PlayState.instance?.callOnScripts('preChangeMania', [mania[field.modNumber], newValue, skipStrumFadeOut]);
 
     var daOldMania = mania[field.modNumber];
 		mania[field.modNumber] = newValue;
@@ -195,7 +194,7 @@ class PlayfieldManager {
 		if (MusicBeatState.getState() == PlayState.instance) {
       PlayState.instance?.callOnScripts('postReceptorGeneration'); // deprecated
   		PlayState.instance?.callOnScripts('onReceptorGenerationPost');
-	  	PlayState.instance?.callOnScripts('onChangeMania', [mania, newValue, skipStrumFadeOut]);
+	  	PlayState.instance?.callOnScripts('onChangeMania', [mania[field.modNumber], newValue, skipStrumFadeOut]);
     }
 
 		for (field in playfields.members)
@@ -303,21 +302,24 @@ class PlayfieldManager {
     }
 
 		for(field in playfields.members) {
-      trace('Generating Strums for field ${field.modNumber}');
-			field.keyCount = Note.ammo[3];
-			field.generateStrums();
+      if (field != null) {
+        field.strumNotes = [];
+        trace('Generating Strums for field ${field.modNumber}');
+        field.keyCount = Note.ammo[3];
+        field.generateStrums();
 
-      field.fadeIn(skipArrowStartTween);
+        field.fadeIn(skipArrowStartTween);
 
-      if (field.modNumber == 0) {
-        for (strum in field.strumNotes) {
-          playerStrums.add(strum);
-          strumLineNotes.add(strum);
-        }
-      } else if (field.modNumber == 1) {
-        for (strum in field.strumNotes) {
-          opponentStrums.add(strum);
-          strumLineNotes.add(strum);
+        if (field.modNumber == 0) {
+          for (strum in field.strumNotes) {
+            playerStrums.add(strum);
+            strumLineNotes.add(strum);
+          }
+        } else if (field.modNumber == 1) {
+          for (strum in field.strumNotes) {
+            opponentStrums.add(strum);
+            strumLineNotes.add(strum);
+          }
         }
       }
 		}
@@ -384,7 +386,7 @@ class PlayfieldManager {
 		}
 		event ??= speedChanges[svIndex];
 
-		if (!freezeNotes) Conductor.visualPosition = getTimeFromSV(Conductor.songPosition, event);
+		if (!freezeNotes) RConductor.visualPosition = getTimeFromSV(MegaManager.conductor.musicPosition, event);
 	}
 
 	public static function getNoteInitialTime(time:Float)
@@ -539,6 +541,7 @@ class PlayfieldManager {
       }
     }
 	}
+
 	inline function pressHold(note:Note, field:PlayField) {
 		if (MusicBeatState.getState() == PlayState.instance)
       PlayState.instance?.callOnScripts("onHoldPress", [note, field]);
@@ -550,28 +553,82 @@ class PlayfieldManager {
 	}
 	//No im not kidding
 
-  /// Chart Loading
+  // Chart Loading
   public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = false) {
     var tempSongObj:String = new SongObjectType(songName, folder).toString();
     trace('Song Info: $tempSongObj\nCache: $chartCache\nDoes it exist?: ${chartCache.exists(tempSongObj)}');
+    this.songName = Paths.formatToSongPath(SONG.song).toLowerCase();
+    songSpeed = SONG?.speed;
+		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
+		switch(songSpeedType)
+		{
+			case "multiplicative":
+				songSpeed = SONG?.speed * ClientPrefs.getGameplaySetting('scrollspeed');
+			case "constant":
+				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
+		}
     if (chartCache.exists(tempSongObj) && !loadDirectly) {
       trace("USING CACHED CHART FOR: "+songName+"\nFROM MOD: "+folder);
-      allNotes = chartCache.get(tempSongObj).copyChart();
-      unspawnNotes = curChart = allNotes;
-  		for (note in allNotes) {
+      var tempChart = chartCache.get(tempSongObj).copyChart();
+      allNotes = tempChart.copy();
+      for (note in allNotes) {
+        note = Note.quickMakeNote(note);
         if (playerField != null)
-          if (note.mustPress)
+          if (note.mustPress) {
+            note.field = playerField;
+            updateNote(note);
             playerField.queue(note);
+          }
 
         if (dadField != null)
-          if (!note.mustPress)
+          if (!note.mustPress) {
+            note.field = dadField;
+            updateNote(note);
             dadField.queue(note);
+          }
+      }
+      unspawnNotes = curChart = allNotes;
+
+      try
+      {
+        var eventsChart:SwagSong = Song.getChart('events-${Difficulty.getString().toLowerCase()}', this.songName);
+        if(eventsChart != null)
+          for (event in eventsChart.events) //Event Notes
+            for (i in 0...event[1].length) {
+              makeEvent(event, i);
+            }
+      }
+      catch(e:Dynamic) {
+        trace('events-${Difficulty.getString().toLowerCase()} DOESN\'T EXSIST FOR SONG ${this.songName}!');
+      }
+
+      try
+      {
+        var eventsChart:SwagSong = Song.getChart('events', this.songName);
+        if(eventsChart != null)
+          for (event in eventsChart.events) //Event Notes
+            for (i in 0...event[1].length) {
+              makeEvent(event, i);
+            }
+      }
+      catch(e:Dynamic) {
+        trace('events DOESN\'T EXSIST FOR SONG ${this.songName}!');
+      }
+
+      try
+      {
+        for (event in SONG.events) //Event Notes
+          for (i in 0...event[1].length) {
+            makeEvent(event, i);
+          }
+      }
+      catch(e:Dynamic) {
+        trace('in-chart events DOESN\'T EXSIST FOR SONG ${this.songName}!');
       }
     } else {
       trace("Generate chart normally");
       generateChart(SONG, preload);
     }
-    songName = Paths.formatToSongPath(SONG.song);
     trace("Chart Generated");
   }
 
@@ -614,26 +671,52 @@ class PlayfieldManager {
       PlayState.instance?.noteGroup.add(notes);
 		curChart = [];
 
-    if (!preload) {
-      try
-      {
-        var eventsChart:SwagSong = Song.getChart('events-${Difficulty.getString().toLowerCase()}', songName);
-        if(eventsChart != null)
-          for (event in eventsChart.events) //Event Notes
-            for (i in 0...event[1].length)
-              makeEventPreload(event, i, preload);
-      }
-      catch(e:Dynamic) {
-        try
-        {
-          var eventsChart:SwagSong = Song.getChart('events', songName);
-          if(eventsChart != null)
-            for (event in eventsChart.events) //Event Notes
-              for (i in 0...event[1].length)
-                makeEventPreload(event, i, preload);
-        }
-        catch(e:Dynamic) {}
-      }
+    try
+    {
+      var eventsChart:SwagSong = Song.getChart('events-${Difficulty.getString().toLowerCase()}', songName);
+      if(eventsChart != null)
+        for (event in eventsChart.events) //Event Notes
+          for (i in 0...event[1].length) {
+            if (preload) {
+              var subEvent:EventNote = {
+                strumTime: event[0] + ClientPrefs.data.noteOffset,
+                event: event[1][i][0],
+                value1: event[1][i][1],
+                value2: event[1][i][2]
+              };
+
+              eventNotes.push(subEvent);
+              curEvents.push(subEvent);
+              eventPushed(subEvent);
+            } else makeEventPreload(event, i, preload);
+          }
+    }
+    catch(e:Dynamic) {
+      trace('events-${Difficulty.getString().toLowerCase()} DOESN\'T EXSIST FOR SONG $songName!');
+    }
+
+    try
+    {
+      var eventsChart:SwagSong = Song.getChart('events', songName);
+      if(eventsChart != null)
+        for (event in eventsChart.events) //Event Notes
+          for (i in 0...event[1].length) {
+            if (preload) {
+              var subEvent:EventNote = {
+                strumTime: event[0] + ClientPrefs.data.noteOffset,
+                event: event[1][i][0],
+                value1: event[1][i][1],
+                value2: event[1][i][2]
+              };
+
+              eventNotes.push(subEvent);
+              curEvents.push(subEvent);
+              eventPushed(subEvent);
+            } else makeEventPreload(event, i, preload);
+          }
+    }
+    catch(e:Dynamic) {
+      trace('events DOESN\'T EXSIST FOR SONG $songName!');
     }
 
 		var ghostNotesCaught:Int = 0;
@@ -1073,6 +1156,8 @@ class PlayfieldManager {
         var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
         swagNote.noteIndex = Std.int(allNotes.length);
         swagNote.formerPress = swagNote.mustPress = gottaHitNote;
+        swagNote.visualTime = getNoteInitialTime(swagNote.strumTime);
+        swagNote.ID = allNotes.length;
 
         if (!preload) {
           // UNO Chart Modifier Processing
@@ -1200,7 +1285,7 @@ class PlayfieldManager {
           {
             oldNote = allNotes[Std.int(allNotes.length - 1)];
 
-            var sustainNote:Note = new Note(spawnTime + (stepCrochet * susNote) + stepCrochet, noteColumn, oldNote, true, false, null, false);
+            var sustainNote:Note = new Note(spawnTime + (stepCrochet * susNote) + stepCrochet, noteColumn, oldNote, true, false, null);
 
             // Set properties using cached values
             sustainNote.mustPress = parentMustPress;
@@ -1465,11 +1550,21 @@ class PlayfieldManager {
     }
 
     trace('["${songData.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
-    if (!preload) {
-      for (event in songData.events) //Event Notes
-        for (i in 0...event[1].length)
-          makeEventPreload(event, i, preload);
-    }
+    for (event in songData.events) //Event Notes
+      for (i in 0...event[1].length) {
+        if (preload) {
+          var subEvent:EventNote = {
+            strumTime: event[0] + ClientPrefs.data.noteOffset,
+            event: event[1][i][0],
+            value1: event[1][i][1],
+            value2: event[1][i][2]
+          };
+
+          eventNotes.push(subEvent);
+          curEvents.push(subEvent);
+          eventPushed(subEvent);
+        } else makeEventPreload(event, i, preload);
+      }
 
     allNotes.sort(sortByTime);
 
@@ -1664,9 +1759,9 @@ class PlayfieldManager {
 		};
 
 		eventNotes.push(subEvent);
-		if (!preload) {
-			curEvents.push(subEvent);
-			eventPushed(subEvent);
+    curEvents.push(subEvent);
+    if (!preload) {
+      eventPushed(subEvent);
       if (MusicBeatState.getState() == PlayState.instance)
         PlayState.instance?.callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
 		}
@@ -2411,7 +2506,6 @@ class PlayfieldManager {
 				if (strum != null) strum.destroy();
 			});
 			playerStrums.clear();
-			playerStrums = null;
 		}
 
 		if (opponentStrums != null) {
@@ -2419,7 +2513,6 @@ class PlayfieldManager {
 				if (strum != null) strum.destroy();
 			});
 			opponentStrums.clear();
-			opponentStrums = null;
 		}
 
 		if (strumLineNotes != null) {
@@ -2427,27 +2520,24 @@ class PlayfieldManager {
 				if (strum != null) strum.destroy();
 			});
 			strumLineNotes.clear();
-			strumLineNotes = null;
 		}
 
     // Clear event and callback references
 		if (eventNotes != null) {
 			eventNotes.splice(0, eventNotes.length);
-			eventNotes = null;
 		}
 
 		if (curEvents != null) {
 			curEvents.splice(0, curEvents.length);
-			curEvents = null;
 		}
 
     // Clear input optimization variables
 		if (keysPressedSet != null) {
 			keysPressedSet.clear();
 		}
-		_cachedHoldArray = null;
-		_cachedPressArray = null;
-		_cachedReleaseArray = null;
+		_cachedHoldArray = [];
+		_cachedPressArray = [];
+		_cachedReleaseArray = [];
     _cachedStrumPositions = [];
     _cachedNotePositions = [];
 
@@ -2467,7 +2557,6 @@ class PlayfieldManager {
     mania = [3, 3];
     generatedChart = false;
     curSong = "";
-    SONG = null;
     songSpeed = 1;
     songSpeedType = "multiplicative";
     noteRows = [[],[]];
@@ -2493,12 +2582,10 @@ class PlayfieldManager {
 
     if (playerField != null) {
       playerField.destroy();
-      playerField = null;
     }
 
     if (dadField != null) {
       dadField.destroy();
-      dadField = null;
     }
     skipArrowStartTween = false;
 
@@ -2535,8 +2622,11 @@ class PlayfieldManager {
 		#end
     speedChanges.sort(svSort);
     mania = [3, 3];
+    noteTypes = [];
+    eventsPushed = [];
     generatedChart = false;
     curSong = "";
+    songName = "";
     songSpeed = 1;
     songSpeedType = "multiplicative";
     noteRows = [[],[]];
@@ -2700,7 +2790,7 @@ class PlayfieldManager {
 
   public function update(elapsed:Float) {
     updateVisualPosition();
-		modManager.update(elapsed, MegaManager.conductor.beatLengthMs, MegaManager.conductor.stepLengthMs);
+		modManager.update(elapsed, MegaManager.conductor.currentBeatTime, MegaManager.conductor.currentStepTime);
     if (!manualInputChecks) keysCheck();
   }
 }
@@ -2743,6 +2833,10 @@ class SongObject
 
   public inline function copyChart() {
     return this.chart;
+  }
+
+  public inline function copyEvents() {
+    return this.events;
   }
 
   public inline function toString():String {

@@ -666,7 +666,7 @@ class ModManager {
 		diff += getValue("transformPath", player);
 		diff += getValue("movePath", player) * FlxMath.lerp(
 			Note.swagWidth,
-			Conductor.crochet * 0.45 * speed,
+			MegaManager.conductor.beatLengthMs * 0.45 * speed,
 			getValue("movePathType", player)
 		);
 
@@ -817,7 +817,7 @@ class ModManager {
 				else
 					queueSet(step, bit, level, player);
 			}else
-				queueEaseL(step == null ? MegaManager.conductor.beatLengthMs : step, ((level / speed) * 1000) / Conductor.stepCrochet, bit, level, 'linear', player);
+				queueEaseL(step == null ? MegaManager.conductor.beatLengthMs : step, ((level / speed) * 1000) / MegaManager.conductor.stepLengthMs, bit, level, 'linear', player);
 
 		}
 	}

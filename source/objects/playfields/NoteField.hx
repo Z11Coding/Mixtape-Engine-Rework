@@ -195,7 +195,7 @@ class NoteField extends FieldBase
 					continue;
 
 				var speed:Float = modManager.getNoteSpeed(daNote, modNumber, songSpeed);
-				var visPos:Float = (daNote.visualTime - Conductor.visualPosition) * speed;
+				var visPos:Float = (daNote.visualTime - RConductor.visualPosition) * speed;
 				if (visPos > drawDist)
 					continue; // don't draw
 
@@ -447,8 +447,8 @@ class NoteField extends FieldBase
 
 
 
-	var strumDiff = (Conductor.songPosition - hold.strumTime);
-	var visualDiff = (Conductor.visualPosition - hold.visualTime); // TODO: get the start and end visualDiff and interpolate so that changing speeds mid-hold will look better
+	var strumDiff = (MegaManager.conductor.musicPosition - hold.strumTime);
+	var visualDiff = (RConductor.visualPosition - hold.visualTime); // TODO: get the start and end visualDiff and interpolate so that changing speeds mid-hold will look better
 	var sv = PlayfieldManager.getSV(hold.strumTime).speed;
 
 
@@ -684,8 +684,8 @@ class NoteField extends FieldBase
 		var visPos:Float = 0;
 		if(isNote) {
 			var speed = modManager.getNoteSpeed(note, modNumber, songSpeed);
-			diff = Conductor.songPosition - note.strumTime;
-			visPos = -((Conductor.visualPosition - note.visualTime) * speed);
+			diff = MegaManager.conductor.musicPosition - note.strumTime;
+			visPos = -((RConductor.visualPosition - note.visualTime) * speed);
 		}
 
 		var info:RenderInfo = {

@@ -110,7 +110,7 @@ class PathLine extends NoteObject {
 }
 
 class ArrowPathStrip extends objects.FunkinStrip {
-	public var thickness:Float = 20;
+	public var thickness:Float = 200;
 
 	public function new() {
 		super();

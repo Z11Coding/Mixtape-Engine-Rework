@@ -299,8 +299,10 @@ class Paths
 			FlxG.bitmap.clearUnused();
 			FlxG.bitmap.clearCache();
 			@:privateAccess {
-				for (key => asset in FlxG.bitmap._cache)
+				for (key => asset in FlxG.bitmap._cache) {
 					asset.destroy();
+					FlxG.bitmap._cache.remove(key);
+				}
 			}
 			/*try {
 
@@ -1633,7 +1635,7 @@ class Paths
 		// Validate asset path.
 		if (!Assets.exists('${graphicKey}/Animation.json'))
 		{
-		throw 'No Animation.json file exists at the specified path (${graphicKey})';
+			throw 'No Animation.json file exists at the specified path (${graphicKey})';
 		}
 
 		return FlxAnimateFrames.fromAnimate(graphicKey, validatedSettings.spritemaps, validatedSettings.metadataJson, validatedSettings.cacheKey,

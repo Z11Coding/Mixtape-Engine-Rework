@@ -411,6 +411,19 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Warm-Up Mode',
+			"Select how you would like the warm-ups to be treated",
+			'warmupMode',
+			STRING,
+			[
+				'Ask',
+				'Always',
+				'Skip',
+				'Playlist Select'
+			]);
+		option.onChange = function() {};
+		addOption(option);
+
 		var option:Option = new Option('---MENUS---',
 			"Getting tired of the same-old same-old?\nWell try out some other menus and options!",
 			'',

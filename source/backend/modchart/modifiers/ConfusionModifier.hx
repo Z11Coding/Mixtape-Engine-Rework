@@ -25,7 +25,7 @@ class ConfusionModifier extends NoteModifier {
 			case NOTE:
 				var note:Note = cast obj;
 				var speed = modMgr.getNoteSpeed(note, player);
-				var yPos:Float = ((Conductor.visualPosition - note.visualTime)) * speed;
+				var yPos:Float = ((RConductor.visualPosition - note.visualTime)) * speed;
 
 				angleX += getSubmodValue("roll", player) * yPos * 0.5;
 				angleY += getSubmodValue("twirl", player) * yPos * 0.5;
