@@ -1872,6 +1872,7 @@ class Note extends NoteObject
 		newNote.isSustainNote = template.isSustainNote;
 		newNote.prevNote = template.prevNote;
 		newNote.mustPress = template.mustPress;
+		newNote.ID = template.ID;
 		newNote.noteType = template.noteType;
 		newNote.animSuffix = template.animSuffix;
 		newNote.sustainLength = template.sustainLength;

@@ -297,14 +297,14 @@ class SserafimStage extends BaseStage
       case 'sserafimFlash':
         flashScreen(Std.parseFloat(value1));
       case 'sserafimPulseLights':
-        var threekings:Array<String> = value1.replace('[', '').replace(']', '').trim().split(',');
+        var threekings:Array<String> = value1.replace('[', '').replace(']', '').split(',');
         var throneDur:Array<Float> = [];
         var kingInt:Array<Float> = [];
         for (king in 0...threekings.length) {
           throneDur.push(Conductor.stepCrochet*0.001*8);
           kingInt.push(0.6);
         }
-        setLightState(parseBool(value2), threekings, throneDur, kingInt);
+        setLightState(parseBoolS(value1), threekings, throneDur, kingInt);
       case 'sserafimKick':
         if (parseBool(value1))
         {
@@ -443,6 +443,10 @@ class SserafimStage extends BaseStage
 
   function parseBool(value:String):Bool {
     return value.trim().toLowerCase() == "true" ? true : false;
+  }
+
+  function parseBoolS(value:String):Bool {
+    return value.length > 0 && value.trim().toLowerCase() != "false" ? true : false;
   }
 
   function flashScreen(duration:Float)

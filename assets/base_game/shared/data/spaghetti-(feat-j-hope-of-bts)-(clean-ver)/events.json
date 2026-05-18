@@ -1,530 +1,2813 @@
 {
-  "events": [
-    [269.058295964126, [["SetCameraBop", "4", "0"]]],
-    [700, [["ZoomCamera", "12", "expo"]]],
-    [700, [["FocusCamera", "-1", "-440, 150, 12, expoOut"]]],
-    [1076.34529147982, [["sserafimKick", "false", ""]]],
-    [2488, [["FocusCamera", "-1", "-71, 247, 8, expoOut"]]],
-    [2488.34529147982, [["sserafimKick", "true", ""]]],
-    [2488.99551569507, [["ZoomCamera", "8", "expo"]]],
-    [3901.34529147982, [["SetCameraBop", "2", "0"]]],
-    [4304.69955156951, [["SetHealthIcon", "1", "yunjin"]]],
-    [4304.93273542601, [["ZoomCamera", "8", "expo"]]],
-    [5112, [["sserafimSing", "[true,false,false,false,false,false]", ""]]],
-    [6860.93273542601, [["ZoomCamera", "8", "expo"]]],
-    [9013.93273542601, [["ZoomCamera", "8", "expo"]]],
-    [11165.3228699552, [["FocusCamera", "-1", "-71, 247, 4, CLASSIC"]]],
-    [11232.5874439462, [["ZoomCamera", "8", "expo"]]],
-    [11838.5560538117, [["FocusCamera", "-1", "-359, 154, 4, INSTANT"]]],
-    [11838.5560538117, [["ZoomCamera", "2", "INSTANT"]]],
-    [12376.6726457399, [["FocusCamera", "-1", "-493, 90, 4, INSTANT"]]],
-    [12376.6726457399, [["ZoomCamera", "2", "INSTANT"]]],
-    [12914.7892376682, [["FocusCamera", "-1", "-627, 27, 4, INSTANT"]]],
-    [12914.7892376682, [["ZoomCamera", "3", "INSTANT"]]],
-    [13183, [["sserafimShow", "[true,true,false,false,true]", ""]]],
-    [13452, [["sserafimSing", "[false,true,false,false,false,false]", ""]]],
-    [13721.6995515695, [["SetHealthIcon", "1", "kazuha"]]],
-    [13721.9641255605, [["FocusCamera", "-1", "209, 417, 4, CLASSIC"]]],
-    [13789.1165919283, [["ZoomCamera", "16", "expo"]]],
-    [15470.8340358744, [["ZoomCamera", "8", "expo"]]],
-    [17219, [["sserafimShow", "[true,true,false,false,true]", ""]]],
-    [17488, [["sserafimSing", "[false,false,false,false,true,false]", ""]]],
-    [17757.6995515695, [["SetHealthIcon", "1", "sakura"]]],
-    [17757.8250672646, [["FocusCamera", "-1", "1555, 660, 4, CLASSIC"]]],
-    [17825.1165919283, [["ZoomCamera", "16", "expo"]]],
-    [20044.8250672646, [["SetCameraBop", "2", "0"]]],
-    [20448.4125112108, [["ZoomCamera", "2", "INSTANT"]]],
-    [20448.8250672646, [["FocusCamera", "-1", "1585, 460, 4, INSTANT"]]],
-    [20986.529103139, [["ZoomCamera", "2", "INSTANT"]]],
-    [21390.1165470852, [["SetCameraBop", "1", "0"]]],
-    [21524.6456950673, [["ZoomCamera", "2", "INSTANT"]]],
-    [21793, [["sserafimShow", "[true,true,true,false,true]", ""]]],
-    [22062, [["sserafimSing", "[false,false,true,false,false,false]", ""]]],
-    [22600.6995515695, [["SetHealthIcon", "1", "chaewon"]]],
-    [22600.8250672646, [["FocusCamera", "-1", "940, 101, 4, CLASSIC"]]],
-    [22668.1165919283, [["ZoomCamera", "16", "expo"]]],
-    [25829.932735426, [["ZoomCamera", "4", "expo"]]],
-    [26905.8116143498, [["ZoomCamera", "4", "expo"]]],
-    [27982.932735426, [["ZoomCamera", "8", "expo"]]],
-    [29058.2779820628, [["SetCameraBop", "1", "0"]]],
-    [
-      29058.3362780269,
-      [["sserafimSing", "[false,false,false,false,false,false]", ""]]
-    ],
-    [29327.3362780269, [["FocusCamera", "-1", "900, -30, 4, INSTANT"]]],
-    [29327.3362780269, [["ZoomCamera", "4", "INSTANT"]]],
-    [29596.394573991, [["ZoomCamera", "4", "INSTANT"]]],
-    [29865.4528699552, [["ZoomCamera", "4", "INSTANT"]]],
-    [29999.9820179372, [["SetCameraBop", "1", "0"]]],
-    [30134, [["sserafimShow", "[true,true,true,true,true]", ""]]],
-    [30134, [["sserafimSing", "[false,false,false,true,false,false]", ""]]],
-    [30672.6995515695, [["SetHealthIcon", "1", "eunchae"]]],
-    [30672.8250672646, [["FocusCamera", "-1", "960, 541, 4, CLASSIC"]]],
-    [30740.1165919283, [["ZoomCamera", "16", "expo"]]],
-    [34439.932735426, [["ZoomCamera", "4", "expo"]]],
-    [35515.8116143498, [["ZoomCamera", "4", "expo"]]],
-    [36457.3811210762, [["SetCameraBop", "1", "0"]]],
-    [36591.3452914798, [["sserafimDark", "0.2", "0.1"]]],
-    [36591.8116143498, [["ZoomCamera", "2", "expo"]]],
-    [37130.3452914798, [["sserafimDark", "0.3", "0.1"]]],
-    [37130.8116143498, [["ZoomCamera", "2", "expo"]]],
-    [37668.3452914798, [["sserafimDark", "0.4", "0.1"]]],
-    [37668.8116143498, [["ZoomCamera", "2", "expo"]]],
-    [37937, [["sserafimShow", "[true,true,true,true,true]", ""]]],
-    [38206, [["sserafimGuitarVibration", "0.55", ""]]],
-    [38206.260044843, [["ZoomCamera", "4", "circ"]]],
-    [
-      38475.3452914798,
-      [["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "true"]]
-    ],
-    [38609.8474887892, [["SetCameraBop", "1", "0"]]],
-    [38744.3452914798, [["sserafimDark", "0.1", "0.47"]]],
-    [38744.3766367713, [["ZoomCamera", "1", "expo"]]],
-    [38744.3766367713, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [39013, [["sserafimSing", "[true,true,true,true,true,true]", ""]]],
-    [39282.6995515695, [["SetHealthIcon", "1", "kazuha"]]],
-    [41434.9595964126, [["ZoomCamera", "8", "expo"]]],
-    [42511.1927802691, [["ZoomCamera", "8", "INSTANT"]]],
-    [42511.197264574, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [42780.2510762332, [["ZoomCamera", "8", "INSTANT"]]],
-    [42780.8250672646, [["FocusCamera", "-1", "1555, 660, 4, INSTANT"]]],
-    [43049.3093721973, [["ZoomCamera", "8", "INSTANT"]]],
-    [43049.8250672646, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [43587.3766367713, [["FocusCamera", "-1", "620, 300, 4, CLASSIC"]]],
-    [43587.4259641256, [["ZoomCamera", "8", "expo"]]],
-    [45470.5515246636, [["ZoomCamera", "8", "INSTANT"]]],
-    [45471.0672197309, [["FocusCamera", "-1", "1000, 620, 4, INSTANT"]]],
-    [46278.4349327354, [["ZoomCamera", "8", "INSTANT"]]],
-    [46279.0089237668, [["FocusCamera", "-1", "329, 417, 4, INSTANT"]]],
-    [46547.5515246636, [["ZoomCamera", "8", "INSTANT"]]],
-    [46548.0672197309, [["FocusCamera", "-1", "1455, 660, 4, INSTANT"]]],
-    [46816, [["sserafimGuitarVibration", "0.55", ""]]],
-    [46817.1210313902, [["ZoomCamera", "8", "INSTANT"]]],
-    [46817.1255156951, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [47085.3452914798, [["sserafimPulseLights", "false", ""]]],
-    [47354.3452914798, [["sserafimLights", "0.7", "0.5"]]],
-    [47354.3766367713, [["ZoomCamera", "8", "expo"]]],
-    [
-      47623.3452914798,
-      [["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "true"]]
-    ],
-    [47892.3586995516, [["FocusCamera", "-1", "49, 367, 16, expoOut"]]],
-    [47892.3586995516, [["ZoomCamera", "16", "expo"]]],
-    [50044.8250672646, [["FocusCamera", "-1", "1555, 660, 4, CLASSIC"]]],
-    [50112.1165919283, [["ZoomCamera", "16", "expo"]]],
-    [50448.4125112108, [["ZoomCamera", "4", "expo"]]],
-    [51121.0582511211, [["ZoomCamera", "2", "INSTANT"]]],
-    [51390.1165470852, [["ZoomCamera", "2", "INSTANT"]]],
-    [51659.1748430493, [["ZoomCamera", "2", "INSTANT"]]],
-    [52197.3766367713, [["FocusCamera", "-1", "620, 300, 4, CLASSIC"]]],
-    [52197.4259641256, [["ZoomCamera", "8", "expo"]]],
-    [54080.5515246636, [["ZoomCamera", "8", "INSTANT"]]],
-    [54081.0672197309, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [54618.3452914798, [["sserafimPulseLights", "false", ""]]],
-    [54887.8699103139, [["ZoomCamera", "8", "INSTANT"]]],
-    [54887.8743946188, [["FocusCamera", "-1", "1000, 620, 4, INSTANT"]]],
-    [55156.5515246636, [["ZoomCamera", "8", "INSTANT"]]],
-    [55157.0672197309, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [55425, [["sserafimGuitarVibration", "0.55", ""]]],
-    [55425.9909865471, [["FocusCamera", "-1", "229, 317, 4, INSTANT"]]],
-    [55425.9909865471, [["ZoomCamera", "8", "INSTANT"]]],
-    [55493.260044843, [["ZoomCamera", "3.5", "circ"]]],
-    [
-      55695.3452914798,
-      [
-        [
-          "sserafimPulseLights",
-          "[0xFFFF0000,0xFFFF33CC,0xFF00CC33,0xFF3366FF]",
-          "true"
-        ]
-      ]
-    ],
-    [55829.5784304933, [["SetCameraBop", "1", "0"]]],
-    [55964.3452914798, [["sserafimDark", "0.1", "0.6"]]],
-    [55964.3766367713, [["ZoomCamera", "1", "expo"]]],
-    [55964.3766367713, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [57040.3766367713, [["ZoomCamera", "4", "expo"]]],
-    [58116.5739461883, [["ZoomCamera", "4", "expo"]]],
-    [59192.2331390134, [["ZoomCamera", "8", "INSTANT"]]],
-    [59192.8071300448, [["FocusCamera", "-1", "1555, 660, 4, INSTANT"]]],
-    [59461.3497309416, [["ZoomCamera", "8", "INSTANT"]]],
-    [59461.8654260089, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [59730.9192376682, [["ZoomCamera", "8", "INSTANT"]]],
-    [59730.9237219731, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [60269.3766367713, [["ZoomCamera", "1", "expo"]]],
-    [60269.3766367713, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [61345.3766367713, [["ZoomCamera", "4", "expo"]]],
-    [62152.3452914798, [["sserafimPulseLights", "false", ""]]],
-    [62421.3452914798, [["sserafimCover", "true", ""]]],
-    [62556.0358295964, [["SetCameraBop", "1", "0"]]],
-    [62690.3452914798, [["sserafimCover", "false", ""]]],
-    [63497.3766367713, [["ZoomCamera", "1", "INSTANT"]]],
-    [63497.3766367713, [["FocusCamera", "-1", "920, 400, 4, INSTANT"]]],
-    [63766.3766367713, [["ZoomCamera", "1", "INSTANT"]]],
-    [63766.3766367713, [["FocusCamera", "-1", "1220, 500, 4, INSTANT"]]],
-    [64035.3452914798, [["sserafimCover", "true", ""]]],
-    [64035.3452914798, [["sserafimCover", "true", ""]]],
-    [64035.8564573991, [["FocusCamera", "-1", "1555, 660, 4, INSTANT"]]],
-    [64035.8564573991, [["ZoomCamera", "8", "INSTANT"]]],
-    [
-      64304.3452914798,
-      [["sserafimPulseLights", "[0xFF3386A7,0xFF3386A7]", "true"]]
-    ],
-    [64439.4439013453, [["SetCameraBop", "2", "0"]]],
-    [64573.3452914798, [["sserafimDark", "0.1", "0.83"]]],
-    [64573.3452914798, [["sserafimCover", "false", ""]]],
-    [64573.3452914798, [["sserafimFlash", "1.6", ""]]],
-    [64573.9730493273, [["ZoomCamera", "8", "expo"]]],
-    [64775, [["sserafimSing", "[false,false,false,false,true,false]", ""]]],
-    [64843.6995515695, [["SetHealthIcon", "1", "sakura"]]],
-    [66995.4977130045, [["ZoomCamera", "8", "expo"]]],
-    [
-      67937.3452914798,
-      [["sserafimPulseLights", "[0xFF3386A7,0xFF7FBAC6]", "[0.5,0.7]"]]
-    ],
-    [68071.730896861, [["SetCameraBop", "2", "1"]]],
-    [68340.7891928251, [["ZoomCamera", "8", "expo"]]],
-    [69147.9057847534, [["ZoomCamera", "8", "expo"]]],
-    [71031.3721524664, [["ZoomCamera", "8", "expo"]]],
-    [71569.4887443946, [["ZoomCamera", "8", "expo"]]],
-    [72376.3452914798, [["sserafimPulseLights", "[0xFF8BAEB5]", "[0.9]"]]],
-    [72645.7219282511, [["ZoomCamera", "8", "expo"]]],
-    [
-      72914.3452914798,
-      [["sserafimPulseLights", "[0xFF017690,0xFFB65EC1]", "[0.5,0.7]"]]
-    ],
-    [73049.3093721973, [["SetCameraBop", "1", "1"]]],
-    [73183.8385201794, [["ZoomCamera", "8", "expo"]]],
-    [73452.8968161435, [["SetCameraBop", "2", "1"]]],
-    [73721.9551121076, [["ZoomCamera", "8", "expo"]]],
-    [73856.3093721973, [["SetCameraBop", "1", "1.2"]]],
-    [74529.13, [["SetCameraBop", "2", "1.6"]]],
-    [74798.1882959641, [["ZoomCamera", "8", "expo"]]],
-    [74932.5425560538, [["SetCameraBop", "1", "1"]]],
-    [75336.3048878924, [["ZoomCamera", "8", "expo"]]],
-    [75605.13, [["SetCameraBop", "2", "1"]]],
-    [76008.5425560538, [["SetCameraBop", "1", "1.2"]]],
-    [76278.0089237668, [["ZoomCamera", "8", "expo"]]],
-    [76681.13, [["SetCameraBop", "2", "1"]]],
-    [76950.6546636771, [["ZoomCamera", "8", "expo"]]],
-    [77084.5425560538, [["SetCameraBop", "1", "1.2"]]],
-    [77488.7712556054, [["ZoomCamera", "8", "expo"]]],
-    [77757.13, [["SetCameraBop", "2", "1"]]],
-    [78160.5425560538, [["SetCameraBop", "1", "1.2"]]],
-    [78565.0044394619, [["ZoomCamera", "8", "expo"]]],
-    [78834.13, [["SetCameraBop", "2", "1"]]],
-    [79237.5425560538, [["SetCameraBop", "1", "1.2"]]],
-    [79506.7084753363, [["ZoomCamera", "8", "expo"]]],
-    [79910.2959192825, [["SetCameraBop", "2", "1"]]],
-    [80179.3542152466, [["ZoomCamera", "8", "expo"]]],
-    [80313.7084753363, [["SetCameraBop", "1", "1.2"]]],
-    [80448.3452914798, [["sserafimPulseLights", "false", ""]]],
-    [80582.9416591928, [["ZoomCamera", "8", "expo"]]],
-    [80986.3452914798, [["sserafimPulseLights", "[0xFF8BAEB5]", "[0.9]"]]],
-    [81255, [["sserafimGuitarVibration", "0.55", ""]]],
-    [81255.5873991031, [["ZoomCamera", "8", "expo"]]],
-    [81322.260044843, [["ZoomCamera", "3.5", "circ"]]],
-    [
-      81659.3452914798,
-      [
-        [
-          "sserafimPulseLights",
-          "[0xFF017690,0xFF10CE6C,0xFFF0B67F,0xFFB65EC1]",
-          "[0.5,0.7,0.4,0.7]"
-        ]
-      ]
-    ],
-    [81793.3766367713, [["ZoomCamera", "1", "expo"]]],
-    [81793.3766367713, [["FocusCamera", "-1", "1255, 660, 4, INSTANT"]]],
-    [81860.9371748879, [["FocusCamera", "-1", "1500, 660, 36, linearIn"]]],
-    [82062.7622869955, [["SetCameraBop", "2", "1.8"]]],
-    [82466.3497309417, [["SetCameraBop", "1", "1"]]],
-    [83138.995470852, [["SetCameraBop", "2", "1"]]],
-    [83542.5829147982, [["SetCameraBop", "1", "1.4"]]],
-    [83946.3721524664, [["ZoomCamera", "8", "expo"]]],
-    [84215.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [84619.5829147982, [["SetCameraBop", "1", "1"]]],
-    [85291.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [85560.5201345291, [["ZoomCamera", "8", "expo"]]],
-    [85695.5829147982, [["SetCameraBop", "1", "1"]]],
-    [86367.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [86502.3766367713, [["ZoomCamera", "1", "expo"]]],
-    [86502.3766367713, [["FocusCamera", "-1", "1555, 820, 4, INSTANT"]]],
-    [86569.9371748879, [["FocusCamera", "-1", "1555, 620, 31, linearIn"]]],
-    [86771.5829147982, [["SetCameraBop", "1", "1"]]],
-    [87443.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [87847.5829147982, [["SetCameraBop", "1", "1"]]],
-    [88251.0896860987, [["ZoomCamera", "8", "expo"]]],
-    [88520.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [88924.5829147982, [["SetCameraBop", "1", "1"]]],
-    [89596.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [89865.4394618834, [["ZoomCamera", "8", "expo"]]],
-    [90000.5829147982, [["SetCameraBop", "1", "1"]]],
-    [90538.0852017937, [["SetCameraBop", "2", "1.6"]]],
-    [90672.3766367713, [["ZoomCamera", "1", "expo"]]],
-    [90672.3766367713, [["FocusCamera", "-1", "1655, 660, 4, INSTANT"]]],
-    [90739.9371748879, [["FocusCamera", "-1", "1555, 660, 32, linearIn"]]],
-    [91075.5425560538, [["SetCameraBop", "1", "1"]]],
-    [91614.3183856502, [["ZoomCamera", "8", "expo"]]],
-    [91748.13, [["SetCameraBop", "2", "1.6"]]],
-    [92151.5425560538, [["SetCameraBop", "1", "1"]]],
-    [92690.5515695067, [["ZoomCamera", "8", "expo"]]],
-    [92825.13, [["SetCameraBop", "2", "1.6"]]],
-    [93228.5425560538, [["SetCameraBop", "1", "1"]]],
-    [93766.7847533632, [["ZoomCamera", "8", "expo"]]],
-    [93901.13, [["SetCameraBop", "2", "1.6"]]],
-    [94170.7847533632, [["ZoomCamera", "8", "expo"]]],
-    [94304.5425560538, [["SetCameraBop", "1", "1"]]],
-    [94843.0179372197, [["SetCameraBop", "2", "1.6"]]],
-    [94977.3766367713, [["ZoomCamera", "1", "expo"]]],
-    [94977.3766367713, [["FocusCamera", "-1", "1355, 660, 4, INSTANT"]]],
-    [95044.9371748879, [["FocusCamera", "-1", "1450, 660, 27, linearIn"]]],
-    [95380.5425560538, [["SetCameraBop", "1", "1"]]],
-    [95650.197273991, [["ZoomCamera", "8", "expo"]]],
-    [96053.13, [["SetCameraBop", "2", "1.6"]]],
-    [96456.5425560538, [["SetCameraBop", "1", "1"]]],
-    [96726.4304578475, [["ZoomCamera", "8", "expo"]]],
-    [97130.13, [["SetCameraBop", "2", "1.6"]]],
-    [97399.3452914798, [["sserafimPulseLights", "false", ""]]],
-    [97533.5425560538, [["SetCameraBop", "1", "1"]]],
-    [97668.134493722, [["SetCameraBop", "2", "1"]]],
-    [97802.4304578475, [["ZoomCamera", "8", "expo"]]],
-    [98475.3093816144, [["ZoomCamera", "8", "expo"]]],
-    [98878.9057847534, [["SetCameraBop", "2", "0"]]],
-    [99013.3452914798, [["sserafimDark", "0.1", "0.76"]]],
-    [99013.4259735426, [["ZoomCamera", "4", "expo"]]],
-    [99147, [["sserafimSing", "[false,true,false,false,false,false]", ""]]],
-    [99147.3452914798, [["sserafimDark", "3.2", "0.5"]]],
-    [99686.0717134529, [["SetCameraBop", "2", "0"]]],
-    [99820.6995515695, [["SetHealthIcon", "1", "kazuha"]]],
-    [99820.9641255605, [["FocusCamera", "-1", "329, 417, 4, CLASSIC"]]],
-    [99888.1165919283, [["ZoomCamera", "16", "expo"]]],
-    [101031.372152466, [["SetCameraBop", "2", "0"]]],
-    [101434.95063722, [["ZoomCamera", "8", "expo"]]],
-    [101973.067229148, [["SetCameraBop", "2", "0"]]],
-    [102107.59637713, [["ZoomCamera", "8", "expo"]]],
-    [103049.300413004, [["ZoomCamera", "8", "expo"]]],
-    [103183.838520179, [["SetCameraBop", "2", "0"]]],
-    [104125.533596861, [["SetCameraBop", "2", "0"]]],
-    [104260.95063722, [["ZoomCamera", "8", "expo"]]],
-    [105201.24211704, [["ZoomCamera", "8", "expo"]]],
-    [105336.304887892, [["SetCameraBop", "2", "0"]]],
-    [106143.058260538, [["ZoomCamera", "8", "expo"]]],
-    [106547.058260538, [["ZoomCamera", "4", "expo"]]],
-    [107085.174852466, [["ZoomCamera", "4", "expo"]]],
-    [107488.771255605, [["SetCameraBop", "1", "0"]]],
-    [107623.291444395, [["ZoomCamera", "4", "expo"]]],
-    [108026, [["sserafimSing", "[false,false,false,false,false,false]", ""]]],
-    [108094, [["sserafimSing", "[false,false,true,false,false,false]", ""]]],
-    [108430.69955157, [["SetHealthIcon", "1", "chaewon"]]],
-    [108430.825067265, [["FocusCamera", "-1", "940, 101, 4, CLASSIC"]]],
-    [108498.116591928, [["ZoomCamera", "16", "expo"]]],
-    [110313.874404036, [["ZoomCamera", "8", "expo"]]],
-    [111390.107587892, [["ZoomCamera", "8", "expo"]]],
-    [112062, [["sserafimSing", "[false,false,false,false,false,false]", ""]]],
-    [112130, [["sserafimSing", "[false,false,false,true,false,false]", ""]]],
-    [112331.69955157, [["SetHealthIcon", "1", "eunchae"]]],
-    [112331.825067265, [["FocusCamera", "-1", "960, 541, 4, CLASSIC"]]],
-    [112399.116591928, [["ZoomCamera", "16", "expo"]]],
-    [114349, [["sserafimBeautiful", "true", ""]]],
-    [114753, [["sserafimSing", "[false,false,false,true,false,true]", ""]]],
-    [114753.058260538, [["ZoomCamera", "8", "expo"]]],
-    [114753.69955157, [["SetHealthIcon", "0", "true"]]],
-    [114753.825067265, [["FocusCamera", "-1", "1060, 400, 8, CLASSIC"]]],
-    [115156.92373139, [["ZoomCamera", "4", "expo"]]],
-    [115695.040323318, [["ZoomCamera", "8", "expo"]]],
-    [
-      115896.34529148,
-      [["sserafimPulseLights", "[0xFF6D43FF,0xFF3636f7]", "true"]]
-    ],
-    [116098.636726457, [["SetCameraBop", "1", "1.1"]]],
-    [116233.156915247, [["ZoomCamera", "8", "expo"]]],
-    [116233.34529148, [["sserafimDark", "0.5", "0.78"]]],
-    [116704, [["sserafimSing", "[false,false,false,false,false,true]", ""]]],
-    [117040, [["sserafimSing", "[true,false,false,false,false,true]", ""]]],
-    [117309.390099103, [["FocusCamera", "-1", "100, 247, 8, CLASSIC"]]],
-    [117309.69955157, [["SetHealthIcon", "1", "yunjin"]]],
-    [117377.116591928, [["ZoomCamera", "16", "expo"]]],
-    [119596.34529148, [["sserafimLights", "1", "0.5"]]],
-    [119865.34529148, [["sserafimLights", "1", "0.5"]]],
-    [120538.932735426, [["ZoomCamera", "4", "expo"]]],
-    [121614.81161435, [["ZoomCamera", "4", "expo"]]],
-    [122691.932735426, [["ZoomCamera", "8", "expo"]]],
-    [123766, [["sserafimSing", "[false,false,false,false,false,false]", ""]]],
-    [123767.277982063, [["SetCameraBop", "1", "0"]]],
-    [123834.34529148, [["sserafimPulseLights", "false", ""]]],
-    [124035.336278027, [["FocusCamera", "-1", "300, 200, 4, INSTANT"]]],
-    [124035.336278027, [["ZoomCamera", "4", "INSTANT"]]],
-    [124304, [["sserafimSing", "[false,false,false,false,false,false]", ""]]],
-    [124304.394573991, [["ZoomCamera", "4", "INSTANT"]]],
-    [124305.336278027, [["FocusCamera", "-1", "400, 160, 4, INSTANT"]]],
-    [
-      124439.34529148,
-      [["sserafimPulseLights", "[0xFF6D43FF,0xFF3636f7]", "true"]]
-    ],
-    [124573.452869955, [["ZoomCamera", "4", "INSTANT"]]],
-    [124574.452869955, [["FocusCamera", "-1", "500, 120, 4, INSTANT"]]],
-    [124708, [["sserafimSing", "[false,false,true,false,false,true]", ""]]],
-    [124708.982017937, [["SetCameraBop", "1", "0"]]],
-    [125381.69955157, [["SetHealthIcon", "1", "chaewon"]]],
-    [125381.825067265, [["FocusCamera", "-1", "940, 101, 16, expoOut"]]],
-    [125449.116591928, [["ZoomCamera", "16", "expo"]]],
-    [129148.932735426, [["ZoomCamera", "4", "expo"]]],
-    [130224.81161435, [["ZoomCamera", "4", "expo"]]],
-    [131166.381121076, [["SetCameraBop", "1", "0"]]],
-    [131300.34529148, [["sserafimDark", "0.84", "0.1"]]],
-    [131300.81161435, [["ZoomCamera", "2", "expo"]]],
-    [131502.34529148, [["sserafimPulseLights", "false", ""]]],
-    [131838.34529148, [["sserafimDark", "0.88", "0.1"]]],
-    [131839.81161435, [["ZoomCamera", "2", "expo"]]],
-    [132376.34529148, [["sserafimDark", "0.92", "0.1"]]],
-    [132377.81161435, [["ZoomCamera", "2", "expo"]]],
-    [132646, [["sserafimShow", "[true,true,true,true,true]", ""]]],
-    [132780, [["sserafimBeautiful", "false", ""]]],
-    [132915, [["sserafimGuitarVibration", "0.55", ""]]],
-    [132915.260044843, [["ZoomCamera", "4", "circ"]]],
-    [
-      133183.34529148,
-      [["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "[0.7,0.9]"]]
-    ],
-    [133318.847488789, [["SetCameraBop", "1", "1.2"]]],
-    [133452.34529148, [["sserafimDark", "0.47", "0.1"]]],
-    [133452.376636771, [["ZoomCamera", "1", "expo"]]],
-    [133452.376636771, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [133721, [["sserafimSing", "[true,true,true,true,true,true]", ""]]],
-    [133990.69955157, [["SetHealthIcon", "1", "kazuha"]]],
-    [133990.69955157, [["SetHealthIcon", "0", "true"]]],
-    [136142.959596413, [["ZoomCamera", "8", "expo"]]],
-    [137219.192780269, [["ZoomCamera", "8", "INSTANT"]]],
-    [137219.197264574, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [137488.251076233, [["ZoomCamera", "8", "INSTANT"]]],
-    [137488.825067265, [["FocusCamera", "-1", "1555, 660, 4, INSTANT"]]],
-    [137757.309372197, [["ZoomCamera", "8", "INSTANT"]]],
-    [137757.825067265, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [138295.376636771, [["FocusCamera", "-1", "620, 300, 4, CLASSIC"]]],
-    [138295.425964126, [["ZoomCamera", "8", "expo"]]],
-    [140179.551524664, [["ZoomCamera", "8", "INSTANT"]]],
-    [140180.067219731, [["FocusCamera", "-1", "1000, 620, 4, INSTANT"]]],
-    [140987.434932735, [["ZoomCamera", "8", "INSTANT"]]],
-    [140988.008923767, [["FocusCamera", "-1", "329, 417, 4, INSTANT"]]],
-    [141256.551524664, [["ZoomCamera", "8", "INSTANT"]]],
-    [141257.067219731, [["FocusCamera", "-1", "1455, 660, 4, INSTANT"]]],
-    [141524, [["sserafimGuitarVibration", "0.55", ""]]],
-    [141526.12103139, [["ZoomCamera", "8", "INSTANT"]]],
-    [141526.125515695, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [141793.34529148, [["sserafimPulseLights", "false", ""]]],
-    [142062.34529148, [["sserafimLights", "0.7", "0.5"]]],
-    [142062.376636771, [["ZoomCamera", "8", "expo"]]],
-    [
-      142331.34529148,
-      [["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "[0.7,0.9]"]]
-    ],
-    [142600.358699552, [["FocusCamera", "-1", "49, 367, 16, expoOut"]]],
-    [142600.358699552, [["ZoomCamera", "16", "expo"]]],
-    [144752.825067265, [["FocusCamera", "-1", "1555, 660, 4, CLASSIC"]]],
-    [144820.116591928, [["ZoomCamera", "16", "expo"]]],
-    [145156.412511211, [["ZoomCamera", "4", "expo"]]],
-    [145829.058251121, [["ZoomCamera", "2", "INSTANT"]]],
-    [146098.116547085, [["ZoomCamera", "2", "INSTANT"]]],
-    [146367.174843049, [["ZoomCamera", "2", "INSTANT"]]],
-    [146905.376636771, [["FocusCamera", "-1", "620, 300, 4, CLASSIC"]]],
-    [146905.425964126, [["ZoomCamera", "8", "expo"]]],
-    [148789.551524664, [["ZoomCamera", "8", "INSTANT"]]],
-    [148790.067219731, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [149192.34529148, [["sserafimPulseLights", "false", ""]]],
-    [149394.600852018, [["SetCameraBop", "2", "0"]]],
-    [149596.869910314, [["ZoomCamera", "8", "INSTANT"]]],
-    [149596.874394619, [["FocusCamera", "-1", "1000, 620, 4, INSTANT"]]],
-    [149865.551524664, [["ZoomCamera", "8", "INSTANT"]]],
-    [149866.067219731, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [150134, [["sserafimGuitarVibration", "0.55", ""]]],
-    [150134.990986547, [["FocusCamera", "-1", "229, 317, 4, INSTANT"]]],
-    [150134.990986547, [["ZoomCamera", "8", "INSTANT"]]],
-    [150202.260044843, [["ZoomCamera", "3.5", "circ"]]],
-    [
-      150403.34529148,
-      [
-        [
-          "sserafimPulseLights",
-          "[0xFFFF0000,0xFFFF33CC,0xFF00CC33,0xFF3366FF]",
-          "[0.7,0.9,0.7,0.9]"
-        ]
-      ]
-    ],
-    [150537.578430493, [["SetCameraBop", "1", "0"]]],
-    [150538.098609865, [["SetCameraBop", "1", "1.4"]]],
-    [150672.34529148, [["sserafimDark", "0.1", "0.6"]]],
-    [150672.376636771, [["ZoomCamera", "1", "expo"]]],
-    [150672.376636771, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [150941.762286996, [["SetCameraBop", "2", "1"]]],
-    [151345.349730942, [["SetCameraBop", "1", "1.4"]]],
-    [151748.376636771, [["ZoomCamera", "4", "expo"]]],
-    [152017.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [152421.582914798, [["SetCameraBop", "1", "1"]]],
-    [152824.573946188, [["ZoomCamera", "4", "expo"]]],
-    [153094.152421525, [["SetCameraBop", "2", "1"]]],
-    [153497.739865471, [["SetCameraBop", "1", "1.4"]]],
-    [153900.233139013, [["ZoomCamera", "8", "INSTANT"]]],
-    [153900.807130045, [["FocusCamera", "-1", "1555, 660, 4, INSTANT"]]],
-    [154169.349730942, [["ZoomCamera", "8", "INSTANT"]]],
-    [154169.865426009, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [154170.385605381, [["SetCameraBop", "2", "1.8"]]],
-    [154438.919237668, [["ZoomCamera", "8", "INSTANT"]]],
-    [154438.923721973, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [154573.973049327, [["SetCameraBop", "1", "1"]]],
-    [154977.376636771, [["ZoomCamera", "1", "expo"]]],
-    [154977.376636771, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [155246.762286996, [["SetCameraBop", "2", "1"]]],
-    [155650.349730942, [["SetCameraBop", "1", "1.4"]]],
-    [156053.376636771, [["ZoomCamera", "4", "expo"]]],
-    [156322.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [156726.582914798, [["SetCameraBop", "1", "1"]]],
-    [157399.551524664, [["ZoomCamera", "8", "INSTANT"]]],
-    [157399.762286996, [["SetCameraBop", "2", "1.8"]]],
-    [157400.067219731, [["FocusCamera", "-1", "1000, 620, 4, INSTANT"]]],
-    [157803.349730942, [["SetCameraBop", "1", "1"]]],
-    [158207.434932735, [["ZoomCamera", "8", "INSTANT"]]],
-    [158208.008923767, [["FocusCamera", "-1", "329, 417, 4, INSTANT"]]],
-    [158476.551524664, [["ZoomCamera", "8", "INSTANT"]]],
-    [158477.067219731, [["FocusCamera", "-1", "1455, 660, 4, INSTANT"]]],
-    [158746.12103139, [["ZoomCamera", "8", "INSTANT"]]],
-    [158746.125515695, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [159282.376636771, [["ZoomCamera", "1", "expo"]]],
-    [159282.376636771, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [159551.762286996, [["SetCameraBop", "2", "1"]]],
-    [159955.349730942, [["SetCameraBop", "1", "1.4"]]],
-    [160358.376636771, [["ZoomCamera", "4", "expo"]]],
-    [160627.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [161031.582914798, [["SetCameraBop", "1", "1"]]],
-    [161434.573946188, [["ZoomCamera", "4", "expo"]]],
-    [161704.017892377, [["SetCameraBop", "2", "1"]]],
-    [162107.605336323, [["SetCameraBop", "1", "1.4"]]],
-    [162511.233139013, [["ZoomCamera", "8", "INSTANT"]]],
-    [162511.807130045, [["FocusCamera", "-1", "1000, 620, 4, INSTANT"]]],
-    [162780.349730942, [["ZoomCamera", "8", "INSTANT"]]],
-    [162780.865426009, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [162781.251076233, [["SetCameraBop", "2", "1"]]],
-    [163049.919237668, [["ZoomCamera", "8", "INSTANT"]]],
-    [163049.923721973, [["FocusCamera", "-1", "229, 317, 4, INSTANT"]]],
-    [163183.838520179, [["SetCameraBop", "1", "1"]]],
-    [163587.376636771, [["ZoomCamera", "1", "expo"]]],
-    [163587.376636771, [["FocusCamera", "-1", "620, 300, 4, INSTANT"]]],
-    [163856.762286996, [["SetCameraBop", "2", "1"]]],
-    [164260.349730942, [["SetCameraBop", "1", "1.4"]]],
-    [164663.376636771, [["ZoomCamera", "4", "expo"]]],
-    [164932.995470852, [["SetCameraBop", "2", "1.8"]]],
-    [165336.582914798, [["SetCameraBop", "1", "1"]]],
-    [166008.416995516, [["ZoomCamera", "8", "INSTANT"]]],
-    [166008.762286996, [["SetCameraBop", "2", "1"]]],
-    [166008.932690583, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [166412.349730942, [["SetCameraBop", "1", "1.4"]]],
-    [166547.34529148, [["sserafimPulseLights", "false", ""]]],
-    [166815.735381166, [["ZoomCamera", "8", "INSTANT"]]],
-    [166815.739865471, [["FocusCamera", "-1", "-371, 147, 4, INSTANT"]]],
-    [166950.654663677, [["SetCameraBop", "2", "0"]]],
-    [167084.416995516, [["ZoomCamera", "8", "INSTANT"]]],
-    [167084.932690583, [["FocusCamera", "-1", "870, 81, 4, INSTANT"]]],
-    [167286, [["sserafimEnd", "", ""]]]
-  ],
-  "format": "psych_v1_convert"
+	"events": [
+		[
+			269.058295964126,
+			[
+				["SetCameraBop", "4", "0"]
+			]
+		],
+		[
+			700,
+			[
+				["ZoomCamera", "12,1.8", "expoOut"]
+			]
+		],
+		[
+			700,
+			[
+				["FocusCamera", "-1", "-440, 150, 12, expoOut"]
+			]
+		],
+		[
+			1076.34529147982,
+			[
+				["sserafimKick", "false", ""]
+			]
+		],
+		[
+			2488,
+			[
+				["FocusCamera", "-1", "-71, 247, 8, expoOut"]
+			]
+		],
+		[
+			2488.34529147982,
+			[
+				["sserafimKick", "true", ""]
+			]
+		],
+		[
+			2488.99551569507,
+			[
+				["ZoomCamera", "8,1", "expoOut"]
+			]
+		],
+		[
+			3901.34529147982,
+			[
+				["SetCameraBop", "2", "1.2"]
+			]
+		],
+		[
+			4304.69955156951,
+			[
+				["SetHealthIcon", "1", "yunjin"]
+			]
+		],
+		[
+			4304.93273542601,
+			[
+				["ZoomCamera", "8,1.1", "expoOut"]
+			]
+		],
+		[
+			5112,
+			[
+				["sserafimSing", "[true,false,false,false,false,false]", ""]
+			]
+		],
+		[
+			6860.93273542601,
+			[
+				["ZoomCamera", "8,1.15", "expoOut"]
+			]
+		],
+		[
+			9013.93273542601,
+			[
+				["ZoomCamera", "8,1.1", "expoOut"]
+			]
+		],
+		[
+			11165.3228699552,
+			[
+				["FocusCamera", "-1", "-71, 247, 4, classic"]
+			]
+		],
+		[
+			11232.5874439462,
+			[
+				["ZoomCamera", "8,1.1", "expoOut"]
+			]
+		],
+		[
+			11838.5560538117,
+			[
+				["FocusCamera", "-1", "-359, 154, 4, instant"]
+			]
+		],
+		[
+			11838.5560538117,
+			[
+				["ZoomCamera", "2,1.6", "instant"]
+			]
+		],
+		[
+			12376.6726457399,
+			[
+				["FocusCamera", "-1", "-493, 90, 4, instant"]
+			]
+		],
+		[
+			12376.6726457399,
+			[
+				["ZoomCamera", "2,2.2", "instant"]
+			]
+		],
+		[
+			12914.7892376682,
+			[
+				["FocusCamera", "-1", "-627, 27, 4, instant"]
+			]
+		],
+		[
+			12914.7892376682,
+			[
+				["ZoomCamera", "3,2.7", "instant"]
+			]
+		],
+		[
+			13183,
+			[
+				["sserafimShow", "[true,true,false,false,true]", ""]
+			]
+		],
+		[
+			13452,
+			[
+				["sserafimSing", "[false,true,false,false,false,false]", ""]
+			]
+		],
+		[
+			13721.6995515695,
+			[
+				["SetHealthIcon", "1", "kazuha"]
+			]
+		],
+		[
+			13721.9641255605,
+			[
+				["FocusCamera", "-1", "209, 417, 4, classic"]
+			]
+		],
+		[
+			13789.1165919283,
+			[
+				["ZoomCamera", "16,1.1", "expoOut"]
+			]
+		],
+		[
+			15470.8340358744,
+			[
+				["ZoomCamera", "8,1.15", "expoOut"]
+			]
+		],
+		[
+			17219,
+			[
+				["sserafimShow", "[true,true,false,false,true]", ""]
+			]
+		],
+		[
+			17488,
+			[
+				["sserafimSing", "[false,false,false,false,true,false]", ""]
+			]
+		],
+		[
+			17757.6995515695,
+			[
+				["SetHealthIcon", "1", "sakura"]
+			]
+		],
+		[
+			17757.8250672646,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, classic"]
+			]
+		],
+		[
+			17825.1165919283,
+			[
+				["ZoomCamera", "16,1.1", "expoOut"]
+			]
+		],
+		[
+			20044.8250672646,
+			[
+				["SetCameraBop", "2", "0"]
+			]
+		],
+		[
+			20448.4125112108,
+			[
+				["ZoomCamera", "2,1.9", "instant"]
+			]
+		],
+		[
+			20448.8250672646,
+			[
+				["FocusCamera", "-1", "1585, 460, 4, instant"]
+			]
+		],
+		[
+			20986.529103139,
+			[
+				["ZoomCamera", "2,2.2", "instant"]
+			]
+		],
+		[
+			21390.1165470852,
+			[
+				["SetCameraBop", "1", "0.9"]
+			]
+		],
+		[
+			21524.6456950673,
+			[
+				["ZoomCamera", "2,2.6", "instant"]
+			]
+		],
+		[
+			21793,
+			[
+				["sserafimShow", "[true,true,true,false,true]", ""]
+			]
+		],
+		[
+			22062,
+			[
+				["sserafimSing", "[false,false,true,false,false,false]", ""]
+			]
+		],
+		[
+			22600.6995515695,
+			[
+				["SetHealthIcon", "1", "chaewon"]
+			]
+		],
+		[
+			22600.8250672646,
+			[
+				["FocusCamera", "-1", "940, 101, 4, classic"]
+			]
+		],
+		[
+			22668.1165919283,
+			[
+				["ZoomCamera", "16,1.1", "expoOut"]
+			]
+		],
+		[
+			25829.932735426,
+			[
+				["ZoomCamera", "4,1.15", "expoOut"]
+			]
+		],
+		[
+			26905.8116143498,
+			[
+				["ZoomCamera", "4,1.2", "expoOut"]
+			]
+		],
+		[
+			27982.932735426,
+			[
+				["ZoomCamera", "8,1.1", "expoOut"]
+			]
+		],
+		[
+			29058.2779820628,
+			[
+				["SetCameraBop", "1", "0"]
+			]
+		],
+		[
+			29058.3362780269,
+			[
+				["sserafimSing", "[false,false,false,false,false,false]", ""]
+			]
+		],
+		[
+			29327.3362780269,
+			[
+				["FocusCamera", "-1", "900, -30, 4, instant"]
+			]
+		],
+		[
+			29327.3362780269,
+			[
+				["ZoomCamera", "4,1.6", "instant"]
+			]
+		],
+		[
+			29596.394573991,
+			[
+				["ZoomCamera", "4,1.8", "instant"]
+			]
+		],
+		[
+			29865.4528699552,
+			[
+				["ZoomCamera", "4,2", "instant"]
+			]
+		],
+		[
+			29999.9820179372,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			30134,
+			[
+				["sserafimShow", "[true,true,true,true,true]", ""]
+			]
+		],
+		[
+			30134,
+			[
+				["sserafimSing", "[false,false,false,true,false,false]", ""]
+			]
+		],
+		[
+			30672.6995515695,
+			[
+				["SetHealthIcon", "1", "eunchae"]
+			]
+		],
+		[
+			30672.8250672646,
+			[
+				["FocusCamera", "-1", "960, 541, 4, classic"]
+			]
+		],
+		[
+			30740.1165919283,
+			[
+				["ZoomCamera", "16,1.1", "expoOut"]
+			]
+		],
+		[
+			34439.932735426,
+			[
+				["ZoomCamera", "4,1.15", "expoOut"]
+			]
+		],
+		[
+			35515.8116143498,
+			[
+				["ZoomCamera", "4,1.2", "expoOut"]
+			]
+		],
+		[
+			36457.3811210762,
+			[
+				["SetCameraBop", "1", "0"]
+			]
+		],
+		[
+			36591.3452914798,
+			[
+				["sserafimDark", "0.1", "0.2"]
+			]
+		],
+		[
+			36591.8116143498,
+			[
+				["ZoomCamera", "2,1.3", "expoOut"]
+			]
+		],
+		[
+			37130.3452914798,
+			[
+				["sserafimDark", "0.1", "0.3"]
+			]
+		],
+		[
+			37130.8116143498,
+			[
+				["ZoomCamera", "2,1.4", "expoOut"]
+			]
+		],
+		[
+			37668.3452914798,
+			[
+				["sserafimDark", "0.1", "0.4"]
+			]
+		],
+		[
+			37668.8116143498,
+			[
+				["ZoomCamera", "2,1.5", "expoOut"]
+			]
+		],
+		[
+			37937,
+			[
+				["sserafimShow", "[true,true,true,true,true]", ""]
+			]
+		],
+		[
+			38206,
+			[
+				["sserafimGuitarVibration", "0.55", ""]
+			]
+		],
+		[
+			38206.260044843,
+			[
+				["ZoomCamera", "4,2.2", "circIn"]
+			]
+		],
+		[
+			38475.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "[0.7,0.9]"]
+			]
+		],
+		[
+			38609.8474887892,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			38744.3452914798,
+			[
+				["sserafimDark", "0.47", "0.1"]
+			]
+		],
+		[
+			38744.3766367713,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			38744.3766367713,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			39013,
+			[
+				["sserafimSing", "[true,true,true,true,true,true]", ""]
+			]
+		],
+		[
+			39282.6995515695,
+			[
+				["SetHealthIcon", "1", "kazuha"]
+			]
+		],
+		[
+			41434.9595964126,
+			[
+				["ZoomCamera", "8,0.85", "expoOut"]
+			]
+		],
+		[
+			42511.1927802691,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			42511.197264574,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			42780.2510762332,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			42780.8250672646,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, instant"]
+			]
+		],
+		[
+			43049.3093721973,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			43049.8250672646,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			43587.3766367713,
+			[
+				["FocusCamera", "-1", "620, 300, 4, classic"]
+			]
+		],
+		[
+			43587.4259641256,
+			[
+				["ZoomCamera", "8,0.8", "expoOut"]
+			]
+		],
+		[
+			45470.5515246636,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			45471.0672197309,
+			[
+				["FocusCamera", "-1", "1000, 620, 4, instant"]
+			]
+		],
+		[
+			46278.4349327354,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			46279.0089237668,
+			[
+				["FocusCamera", "-1", "329, 417, 4, instant"]
+			]
+		],
+		[
+			46547.5515246636,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			46548.0672197309,
+			[
+				["FocusCamera", "-1", "1455, 660, 4, instant"]
+			]
+		],
+		[
+			46816,
+			[
+				["sserafimGuitarVibration", "0.55", ""]
+			]
+		],
+		[
+			46817.1210313902,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			46817.1255156951,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			47085.3452914798,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			47354.3452914798,
+			[
+				["sserafimLights", "0.5", "0.7"]
+			]
+		],
+		[
+			47354.3766367713,
+			[
+				["ZoomCamera", "8,1.1", "expoOut"]
+			]
+		],
+		[
+			47623.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "[0.7,0.9]"]
+			]
+		],
+		[
+			47892.3586995516,
+			[
+				["FocusCamera", "-1", "49, 367, 16, expoOut"]
+			]
+		],
+		[
+			47892.3586995516,
+			[
+				["ZoomCamera", "16,1", "expoOut"]
+			]
+		],
+		[
+			50044.8250672646,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, classic"]
+			]
+		],
+		[
+			50112.1165919283,
+			[
+				["ZoomCamera", "16,1.1", "expoOut"]
+			]
+		],
+		[
+			50448.4125112108,
+			[
+				["ZoomCamera", "4,1.2", "expoOut"]
+			]
+		],
+		[
+			51121.0582511211,
+			[
+				["ZoomCamera", "2,1.4", "instant"]
+			]
+		],
+		[
+			51390.1165470852,
+			[
+				["ZoomCamera", "2,1.6", "instant"]
+			]
+		],
+		[
+			51659.1748430493,
+			[
+				["ZoomCamera", "2,1.8", "instant"]
+			]
+		],
+		[
+			52197.3766367713,
+			[
+				["FocusCamera", "-1", "620, 300, 4, classic"]
+			]
+		],
+		[
+			52197.4259641256,
+			[
+				["ZoomCamera", "8,0.8", "expoOut"]
+			]
+		],
+		[
+			54080.5515246636,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			54081.0672197309,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			54618.3452914798,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			54887.8699103139,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			54887.8743946188,
+			[
+				["FocusCamera", "-1", "1000, 620, 4, instant"]
+			]
+		],
+		[
+			55156.5515246636,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			55157.0672197309,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			55425,
+			[
+				["sserafimGuitarVibration", "0.55", ""]
+			]
+		],
+		[
+			55425.9909865471,
+			[
+				["FocusCamera", "-1", "229, 317, 4, instant"]
+			]
+		],
+		[
+			55425.9909865471,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			55493.260044843,
+			[
+				["ZoomCamera", "3.5,2.2", "circIn"]
+			]
+		],
+		[
+			55695.3452914798,
+			[
+				["sserafimPulseLights", "[0xFFFF0000,0xFFFF33CC,0xFF00CC33,0xFF3366FF]", "[0.7,0.9,0.7,0.9]"]
+			]
+		],
+		[
+			55829.5784304933,
+			[
+				["SetCameraBop", "1", "1.3"]
+			]
+		],
+		[
+			55964.3452914798,
+			[
+				["sserafimDark", "0.6", "0.1"]
+			]
+		],
+		[
+			55964.3766367713,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			55964.3766367713,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			57040.3766367713,
+			[
+				["ZoomCamera", "4,0.85", "expoOut"]
+			]
+		],
+		[
+			58116.5739461883,
+			[
+				["ZoomCamera", "4,0.8", "expoOut"]
+			]
+		],
+		[
+			59192.2331390134,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			59192.8071300448,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, instant"]
+			]
+		],
+		[
+			59461.3497309416,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			59461.8654260089,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			59730.9192376682,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			59730.9237219731,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			60269.3766367713,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			60269.3766367713,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			61345.3766367713,
+			[
+				["ZoomCamera", "4,0.85", "expoOut"]
+			]
+		],
+		[
+			62152.3452914798,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			62421.3452914798,
+			[
+				["sserafimCover", "true", ""]
+			]
+		],
+		[
+			62556.0358295964,
+			[
+				["SetCameraBop", "1", "0"]
+			]
+		],
+		[
+			62690.3452914798,
+			[
+				["sserafimCover", "false", ""]
+			]
+		],
+		[
+			63497.3766367713,
+			[
+				["ZoomCamera", "1,0.9", "instant"]
+			]
+		],
+		[
+			63497.3766367713,
+			[
+				["FocusCamera", "-1", "920, 400, 4, instant"]
+			]
+		],
+		[
+			63766.3766367713,
+			[
+				["ZoomCamera", "1,1", "instant"]
+			]
+		],
+		[
+			63766.3766367713,
+			[
+				["FocusCamera", "-1", "1220, 500, 4, instant"]
+			]
+		],
+		[
+			64035.3452914798,
+			[
+				["sserafimCover", "true", ""]
+			]
+		],
+		[
+			64035.3452914798,
+			[
+				["sserafimCover", "true", ""]
+			]
+		],
+		[
+			64035.8564573991,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, instant"]
+			]
+		],
+		[
+			64035.8564573991,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			64304.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF3386A7,0xFF3386A7]", "[0.3]"]
+			]
+		],
+		[
+			64439.4439013453,
+			[
+				["SetCameraBop", "2", "0.8"]
+			]
+		],
+		[
+			64573.3452914798,
+			[
+				["sserafimDark", "0.83", "0.1"]
+			]
+		],
+		[
+			64573.3452914798,
+			[
+				["sserafimCover", "false", ""]
+			]
+		],
+		[
+			64573.3452914798,
+			[
+				["sserafimFlash", "1.6", ""]
+			]
+		],
+		[
+			64573.9730493273,
+			[
+				["ZoomCamera", "8,1.3", "expoOut"]
+			]
+		],
+		[
+			64775,
+			[
+				["sserafimSing", "[false,false,false,false,true,false]", ""]
+			]
+		],
+		[
+			64843.6995515695,
+			[
+				["SetHealthIcon", "1", "sakura"]
+			]
+		],
+		[
+			66995.4977130045,
+			[
+				["ZoomCamera", "8,1.4", "expoOut"]
+			]
+		],
+		[
+			67937.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF3386A7,0xFF7FBAC6]", "true"]
+			]
+		],
+		[
+			68071.730896861,
+			[
+				["SetCameraBop", "2", "1.5"]
+			]
+		],
+		[
+			68340.7891928251,
+			[
+				["ZoomCamera", "8,1.5", "expoOut"]
+			]
+		],
+		[
+			69147.9057847534,
+			[
+				["ZoomCamera", "8,1.4", "expoOut"]
+			]
+		],
+		[
+			71031.3721524664,
+			[
+				["ZoomCamera", "8,1.5", "expoOut"]
+			]
+		],
+		[
+			71569.4887443946,
+			[
+				["ZoomCamera", "8,1.6", "expoOut"]
+			]
+		],
+		[
+			72376.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF8BAEB5]", "true"]
+			]
+		],
+		[
+			72645.7219282511,
+			[
+				["ZoomCamera", "8,1.7", "expoOut"]
+			]
+		],
+		[
+			72914.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF017690,0xFFB65EC1]", "true"]
+			]
+		],
+		[
+			73049.3093721973,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			73183.8385201794,
+			[
+				["ZoomCamera", "8,1.5", "expoOut"]
+			]
+		],
+		[
+			73452.8968161435,
+			[
+				["SetCameraBop", "2", "1.6"]
+			]
+		],
+		[
+			73721.9551121076,
+			[
+				["ZoomCamera", "8,1.6", "expoOut"]
+			]
+		],
+		[
+			73856.3093721973,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			74529.13,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			74798.1882959641,
+			[
+				["ZoomCamera", "8,1.65", "expoOut"]
+			]
+		],
+		[
+			74932.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			75336.3048878924,
+			[
+				["ZoomCamera", "8,1.5", "expoOut"]
+			]
+		],
+		[
+			75605.13,
+			[
+				["SetCameraBop", "2", "1.6"]
+			]
+		],
+		[
+			76008.5425560538,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			76278.0089237668,
+			[
+				["ZoomCamera", "8,1.6", "expoOut"]
+			]
+		],
+		[
+			76681.13,
+			[
+				["SetCameraBop", "2", "1.6"]
+			]
+		],
+		[
+			76950.6546636771,
+			[
+				["ZoomCamera", "8,1.7", "expoOut"]
+			]
+		],
+		[
+			77084.5425560538,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			77488.7712556054,
+			[
+				["ZoomCamera", "8,1.6", "expoOut"]
+			]
+		],
+		[
+			77757.13,
+			[
+				["SetCameraBop", "2", "1.6"]
+			]
+		],
+		[
+			78160.5425560538,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			78565.0044394619,
+			[
+				["ZoomCamera", "8,1.7", "expoOut"]
+			]
+		],
+		[
+			78834.13,
+			[
+				["SetCameraBop", "2", "1.6"]
+			]
+		],
+		[
+			79237.5425560538,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			79506.7084753363,
+			[
+				["ZoomCamera", "8,1.8", "expoOut"]
+			]
+		],
+		[
+			79910.2959192825,
+			[
+				["SetCameraBop", "2", "1.6"]
+			]
+		],
+		[
+			80179.3542152466,
+			[
+				["ZoomCamera", "8,1.9", "expoOut"]
+			]
+		],
+		[
+			80313.7084753363,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			80448.3452914798,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			80582.9416591928,
+			[
+				["ZoomCamera", "8,1.95", "expoOut"]
+			]
+		],
+		[
+			80986.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF8BAEB5]", "true"]
+			]
+		],
+		[
+			81255,
+			[
+				["sserafimGuitarVibration", "0.55", ""]
+			]
+		],
+		[
+			81255.5873991031,
+			[
+				["ZoomCamera", "8,2", "expoOut"]
+			]
+		],
+		[
+			81322.260044843,
+			[
+				["ZoomCamera", "3.5,2.4", "circIn"]
+			]
+		],
+		[
+			81659.3452914798,
+			[
+				["sserafimPulseLights", "[0xFF017690,0xFF10CE6C,0xFFF0B67F,0xFFB65EC1]", "true"]
+			]
+		],
+		[
+			81793.3766367713,
+			[
+				["ZoomCamera", "1,2.1", "expoOut"]
+			]
+		],
+		[
+			81793.3766367713,
+			[
+				["FocusCamera", "-1", "1255, 660, 4, instant"]
+			]
+		],
+		[
+			81860.9371748879,
+			[
+				["FocusCamera", "-1", "1500, 660, 36, linearIn"]
+			]
+		],
+		[
+			82062.7622869955,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			82466.3497309417,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			83138.995470852,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			83542.5829147982,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			83946.3721524664,
+			[
+				["ZoomCamera", "8,2.3", "expoOut"]
+			]
+		],
+		[
+			84215.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			84619.5829147982,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			85291.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			85560.5201345291,
+			[
+				["ZoomCamera", "8,2.5", "expoOut"]
+			]
+		],
+		[
+			85695.5829147982,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			86367.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			86502.3766367713,
+			[
+				["ZoomCamera", "1,2.1", "expoOut"]
+			]
+		],
+		[
+			86502.3766367713,
+			[
+				["FocusCamera", "-1", "1555, 820, 4, instant"]
+			]
+		],
+		[
+			86569.9371748879,
+			[
+				["FocusCamera", "-1", "1555, 620, 31, linearIn"]
+			]
+		],
+		[
+			86771.5829147982,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			87443.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			87847.5829147982,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			88251.0896860987,
+			[
+				["ZoomCamera", "8,2.3", "expoOut"]
+			]
+		],
+		[
+			88520.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			88924.5829147982,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			89596.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			89865.4394618834,
+			[
+				["ZoomCamera", "8,2.1", "expoOut"]
+			]
+		],
+		[
+			90000.5829147982,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			90538.0852017937,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			90672.3766367713,
+			[
+				["ZoomCamera", "1,1.8", "expoOut"]
+			]
+		],
+		[
+			90672.3766367713,
+			[
+				["FocusCamera", "-1", "1655, 660, 4, instant"]
+			]
+		],
+		[
+			90739.9371748879,
+			[
+				["FocusCamera", "-1", "1555, 660, 32, linearIn"]
+			]
+		],
+		[
+			91075.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			91614.3183856502,
+			[
+				["ZoomCamera", "8,1.9", "expoOut"]
+			]
+		],
+		[
+			91748.13,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			92151.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			92690.5515695067,
+			[
+				["ZoomCamera", "8,2", "expoOut"]
+			]
+		],
+		[
+			92825.13,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			93228.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			93766.7847533632,
+			[
+				["ZoomCamera", "8,2.1", "expoOut"]
+			]
+		],
+		[
+			93901.13,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			94170.7847533632,
+			[
+				["ZoomCamera", "8,2.2", "expoOut"]
+			]
+		],
+		[
+			94304.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			94843.0179372197,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			94977.3766367713,
+			[
+				["ZoomCamera", "1,2.1", "expoOut"]
+			]
+		],
+		[
+			94977.3766367713,
+			[
+				["FocusCamera", "-1", "1355, 660, 4, instant"]
+			]
+		],
+		[
+			95044.9371748879,
+			[
+				["FocusCamera", "-1", "1450, 660, 27, linearIn"]
+			]
+		],
+		[
+			95380.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			95650.197273991,
+			[
+				["ZoomCamera", "8,2.3", "expoOut"]
+			]
+		],
+		[
+			96053.13,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			96456.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			96726.4304578475,
+			[
+				["ZoomCamera", "8,2.5", "expoOut"]
+			]
+		],
+		[
+			97130.13,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			97399.3452914798,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			97533.5425560538,
+			[
+				["SetCameraBop", "1", "1.2"]
+			]
+		],
+		[
+			97668.134493722,
+			[
+				["SetCameraBop", "2", "0"]
+			]
+		],
+		[
+			97802.4304578475,
+			[
+				["ZoomCamera", "8,2.1", "expoOut"]
+			]
+		],
+		[
+			98475.3093816144,
+			[
+				["ZoomCamera", "8,2.3", "expoOut"]
+			]
+		],
+		[
+			98878.9057847534,
+			[
+				["SetCameraBop", "2", "0.4"]
+			]
+		],
+		[
+			99013.3452914798,
+			[
+				["sserafimDark", "0.76", "0.1"]
+			]
+		],
+		[
+			99013.4259735426,
+			[
+				["ZoomCamera", "4,1.6", "expoOut"]
+			]
+		],
+		[
+			99147,
+			[
+				["sserafimSing", "[false,true,false,false,false,false]", ""]
+			]
+		],
+		[
+			99147.3452914798,
+			[
+				["sserafimDark", "0.5", "3.2"]
+			]
+		],
+		[
+			99686.0717134529,
+			[
+				["SetCameraBop", "2", "0.5"]
+			]
+		],
+		[
+			99820.6995515695,
+			[
+				["SetHealthIcon", "1", "kazuha"]
+			]
+		],
+		[
+			99820.9641255605,
+			[
+				["FocusCamera", "-1", "329, 417, 4, classic"]
+			]
+		],
+		[
+			99888.1165919283,
+			[
+				["ZoomCamera", "16,1.5", "expoOut"]
+			]
+		],
+		[
+			101031.372152466,
+			[
+				["SetCameraBop", "2", "0.6"]
+			]
+		],
+		[
+			101434.95063722,
+			[
+				["ZoomCamera", "8,1.6", "expoOut"]
+			]
+		],
+		[
+			101973.067229148,
+			[
+				["SetCameraBop", "2", "0.7"]
+			]
+		],
+		[
+			102107.59637713,
+			[
+				["ZoomCamera", "8,1.7", "expoOut"]
+			]
+		],
+		[
+			103049.300413004,
+			[
+				["ZoomCamera", "8,1.5", "expoOut"]
+			]
+		],
+		[
+			103183.838520179,
+			[
+				["SetCameraBop", "2", "0.8"]
+			]
+		],
+		[
+			104125.533596861,
+			[
+				["SetCameraBop", "2", "0.9"]
+			]
+		],
+		[
+			104260.95063722,
+			[
+				["ZoomCamera", "8,1.6", "expoOut"]
+			]
+		],
+		[
+			105201.24211704,
+			[
+				["ZoomCamera", "8,1.5", "expoOut"]
+			]
+		],
+		[
+			105336.304887892,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			106143.058260538,
+			[
+				["ZoomCamera", "8,1.6", "expoOut"]
+			]
+		],
+		[
+			106547.058260538,
+			[
+				["ZoomCamera", "4,1.7", "expoOut"]
+			]
+		],
+		[
+			107085.174852466,
+			[
+				["ZoomCamera", "4,1.75", "expoOut"]
+			]
+		],
+		[
+			107488.771255605,
+			[
+				["SetCameraBop", "1", "1.1"]
+			]
+		],
+		[
+			107623.291444395,
+			[
+				["ZoomCamera", "4,1.8", "expoOut"]
+			]
+		],
+		[
+			108026,
+			[
+				["sserafimSing", "[false,false,false,false,false,false]", ""]
+			]
+		],
+		[
+			108094,
+			[
+				["sserafimSing", "[false,false,true,false,false,false]", ""]
+			]
+		],
+		[
+			108430.69955157,
+			[
+				["SetHealthIcon", "1", "chaewon"]
+			]
+		],
+		[
+			108430.825067265,
+			[
+				["FocusCamera", "-1", "940, 101, 4, classic"]
+			]
+		],
+		[
+			108498.116591928,
+			[
+				["ZoomCamera", "16,1.4", "expoOut"]
+			]
+		],
+		[
+			110313.874404036,
+			[
+				["ZoomCamera", "8,1.5", "expoOut"]
+			]
+		],
+		[
+			111390.107587892,
+			[
+				["ZoomCamera", "8,1.4", "expoOut"]
+			]
+		],
+		[
+			112062,
+			[
+				["sserafimSing", "[false,false,false,false,false,false]", ""]
+			]
+		],
+		[
+			112130,
+			[
+				["sserafimSing", "[false,false,false,true,false,false]", ""]
+			]
+		],
+		[
+			112331.69955157,
+			[
+				["SetHealthIcon", "1", "eunchae"]
+			]
+		],
+		[
+			112331.825067265,
+			[
+				["FocusCamera", "-1", "960, 541, 4, classic"]
+			]
+		],
+		[
+			112399.116591928,
+			[
+				["ZoomCamera", "16,1.5", "expoOut"]
+			]
+		],
+		[
+			114349,
+			[
+				["sserafimBeautiful", "true", ""]
+			]
+		],
+		[
+			114753,
+			[
+				["sserafimSing", "[false,false,false,true,false,true]", ""]
+			]
+		],
+		[
+			114753.058260538,
+			[
+				["ZoomCamera", "8,1.4", "expoOut"]
+			]
+		],
+		[
+			114753.69955157,
+			[
+				["SetHealthIcon", "0", "gf"]
+			]
+		],
+		[
+			114753.825067265,
+			[
+				["FocusCamera", "-1", "1060, 400, 8, classic"]
+			]
+		],
+		[
+			115156.92373139,
+			[
+				["ZoomCamera", "4,1.3", "expoOut"]
+			]
+		],
+		[
+			115695.040323318,
+			[
+				["ZoomCamera", "8,1.2", "expoOut"]
+			]
+		],
+		[
+			115896.34529148,
+			[
+				["sserafimPulseLights", "[0xFF6D43FF,0xFF3636f7]", "[0.2,0.3]"]
+			]
+		],
+		[
+			116098.636726457,
+			[
+				["SetCameraBop", "1", "0"]
+			]
+		],
+		[
+			116233.156915247,
+			[
+				["ZoomCamera", "8,1.1", "expoOut"]
+			]
+		],
+		[
+			116233.34529148,
+			[
+				["sserafimDark", "0.78", "0.5"]
+			]
+		],
+		[
+			116704,
+			[
+				["sserafimSing", "[false,false,false,false,false,true]", ""]
+			]
+		],
+		[
+			117040,
+			[
+				["sserafimSing", "[true,false,false,false,false,true]", ""]
+			]
+		],
+		[
+			117309.390099103,
+			[
+				["FocusCamera", "-1", "100, 247, 8, classic"]
+			]
+		],
+		[
+			117309.69955157,
+			[
+				["SetHealthIcon", "1", "yunjin"]
+			]
+		],
+		[
+			117377.116591928,
+			[
+				["ZoomCamera", "16,1", "expoOut"]
+			]
+		],
+		[
+			119596.34529148,
+			[
+				["sserafimLights", "0.5", "1"]
+			]
+		],
+		[
+			119865.34529148,
+			[
+				["sserafimLights", "0.5", "1"]
+			]
+		],
+		[
+			120538.932735426,
+			[
+				["ZoomCamera", "4,1.05", "expoOut"]
+			]
+		],
+		[
+			121614.81161435,
+			[
+				["ZoomCamera", "4,1.1", "expoOut"]
+			]
+		],
+		[
+			122691.932735426,
+			[
+				["ZoomCamera", "8,1", "expoOut"]
+			]
+		],
+		[
+			123766,
+			[
+				["sserafimSing", "[false,false,false,false,false,false]", ""]
+			]
+		],
+		[
+			123767.277982063,
+			[
+				["SetCameraBop", "1", "0"]
+			]
+		],
+		[
+			123834.34529148,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			124035.336278027,
+			[
+				["FocusCamera", "-1", "300, 200, 4, instant"]
+			]
+		],
+		[
+			124035.336278027,
+			[
+				["ZoomCamera", "4,0.9", "instant"]
+			]
+		],
+		[
+			124304,
+			[
+				["sserafimSing", "[false,false,false,false,false,false]", ""]
+			]
+		],
+		[
+			124304.394573991,
+			[
+				["ZoomCamera", "4,0.85", "instant"]
+			]
+		],
+		[
+			124305.336278027,
+			[
+				["FocusCamera", "-1", "400, 160, 4, instant"]
+			]
+		],
+		[
+			124439.34529148,
+			[
+				["sserafimPulseLights", "[0xFF6D43FF,0xFF3636f7]", "[0.2,0.3]"]
+			]
+		],
+		[
+			124573.452869955,
+			[
+				["ZoomCamera", "4,0.8", "instant"]
+			]
+		],
+		[
+			124574.452869955,
+			[
+				["FocusCamera", "-1", "500, 120, 4, instant"]
+			]
+		],
+		[
+			124708,
+			[
+				["sserafimSing", "[false,false,true,false,false,true]", ""]
+			]
+		],
+		[
+			124708.982017937,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			125381.69955157,
+			[
+				["SetHealthIcon", "1", "chaewon"]
+			]
+		],
+		[
+			125381.825067265,
+			[
+				["FocusCamera", "-1", "940, 101, 16, expoOut"]
+			]
+		],
+		[
+			125449.116591928,
+			[
+				["ZoomCamera", "16,1.1", "expoOut"]
+			]
+		],
+		[
+			129148.932735426,
+			[
+				["ZoomCamera", "4,1.15", "expoOut"]
+			]
+		],
+		[
+			130224.81161435,
+			[
+				["ZoomCamera", "4,1.2", "expoOut"]
+			]
+		],
+		[
+			131166.381121076,
+			[
+				["SetCameraBop", "1", "0"]
+			]
+		],
+		[
+			131300.34529148,
+			[
+				["sserafimDark", "0.1", "0.84"]
+			]
+		],
+		[
+			131300.81161435,
+			[
+				["ZoomCamera", "2,1.3", "expoOut"]
+			]
+		],
+		[
+			131502.34529148,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			131838.34529148,
+			[
+				["sserafimDark", "0.1", "0.88"]
+			]
+		],
+		[
+			131839.81161435,
+			[
+				["ZoomCamera", "2,1.4", "expoOut"]
+			]
+		],
+		[
+			132376.34529148,
+			[
+				["sserafimDark", "0.1", "0.92"]
+			]
+		],
+		[
+			132377.81161435,
+			[
+				["ZoomCamera", "2,1.5", "expoOut"]
+			]
+		],
+		[
+			132646,
+			[
+				["sserafimShow", "[true,true,true,true,true]", ""]
+			]
+		],
+		[
+			132780,
+			[
+				["sserafimBeautiful", "false", ""]
+			]
+		],
+		[
+			132915,
+			[
+				["sserafimGuitarVibration", "0.55", ""]
+			]
+		],
+		[
+			132915.260044843,
+			[
+				["ZoomCamera", "4,2.2", "circIn"]
+			]
+		],
+		[
+			133183.34529148,
+			[
+				["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "true"]
+			]
+		],
+		[
+			133318.847488789,
+			[
+				["SetCameraBop", "1", "0"]
+			]
+		],
+		[
+			133452.34529148,
+			[
+				["sserafimDark", "0.1", "0.47"]
+			]
+		],
+		[
+			133452.376636771,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			133452.376636771,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			133721,
+			[
+				["sserafimSing", "[true,true,true,true,true,true]", ""]
+			]
+		],
+		[
+			133990.69955157,
+			[
+				["SetHealthIcon", "1", "kazuha"]
+			]
+		],
+		[
+			133990.69955157,
+			[
+				["SetHealthIcon", "0", "bf"]
+			]
+		],
+		[
+			136142.959596413,
+			[
+				["ZoomCamera", "8,0.85", "expoOut"]
+			]
+		],
+		[
+			137219.192780269,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			137219.197264574,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			137488.251076233,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			137488.825067265,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, instant"]
+			]
+		],
+		[
+			137757.309372197,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			137757.825067265,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			138295.376636771,
+			[
+				["FocusCamera", "-1", "620, 300, 4, classic"]
+			]
+		],
+		[
+			138295.425964126,
+			[
+				["ZoomCamera", "8,0.8", "expoOut"]
+			]
+		],
+		[
+			140179.551524664,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			140180.067219731,
+			[
+				["FocusCamera", "-1", "1000, 620, 4, instant"]
+			]
+		],
+		[
+			140987.434932735,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			140988.008923767,
+			[
+				["FocusCamera", "-1", "329, 417, 4, instant"]
+			]
+		],
+		[
+			141256.551524664,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			141257.067219731,
+			[
+				["FocusCamera", "-1", "1455, 660, 4, instant"]
+			]
+		],
+		[
+			141524,
+			[
+				["sserafimGuitarVibration", "0.55", ""]
+			]
+		],
+		[
+			141526.12103139,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			141526.125515695,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			141793.34529148,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			142062.34529148,
+			[
+				["sserafimLights", "0.5", "0.7"]
+			]
+		],
+		[
+			142062.376636771,
+			[
+				["ZoomCamera", "8,1.1", "expoOut"]
+			]
+		],
+		[
+			142331.34529148,
+			[
+				["sserafimPulseLights", "[0xFF6D43FF,0xFFFF43A1]", "true"]
+			]
+		],
+		[
+			142600.358699552,
+			[
+				["FocusCamera", "-1", "49, 367, 16, expoOut"]
+			]
+		],
+		[
+			142600.358699552,
+			[
+				["ZoomCamera", "16,1", "expoOut"]
+			]
+		],
+		[
+			144752.825067265,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, classic"]
+			]
+		],
+		[
+			144820.116591928,
+			[
+				["ZoomCamera", "16,1.1", "expoOut"]
+			]
+		],
+		[
+			145156.412511211,
+			[
+				["ZoomCamera", "4,1.2", "expoOut"]
+			]
+		],
+		[
+			145829.058251121,
+			[
+				["ZoomCamera", "2,1.4", "instant"]
+			]
+		],
+		[
+			146098.116547085,
+			[
+				["ZoomCamera", "2,1.6", "instant"]
+			]
+		],
+		[
+			146367.174843049,
+			[
+				["ZoomCamera", "2,1.8", "instant"]
+			]
+		],
+		[
+			146905.376636771,
+			[
+				["FocusCamera", "-1", "620, 300, 4, classic"]
+			]
+		],
+		[
+			146905.425964126,
+			[
+				["ZoomCamera", "8,0.8", "expoOut"]
+			]
+		],
+		[
+			148789.551524664,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			148790.067219731,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			149192.34529148,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			149394.600852018,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			149596.869910314,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			149596.874394619,
+			[
+				["FocusCamera", "-1", "1000, 620, 4, instant"]
+			]
+		],
+		[
+			149865.551524664,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			149866.067219731,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			150134,
+			[
+				["sserafimGuitarVibration", "0.55", ""]
+			]
+		],
+		[
+			150134.990986547,
+			[
+				["FocusCamera", "-1", "229, 317, 4, instant"]
+			]
+		],
+		[
+			150134.990986547,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			150202.260044843,
+			[
+				["ZoomCamera", "3.5,2.2", "circIn"]
+			]
+		],
+		[
+			150403.34529148,
+			[
+				["sserafimPulseLights", "[0xFFFF0000,0xFFFF33CC,0xFF00CC33,0xFF3366FF]", "true"]
+			]
+		],
+		[
+			150537.578430493,
+			[
+				["SetCameraBop", "1", "1.3"]
+			]
+		],
+		[
+			150538.098609865,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			150672.34529148,
+			[
+				["sserafimDark", "0.6", "0.1"]
+			]
+		],
+		[
+			150672.376636771,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			150672.376636771,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			150941.762286996,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			151345.349730942,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			151748.376636771,
+			[
+				["ZoomCamera", "4,0.85", "expoOut"]
+			]
+		],
+		[
+			152017.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			152421.582914798,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			152824.573946188,
+			[
+				["ZoomCamera", "4,0.8", "expoOut"]
+			]
+		],
+		[
+			153094.152421525,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			153497.739865471,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			153900.233139013,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			153900.807130045,
+			[
+				["FocusCamera", "-1", "1555, 660, 4, instant"]
+			]
+		],
+		[
+			154169.349730942,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			154169.865426009,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			154170.385605381,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			154438.919237668,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			154438.923721973,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			154573.973049327,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			154977.376636771,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			154977.376636771,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			155246.762286996,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			155650.349730942,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			156053.376636771,
+			[
+				["ZoomCamera", "4,0.85", "expoOut"]
+			]
+		],
+		[
+			156322.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			156726.582914798,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			157399.551524664,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			157399.762286996,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			157400.067219731,
+			[
+				["FocusCamera", "-1", "1000, 620, 4, instant"]
+			]
+		],
+		[
+			157803.349730942,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			158207.434932735,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			158208.008923767,
+			[
+				["FocusCamera", "-1", "329, 417, 4, instant"]
+			]
+		],
+		[
+			158476.551524664,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			158477.067219731,
+			[
+				["FocusCamera", "-1", "1455, 660, 4, instant"]
+			]
+		],
+		[
+			158746.12103139,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			158746.125515695,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			159282.376636771,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			159282.376636771,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			159551.762286996,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			159955.349730942,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			160358.376636771,
+			[
+				["ZoomCamera", "4,0.85", "expoOut"]
+			]
+		],
+		[
+			160627.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			161031.582914798,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			161434.573946188,
+			[
+				["ZoomCamera", "4,0.8", "expoOut"]
+			]
+		],
+		[
+			161704.017892377,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			162107.605336323,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			162511.233139013,
+			[
+				["ZoomCamera", "8,1.45", "instant"]
+			]
+		],
+		[
+			162511.807130045,
+			[
+				["FocusCamera", "-1", "1000, 620, 4, instant"]
+			]
+		],
+		[
+			162780.349730942,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			162780.865426009,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			162781.251076233,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			163049.919237668,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			163049.923721973,
+			[
+				["FocusCamera", "-1", "229, 317, 4, instant"]
+			]
+		],
+		[
+			163183.838520179,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			163587.376636771,
+			[
+				["ZoomCamera", "1,0.8", "expoOut"]
+			]
+		],
+		[
+			163587.376636771,
+			[
+				["FocusCamera", "-1", "620, 300, 4, instant"]
+			]
+		],
+		[
+			163856.762286996,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			164260.349730942,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			164663.376636771,
+			[
+				["ZoomCamera", "4,0.85", "expoOut"]
+			]
+		],
+		[
+			164932.995470852,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			165336.582914798,
+			[
+				["SetCameraBop", "1", "1.4"]
+			]
+		],
+		[
+			166008.416995516,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			166008.762286996,
+			[
+				["SetCameraBop", "2", "1.8"]
+			]
+		],
+		[
+			166008.932690583,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			166412.349730942,
+			[
+				["SetCameraBop", "1", "1"]
+			]
+		],
+		[
+			166547.34529148,
+			[
+				["sserafimPulseLights", "false", ""]
+			]
+		],
+		[
+			166815.735381166,
+			[
+				["ZoomCamera", "8,1.35", "instant"]
+			]
+		],
+		[
+			166815.739865471,
+			[
+				["FocusCamera", "-1", "-371, 147, 4, instant"]
+			]
+		],
+		[
+			166950.654663677,
+			[
+				["SetCameraBop", "2", "1"]
+			]
+		],
+		[
+			167084.416995516,
+			[
+				["ZoomCamera", "8,1.55", "instant"]
+			]
+		],
+		[
+			167084.932690583,
+			[
+				["FocusCamera", "-1", "870, 81, 4, instant"]
+			]
+		],
+		[
+			167286,
+			[
+				["sserafimEnd", "", ""]
+			]
+		]
+	],
+	"format": "psych_v1_convert"
 }

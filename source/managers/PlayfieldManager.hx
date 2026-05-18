@@ -157,53 +157,55 @@ class PlayfieldManager {
 
   public function changeMania(newValue:Int, field:PlayField = null, skipStrumFadeOut:Bool = false)
 	{
-		if (MusicBeatState.getState() == PlayState.instance)
-      PlayState.instance?.callOnScripts('preChangeMania', [mania[field.modNumber], newValue, skipStrumFadeOut]);
+    if (field != null) {
+      if (MusicBeatState.getState() == PlayState.instance)
+        PlayState.instance?.callOnScripts('preChangeMania', [mania[field.modNumber], newValue, skipStrumFadeOut]);
 
-    var daOldMania = mania[field.modNumber];
-		mania[field.modNumber] = newValue;
+      var daOldMania = mania[field.modNumber];
+      mania[field.modNumber] = newValue;
 
-		if (field != null) field.strumNotes = [];
+      if (field != null) field.strumNotes = [];
 
-    if (MusicBeatState.getState() == PlayState.instance)
-      PlayState.instance?.callOnScripts('onChangeMania', [mania[field.modNumber], daOldMania]);
+      if (MusicBeatState.getState() == PlayState.instance)
+        PlayState.instance?.callOnScripts('onChangeMania', [mania[field.modNumber], daOldMania]);
 
 
-		if (MusicBeatState.getState() == PlayState.instance)
-      PlayState.instance?.setOnScripts('mania', mania[field.modNumber]);
+      if (MusicBeatState.getState() == PlayState.instance)
+        PlayState.instance?.setOnScripts('mania', mania[field.modNumber]);
 
-    notes.forEachAlive(function(note:Note)
-		{
-			updateNote(note);
-		});
+      notes.forEachAlive(function(note:Note)
+      {
+        updateNote(note);
+      });
 
-		for (noteI in 0...allNotes.length)
-		{
-			var note:Note = allNotes[noteI];
-			updateNote(note);
-		}
+      for (noteI in 0...allNotes.length)
+      {
+        var note:Note = allNotes[noteI];
+        updateNote(note);
+      }
 
-		if (MusicBeatState.getState() == PlayState.instance) {
-      PlayState.instance?.callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
-  		PlayState.instance?.callOnScripts('onReceptorGeneration');
+      if (MusicBeatState.getState() == PlayState.instance) {
+        PlayState.instance?.callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
+        PlayState.instance?.callOnScripts('onReceptorGeneration');
+      }
+
+      field.keyCount = Note.ammo[mania[field.modNumber]];
+      field.generateStrums();
+
+      if (MusicBeatState.getState() == PlayState.instance) {
+        PlayState.instance?.callOnScripts('postReceptorGeneration'); // deprecated
+        PlayState.instance?.callOnScripts('onReceptorGenerationPost');
+        PlayState.instance?.callOnScripts('onChangeMania', [mania[field.modNumber], newValue, skipStrumFadeOut]);
+      }
+
+      for (field in playfields.members)
+        field.fadeIn(skipStrumFadeOut); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
+
+      field.singAnimations = Note.keysShit.get(mania[field.modNumber]).get('singAnims');
+
+      if (MusicBeatState.getState() == PlayState.instance)
+        PlayState.instance?.callOnScripts('postChangeMania', [mania, newValue, skipStrumFadeOut]);
     }
-
-		field.keyCount = Note.ammo[mania[field.modNumber]];
-		field.generateStrums();
-
-		if (MusicBeatState.getState() == PlayState.instance) {
-      PlayState.instance?.callOnScripts('postReceptorGeneration'); // deprecated
-  		PlayState.instance?.callOnScripts('onReceptorGenerationPost');
-	  	PlayState.instance?.callOnScripts('onChangeMania', [mania[field.modNumber], newValue, skipStrumFadeOut]);
-    }
-
-		for (field in playfields.members)
-			field.fadeIn(skipStrumFadeOut); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
-
-		field.singAnimations = Note.keysShit.get(mania[field.modNumber]).get('singAnims');
-
-		if (MusicBeatState.getState() == PlayState.instance)
-      PlayState.instance?.callOnScripts('postChangeMania', [mania, newValue, skipStrumFadeOut]);
 	}
 
   function updateNote(note:Note)
@@ -573,6 +575,8 @@ class PlayfieldManager {
       allNotes = tempChart.copy();
       for (note in allNotes) {
         note = Note.quickMakeNote(note);
+        if (allNotes[note.ID-1] != null)
+          note.prevNote = allNotes[note.ID-1];
         if (playerField != null)
           if (note.mustPress) {
             note.field = playerField;
