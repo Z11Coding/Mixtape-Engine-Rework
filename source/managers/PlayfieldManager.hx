@@ -571,25 +571,55 @@ class PlayfieldManager {
 		}
     if (chartCache.exists(tempSongObj) && !loadDirectly) {
       trace("USING CACHED CHART FOR: "+songName+"\nFROM MOD: "+folder);
-      var tempChart = chartCache.get(tempSongObj).copyChart();
-      allNotes = tempChart.copy();
-      for (note in allNotes) {
-        note = Note.quickMakeNote(note);
+      allNotes = chartCache.get(tempSongObj).chart.copy();
+      for (i in 0...allNotes.length)
+      {
+        var note = Note.quickMakeNote(allNotes[i]);
+        allNotes[i] = note;
         if (allNotes[note.ID-1] != null)
           note.prevNote = allNotes[note.ID-1];
-        if (playerField != null)
+        if (playerField != null) {
           if (note.mustPress) {
             note.field = playerField;
             updateNote(note);
-            playerField.queue(note);
+            playerField.noteQueue[note.noteData].push(note);
           }
+        }
 
-        if (dadField != null)
+        if (dadField != null) {
           if (!note.mustPress) {
             note.field = dadField;
             updateNote(note);
-            dadField.queue(note);
+            dadField.noteQueue[note.noteData].push(note);
           }
+        }
+
+        @:privateAccess
+        for (column in playerField.noteQueue)
+          column.sort(PlayField.sortNotesAscend);
+
+        @:privateAccess
+        for (column in dadField.noteQueue)
+          column.sort(PlayField.sortNotesAscend);
+
+        var rowArray = noteRows[note.mustPress?0:1];
+        if(rowArray[note.row]==null)
+          rowArray[note.row]=[];
+        rowArray[note.row].push(note);
+      }
+
+      for (note in allNotes)
+      {
+        // Sustain Fix
+        if (note.sustainLength > 0 && !note.isSustainNote)
+          note.holdType = HEAD;
+        else if (note.isSustainNote && note.spotInLine == note.parent.tail.length - 1)
+          note.holdType = END;
+        else if (note.isSustainNote)
+          note.holdType = PART;
+
+        if (note.isSustainNote || note.sustainLength > 0)
+          note.reloadNote();
       }
       unspawnNotes = curChart = allNotes;
 

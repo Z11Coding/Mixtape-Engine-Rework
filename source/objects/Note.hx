@@ -1532,7 +1532,8 @@ class Note extends NoteObject
 		}
 
 		// Handle UNO +2/+4 note animations
-		updateUnoAnimations(elapsed);
+		if (extraData != null && extraData.exists("unoCard"))
+			updateUnoAnimations(elapsed);
 	}
 
 	override public function destroy()
@@ -1900,6 +1901,10 @@ class Note extends NoteObject
 		newNote.parent = template.parent;
 		newNote.parentNote = template.parentNote;
 		newNote.childrenNotes = template.childrenNotes;
+		newNote.tail = template.tail;
+		newNote.childs = template.childs;
+		newNote.formerPress = template.formerPress;
+		newNote.visualTime = template.visualTime;
 
 		return newNote;
 	}

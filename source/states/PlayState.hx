@@ -6650,7 +6650,8 @@ class PlayState extends MusicBeatState
 				newMania = Std.parseInt(value1);
 				if (Math.isNaN(newMania) && newMania < Note.minMania && newMania > Note.maxMania)
 					newMania = 0;
-				playfield.changeMania(newMania, skipTween);
+				for (field in playfields.members)
+					playfield.changeMania(newMania, field, skipTween);
 
 			case 'Change Mania (Special)':
 				/*var newMania:Int = 0;
