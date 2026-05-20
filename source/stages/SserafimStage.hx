@@ -195,12 +195,12 @@ class SserafimStage extends BaseStage
     eunchae = new SserafimEunchaeCharacter(0, 0);
 
     ssGF = new SserafimGirlfriendCharacter(0, 0);
+    game.mcm.makeExistingCharacter(ssGF, GF);
     ssGF.scrollFactor.set(0.95, 0.95);
-    game.gfGroup.add(ssGF);
     ssGF.alpha = 0;
 
     ssBF = new SserafimSakuraCharacter(0, 0);
-    game.boyfriendGroup.add(ssBF);
+    game.mcm.makeExistingCharacter(ssBF, BF);
     ssBF.alpha = 0;
 
     ssDad = new SserafimKazuhaCharacter(0, 0);
@@ -463,12 +463,12 @@ class SserafimStage extends BaseStage
   {
     if (visibleArray.length < 5) return;
 
-    yunjin.visible = visibleArray[0];
+    //yunjin.visible = visibleArray[0];
 
-    game.dadGroup.visible = visibleArray[1];
+    //game.dadGroup.visible = visibleArray[1];
 
-    chaewon.visible = visibleArray[2];
-    eunchae.visible = visibleArray[3];
+    //chaewon.visible = visibleArray[2];
+    //eunchae.visible = visibleArray[3];
 
     game.boyfriendGroup.visible = visibleArray[4];
 

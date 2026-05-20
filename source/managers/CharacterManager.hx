@@ -93,12 +93,11 @@ class CharacterManager {
         characterMap.get("exMap");
     }
 
+    var chara:Character = makeNewCharacter(0, 0, character, isBF, cType, manType);
     if (!charMap.exists(character)) {
-      var chara:Character = makeNewCharacter(0, 0, character, isBF, cType, manType);
       charMap.set(character, chara);
-      return chara;
     }
-    return null;
+    return chara;
   }
 
   public function makeExistingCharacter(character:Character, manType:CManType):Character {

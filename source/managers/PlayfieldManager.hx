@@ -594,33 +594,48 @@ class PlayfieldManager {
           }
         }
 
-        @:privateAccess
-        for (column in playerField.noteQueue)
-          column.sort(PlayField.sortNotesAscend);
-
-        @:privateAccess
-        for (column in dadField.noteQueue)
-          column.sort(PlayField.sortNotesAscend);
-
         var rowArray = noteRows[note.mustPress?0:1];
         if(rowArray[note.row]==null)
           rowArray[note.row]=[];
         rowArray[note.row].push(note);
       }
 
-      for (note in allNotes)
-      {
-        // Sustain Fix
-        if (note.sustainLength > 0 && !note.isSustainNote)
-          note.holdType = HEAD;
-        else if (note.isSustainNote && note.spotInLine == note.parent.tail.length - 1)
-          note.holdType = END;
-        else if (note.isSustainNote)
-          note.holdType = PART;
+      @:privateAccess
+      for (column in playerField.noteQueue) {
+        for (note in column)
+        {
+          // Sustain Fix
+          if (note.sustainLength > 0 && !note.isSustainNote)
+            note.holdType = HEAD;
+          else if (note.isSustainNote && note.spotInLine == note.parent.tail.length - 1)
+            note.holdType = END;
+          else if (note.isSustainNote)
+            note.holdType = PART;
 
-        if (note.isSustainNote || note.sustainLength > 0)
-          note.reloadNote();
+          if (note.isSustainNote || note.sustainLength > 0)
+            note.reloadNote();
+        }
+        column.sort(PlayField.sortNotesAscend);
       }
+
+      @:privateAccess
+      for (column in dadField.noteQueue) {
+        for (note in column)
+        {
+          // Sustain Fix
+          if (note.sustainLength > 0 && !note.isSustainNote)
+            note.holdType = HEAD;
+          else if (note.isSustainNote && note.spotInLine == note.parent.tail.length - 1)
+            note.holdType = END;
+          else if (note.isSustainNote)
+            note.holdType = PART;
+
+          if (note.isSustainNote || note.sustainLength > 0)
+            note.reloadNote();
+        }
+        column.sort(PlayField.sortNotesAscend);
+      }
+
       unspawnNotes = curChart = allNotes;
 
       try
@@ -2590,6 +2605,7 @@ class PlayfieldManager {
     speedChanges.sort(svSort);
     mania = [3, 3];
     generatedChart = false;
+    noteTypes = [];
     curSong = "";
     songSpeed = 1;
     songSpeedType = "multiplicative";

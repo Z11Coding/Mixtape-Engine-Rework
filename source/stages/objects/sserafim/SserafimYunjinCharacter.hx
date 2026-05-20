@@ -38,7 +38,7 @@ class SserafimYunjinCharacter extends Character
 
   public function new(x:Float, y:Float)
   {
-    super(x, y, 'sserafim-yunjin', true , DAD);
+    super(x, y, 'sserafim-yunjin', true, DAD);
 
     lipSyncSprite = new SserafimLipSyncSprite(0, 0, 'yunjin');
 
@@ -88,5 +88,12 @@ class SserafimYunjinCharacter extends Character
     lipSyncSprite.shader = currentShader;
 
     trace("Synchronized shader between children!");
+  }
+
+  override public function isOnScreen(?camera:FlxCamera):Bool
+  {
+    // TODO: Figure out why she disappears when the camera zooms in too much!!
+    // This is such a shit fix but it works.
+    return true;
   }
 }
