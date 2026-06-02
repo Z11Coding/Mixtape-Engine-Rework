@@ -188,13 +188,13 @@ class TwoPicos
 			cigarette.flipX = true;
 
 			host.addBehindBF(cigarette);
-			//if (ClientPrefs.data.gore)
+			if (ClientPrefs.data.naughtyness)
 			host.addBehindBF(bloodPool);
 			host.addBehindBF(imposterPico);
 			host.addBehindBF(pico);
 
 			cigarette.setPosition(host.boyfriend.x - 143.5, host.boyfriend.y + 210);
-			//if (ClientPrefs.data.gore)
+			if (ClientPrefs.data.naughtyness)
 			bloodPool.setPosition(host.dad.x - 1487, host.dad.y - 173);
 
 			shooterPos = cameraPos(host.boyfriend, game.boyfriendCameraOffset);
@@ -203,12 +203,12 @@ class TwoPicos
 		else
 		{
 			host.addBehindDad(cigarette);
-			//if (ClientPrefs.data.gore)
+			if (ClientPrefs.data.naughtyness)
 			host.addBehindDad(bloodPool);
 			host.addBehindDad(pico);
 			host.addBehindDad(imposterPico);
-			//if (ClientPrefs.data.gore)
-			bloodPool.setPosition(host.boyfriend.x - 788.5, host.boyfriend.y - 173);
+			if (ClientPrefs.data.naughtyness)
+			bloodPool?.setPosition(host.boyfriend.x - 788.5, host.boyfriend.y - 173);
 			cigarette.setPosition(host.boyfriend.x - 478.5, host.boyfriend.y + 205);
 
 			cigarettePos = cameraPos(host.boyfriend, game.boyfriendCameraOffset);
@@ -216,7 +216,7 @@ class TwoPicos
 		}
 		var midPoint:Array<Float> = [(shooterPos[0] + cigarettePos[0]) / 2, (shooterPos[1] + cigarettePos[1]) / 2];
 
-		// Allw picos to set their cutscene timers
+		// Allow picos to set their cutscene timers
 		imposterPico.doAnim("Opponent", !playerShoots, explode, cutsceneHandler);
 		pico.doAnim("Player", playerShoots, explode, cutsceneHandler);
 
@@ -228,7 +228,7 @@ class TwoPicos
 			{
 				pico.shader = shader;
 				imposterPico.shader = shader;
-				//if (ClientPrefs.data.gore)
+				if (ClientPrefs.data.naughtyness)
 				bloodPool.shader = shader;
 			});
 		}
@@ -256,7 +256,7 @@ class TwoPicos
 
 		cutsceneHandler.timer(11.2, () ->
 		{
-			if (explode == true/* && ClientPrefs.data.gore*/)
+			if (explode == true && ClientPrefs.data.naughtyness)
 			{
 				bloodPool.visible = true;
 				bloodPool.anim.play("bloodPool", true);
