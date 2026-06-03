@@ -23,7 +23,7 @@ haxelib install helder.set 0.3.1
 haxelib install yaml 2.0.1
 haxelib install haxe-concurrent 5.1.3
 haxelib install actuate 1.9.0
-haxelib install flixel-ui 2.6.1
+haxelib install flixel-ui 2.6.2
 haxelib install hscript 2.5.0
 haxelib install noisehx 0.0.1
 haxelib install haxeui-core 1.7.0
