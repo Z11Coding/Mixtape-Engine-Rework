@@ -1,12 +1,6 @@
 package backend.modchart;
 // @author Nebula_Zorua
 
-import backend.funkinmodchart.Config;
-import backend.funkinmodchart.backend.core.ArrowData;
-import backend.funkinmodchart.backend.core.ModifierOutput;
-import backend.funkinmodchart.backend.core.ModifierParameters;
-import backend.funkinmodchart.backend.core.VisualParameters;
-import backend.funkinmodchart.backend.math.Vector3 as Vector3D;
 import backend.math.Vector3;
 import backend.modchart.Modifier;
 import backend.modchart.events.*;
@@ -24,6 +18,7 @@ import objects.Note;
 import objects.NoteObject;
 import objects.StrumNote;
 import objects.playfields.NoteField;
+import states.editors.content.ModchartFile;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
 // NEW: Now also has some features of mirin (aliases, nodes)
@@ -90,8 +85,12 @@ class ModManager {
 
 	var touchedMods:Array<Array<String>> = [[], []];
 
+	// For the Modchart Editor
+	public var modchartFile:ModchartFile;
+
 	public function new(state:FlxState) {
 		this.state=state;
+		modchartFile = new ModchartFile(this);
 	}
 
 	public function registerAux(name:String)
@@ -876,7 +875,6 @@ class ModManager {
 
 	public function queueEaseLB(beat:Float, length:Float, modName:String, value:Float, style:Dynamic = 'linear', player = -1, ?startVal:Float)
 		queueEase(beat * 4, (beat + length) * 4, modName, value, style, player, startVal);
-
 
 	public function queueEaseB(beat:Float, endBeat:Float, modName:String, value:Float, style:Dynamic = 'linear', player = -1, ?startVal:Float)
 		queueEase(beat * 4, endBeat * 4, modName, value, style, player, startVal);

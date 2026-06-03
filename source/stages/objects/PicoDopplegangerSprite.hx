@@ -12,7 +12,6 @@ class PicoDopplegangerSprite extends FunkinSprite
   {
     super(x, y);
     loadTextureAtlas('philly/erect/cutscenes/pico_doppleganger', "week3");
-    // above code recommended by Z11 to fix Pico erect cutscene from not loading
   }
 
   var cutsceneSounds:FunkinSound = null;
