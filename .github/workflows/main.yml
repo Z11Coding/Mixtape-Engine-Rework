@@ -24,7 +24,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v6.0.3
 
       - uses: krdlab/setup-haxe@master
         with:
@@ -57,7 +57,7 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v6.0.3
 
       - uses: krdlab/setup-haxe@master
         with:
@@ -86,7 +86,7 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v6.0.3
 
       - uses: krdlab/setup-haxe@master
         with:
