@@ -105,7 +105,7 @@ class ModchartFile
     }
     else
     {
-      json = {modifiers: [], events: [], playfields: 1};
+      json = {modifiers: [], events: [], playfields: 2};
     }
     return json;
   }

@@ -1755,7 +1755,7 @@ class ModchartEditorState extends MusicBeatState
     {
         var tab_group = UI_box.getTab('Playfields').menu;
 
-        playfieldCountStepper = new PsychUINumericStepper(25, 50, 1, 1, 1, 100, 0);
+        playfieldCountStepper = new PsychUINumericStepper(25, 50, 1, 2, 1, 100, 0);
         playfieldCountStepper.value = playfieldRenderer.modManager.modchartFile.data.playfields;
 
 
