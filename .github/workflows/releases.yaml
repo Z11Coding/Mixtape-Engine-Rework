@@ -1,0 +1,18 @@
+name: Discord Auto-Announce
+
+on:
+  release:
+    types: [prereleased]
+
+jobs:
+  discordNotification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify via Releasify
+        uses: teneplaysofficial/releasify-action@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "A new update has been released! Go grab it!"
+          footer: "Published by Mixtape Dev Team"
+          username: "MixtapeReleaser"
+          avatar_url: "https://i.ibb.co/QFMjBhyN/logo.png"
