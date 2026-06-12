@@ -50,16 +50,14 @@ class HealthIcon extends FlxSprite
 			if(!Paths.fileExists('images/' + name + '.png', IMAGE)) name = 'icons/icon-face'; //Prevents crash from missing icon
 
 			var file:Dynamic = Paths.image(name);
-
-			var jsonPath:String = haxe.io.Path.directory(Paths.file('images/icons/icons/'));
 			var jsonData:Dynamic = null;
 
 			// Try to load JSON file
-			if (Paths.fileExists(jsonPath, TEXT)) {
+			if (Paths.fileExists('images/$name.json', TEXT)) {
 				try {
-					jsonData = haxe.Json.parse(Paths.modsImagesJson(jsonPath));
+					jsonData = haxe.Json.parse(File.getContent(Paths.getPath('images/$name.json', TEXT)));
 				} catch (e:Dynamic) {
-					trace('Invalid JSON file: ' + jsonPath);
+					trace('Invalid JSON file: ' + name);
 				}
 			}
 
@@ -71,7 +69,7 @@ class HealthIcon extends FlxSprite
 					try {
 						jsonData = haxe.Json.parse(File.getContent(Paths.getPath('images/$name.json', TEXT)));
 					} catch (e:Dynamic) {
-						trace('Invalid JSON file: ' + jsonPath);
+						trace('Invalid JSON file: ' + name);
 					}
 					var jsonType:String = jsonData.type;
 					switch (jsonType) {
@@ -121,16 +119,22 @@ class HealthIcon extends FlxSprite
 						animation.addByPrefix('right', 'right',24, true, isPlayer);
 						animation.play('idle', true);
 				}
-				
+
 			}
 			else {
 				// Determine type based on JSON or fallback to size-based guessing
 				if (jsonData != null && Reflect.hasField(jsonData, 'type')) {
 					var jsonType:String = jsonData.type;
 					switch (jsonType) {
-						case 'SINGLE': type = SINGLE;
-						case 'DEFAULT': type = DEFAULT;
-						case 'WINNING': type = WINNING;
+						case 'SINGLE':
+							loadGraphic(file);
+							type = SINGLE;
+						case 'DEFAULT':
+							loadGraphic(file);
+							type = DEFAULT;
+						case 'WINNING':
+							loadGraphic(file);
+							type = WINNING;
 						default:
 							trace('Invalid type in JSON: ' + jsonType);
 							loadGraphic(file); // Load to guess size
@@ -139,39 +143,22 @@ class HealthIcon extends FlxSprite
 				} else {
 					loadGraphic(file); // Load to guess size
 					type = (width < 200 ? SINGLE : ((width > 199 && width < 301) ? DEFAULT : WINNING));
-
-					//trace('No JSON file found, guessing type based on size: ' + type + ' (' + width + 'px)');
-
-					// Create or update JSON file with guessed type
-					jsonData = { type: switch (type) {
-						case SINGLE: 'SINGLE';
-						case DEFAULT: 'DEFAULT';
-						case WINNING: 'WINNING';
-						case ANIMSINGLE: 'ANIMSINGLE';
-						case ANIMDEFAULT: 'ANIMDEFAULT';
-						case ANIMWINNING: 'ANIMWINNING';
-						case ANIMSINGING: 'ANIMSINGING';
-					}};
-					if (!sys.FileSystem.exists(jsonPath)) {
-						try {
-							var file = sys.io.File.write(jsonPath, true); // ???
-							file.close();
-						} catch(e) {trace("Failed to write JSON for " + char);}
-					}
-					sys.io.File.saveContent(jsonPath, haxe.Json.stringify(jsonData, null, '\t'));
 					//trace('Remembering this type for future use: ' + jsonPath);
 				}
 
-				loadGraphic(file, true, Math.floor(width / (type+1)), Math.floor(height));
-				iconOffsets[0] = iconOffsets[1] = (width - 150) / (type+1);
+				var iSize:Float = ((Math.round(width / height)) + (type+1)); // I love math (this is a lie)
+				loadGraphic(file, true, Math.floor(width / iSize), Math.floor(height));
+				iconOffsets[0] = (width - 150) / iSize;
+				iconOffsets[1] = (height - 150) / iSize;
+				updateHitbox();
+
 				var frames:Array<Int> = [];
 				for (i in 0...type+1) frames.push(i);
-				updateHitbox();
 
 				animation.add(char, frames, 0, false, isPlayer);
 				animation.play(char);
 			}
-			
+
 			this.char = char;
 
 			if(char.endsWith('-pixel'))
