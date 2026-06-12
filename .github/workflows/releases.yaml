@@ -14,5 +14,9 @@ jobs:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           title: "A new update has been released! Go grab it!"
           footer: "Published by Mixtape Dev Team"
-          username: "MixtapeReleaser"
+          username: "Mixtape Releaser"
           avatar_url: "https://i.ibb.co/QFMjBhyN/logo.png"
+          color: "#44007e"
+          mention: <@&1395979964800565330>
+          image: "https://i.ibb.co/QFMjBhyN/logo.png"
+          thumbnail: "https://cdn.discordapp.com/attachments/1348070937702170627/1515104354443595856/logobutsmaller.png?ex=6a2dca63&is=6a2c78e3&hm=9459dbd84b7bf438270e09cdecab0c2d87eb6e8a1bfe56b990e64b1c05348dd2&"
