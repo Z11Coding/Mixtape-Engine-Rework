@@ -1,44 +1,48 @@
 {
-	"storyName": "PICO",
+	"storyName": "PICO (Pico Edition)",
+	"difficulties": "Easy,Normal,Hard",
 	"hideFreeplay": false,
 	"weekBackground": "philly",
-	"weekBefore": "week2",
-	"startUnlocked": true,
-	"category": "pico",
+	"weekBefore": "weekend1",
+	"startUnlocked": false,
+	"hideStoryMode": true,
+	"category": [
+		"Pico"
+	],
 	"weekCharacters": [
 		"pico",
-		"bf",
-		"gf"
+		"pico-player",
+		"nene"
 	],
 	"songs": [
 		[
 			"Pico (Pico mix)",
 			"pico",
 			[
-				148,
-				22,
-				83
+				183,
+				216,
+				85
 			]
 		],
 		[
 			"Philly Nice (Pico mix)",
 			"pico",
 			[
-				148,
-				22,
-				83
+				183,
+				216,
+				85
 			]
 		],
 		[
 			"Blammed (Pico mix)",
 			"pico",
 			[
-				148,
-				22,
-				83
+				183,
+				216,
+				85
 			]
 		]
 	],
-	"hideStoryMode": true,
-	"weekName": "Week 3"
+	"hiddenUntilUnlocked": true,
+	"weekName": "Week 3 Pico"
 }

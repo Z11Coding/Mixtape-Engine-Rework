@@ -156,8 +156,6 @@ class PlayState extends MusicBeatState
 
 	public var yscriptArray:Array<YScript> = [];
 
-
-
 	#if LUA_ALLOWED
 	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
 	public var modchartSprites:Map<String, ModchartSprite> = new Map<String, ModchartSprite>();
@@ -503,7 +501,7 @@ class PlayState extends MusicBeatState
 	var hasMetadataFile:Bool = false;
 	var Text:Array<String> = [];
 	var whiteBG:FlxSprite;
-	var needSkip:Bool = false;
+	public var needSkip:Bool = false;
 	var skipActive:Bool = false;
 	var skipTo:Float;
 	var blackOverlay:FlxSprite;
