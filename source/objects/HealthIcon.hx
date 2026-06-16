@@ -146,10 +146,9 @@ class HealthIcon extends FlxSprite
 					//trace('Remembering this type for future use: ' + jsonPath);
 				}
 
-				var iSize:Float = ((Math.round(width / height)) + (type+1)); // I love math (this is a lie)
-				loadGraphic(file, true, Math.floor(width / iSize), Math.floor(height));
-				iconOffsets[0] = (width - 150) / iSize;
-				iconOffsets[1] = (height - 150) / iSize;
+				loadGraphic(file, true, Math.floor(width / (type+1)), Math.floor(height));
+				iconOffsets[0] = (width - 150) / (type+1);
+				iconOffsets[1] = (height - 150) / (type+1);
 				updateHitbox();
 
 				var frames:Array<Int> = [];

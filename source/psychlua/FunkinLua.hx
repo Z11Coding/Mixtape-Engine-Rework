@@ -779,6 +779,7 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "getColorFromName", function(color:String) return FlxColor.fromString(color));
 		Lua_helper.add_callback(lua, "getColorFromString", function(color:String) return FlxColor.fromString(color));
 		Lua_helper.add_callback(lua, "getColorFromHex", function(color:String) return FlxColor.fromString('#$color'));
+		Lua_helper.add_callback(lua, "getColorFromRGB", function(color:Array<Int>) return FlxColor.fromRGB(color[0], color[1], color[2]));
 
 		// precaching
 		Lua_helper.add_callback(lua, "addCharacterToList", function(name:String, type:String) {

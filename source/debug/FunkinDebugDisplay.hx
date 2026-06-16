@@ -125,8 +125,7 @@ class FunkinDebugDisplay extends Sprite
 
     if (MemoryUtilBase.supportsTaskMem())
     {
-      taskMemGraph = new FunkinStatsGraph(OTHERS_OFFSET, Math.floor(OTHERS_OFFSET + (gcMemGraph.y + gcMemGraph.axisHeight) + 22), graphsWidth, graphsHeight,
-        color);
+      taskMemGraph = new FunkinStatsGraph(OTHERS_OFFSET, Math.floor(OTHERS_OFFSET + (gcMemGraph.y + gcMemGraph.axisHeight) + 22), graphsWidth, graphsHeight, color);
       taskMemGraph.minValue = 0;
       addChild(taskMemGraph);
     }

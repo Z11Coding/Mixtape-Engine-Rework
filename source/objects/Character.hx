@@ -107,10 +107,11 @@ class Character extends FunkinSprite
 	public var invuln:Bool = false;
 	public var controlled:Bool = false;
 
-	public var doubleGhosts:Array<FlxSprite> = [];
+	public var doubleGhosts:Array<FunkinSprite> = [];
 	public var ghostID:Int = 0;
 	public var ghostAnim:String = '';
 	public var ghostTweenGrp:Array<FlxTween> = [];
+	public static var allowGhosts:Bool = true; // for blazin/spritemaps in general
 
 	public var mostRecentRow:Int = 0; // for ghost anims n shit
 
@@ -137,12 +138,14 @@ class Character extends FunkinSprite
 	{
 		super(x, y);
 
-		for(i in 0...4){
-			var ghost = new FlxSprite();
-			ghost.visible = false;
-			ghost.antialiasing = true;
-			ghost.alpha = 0.6;
-			doubleGhosts.push(ghost);
+		if (allowGhosts) {
+			for(i in 0...4){
+				var ghost = new FunkinSprite();
+				ghost.visible = false;
+				ghost.antialiasing = true;
+				ghost.alpha = 0.6;
+				doubleGhosts.push(ghost);
+			}
 		}
 
 		animOffsets = new Map<String, Array<Dynamic>>();
@@ -516,7 +519,7 @@ class Character extends FunkinSprite
 		if(isAnimationFinished() && hasAnimation('$name-loop'))
 			playAnim('$name-loop');
 
-		if(!debugMode || !(!isAnimateAtlas && animation.curAnim == null) || !(isAnimateAtlas && anim.curAnim == null))
+		if(allowGhosts && !debugMode || allowGhosts && (!(!isAnimateAtlas && animation.curAnim == null) || !(isAnimateAtlas && anim.curAnim == null)))
 		{
 			for (ghost in doubleGhosts)
 				ghost.update(elapsed);
@@ -528,7 +531,7 @@ class Character extends FunkinSprite
 	inline public function isAnimationNull():Bool
 	{
 		@:privateAccess
-		return !isAnimateAtlas ? (animation.curAnim == null) : (anim.curAnim == null);
+		return !isAnimateAtlas ? (animation?.curAnim == null) : (anim?.curAnim == null);
 	}
 
 	var _lastPlayedAnimation:String;
@@ -584,57 +587,59 @@ class Character extends FunkinSprite
 
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
 	{
-		var ret:Dynamic = PlayState.instance?.callOnScripts('onPlayAnimPre', [AnimName, Force, Reversed, Frame]);
-		if(ret != LuaUtils.Function_Stop && hasAnimation(AnimName)) { // Don't bother if it aint there
-			specialAnim = false;
-			if(!isAnimateAtlas)
-			{
-				try {animation.play(AnimName, Force, Reversed, Frame);}
-				catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
-			}
-			else
-			{
-				try {anim.play(AnimName, Force, Reversed, Frame);
-				update(0);}
-				catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
-			}
-			_lastPlayedAnimation = AnimName;
-
-			try {
-				if (hasAnimation(AnimName))
+		try {
+			var ret:Dynamic = PlayState.instance?.callOnScripts('onPlayAnimPre', [AnimName, Force, Reversed, Frame]);
+			if(ret != LuaUtils.Function_Stop && hasAnimation(AnimName)) { // Don't bother if it aint there
+				specialAnim = false;
+				if(!isAnimateAtlas)
 				{
-					var daOffset = animOffsets.get(AnimName);
-					offset.set(daOffset[0], daOffset[1]);
+					try {animation.play(AnimName, Force, Reversed, Frame);}
+					catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
+				}
+				else
+				{
+					try {anim.play(AnimName, Force, Reversed, Frame);
+					update(0);}
+					catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
+				}
+				_lastPlayedAnimation = AnimName;
+
+				try {
+					if (hasAnimation(AnimName))
+					{
+						var daOffset = animOffsets.get(AnimName);
+						offset.set(daOffset[0], daOffset[1]);
+					}
+				}
+				catch(e) {trace('Animation offset no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
+				//else offset.set(0, 0);
+
+				if (curCharacter.startsWith('gf-') || curCharacter == 'gf')
+				{
+					if (AnimName == 'singLEFT')
+						danced = true;
+
+					else if (AnimName == 'singRIGHT')
+						danced = false;
+
+					if (AnimName == 'singUP' || AnimName == 'singDOWN')
+						danced = !danced;
+				}
+
+				if (Paths.formatToSongPath(Song.loadedSongName) == 'fangirl-frenzy')
+				{
+					switch (curCharacter)
+					{
+						case 'Z11-true-player':
+							if (animation.curAnim.name != 'idle') PlayState.instance.health += 0.023 * ClientPrefs.getGameplaySetting('healthgain', 1);
+						case "Zenetta":
+							if (!animation.curAnim.name.contains('dance')) PlayState.instance.health -= 0.023 * ClientPrefs.getGameplaySetting('healthloss', 1);
+					}
 				}
 			}
-			catch(e) {trace('Animation offset no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
-			//else offset.set(0, 0);
 
-			if (curCharacter.startsWith('gf-') || curCharacter == 'gf')
-			{
-				if (AnimName == 'singLEFT')
-					danced = true;
-
-				else if (AnimName == 'singRIGHT')
-					danced = false;
-
-				if (AnimName == 'singUP' || AnimName == 'singDOWN')
-					danced = !danced;
-			}
-
-			if (Paths.formatToSongPath(Song.loadedSongName) == 'fangirl-frenzy')
-			{
-				switch (curCharacter)
-				{
-					case 'Z11-true-player':
-						if (animation.curAnim.name != 'idle') PlayState.instance.health += 0.023 * ClientPrefs.getGameplaySetting('healthgain', 1);
-					case "Zenetta":
-						if (!animation.curAnim.name.contains('dance')) PlayState.instance.health -= 0.023 * ClientPrefs.getGameplaySetting('healthloss', 1);
-				}
-			}
-		}
-
-		PlayState.instance?.callOnScripts('onPlayAnim', [AnimName, Force, Reversed, Frame]);
+			PlayState.instance?.callOnScripts('onPlayAnim', [AnimName, Force, Reversed, Frame]);
+		} catch(e) {trace('Animation no workie :(\nAnim that attempted to play: $AnimName\nCharacter that tried to play it: $curCharacter');}
 	}
 
 	function loadMappedAnims():Void
@@ -732,37 +737,42 @@ class Character extends FunkinSprite
 	}
 
 	public function playGhostAnim(ghostID = 0, animName:String, force:Bool = false, reversed:Bool = false, frame:Int = 0) {
-		try {
-			var ghost:FlxSprite = doubleGhosts[ghostID];
-			ghost.scale.copyFrom(scale);
-			ghost.frames = frames;
-			ghost.animation.copyFrom(animation);
-			ghost.antialiasing = antialiasing;
-			ghost.x = x;
-			ghost.y = y;
-			ghost.flipX = flipX;
-			ghost.flipY = flipY;
-			ghost.alpha = alpha * 0.6;
-			ghost.visible = true;
-			ghost.color = ghost.color = FlxColor.fromRGB(healthColorArray[0], healthColorArray[1], healthColorArray[2]);
-			ghost.animation.play(animName, force, reversed, frame);
+		if (allowGhosts) {
+			try {
+				var ghost:FunkinSprite = doubleGhosts[ghostID];
+				ghost.scale.copyFrom(scale);
+				ghost.frames = frames;
+				if (this.isAnimate)
+					ghost.anim.copyFrom(animation);
+				else
+					ghost.animation.copyFrom(animation);
+				ghost.antialiasing = antialiasing;
+				ghost.x = x;
+				ghost.y = y;
+				ghost.flipX = flipX;
+				ghost.flipY = flipY;
+				ghost.alpha = alpha * 0.6;
+				ghost.visible = true;
+				ghost.color = ghost.color = FlxColor.fromRGB(healthColorArray[0], healthColorArray[1], healthColorArray[2]);
+				ghost.playAnimSpecial(animName, force, reversed, frame);
 
-			ghostTweenGrp[ghostID]?.cancel();
+				ghostTweenGrp[ghostID]?.cancel();
 
-			ghostTweenGrp[ghostID] = FlxTween.tween(ghost, {alpha: 0}, 0.75,
-			{
-				onComplete: (twn) -> {
-					ghost.visible = false;
-					ghostTweenGrp[ghostID] = null;
+				ghostTweenGrp[ghostID] = FlxTween.tween(ghost, {alpha: 0}, 0.75,
+				{
+					onComplete: (twn) -> {
+						ghost.visible = false;
+						ghostTweenGrp[ghostID] = null;
+					}
+				});
+
+				if (animOffsets.exists(animName))
+				{
+					final daOffset = animOffsets.get(animName);
+					ghost.offset.set(daOffset[0] * scale.x, daOffset[1] * scale.y);
 				}
-			});
-
-			if (animOffsets.exists(animName))
-			{
-				final daOffset = animOffsets.get(animName);
-				ghost.offset.set(daOffset[0] * scale.x, daOffset[1] * scale.y);
-			}
-		} catch(e) {trace("Nah im good actually");}
+			} catch(e) {trace("Nah im good actually");}
+		}
 	}
 
 	// Atlas support
@@ -771,9 +781,11 @@ class Character extends FunkinSprite
 	public var isAnimateAtlas(default, null):Bool = false;
 	public override function draw()
 	{
-		for(ghost in doubleGhosts){
-			if(ghost.visible)
-				ghost.draw();
+		if (allowGhosts) {
+			for(ghost in doubleGhosts){
+				if(ghost.visible)
+					ghost.draw();
+			}
 		}
 
 		var lastAlpha:Float = alpha;

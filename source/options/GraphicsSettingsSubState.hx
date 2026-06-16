@@ -237,41 +237,16 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 	function onChangePerformanceCounter()
 	{
-		if (Main.fpsVar != null)
-		{
-			Main.fpsVar.visible = true;
-			switch (ClientPrefs.data.performanceCounter)
-			{
-				case 'hide':
-					Main.fpsVar.visible = false;
-				case 'base':
-					Main.fpsVar.visible = false;
-				case 'base-adv':
-					Main.fpsVar.visible = false;
-			}
-			Main.fpsVar.forceUpdateText = true;
+		if(Main.fpsVar != null) {
+			Main.fpsVar.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "fps" || ClientPrefs.data.performanceCounter == "fps-mem" || ClientPrefs.data.performanceCounter == "fps-mem-peak");
 		}
 
-		if (Main.debugDisplay != null)
-		{
-			switch (ClientPrefs.data.performanceCounter)
-			{
-				case 'hide':
-					Main.debugDisplay.visible = false;
-				case 'fps':
-					Main.debugDisplay.visible = false;
-				case 'fps-mem':
-					Main.debugDisplay.visible = false;
-				case 'fps-mem-peak':
-					Main.debugDisplay.visible = false;
-				case 'base':
-					Main.debugDisplay.visible = true;
-					Main.debugDisplay.isAdvanced = false;
-				case 'base-adv':
-					Main.debugDisplay.visible = true;
-					Main.debugDisplay.isAdvanced = true;
-			}
+		if(Main.debugDisplay != null) {
+			Main.debugDisplay.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "base" || ClientPrefs.data.performanceCounter == "base-adv");
+			Main.debugDisplay.isAdvanced = (ClientPrefs.data.performanceCounter == "base-adv");
+			Main.debugDisplay.backgroundOpacity = ClientPrefs.data.performanceBackground;
 		}
+		Main.fpsVar.forceUpdateText = true;
 	}
 
 	function onChangeTrashMode()
