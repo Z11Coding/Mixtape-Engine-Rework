@@ -290,7 +290,6 @@ class PlayState extends MusicBeatState
 		playfield.grpNoteSplashes = value;
 		return playfield.grpNoteSplashes;
 	}
-
 	private function get_cpuControlled():Bool {
 		return playfield.cpuControlled;
 	}
@@ -391,25 +390,6 @@ class PlayState extends MusicBeatState
 
 	//event variables
 	public var isCameraOnForcedPos:Bool = false;
-
-	#if HSCRIPT_ALLOWED
-	public var hscriptArray:Array<HScript> = [];
-	#end
-
-	public var yscriptArray:Array<YScript> = [];
-
-
-
-	#if LUA_ALLOWED
-	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
-	public var modchartSprites:Map<String, ModchartSprite> = new Map<String, ModchartSprite>();
-	public var modchartTimers:Map<String, FlxTimer> = new Map<String, FlxTimer>();
-	public var modchartSounds:Map<String, FlxSound> = new Map<String, FlxSound>();
-	public var modchartTexts:Map<String, FlxText> = new Map<String, FlxText>();
-	public var modchartSaves:Map<String, FlxSave> = new Map<String, FlxSave>();
-	public var modchartObjects:Map<String, FlxSprite> = new Map<String, FlxSprite>();
-	#end
-
 	public var comboOffsetCustom:Null<Array<Int>> = null;
 
 	// override function preloadFunction():Void {
@@ -417,9 +397,7 @@ class PlayState extends MusicBeatState
 	// }
 
 	// Save Settings...
-
 	public var clientSaveData = yutautil.save.ObjectSerializer.deepClone(ClientPrefs.data);
-
 	public var playbackRate(default, set):Float = 1;
 	public var currentRate:Float = 1;
 
@@ -438,7 +416,6 @@ class PlayState extends MusicBeatState
 	public static var stageUI(default, set):String = "normal";
 	public static var uiPrefix:String = "";
 	public static var uiPostfix:String = "";
-	public static var isLegacyLuaTest:Bool = false; // Flag to track if we're testing from Legacy Lua settings
 	public static var isPixelStage(get, never):Bool;
 	var raveLight:FlxSprite;
 	var raveLightsColors:Array<Int>;
