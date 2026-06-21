@@ -5,8 +5,6 @@
 	"weekBackground": "school",
 	"weekBefore": "week5",
 	"startUnlocked": true,
-	"category": "erect",
-	"hideStoryMode": true,
 	"weekCharacters": [
 		"senpai",
 		"bf",
@@ -18,8 +16,8 @@
 			"senpai-pixel",
 			[
 				255,
-				120,
-				191
+				170,
+				111
 			]
 		],
 		[
@@ -27,8 +25,8 @@
 			"senpai-pixel",
 			[
 				255,
-				120,
-				191
+				170,
+				111
 			]
 		],
 		[
@@ -36,10 +34,14 @@
 			"spirit-pixel",
 			[
 				255,
-				120,
-				191
+				60,
+				110
 			]
 		]
+	],
+	"hideStoryMode": true,
+	"category": [
+		"Erect"
 	],
 	"weekName": "Week 6"
 }

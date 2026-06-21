@@ -11,16 +11,18 @@
 	],
 	"startUnlocked": true,
 	"directory": "week6",
-	"category": "erect",
+	"category": [
+		"erect"
+	],
 	"hideStoryMode": true,
 	"songs": [
 		[
 			"Ugh Erect",
 			"tankman",
 			[
-				246,
-				182,
-				4
+				225,
+				225,
+				225
 			]
 		]
 	],
@@ -29,5 +31,5 @@
 		"bf",
 		"gf"
 	],
-	"weekName": "Week 7"
+	"weekName": "Week 7 Erect"
 }

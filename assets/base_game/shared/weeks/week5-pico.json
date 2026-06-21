@@ -1,35 +1,38 @@
 {
-	"storyName": "RED SNOW",
+	"storyName": "RED SNOW (Pico Edition)",
+	"difficulties": "Easy,Normal,Hard",
 	"hideFreeplay": false,
 	"weekBackground": "christmas",
-	"weekBefore": "week4",
-	"startUnlocked": true,
-	"hideStoryMode": true,
-	"category": "pico",
+	"weekBefore": "weekend1",
+	"startUnlocked": false,
 	"weekCharacters": [
 		"parents-christmas",
 		"pico-player",
 		"nene"
+	],
+	"category": [
+		"Pico"
 	],
 	"songs": [
 		[
 			"Eggnog (Pico Mix)",
 			"parents",
 			[
-				160,
-				209,
-				255
+				175,
+				102,
+				206
 			]
 		],
 		[
 			"Cocoa (Pico Mix)",
 			"parents",
 			[
-				160,
-				209,
-				255
+				175,
+				102,
+				206
 			]
 		]
 	],
+	"hideStoryMode": true,
 	"weekName": "Week 5"
 }

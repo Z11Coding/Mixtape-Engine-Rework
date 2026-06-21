@@ -5,41 +5,43 @@
 	"weekBackground": "philly",
 	"weekBefore": "week2",
 	"startUnlocked": true,
-	"category": "erect",
-	"hideStoryMode": true,
-	"weekCharacters": [
-		"pico",
-		"bf",
-		"gf"
-	],
 	"songs": [
 		[
 			"Pico Erect",
 			"pico",
 			[
-				148,
-				22,
-				83
+				183,
+				216,
+				85
 			]
 		],
 		[
 			"Philly Nice Erect",
 			"pico",
 			[
-				148,
-				22,
-				83
+				183,
+				216,
+				85
 			]
 		],
 		[
 			"Blammed Erect",
 			"pico",
 			[
-				148,
-				22,
-				83
+				183,
+				216,
+				85
 			]
 		]
 	],
-	"weekName": "Week 3"
+	"weekCharacters": [
+		"pico",
+		"bf",
+		"gf"
+	],
+	"category": [
+		"Erect"
+	],
+	"hideStoryMode": true,
+	"weekName": "Week 3 Erect"
 }

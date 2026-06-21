@@ -216,7 +216,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		});
 	}
 
-    public function getSV(time:Float){
+  public function getSV(time:Float){
 		var svIndex:Int = 0;
 
 		var event:SpeedEvent = speedChanges[svIndex];
@@ -281,12 +281,12 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 	override function update(elapsed:Float)
 	{
-        currentSV = getSV(Conductor.songPosition);
-        Conductor.visualPosition = getVisualPosition();
+		currentSV = getSV(Conductor.songPosition);
+		Conductor.visualPosition = getVisualPosition();
 
-        modManager.update(elapsed, curDecBeat, curDecStep);
+		modManager.update(elapsed, curDecBeat, curDecStep);
 
-        for (field in playfields)
+    for (field in playfields)
 			field.noteField.songSpeed = songSpeed;
 
 		if(controls.BACK || FlxG.keys.justPressed.ESCAPE)
@@ -298,8 +298,8 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 		if (startingSong)
 		{
-            modManager.setValue('transformX', -400);
-            modManager.setValue('transformY', -300);
+			modManager.setValue('transformX', -400);
+			modManager.setValue('transformY', -300);
 			timerToStart -= elapsed * 1000;
 			Conductor.songPosition = startPos - timerToStart;
 			if(timerToStart < 0) startSong();

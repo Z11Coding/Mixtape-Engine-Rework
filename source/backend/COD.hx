@@ -14,7 +14,7 @@ class COD
 	public static function initCOD():Void
 	{
 		deathVar = "Cause of death: ";
-    	missDeath = "Missed a note at 0 health.";
+    missDeath = "Missed a note at 0 health.";
 		missDeath2 = "Missed a note.";
 		rDeath = "Pressed R.";
 		ukTxt = "Unknown.";

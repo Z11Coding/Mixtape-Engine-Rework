@@ -734,6 +734,14 @@ class FunkinSprite extends FlxAnimate
     return result;
   }
 
+  // Specifically for things that might need it
+  public inline function playAnimSpecial(animName:String, ?force:Bool = false, ?reversed:Bool = false, ?frame:Int = 0) {
+    if (this.isAnimate)
+      anim.play(animName, force, reversed, frame);
+    else
+      animation.play(animName, force, reversed, frame);
+  }
+
   @:access(flixel.FlxCamera)
   override function getBoundingBox(camera:FlxCamera):FlxRect
   {

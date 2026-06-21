@@ -23,7 +23,7 @@ haxelib install helder.set 0.3.1
 haxelib install yaml 2.0.1
 haxelib install haxe-concurrent 5.1.3
 haxelib install actuate 1.9.0
-haxelib install flixel-ui 2.6.1
+haxelib install flixel-ui 2.6.2
 haxelib install hscript 2.5.0
 haxelib install noisehx 0.0.1
 haxelib install haxeui-core 1.7.0
@@ -35,8 +35,11 @@ haxelib install openflCamera 1.0.7
 haxelib install openflMicrophone 1.0.1
 haxelib install hxpy 2.0.0
 haxelib install random 1.4.1
+haxelib install moonchart 0.5.1
+haxelib install extension-harfbuzz
 haxelib set lime 8.1.2
 haxelib set openfl 9.3.3
+haxelib run lime rebuild extension-harfbuzz linux
 haxelib git flixel-animate https://github.com/MaybeMaru/flixel-animate c61476f4b3a3d225631ab3065e4e925a4b63c076
 haxelib git flxsoundfilters https://github.com/TheZoroForce240/FlxSoundFilters
 haxelib git hxWebSockets https://github.com/ianharrigan/hxWebSockets

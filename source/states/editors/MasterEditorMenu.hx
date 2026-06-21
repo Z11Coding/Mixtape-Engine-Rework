@@ -137,7 +137,7 @@ class MasterEditorMenu extends MusicBeatState
 						PlayState.isStoryMode = false;
 						PlayState.storyDifficulty = 1;
 					}
-					LoadingState.loadAndSwitchState(new ModchartEditor());
+					LoadingState.loadAndSwitchState(new ModchartEditorState());
 				case 'Sticker Test':
 					MusicBeatState.switchState(new StickerTest());
 				case 'XML Editor':

@@ -1014,7 +1014,7 @@ class Note extends NoteObject
 			if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB && !isCheck) rgbShader.enabled = false;
 			texture = '';
 
-			if (PlayState.isPixelStage || getNoteSkinPostfix().toLowerCase() == '-retribution')
+			if (getNoteSkinPostfix().toLowerCase() == '-retribution')
 				rgbShader.enabled = false;
 
 			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs

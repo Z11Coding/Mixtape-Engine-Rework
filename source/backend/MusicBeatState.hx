@@ -775,7 +775,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	private function updateBeat():Void
 	{
 		curBeat = Math.floor(curStep / 4);
-		curDecBeat = curDecStep / 4;
+		pubCurDecBeat = curDecBeat = curDecStep / 4;
 	}
 
 	private function updateCurStep():Void
@@ -783,7 +783,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 		var lastChange = Conductor.getBPMFromSeconds(Conductor.songPosition);
 
 		var shit = ((Conductor.songPosition - ClientPrefs.data.noteOffset) - lastChange.songTime) / lastChange.stepCrochet;
-		curDecStep = lastChange.stepTime + shit;
+		pubCurDecStep = curDecStep = lastChange.stepTime + shit;
 		curStep = lastChange.stepTime + Math.floor(shit);
 	}
 

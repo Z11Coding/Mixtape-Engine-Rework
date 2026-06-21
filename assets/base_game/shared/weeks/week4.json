@@ -1,23 +1,47 @@
 {
-	"songs": [
-		["Satin Panties", "mom", [252, 150, 215]],
-		["High", "mom", [252, 150, 215]],
-		["Milf", "mom", [252, 150, 215]]
-	],
-	
+	"storyName": "MOMMY MUST MURDER",
+	"difficulties": "Easy,Normal,Hard",
+	"hideFreeplay": false,
+	"weekBackground": "limo",
+	"weekBefore": "week3",
+	"startUnlocked": true,
+	"hideStoryMode": false,
 	"weekCharacters": [
 		"mom",
 		"bf",
 		"gf"
 	],
-	"weekBackground": "limo",
-
-	"storyName": "MOMMY MUST MURDER",
-	"weekBefore": "week3",
-	"weekName": "Week 4",
-	"startUnlocked": true,
-	"category": "base",
-
-	"hideStoryMode": false,
-	"hideFreeplay": false
+	"songs": [
+		[
+			"Satin Panties",
+			"mom",
+			[
+				216,
+				85,
+				142
+			]
+		],
+		[
+			"High",
+			"mom",
+			[
+				216,
+				85,
+				142
+			]
+		],
+		[
+			"Milf",
+			"mom",
+			[
+				216,
+				85,
+				142
+			]
+		]
+	],
+	"category": [
+		"base"
+	],
+	"weekName": "Week 4"
 }

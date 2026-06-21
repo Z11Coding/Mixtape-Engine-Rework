@@ -156,8 +156,6 @@ class PlayState extends MusicBeatState
 
 	public var yscriptArray:Array<YScript> = [];
 
-
-
 	#if LUA_ALLOWED
 	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
 	public var modchartSprites:Map<String, ModchartSprite> = new Map<String, ModchartSprite>();
@@ -503,7 +501,7 @@ class PlayState extends MusicBeatState
 	var hasMetadataFile:Bool = false;
 	var Text:Array<String> = [];
 	var whiteBG:FlxSprite;
-	var needSkip:Bool = false;
+	public var needSkip:Bool = false;
 	var skipActive:Bool = false;
 	var skipTo:Float;
 	var blackOverlay:FlxSprite;
@@ -529,45 +527,45 @@ class PlayState extends MusicBeatState
 	public var hearts:FlxTypedGroup<FlxSprite>;
 	public var lives:Int = 1;
 
-		//THE MANAGERS
-		public var comboManager:ComboManager;
+	//THE MANAGERS
+	public var comboManager:ComboManager;
 
-		public var ratingsData(get, never):Array<Rating>;
-		public var combo(get, set):Int;
-		public var maxCombo(get, set):Int;
-		public var songScore(get, set):Int;
-		public var songHits(get, set):Int;
-		public var songMisses(get, set):Int;
-		public var comboBreaks(get, set):Int;
-		public var ratingName(get, set):String;
-		public var ratingPercent(get, set):Float;
-		public var ratingFC(get, set):String;
-		public var totalPlayed(get, set):Int;
-		public var totalNotesHit(get, set):Float;
+	public var ratingsData(get, never):Array<Rating>;
+	public var combo(get, set):Int;
+	public var maxCombo(get, set):Int;
+	public var songScore(get, set):Int;
+	public var songHits(get, set):Int;
+	public var songMisses(get, set):Int;
+	public var comboBreaks(get, set):Int;
+	public var ratingName(get, set):String;
+	public var ratingPercent(get, set):Float;
+	public var ratingFC(get, set):String;
+	public var totalPlayed(get, set):Int;
+	public var totalNotesHit(get, set):Float;
 
-		private function get_ratingsData():Array<Rating> return comboManager.ratingsData;
-		private function get_combo():Int return comboManager.combo;
-		private function set_combo(value:Int):Int return comboManager.combo = value;
-		private function get_maxCombo():Int return comboManager.maxCombo;
-		private function set_maxCombo(value:Int):Int return comboManager.maxCombo = value;
-		private function get_songScore():Int return comboManager.songScore;
-		private function set_songScore(value:Int):Int return comboManager.songScore = value;
-		private function get_songHits():Int return comboManager.songHits;
-		private function set_songHits(value:Int):Int return comboManager.songHits = value;
-		private function get_songMisses():Int return comboManager.songMisses;
-		private function set_songMisses(value:Int):Int return comboManager.songMisses = value;
-		private function get_comboBreaks():Int return comboManager.comboBreaks;
-		private function set_comboBreaks(value:Int):Int return comboManager.comboBreaks = value;
-		private function get_ratingName():String return comboManager.ratingName;
-		private function set_ratingName(value:String):String return comboManager.ratingName = value;
-		private function get_ratingPercent():Float return comboManager.ratingPercent;
-		private function set_ratingPercent(value:Float):Float return comboManager.ratingPercent = value;
-		private function get_ratingFC():String return comboManager.ratingFC;
-		private function set_ratingFC(value:String):String return comboManager.ratingFC = value;
-		private function get_totalPlayed():Int return comboManager.totalPlayed;
-		private function set_totalPlayed(value:Int):Int return comboManager.totalPlayed = value;
-		private function get_totalNotesHit():Float return comboManager.totalNotesHit;
-		private function set_totalNotesHit(value:Float):Float return comboManager.totalNotesHit = value;
+	private function get_ratingsData():Array<Rating> return comboManager.ratingsData;
+	private function get_combo():Int return comboManager.combo;
+	private function set_combo(value:Int):Int return comboManager.combo = value;
+	private function get_maxCombo():Int return comboManager.maxCombo;
+	private function set_maxCombo(value:Int):Int return comboManager.maxCombo = value;
+	private function get_songScore():Int return comboManager.songScore;
+	private function set_songScore(value:Int):Int return comboManager.songScore = value;
+	private function get_songHits():Int return comboManager.songHits;
+	private function set_songHits(value:Int):Int return comboManager.songHits = value;
+	private function get_songMisses():Int return comboManager.songMisses;
+	private function set_songMisses(value:Int):Int return comboManager.songMisses = value;
+	private function get_comboBreaks():Int return comboManager.comboBreaks;
+	private function set_comboBreaks(value:Int):Int return comboManager.comboBreaks = value;
+	private function get_ratingName():String return comboManager.ratingName;
+	private function set_ratingName(value:String):String return comboManager.ratingName = value;
+	private function get_ratingPercent():Float return comboManager.ratingPercent;
+	private function set_ratingPercent(value:Float):Float return comboManager.ratingPercent = value;
+	private function get_ratingFC():String return comboManager.ratingFC;
+	private function set_ratingFC(value:String):String return comboManager.ratingFC = value;
+	private function get_totalPlayed():Int return comboManager.totalPlayed;
+	private function set_totalPlayed(value:Int):Int return comboManager.totalPlayed = value;
+	private function get_totalNotesHit():Float return comboManager.totalNotesHit;
+	private function set_totalNotesHit(value:Float):Float return comboManager.totalNotesHit = value;
 
 
 
@@ -6437,9 +6435,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 	public function die(?trueKill:Bool = false, ?cod:String):Void
 	{
 		'COD = $cod. backend.COD.COD.COD = ${backend.COD.COD.COD}'.log();
-			if (cod != null && cod.trim() != "") {
-				backend.COD.COD.COD = cod;
-			}
+		if (cod != null && cod.trim() != "") {
+			backend.COD.COD.COD = cod;
+		}
 		if (trueKill)
 			doDeathCheck(true);
 		else {
@@ -6712,6 +6710,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				openChartEditor();
 			else if (controls.justPressed('debug_2'))
 				openCharacterEditor();
+			else if (controls.justPressed('debug_3'))
+				openModChartEditor();
 		}
 
 		// === BATCHED ICON UPDATES ===
@@ -7814,6 +7814,34 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 	}
 
+	function openModChartEditor()
+	{
+		canResync = false;
+		FlxG.camera.followLerp = 0;
+		persistentUpdate = false;
+		chartingMode = true;
+		paused = true;
+
+		if(FlxG.sound.music != null)
+			FlxG.sound.music.stop();
+		if(vocals != null)
+			vocals.pause();
+		if(opponentVocals != null)
+			opponentVocals.pause();
+		if(gfVocals != null)
+			gfVocals.pause();
+
+		#if DISCORD_ALLOWED
+		DiscordClient.changePresence("Going to Modchart Editor", null, null, true);
+		DiscordClient.resetClientID();
+		#end
+
+		LoadingState.noteCache = [];
+		curChart = [];
+
+		MusicBeatState.switchState(new states.editors.ModchartEditorState());
+	}
+
 	function openChartEditor()
 	{
 		canResync = false;
@@ -7859,7 +7887,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			gfVocals.pause();
 
 		#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
-		MusicBeatState.switchState(new CharacterEditorState(SONG.player2));
+		MusicBeatState.switchState(new CharacterEditorState(FlxG.keys.pressed.SHIFT ? SONG.player2 : SONG.player1));
 	}
 
 	var songAboutToLoop:Bool = false;
@@ -11455,7 +11483,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
 			health = 1 / lives * lives;
 		}
-			if (note.cod != null && note.cod.trim() != '') {
+
+		if (note.cod != null && note.cod.trim() != '') {
 			COD.setCOD(note.cod);
 		}
 	}
