@@ -82,7 +82,7 @@ class APFreeplayManager extends FreeplayManager {
             {song: songData.song, mod: ''}
         } else {
             {song: songData.song, mod: songData.mod}
-        };
+        };  
     });
 
     #end
