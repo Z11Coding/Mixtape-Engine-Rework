@@ -191,7 +191,7 @@ class CharacterManager {
 			}
       @:privateAccess
 			if(doPush)
-				(PlayState.instance.shouldUseLegacyLua() ? new psychlua.LegacyFunkinLua(luaFile) : new psychlua.FunkinLua(luaFile));
+				MusicBeatState.getState().scripts.startLuasNamed(luaFile);
 
 		}
 		#end
@@ -226,7 +226,7 @@ class CharacterManager {
 				}
 			}
 
-			if(doPush) PlayState.instance.initHScript(scriptFile);
+			if(doPush) MusicBeatState.getState().scripts.initHScript(scriptFile);
 		}
 		#end
 
@@ -258,7 +258,7 @@ class CharacterManager {
 				}
 			}
 
-			if(doPush) PlayState.instance.initYScript(scriptFile);
+			if(doPush) MusicBeatState.getState().scripts.initYScript(scriptFile);
 		}
 	}
 

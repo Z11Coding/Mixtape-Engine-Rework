@@ -361,12 +361,10 @@ class PlayfieldManager {
 		}
 		#end
 
-    if (MusicBeatState.getState() == PlayState.instance) {
-      #if ALLOW_DEPRECATION
-      PlayState.instance?.callOnScripts('postPlayerReceptorGeneration'); // deprecated
-      #end
-      PlayState.instance?.callOnScripts('onPlayerReceptorGenerationPost');
-    }
+    #if ALLOW_DEPRECATION
+    MusicBeatState.getState()?.callOnScripts('postPlayerReceptorGeneration'); // deprecated
+    #end
+    MusicBeatState.getState()?.callOnScripts('onPlayerReceptorGenerationPost');
 	}
 
   /// Playfields

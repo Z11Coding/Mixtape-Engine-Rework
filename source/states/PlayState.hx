@@ -1,6 +1,6 @@
 package states;
 
-
+import yutautil.PyScript;
 /**
  * This is where all the Gameplay stuff happens and is managed
  *
@@ -387,6 +387,126 @@ class PlayState extends MusicBeatState
 		return value;
 	}
 
+	//Script Stuff
+	public var hscriptArray(get, set):Array<HScript>;
+	public var yscriptArray(get, set):Array<YScript>;
+	public var luaArray(get, set):Array<FunkinLua>;
+	public var legacyLuaArray(get, set):Array<LegacyFunkinLua>;
+	public var pyScriptArray(get, set):Array<PyScript>;
+	private function get_hscriptArray():Array<HScript> {
+		return scripts.hscriptArray;
+	}
+	private function set_hscriptArray(value:Array<HScript>):Array<HScript> {
+		scripts.hscriptArray = value;
+		return scripts.hscriptArray;
+	}
+	private function get_yscriptArray():Array<YScript> {
+		return scripts.yscriptArray;
+	}
+	private function set_yscriptArray(value:Array<YScript>):Array<YScript> {
+		scripts.yscriptArray = value;
+		return scripts.yscriptArray;
+	}
+	private function get_luaArray():Array<FunkinLua> {
+		return scripts.luaArray;
+	}
+	private function set_luaArray(value:Array<FunkinLua>):Array<FunkinLua> {
+		scripts.luaArray = value;
+		return scripts.luaArray;
+	}
+	private function get_legacyLuaArray():Array<LegacyFunkinLua> {
+		return scripts.legacyLuaArray;
+	}
+	private function set_legacyLuaArray(value:Array<LegacyFunkinLua>):Array<LegacyFunkinLua> {
+		scripts.legacyLuaArray = value;
+		return scripts.legacyLuaArray;
+	}
+	private function get_pyScriptArray():Array<PyScript> {
+		return scripts.pyScriptArray;
+	}
+	private function set_pyScriptArray(value:Array<PyScript>):Array<PyScript> {
+		scripts.pyScriptArray = value;
+		return scripts.pyScriptArray;
+	}
+
+	// 0.6.X - 0.7.X variables
+	public var modchartTweens(get, default):Map<String, FlxTween>;
+	public var modchartSprites(get, default):Map<String, ModchartSprite>;
+	public var modchartTimers(get, default):Map<String, FlxTimer>;
+	public var modchartSounds(get, default):Map<String, FlxSound>;
+	public var modchartTexts(get, default):Map<String, FlxText>;
+	public var modchartSaves(get, default):Map<String, FlxSave>;
+	public var modchartObjects(get, default):Map<String, FlxSprite>;
+
+	private function get_modchartTweens():Map<String, FlxTween> {
+		return scripts.modchartTweens;
+	}
+	private function set_modchartTweens(value:Map<String, FlxTween>):Map<String, FlxTween> {
+		scripts.modchartTweens = value;
+		return scripts.modchartTweens;
+	}
+	private function get_modchartSprites():Map<String, ModchartSprite> {
+		return scripts.modchartSprites;
+	}
+	private function set_modchartSprites(value:Map<String, ModchartSprite>):Map<String, ModchartSprite> {
+		scripts.modchartSprites = value;
+		return scripts.modchartSprites;
+	}
+	private function get_modchartTimers():Map<String, FlxTimer> {
+		return scripts.modchartTimers;
+	}
+	private function set_modchartTimers(value:Map<String, FlxTimer>):Map<String, FlxTimer> {
+		scripts.modchartTimers = value;
+		return scripts.modchartTimers;
+	}
+	private function get_modchartSounds():Map<String, FlxSound> {
+		return scripts.modchartSounds;
+	}
+	private function set_modchartSounds(value:Map<String, FlxSound>):Map<String, FlxSound> {
+		scripts.modchartSounds = value;
+		return scripts.modchartSounds;
+	}
+	private function get_modchartTexts():Map<String, FlxText> {
+		return scripts.modchartTexts;
+	}
+	private function set_modchartTexts(value:Map<String, FlxText>):Map<String, FlxText> {
+		scripts.modchartTexts = value;
+		return scripts.modchartTexts;
+	}
+	private function get_modchartSaves():Map<String, FlxSave> {
+		return scripts.modchartSaves;
+	}
+	private function set_modchartSaves(value:Map<String, FlxSave>):Map<String, FlxSave> {
+		scripts.modchartSaves = value;
+		return scripts.modchartSaves;
+	}
+	private function get_modchartObjects():Map<String, FlxSprite> {
+		return scripts.modchartObjects;
+	}
+	private function set_modchartObjects(value:Map<String, FlxSprite>):Map<String, FlxSprite> {
+		scripts.modchartObjects = value;
+		return scripts.modchartObjects;
+	}
+
+	public var hasLuaScripts(get, never):Bool;
+	public var hasHScripts(get, never):Bool;
+	public var hasPyScripts(get, never):Bool;
+	public var hasYScripts(get, never):Bool;
+	private function get_hasLuaScripts():Bool {
+		return scripts.hasLuaScripts;
+	}
+	private function get_hasHScripts():Bool {
+		return scripts.hasHScripts;
+	}
+	private function get_hasPyScripts():Bool {
+		return scripts.hasPyScripts;
+	}
+	private function get_hasYScripts():Bool {
+		return scripts.hasYScripts;
+	}
+
+	// Legacy bs
+	public var isLegacyLuaTest:Bool = ScriptManager.isLegacyLuaTest;
 
 	//event variables
 	public var isCameraOnForcedPos:Bool = false;
@@ -566,12 +686,6 @@ class PlayState extends MusicBeatState
 	var boyfriendIdleTime:Float = 0.0;
 	var boyfriendIdled:Bool = false;
 
-	// Script existence flags for performance
-	public var hasLuaScripts:Bool = false;
-	public var hasHScripts:Bool = false;
-	public var hasPyScripts:Bool = false;
-	public var hasYScripts:Bool = false;
-
 	// === PERFORMANCE OPTIMIZATION INFRASTRUCTURE ===
 	// Cached calculations and frequently accessed values
 	private var _cachedPlaybackRate:Float = 1;
@@ -610,16 +724,7 @@ class PlayState extends MusicBeatState
 
 	// Lua shit
 	public static var instance:PlayState;
-	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = [];
-	public var legacyLuaArray:Array<LegacyFunkinLua> = []; #end
-
-	#if PYTHON_ALLOWED public var pyScriptArray:Array<yutautil.PyScript> = []; #end
-
-	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-	private var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
-	#end
 	public var introSoundsSuffix:String = '';
-
 	public var songName:String;
 
 	// Callbacks for stages
@@ -839,17 +944,14 @@ class PlayState extends MusicBeatState
 	var isNotITG:Bool = false;
 
 	// End of Mixtape Engine's large amount of bull
-
 	public function new(?playlist:PlaylistMetadata, ?songlist:Array<PlaylistSongMetadata>)
 	{
-
 		curPlaylist = playlist;
 		if (songlist != null)
 			curSonglist = songlist;
 		else if (playlist != null)
 			curSonglist = playlist.songList;
 		super();
-
 	}
 
 	override public function create()
@@ -1147,7 +1249,7 @@ class PlayState extends MusicBeatState
 
 		// === INITIALIZE PERFORMANCE OPTIMIZATIONS ===
 		initializeOptimizations();
-		updateScriptFlags();
+		scripts.updateScriptFlags();
 
 		var sn = (altInstrumentals ?? SONG.song);
 		conductor.setupSong('$sn/$sn-${Difficulty.getFilePath()}', SONG);
@@ -1269,16 +1371,6 @@ class PlayState extends MusicBeatState
 		specialOverlays.add(blackOverlay);
 		specialOverlays.add(blackUnderlay);
 
-		try {
-			#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-			luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
-			luaDebugGroup.cameras = [camOther];
-			add(luaDebugGroup);
-			#end
-		} catch (e:Dynamic) {
-			trace("Lua debug group had a stroke and dieded");
-		}
-
 		if (!isNotITG) {
 			if (!stageData.hide_girlfriend)
 			{
@@ -1325,7 +1417,7 @@ class PlayState extends MusicBeatState
 			{
 				#if LUA_ALLOWED
 				if(file.toLowerCase().endsWith('.lua'))
-					(shouldUseLegacyLua() ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
+					initLuaScript(folder + file);
 				#end
 
 				#if HSCRIPT_ALLOWED
@@ -1814,7 +1906,7 @@ class PlayState extends MusicBeatState
 			{
 				#if LUA_ALLOWED
 				if(file.toLowerCase().endsWith('.lua'))
-					(shouldUseLegacyLua() ? new LegacyFunkinLua(folder + file) : new FunkinLua(folder + file));
+					startLuasNamed(folder + file);
 				#end
 
 				#if HSCRIPT_ALLOWED
@@ -2417,47 +2509,7 @@ class PlayState extends MusicBeatState
 	function hasModchart():Bool
 	{
 		#if MODCHARTS_NOTITG_ALLOWED
-		var hasModchartFunction:Bool = false;
-
-		#if LUA_ALLOWED
-		for (script in luaArray) {
-			if (script != null && !script.closed && script.lua != null) {
-				Lua.getglobal(script.lua, 'onInitModchart');
-				Lua.getglobal(script.lua, 'generateModchart');
-				var type:Int = Lua.type(script.lua, -1);
-				Lua.pop(script.lua, 1);
-
-				if (type == Lua.LUA_TFUNCTION) {
-					hasModchartFunction = true;
-					break;
-				}
-			}
-		}
-		#end
-
-		#if HSCRIPT_ALLOWED
-		if (!hasModchartFunction) {
-			for (script in hscriptArray) {
-				@:privateAccess
-				if (script != null && (script.exists('onInitModchart') || script.exists('generateModchart'))) {
-					hasModchartFunction = true;
-					break;
-				}
-			}
-		}
-		#end
-
-		if (!hasModchartFunction) {
-			for (script in yscriptArray) {
-				@:privateAccess
-				if (script != null && (script.hasFunction('onInitModchart') || script.hasFunction('generateModchart'))) {
-					hasModchartFunction = true;
-					break;
-				}
-			}
-		}
-
-		return hasModchartFunction;
+		return scripts.modchartCheck();
 		#else
 		return false;
 		#end
@@ -2555,50 +2607,12 @@ class PlayState extends MusicBeatState
 		#if MODCHARTS_NOTITG_ALLOWED
 		// Check if any script has the onInitModchart function
 		var hasModchartFunction:Bool = false;
-
-		#if LUA_ALLOWED
-		for (script in luaArray) {
-			if (script != null && !script.closed && script.lua != null) {
-				Lua.getglobal(script.lua, 'onInitModchart');
-				var type:Int = Lua.type(script.lua, -1);
-				Lua.pop(script.lua, 1);
-
-				if (type == Lua.LUA_TFUNCTION) {
-					hasModchartFunction = true;
-					break;
-				}
-			}
-		}
-		#end
-
-		#if HSCRIPT_ALLOWED
-		if (!hasModchartFunction) {
-			for (script in hscriptArray) {
-				@:privateAccess
-				if (script != null && script.exists('onInitModchart')) {
-					hasModchartFunction = true;
-					break;
-				}
-			}
-		}
-		#end
-
-		if (!hasModchartFunction) {
-			for (script in yscriptArray) {
-				@:privateAccess
-				if (script != null && script.hasFunction('onInitModchart')) {
-					hasModchartFunction = true;
-					break;
-				}
-			}
-		}
-
+		hasModchartFunction = scripts.startModcharts();
 		// If there is no onInitModchart function, do not initialize the manager
 		if (!hasModchartFunction) {
 			//trace("No onInitModchart function found - modchart manager not initialized");
 			return;
 		}
-
 		// If there is an onInitModchart function, automatically activate modcharting
 		//trace("onInitModchart function detected - initializing modchart manager");
 
@@ -2701,38 +2715,6 @@ class PlayState extends MusicBeatState
 		playbackRate = 1.0; // ensuring -Crow
 		#end
 		return playbackRate;
-	}
-
-	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-	public function addTextToDebug(text:String, color:FlxColor) {
-		if (!ClientPrefs.data.disableDebugTraces) {
-		var newText:psychlua.DebugLuaText = luaDebugGroup.recycle(psychlua.DebugLuaText);
-		newText.text = text;
-		newText.color = color;
-		newText.disableTime = 6;
-		newText.alpha = 1;
-		newText.setPosition(10, 8 - newText.height);
-
-		luaDebugGroup.forEachAlive(function(spr:psychlua.DebugLuaText) {
-			spr.y += newText.height + 2;
-		});
-		luaDebugGroup.add(newText);
-
-		Sys.println(text);
-	}
-	}
-	#end
-
-	/**
-	 * Determines whether Legacy Lua should be used based on settings for current song/mod
-	 * Priority: Song Setting > Mod Setting > Player Choice
-	 */
-	private function shouldUseLegacyLua():Bool {
-		var currentSong = SONG.song;
-		var currentMod = (backend.WeekData.getCurrentWeek() != null ? backend.WeekData.getCurrentWeek().folder : '');
-
-		var settingsManager = options.legacylua.LegacyLuaSettingsManager.getInstance();
-		return settingsManager.shouldUseLegacyLua(currentSong, currentMod);
 	}
 
 	public function reloadHealthBarColors() {
@@ -2968,127 +2950,8 @@ class PlayState extends MusicBeatState
 		// STEP 3: Load stage scripts AFTER groups are in state and VSliceLoader has run.
 		// Scripts' onCreate callbacks can now safely use addLuaSprite(tag, false), addBehindGF, etc.
 		// Only ONE script type loads per stage (priority: Lua -> HScript -> YScript).
-		var scriptLoaded:Bool = false;
-		#if LUA_ALLOWED
-		if (!scriptLoaded)
-		{
-			var doPush:Bool = false;
-			var luaFile:String = 'stages/$stageName.lua';
-			#if MODS_ALLOWED
-			var replacePath:String = Paths.modFolders(luaFile);
-			if(FileSystem.exists(replacePath))
-			{
-				luaFile = replacePath;
-				doPush = true;
-			}
-			else
-			{
-				luaFile = Paths.getSharedPath(luaFile);
-				if(FileSystem.exists(luaFile))
-					doPush = true;
-			}
-			#else
-			luaFile = Paths.getSharedPath(luaFile);
-			if(Assets.exists(luaFile)) doPush = true;
-			#end
-
-			if(doPush)
-			{
-				for (script in luaArray)
-				{
-					if(script.scriptName == luaFile)
-					{
-						doPush = false;
-						break;
-					}
-				}
-				if(doPush)
-				{
-					(shouldUseLegacyLua() ? new LegacyFunkinLua(luaFile) : new FunkinLua(luaFile));
-					stageFileLoaded += " + Lua: " + luaFile;
-					scriptLoaded = true;
-				}
-			}
-		}
-		#end
-
-		#if HSCRIPT_ALLOWED
-		if (!scriptLoaded)
-		{
-			var doPush:Bool = false;
-			var scriptFile:String = 'stages/$stageName.hx';
-			#if MODS_ALLOWED
-			var replacePath:String = Paths.modFolders(scriptFile);
-			if(FileSystem.exists(replacePath))
-			{
-				scriptFile = replacePath;
-				doPush = true;
-			}
-			else
-			#end
-			{
-				scriptFile = Paths.getSharedPath(scriptFile);
-				if(FileSystem.exists(scriptFile))
-					doPush = true;
-			}
-
-			if(doPush)
-			{
-				for (script in hscriptArray)
-				{
-					if(script.origin == scriptFile)
-					{
-						doPush = false;
-						break;
-					}
-				}
-				if(doPush)
-				{
-					initHScript(scriptFile);
-					stageFileLoaded += " + HScript: " + scriptFile;
-					scriptLoaded = true;
-				}
-			}
-		}
-		#end
-
-		if (!scriptLoaded)
-		{
-			var doPush:Bool = false;
-			var scriptFile:String = 'stages/$stageName.ys';
-			#if MODS_ALLOWED
-			var replacePath:String = Paths.modFolders(scriptFile);
-			if(FileSystem.exists(replacePath))
-			{
-				scriptFile = replacePath;
-				doPush = true;
-			}
-			else
-			#end
-			{
-				scriptFile = Paths.getSharedPath(scriptFile);
-				if(FileSystem.exists(scriptFile))
-					doPush = true;
-			}
-
-			if(doPush)
-			{
-				for (script in yscriptArray)
-				{
-					if(script.scriptPath == scriptFile)
-					{
-						doPush = false;
-						break;
-					}
-				}
-				if(doPush)
-				{
-					initYScript(scriptFile);
-					stageFileLoaded += " + YScript: " + scriptFile;
-					scriptLoaded = true;
-				}
-			}
-		}
+		// TODO: figure out how to load a stage with multiple script types without loading a stage from a different mod with a similar name
+		scripts.loadStage(stageName);
 
 		// Cache group indices for performance
 		updateGroupIndices();
@@ -3097,19 +2960,6 @@ class PlayState extends MusicBeatState
 		if (ClientPrefs.data.developerMode && stageFileLoaded.length > 0) {
 			trace('Loaded stage: $stageFileLoaded');
 		}
-	}
-
-	public function getLuaObject(tag:String, text:Bool = true):FlxSprite
-	{
-		#if LUA_ALLOWED
-		if (modchartSprites.exists(tag))
-			return modchartSprites.get(tag);
-		if (text && modchartTexts.exists(tag))
-			return modchartTexts.get(tag);
-		if (variables.exists(tag))
-			return variables.get(tag);
-		#end
-		return null;
 	}
 
 	function startCharacterPos(char:Character, ?gfCheck:Bool = false)
@@ -8370,46 +8220,6 @@ class PlayState extends MusicBeatState
 		return Math.exp(-elapsed * speed * _cachedPlaybackRate);
 	}
 
-	// Update script existence flags for performance optimization
-	private function updateScriptFlags():Void {
-		#if LUA_ALLOWED
-		hasLuaScripts = (luaArray != null && luaArray.length > 0) || (legacyLuaArray != null && legacyLuaArray.length > 0);
-		#else
-		hasLuaScripts = false;
-		#end
-
-		#if HSCRIPT_ALLOWED
-		hasHScripts = (hscriptArray != null && hscriptArray.length > 0);
-		#else
-		hasHScripts = false;
-		#end
-
-		hasYScripts = (yscriptArray != null && yscriptArray.length > 0);
-
-		#if PYTHON_ALLOWED
-		hasPyScripts = (pyScriptArray != null && pyScriptArray.length > 0);
-		#else
-		hasPyScripts = false;
-		#end
-
-		// Optimize script batching based on script count
-		var totalScripts = 0;
-		#if LUA_ALLOWED
-		if (luaArray != null) totalScripts += luaArray.length;
-		if (legacyLuaArray != null) totalScripts += legacyLuaArray.length;
-		#end
-		#if HSCRIPT_ALLOWED
-		if (hscriptArray != null) totalScripts += hscriptArray.length;
-		#end
-		if (yscriptArray != null) totalScripts += yscriptArray.length;
-		#if PYTHON_ALLOWED
-		if (pyScriptArray != null) totalScripts += pyScriptArray.length;
-		#end
-
-		// Enable batched script calls for performance when many scripts are loaded
-		_skipRedundantUpdates = totalScripts > 5;
-	}
-
 	private function updateGroupIndices():Void {
 		// Only update indices when necessary to avoid repeated indexOf calls
 		if (_noteGroupIndex == -1) {
@@ -9207,75 +9017,11 @@ class PlayState extends MusicBeatState
 			resetSubState();
 		}
 
-		#if LUA_ALLOWED
-		if (luaArray != null && luaArray.length > 0) { //if there's nothing, simply dont.
-			for (lua in luaArray)
-			{
-				if (lua != null) {
-					lua.call('onDestroy', []);
-					lua.stop();
-				}
-			}
-		}
 
-		if (legacyLuaArray != null && legacyLuaArray.length > 0) { //if there's nothing, simply dont.
-			for (lua in legacyLuaArray)
-			{
-				if (lua != null) {
-					lua.call('onDestroy', []);
-					lua.stop();
-				}
-			}
-		}
-		luaArray = null;
-		legacyLuaArray = null;
-		FunkinLua.customFunctions.clear();
-		#end
-
-		#if HSCRIPT_ALLOWED
-		if (hscriptArray != null && hscriptArray.length > 0) { //if there's nothing, simply dont.
-		for (script in hscriptArray)
-			if(script != null)
-			{
-				if(script.exists('onDestroy')) script.call('onDestroy');
-				script.destroy();
-			}
-		}
-
-		hscriptArray = null;
-		#end
-
-		if (yscriptArray != null && yscriptArray.length > 0) { //if there's nothing, simply dont.
-		for (script in yscriptArray)
-			if(script != null)
-			{
-				if(script.hasFunction('onDestroy')) script.callFunction('onDestroy');
-				script.destroy();
-			}
-		}
-
-		yscriptArray = null;
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 
 		// Clear character references
 		mcm.destroyAll();
-
-		// Clear tween managers
-		if (modchartTweens != null) {
-			for (tween in modchartTweens) {
-				if (tween != null) tween.cancel();
-			}
-			modchartTweens.clear();
-			modchartTweens = null;
-		}
-
-		if (modchartTimers != null) {
-			for (timer in modchartTimers) {
-				if (timer != null) timer.cancel();
-			}
-			modchartTimers.clear();
-			modchartTimers = null;
-		}
 
 		#if VIDEOS_ALLOWED
 		if(videoCutscene != null)
@@ -9418,374 +9164,6 @@ class PlayState extends MusicBeatState
 				bf2.dance();
 			}
 		}
-	}
-
-	#if LUA_ALLOWED
-	public function startLuasNamed(luaFile:String)
-	{
-		#if MODS_ALLOWED
-		var luaToLoad:String = Paths.modFolders(luaFile);
-		if(!FileSystem.exists(luaToLoad))
-			luaToLoad = Paths.getSharedPath(luaFile);
-
-		if(FileSystem.exists(luaToLoad))
-		#elseif sys
-		var luaToLoad:String = Paths.getSharedPath(luaFile);
-		if(OpenFlAssets.exists(luaToLoad))
-		#end
-		{
-			for (script in luaArray)
-				if(script.scriptName == luaToLoad) return false;
-
-			(shouldUseLegacyLua() ? new LegacyFunkinLua(luaToLoad) : new FunkinLua(luaToLoad));
-			return true;
-		}
-		return false;
-	}
-	#end
-
-	#if HSCRIPT_ALLOWED
-	public function startHScriptsNamed(scriptFile:String)
-	{
-		#if MODS_ALLOWED
-		var scriptToLoad:String = Paths.modFolders(scriptFile);
-		if(!FileSystem.exists(scriptToLoad))
-			scriptToLoad = Paths.getSharedPath(scriptFile);
-		#else
-		var scriptToLoad:String = Paths.getSharedPath(scriptFile);
-		#end
-
-		if(FileSystem.exists(scriptToLoad))
-		{
-			if (Iris.instances.exists(scriptToLoad)) return false;
-
-			initHScript(scriptToLoad);
-			return true;
-		}
-		return false;
-	}
-
-	public function initHScript(file:String)
-	{
-		var newScript:HScript = null;
-		try
-		{
-			newScript = new HScript(null, file);
-			if (newScript.exists('onCreate')) {
-				newScript.call('onCreate');
-			}
-			if (newScript.exists('onLoad')) {
-				newScript.call('onLoad');
-			}
-			//trace('initialized hscript interp successfully: $file');
-			hscriptArray.push(newScript);
-			updateScriptFlags(); // Update script existence flags when adding HScript
-		}
-		catch(e:IrisError)
-		{
-			var pos:HScriptInfos = cast {fileName: file, showLine: false};
-			Iris.error(Printer.errorToString(e, false), pos);
-			var newScript:HScript = cast (Iris.instances.get(file), HScript);
-			if(newScript != null)
-				newScript.destroy();
-		}
-		updateScriptFlags(); // Update flags regardless of success/failure
-	}
-	#end
-
-	public function startYScriptsNamed(scriptFile:String)
-	{
-		#if MODS_ALLOWED
-		var scriptToLoad:String = Paths.modFolders(scriptFile);
-		if(!FileSystem.exists(scriptToLoad))
-			scriptToLoad = Paths.getSharedPath(scriptFile);
-		#else
-		var scriptToLoad:String = Paths.getSharedPath(scriptFile);
-		#end
-
-		if(FileSystem.exists(scriptToLoad))
-		{
-			initYScript(scriptToLoad);
-			return true;
-		}
-		return false;
-	}
-
-	public function initYScript(file:String)
-	{
-		var newScript:YScript = null;
-		try
-		{
-			newScript = new YScript();
-
-			// Attach to PlayState for error reporting before onCreate
-			newScript.attachToPlayState(this);
-
-			newScript.loadFromFile(file);
-			if (newScript.hasFunction('onCreate')) {
-				newScript.callFunction('onCreate');
-			}
-			if (newScript.hasFunction('onLoad')) {
-				newScript.callFunction('onLoad');
-			}
-			trace('initialized yscript interp successfully: $file');
-			yscriptArray.push(newScript);
-			//updateScriptFlags(); // Update script existence flags when adding YScript
-		}
-		catch(e:YScriptError)
-		{
-			addTextToDebug(e.message, FlxColor.RED);
-		}
-		//updateScriptFlags(); // Update flags regardless of success/failure
-	}
-
-	public function callOnScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
-		// Early exit if no scripts exist
-		if (!hasLuaScripts && !hasHScripts && !hasPyScripts && !hasYScripts) {
-			return LuaUtils.Function_Continue;
-		}
-
-		var returnVal:Dynamic = LuaUtils.Function_Continue;
-		if(args == null) args = [];
-		if(exclusions == null) exclusions = [];
-		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
-
-		// Call scripts in order: Lua -> HScript -> YScript -> Python
-		var result:Dynamic = callOnLuas(funcToCall, args, ignoreStops, exclusions, excludeValues);
-		if(result == null || excludeValues.contains(result)) result = callOnHScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
-		if(result == null || excludeValues.contains(result)) result = callOnYScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
-		if(result == null || excludeValues.contains(result)) result = callOnPyScripts(funcToCall, args, ignoreStops, exclusions, excludeValues);
-		return result;
-	}
-
-	public function callOnLuas(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
-		var returnVal:Dynamic = LuaUtils.Function_Continue;
-		#if LUA_ALLOWED
-		if(args == null) args = [];
-		if(exclusions == null) exclusions = [];
-		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
-
-		// var lua = flixel.util.typeLimit.OneOfTwo;
-
-		var arr:Array<Dynamic> = [];
-		if ((luaArray != null || legacyLuaArray != null) && (luaArray.length > 0 || legacyLuaArray.length > 0)) {
-			for (script in yutautil.CollectionUtils.toIterable(cast(luaArray:Array<Dynamic>).concat(legacyLuaArray)))
-			{
-				if(script.closed)
-				{
-					arr.push(script);
-					continue;
-				}
-
-				if(exclusions.contains(script.scriptName))
-					continue;
-
-				var myValue:Dynamic = script.call(funcToCall, args);
-				if((myValue == LuaUtils.Function_StopLua || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
-				{
-					returnVal = myValue;
-					break;
-				}
-
-				if(myValue != null && !excludeValues.contains(myValue))
-					returnVal = myValue;
-
-				if(script.closed) arr.push(script);
-			}
-		}
-
-		if(arr.length > 0)
-			for (script in arr)
-			(luaArray.contains(script)) ? luaArray.remove(script) : legacyLuaArray.remove(cast(script, LegacyFunkinLua));
-		#end
-		return returnVal;
-	}
-
-	public function callOnHScript(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
-		var returnVal:Dynamic = LuaUtils.Function_Continue;
-
-		#if HSCRIPT_ALLOWED
-		if(exclusions == null) exclusions = new Array();
-		if(excludeValues == null) excludeValues = new Array();
-		excludeValues.push(LuaUtils.Function_Continue);
-
-		var len:Int = hscriptArray != null ? hscriptArray.length : 0;
-		if (len < 1)
-			return returnVal;
-
-		try {
-			for(script in hscriptArray)
-			{
-				@:privateAccess
-				if(script == null || !script.exists(funcToCall) || exclusions.contains(script.origin))
-					continue;
-
-				var callValue = script.call(funcToCall, args);
-				if(callValue != null)
-				{
-					var myValue:Dynamic = callValue.returnValue;
-
-					if((myValue == LuaUtils.Function_StopHScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
-					{
-						returnVal = myValue;
-						break;
-					}
-
-					if(myValue != null && !excludeValues.contains(myValue))
-						returnVal = myValue;
-				}
-			}
-		} catch(e) {trace("One of the scripts wasn't having it apparently");}
-		#end
-
-		return returnVal;
-	}
-
-	public function callOnYScript(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
-		var returnVal:Dynamic = LuaUtils.Function_Continue;
-
-		if(exclusions == null) exclusions = new Array();
-		if(excludeValues == null) excludeValues = new Array();
-		excludeValues.push(LuaUtils.Function_Continue);
-
-		var len:Int = yscriptArray != null ? yscriptArray.length : 0;
-		if (len < 1)
-			return returnVal;
-
-		var arr:Array<YScript> = [];
-		for(script in yscriptArray)
-		{
-			if(script.hasErrors)
-			{
-				arr.push(script);
-				continue;
-			}
-
-			var callValue = script.hasFunction(funcToCall) ? script.callFunction(funcToCall, args) : null;
-			if(callValue != null)
-			{
-				var myValue:Dynamic = callValue; // YScript returns values directly, not wrapped in returnValue
-
-				if((myValue == LuaUtils.Function_StopYScript || myValue == LuaUtils.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops)
-				{
-					returnVal = myValue;
-					break;
-				}
-
-				if(myValue != null && !excludeValues.contains(myValue))
-					returnVal = myValue;
-			}
-
-			if(script.hasErrors) arr.push(script);
-		}
-
-		if(arr.length > 0)
-			for (script in arr)
-				yscriptArray.remove(script);
-
-		return returnVal;
-	}
-
-	public function setOnScripts(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
-		if(exclusions == null) exclusions = [];
-		setOnLuas(variable, arg, exclusions);
-		setOnHScript(variable, arg, exclusions);
-		setOnYScript(variable, arg, exclusions);
-		setOnPyScripts(variable, arg, exclusions);
-	}
-
-	public function setOnLuas(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
-		#if LUA_ALLOWED
-		if(exclusions == null) exclusions = [];
-		if (luaArray != null && luaArray.length > 0) {
-			for (script in luaArray) {
-				if(exclusions.contains(script.scriptName))
-					continue;
-
-				script.set(variable, arg);
-			}
-		}
-		#end
-	}
-
-	public function setOnHScript(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
-		#if HSCRIPT_ALLOWED
-		if(exclusions == null) exclusions = [];
-		if (hscriptArray != null && hscriptArray.length > 0) {
-			for (script in hscriptArray) {
-				if(exclusions.contains(script.origin))
-					continue;
-
-				script.set(variable, arg);
-			}
-		}
-		#end
-	}
-
-	public function setOnYScript(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
-		if(exclusions == null) exclusions = [];
-		if (yscriptArray != null && yscriptArray.length > 0) {
-			for (script in yscriptArray) {
-				if(exclusions.contains(script.scriptPath))
-					continue;
-
-				script.setVariable(variable, arg);
-			}
-		}
-	}
-
-	public function callOnPyScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
-		var returnVal:Dynamic = LuaUtils.Function_Continue;
-		#if PYTHON_ALLOWED
-		if(args == null) args = [];
-		if(exclusions == null) exclusions = [];
-		if(excludeValues == null) excludeValues = [LuaUtils.Function_Continue];
-
-		var arr:Array<yutautil.PyScript> = [];
-		if (pyScriptArray != null && pyScriptArray.length > 0) {
-			for (script in pyScriptArray) {
-				if(script.closed || script.errorOccurred) {
-					arr.push(script);
-					continue;
-				}
-
-				if(exclusions.contains(script.scriptName))
-					continue;
-
-				var myValue:Dynamic = script.call(funcToCall, args);
-				if((myValue == yutautil.PyScript.Function_Stop || myValue == yutautil.PyScript.Function_StopAll) && !excludeValues.contains(myValue) && !ignoreStops) {
-					returnVal = myValue;
-					break;
-				}
-
-				if(myValue != null && !excludeValues.contains(myValue))
-					returnVal = myValue;
-
-				if(script.closed || script.errorOccurred) arr.push(script);
-			}
-		}
-
-		if(arr.length > 0) {
-			for (script in arr) {
-				pyScriptArray.remove(script);
-			}
-		}
-		#end
-		return returnVal;
-	}
-
-	public function setOnPyScripts(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
-		#if PYTHON_ALLOWED
-		if(exclusions == null) exclusions = [];
-		if (pyScriptArray != null && pyScriptArray.length > 0) {
-			for (script in pyScriptArray) {
-				if(exclusions.contains(script.scriptName))
-					continue;
-
-				script.setVar(variable, arg);
-			}
-		}
-		#end
 	}
 
 	function strumPlayAnim(field:PlayField, id:Int, time:Float, ?note:Note) {

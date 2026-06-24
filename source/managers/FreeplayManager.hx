@@ -150,8 +150,8 @@ class FreeplayManager {
     public static function getFreeplayState():Class<flixel.FlxState>
     {
         // Check if we should return to Legacy Lua settings instead of normal freeplay
-        if (PlayState.isLegacyLuaTest) {
-            PlayState.isLegacyLuaTest = false; // Reset the flag
+        if (ScriptManager.isLegacyLuaTest) {
+            ScriptManager.isLegacyLuaTest = false; // Reset the flag
             return options.legacylua.LegacyLuaFreeplayState;
         }
 

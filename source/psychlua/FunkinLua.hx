@@ -65,11 +65,11 @@ class FunkinLua {
 		//LuaL.dostring(lua, CLENSE);
 
 		this.scriptName = scriptName.trim();
-		var game:PlayState = PlayState.instance;
+		var game:MusicBeatState = cast MusicBeatState.getState();
 		if(game != null) {
-			game.luaArray.push(this);
+			game.scripts.luaArray.push(this);
 			@:privateAccess
-			game.updateScriptFlags();
+			game.scripts.updateScriptFlags();
 		}
 
 		var myFolder:Array<String> = this.scriptName.split('/');
@@ -90,98 +90,9 @@ class FunkinLua {
 		set('mixtapeVersion', MainMenuState.mixtapeEngineVersion.trim());
 		set('modFolder', this.modFolder);
 
-		// Song/Week shit
-		set('curBpm', Conductor.bpm);
-		set('bpm', PlayfieldManager.SONG.bpm);
-		set('scrollSpeed', PlayfieldManager.SONG.speed);
-		set('crochet', Conductor.crochet);
-		set('stepCrochet', Conductor.stepCrochet);
-		set('songLength', FlxG.sound.music?.length ?? 0);
-		set('songName', PlayfieldManager.SONG.song);
-		set('songPath', Paths.formatToSongPath(PlayfieldManager.SONG.song));
-		set('loadedSongName', Song.loadedSongName);
-		set('loadedSongPath', Paths.formatToSongPath(Song.loadedSongName));
-		set('chartPath', Song.chartPath);
-		set('startedCountdown', false);
-		set('curStage', PlayfieldManager.SONG.stage);
-
-		set('isStoryMode', PlayState.isStoryMode);
-		set('difficulty', PlayState.storyDifficulty);
-
-		set('difficultyName', Difficulty.getString(false));
-		set('difficultyPath', Difficulty.getFilePath());
-		set('difficultyNameTranslation', Difficulty.getString(true));
-		set('weekRaw', PlayState.storyWeek);
-		set('week', WeekData.weeksList[PlayState.storyWeek]);
-		set('seenCutscene', PlayState.seenCutscene);
-		set('hasVocals', PlayfieldManager.SONG.needsVoices);
-
 		// Screen stuff
 		set('screenWidth', FlxG.width);
 		set('screenHeight', FlxG.height);
-
-
-		// PlayState-only variables
-		if(game != null)
-		@:privateAccess
-		{
-			var curSection:SwagSection = PlayfieldManager.SONG.notes[MegaManager.conductor.currentMeasure];
-			set('curSection', MegaManager.conductor.currentMeasure);
-			set('curBeat', MegaManager.conductor.currentBeat);
-			set('curStep', MegaManager.conductor.currentStep);
-			set('curDecBeat', MegaManager.conductor.beatLengthMs);
-			set('curDecStep', MegaManager.conductor.stepLengthMs);
-
-			set('score', game.comboManager?.songScore);
-			set('misses', game.comboManager?.songMisses);
-			set('hits', game.comboManager?.songHits);
-			set('combo', game.comboManager?.combo);
-			set('deaths', PlayState.deathCounter);
-
-			set('rating', game.comboManager?.ratingPercent);
-			set('ratingName', game.comboManager?.ratingName);
-			set('ratingFC', game.comboManager?.ratingFC);
-			set('totalPlayed', game.comboManager?.totalPlayed);
-			set('totalNotesHit', game.comboManager?.totalNotesHit);
-
-			//Backwards compat
-			set('songScore', game.comboManager?.songScore);
-			set('songMisses', game.comboManager?.songMisses);
-			set('ratingPercent', game.comboManager?.ratingPercent);
-
-			set('inGameOver', GameOverSubstate.instance != null);
-			set('mustHitSection', curSection != null ? (curSection.mustHitSection == true) : false);
-			set('altAnim', curSection != null ? (curSection.altAnim == true) : false);
-			set('gfSection', curSection != null ? (curSection.gfSection == true) : false);
-
-			set('healthGainMult', game.healthGain);
-			set('healthLossMult', game.healthLoss);
-
-			#if FLX_PITCH
-			set('playbackRate', game.playbackRate);
-			#else
-			set('playbackRate', 1);
-			#end
-
-			set('guitarHeroSustains', game.guitarHeroSustains);
-			set('instakillOnMiss', game.instakillOnMiss);
-			set('botPlay', game.cpuControlled);
-			set('botPlay', ClientPrefs.getGameplaySetting('showcase', false));
-			set('practice', game.practiceMode);
-			set('practice', PlayState.changedDifficulty);
-
-			// Default character data
-			set('defaultBoyfriendX', game.BF_X);
-			set('defaultBoyfriendY', game.BF_Y);
-			set('defaultOpponentX', game.DAD_X);
-			set('defaultOpponentY', game.DAD_Y);
-			set('defaultGirlfriendX', game.GF_X);
-			set('defaultGirlfriendY', game.GF_Y);
-
-			set('boyfriendName', game.boyfriend != null ? game.boyfriend.curCharacter : PlayfieldManager.SONG.player1);
-			set('dadName', game.dad != null ? game.dad.curCharacter : PlayfieldManager.SONG.player2);
-			set('gfName', game.gf != null ? game.gf.curCharacter : PlayfieldManager.SONG.gfVersion);
-		}
 
 		// Other settings
 		set('downscroll', ClientPrefs.data.downScroll);
@@ -202,13 +113,6 @@ class FunkinLua {
 		set('scriptName', scriptName);
 		set('currentModDirectory', Mods.currentModDirectory);
 
-		// Noteskin/Splash
-		set('noteSkin', ClientPrefs.data.noteSkin);
-		set('noteSkinPostfix', Note.getNoteSkinPostfix());
-		set('splashSkin', ClientPrefs.data.splashSkin);
-		set('splashSkinPostfix', NoteSplash.getSplashSkinPostfix());
-		set('splashAlpha', ClientPrefs.data.splashAlpha);
-
 		// build target (windows, mac, linux, etc.)
 		set('buildTarget', LuaUtils.getBuildTarget());
 
@@ -223,7 +127,7 @@ class FunkinLua {
 		});
 
 		Lua_helper.add_callback(lua, "runLegacyHScript", function(code:String) {
-		var retVal:Dynamic = null;
+			var retVal:Dynamic = null;
 
 			#if HScriptLegacy
 			if (this.legacyHScript == null) {
@@ -250,7 +154,7 @@ class FunkinLua {
 		//
 		Lua_helper.add_callback(lua, "getRunningScripts", function() {
 			var runningScripts:Array<String> = [];
-			for (script in game.luaArray)
+			for (script in game.scripts.luaArray)
 				runningScripts.push(script.scriptName);
 
 			return runningScripts;
@@ -295,7 +199,7 @@ class FunkinLua {
 
 			var luaPath:String = findScript(luaFile);
 			if(luaPath != null)
-				for (luaInstance in game.luaArray)
+				for (luaInstance in game.scripts.luaArray)
 					if(luaInstance.scriptName == luaPath)
 						return luaInstance.call(funcName, args);
 
@@ -305,7 +209,7 @@ class FunkinLua {
 			var luaPath:String = findScript(scriptFile);
 			if(luaPath != null)
 			{
-				for (luaInstance in game.luaArray)
+				for (luaInstance in game.scripts.luaArray)
 					if(luaInstance.scriptName == luaPath)
 						return true;
 			}
@@ -314,7 +218,7 @@ class FunkinLua {
 			var hscriptPath:String = findScript(scriptFile, '.hx');
 			if(hscriptPath != null)
 			{
-				for (hscriptInstance in game.hscriptArray)
+				for (hscriptInstance in game.scripts.hscriptArray)
 					if(hscriptInstance.origin == hscriptPath)
 						return true;
 			}
@@ -335,7 +239,7 @@ class FunkinLua {
 			if(luaPath != null)
 			{
 				if(!ignoreAlreadyRunning)
-					for (luaInstance in game.luaArray)
+					for (luaInstance in game.scripts.luaArray)
 						if(luaInstance.scriptName == luaPath)
 						{
 							luaTrace('addLuaScript: The script "' + luaPath + '" is already running!');
@@ -354,14 +258,14 @@ class FunkinLua {
 			if(scriptPath != null)
 			{
 				if(!ignoreAlreadyRunning)
-					for (script in game.hscriptArray)
+					for (script in game.scripts.hscriptArray)
 						if(script.origin == scriptPath)
 						{
 							luaTrace('addHScript: The script "' + scriptPath + '" is already running!');
 							return;
 						}
 
-				PlayState.instance.initHScript(scriptPath);
+				MusicBeatState.getState().initHScript(scriptPath);
 				return;
 			}
 			luaTrace("addHScript: Script doesn't exist!", false, false, FlxColor.RED);
@@ -375,7 +279,7 @@ class FunkinLua {
 			if(luaPath != null)
 			{
 				var foundAny:Bool = false;
-				for (luaInstance in game.luaArray)
+				for (luaInstance in game.scripts.luaArray)
 				{
 					if(luaInstance.scriptName == luaPath)
 					{
@@ -397,7 +301,7 @@ class FunkinLua {
 			if(scriptPath != null)
 			{
 				var foundAny:Bool = false;
-				for (script in game.hscriptArray)
+				for (script in game.scripts.hscriptArray)
 				{
 					if(script.origin == scriptPath)
 					{
@@ -438,10 +342,10 @@ class FunkinLua {
 
 			FlxG.sound.music.pause();
 			FlxG.sound.music.volume = 0;
-			if(game != null && game.vocals != null)
+			if(game != null && PlayState.instance.vocals != null)
 			{
-				game.vocals.pause();
-				game.vocals.volume = 0;
+				PlayState.instance.vocals.pause();
+				PlayState.instance.vocals.volume = 0;
 			}
 			FlxG.camera.followLerp = 0;
 		});
@@ -721,59 +625,6 @@ class FunkinLua {
 		});
 		Lua_helper.add_callback(lua, "cancelTimer", function(tag:String) LuaUtils.cancelTimer(tag));
 
-		//stupid bietch ass functions
-		Lua_helper.add_callback(lua, "addScore", function(value:Int = 0) {
-			game.comboManager.songScore += value;
-			game.comboManager.RecalculateRating();
-		});
-		Lua_helper.add_callback(lua, "addMisses", function(value:Int = 0) {
-			game.comboManager.songMisses += value;
-			game.comboManager.RecalculateRating();
-		});
-		Lua_helper.add_callback(lua, "addHits", function(value:Int = 0) {
-			game.comboManager.songHits += value;
-			game.comboManager.RecalculateRating();
-		});
-		Lua_helper.add_callback(lua, "setScore", function(value:Int = 0) {
-			game.comboManager.songScore = value;
-			game.comboManager.RecalculateRating();
-		});
-		Lua_helper.add_callback(lua, "setMisses", function(value:Int = 0) {
-			game.comboManager.songMisses = value;
-			game.comboManager.RecalculateRating();
-		});
-		Lua_helper.add_callback(lua, "setHits", function(value:Int = 0) {
-			game.comboManager.songHits = value;
-			game.comboManager.RecalculateRating();
-		});
-		Lua_helper.add_callback(lua, "setHealth", function(value:Float = 1) game.health = value);
-		Lua_helper.add_callback(lua, "addHealth", function(value:Float = 0) game.health += value);
-		Lua_helper.add_callback(lua, "damage", function(value:Float = 0, ?lethal:Bool = true, ?causeOfDeath:String = null) {
-			// Calculate potential new health value
-			var newHealth = game.health - value;
-
-			// Check if damage would be lethal
-			if (lethal && newHealth <= 0) {
-				// Set cause of death if provided
-				if (causeOfDeath != null && causeOfDeath.trim() != "") {
-					backend.COD.setCOD(this, causeOfDeath);
-				} else {
-					backend.COD.setCOD(this, 'Took lethal damage. (${this.scriptName})');
-				}
-
-				// Apply damage and trigger death
-				game.health = newHealth;
-				game.doDeathCheck(true);
-			} else if (!lethal) {
-				// Non-lethal damage: don't let health go below a small positive value
-				game.health = Math.max(newHealth, 0.001);
-			} else {
-				// Normal damage that could be lethal but health won't drop to 0 or below
-				game.health = newHealth;
-			}
-		});
-		Lua_helper.add_callback(lua, "getHealth", function() return game.health);
-
 		//Identical functions
 		Lua_helper.add_callback(lua, "FlxColor", function(color:String) return FlxColor.fromString(color));
 		Lua_helper.add_callback(lua, "getColorFromName", function(color:String) return FlxColor.fromString(color));
@@ -781,14 +632,6 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "getColorFromHex", function(color:String) return FlxColor.fromString('#$color'));
 
 		// precaching
-		Lua_helper.add_callback(lua, "addCharacterToList", function(name:String, type:String) {
-			var charType:Int = 0;
-			switch(type.toLowerCase()) {
-				case 'dad': charType = 1;
-				case 'gf' | 'girlfriend': charType = 2;
-			}
-			game.addCharacterToList(name, charType);
-		});
 		Lua_helper.add_callback(lua, "precacheImage", function(name:String, ?allowGPU:Bool = true) {
 			Paths.image(name, allowGPU);
 		});
@@ -799,118 +642,14 @@ class FunkinLua {
 			Paths.music(name);
 		});
 
-		// others
-		Lua_helper.add_callback(lua, "triggerEvent", function(name:String, ?value1:String = '', ?value2:String = '') {
-			game.triggerEvent(name, value1, value2, Conductor.songPosition);
-			//trace('Triggered event: ' + name + ', ' + value1 + ', ' + value2);
-			return true;
-		});
-
-		Lua_helper.add_callback(lua, "startCountdown", function() {
-			game.startCountdown();
-			return true;
-		});
-		Lua_helper.add_callback(lua, "endSong", function() {
-			game.KillNotes();
-			game.endSong();
-			return true;
-		});
-		Lua_helper.add_callback(lua, "restartSong", function(?skipTransition:Bool = false) {
-			game.persistentUpdate = false;
-			FlxG.camera.followLerp = 0;
-			PauseSubState.restartSong(skipTransition);
-			return true;
-		});
-		Lua_helper.add_callback(lua, "exitSong", function(?skipTransition:Bool = false) {
-			if(skipTransition)
-			{
-				FlxTransitionableState.skipNextTransIn = true;
-				FlxTransitionableState.skipNextTransOut = true;
-			}
-
-			if(PlayState.isStoryMode)
-				MusicBeatState.switchState(new StoryMenuState());
-			else
-				FreeplayManager.openFreeplay();
-
-			#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
-
-			MusicManager.playMenuMusic();
-			PlayState.changedDifficulty = false;
-			PlayState.chartingMode = false;
-			game.transitioning = true;
-			FlxG.camera.followLerp = 0;
-			Mods.loadTopMod();
-			return true;
-		});
 		Lua_helper.add_callback(lua, "getSongPosition", function() {
 			return Conductor.songPosition;
 		});
 
-		Lua_helper.add_callback(lua, "getCharacterX", function(type:String) {
-			switch(type.toLowerCase()) {
-				case 'dad' | 'opponent':
-					return game.dadGroup.x;
-				case 'gf' | 'girlfriend':
-					return game.gfGroup.x;
-				default:
-					return game.boyfriendGroup.x;
-			}
-		});
-		Lua_helper.add_callback(lua, "setCharacterX", function(type:String, value:Float) {
-			switch(type.toLowerCase()) {
-				case 'dad' | 'opponent':
-					game.dadGroup.x = value;
-				case 'gf' | 'girlfriend':
-					game.gfGroup.x = value;
-				default:
-					game.boyfriendGroup.x = value;
-			}
-		});
-		Lua_helper.add_callback(lua, "getCharacterY", function(type:String) {
-			switch(type.toLowerCase()) {
-				case 'dad' | 'opponent':
-					return game.dadGroup.y;
-				case 'gf' | 'girlfriend':
-					return game.gfGroup.y;
-				default:
-					return game.boyfriendGroup.y;
-			}
-		});
-		Lua_helper.add_callback(lua, "setCharacterY", function(type:String, value:Float) {
-			switch(type.toLowerCase()) {
-				case 'dad' | 'opponent':
-					game.dadGroup.y = value;
-				case 'gf' | 'girlfriend':
-					game.gfGroup.y = value;
-				default:
-					game.boyfriendGroup.y = value;
-			}
-		});
-		Lua_helper.add_callback(lua, "cameraSetTarget", function(target:String) {
-			switch(target.trim().toLowerCase())
-			{
-				case 'gf', 'girlfriend':
-					game.moveCameraToGirlfriend();
-				case 'dad', 'opponent':
-					game.moveCamera(true);
-				default:
-					game.moveCamera(false);
-			}
-		});
-
-		Lua_helper.add_callback(lua, "setCameraScroll", function(x:Float, y:Float) FlxG.camera.scroll.set(x - FlxG.width/2, y - FlxG.height/2));
-		Lua_helper.add_callback(lua, "setCameraFollowPoint", function(x:Float, y:Float) game.camFollow.setPosition(x, y));
-		Lua_helper.add_callback(lua, "addCameraScroll", function(?x:Float = 0, ?y:Float = 0) FlxG.camera.scroll.add(x, y));
-		Lua_helper.add_callback(lua, "addCameraFollowPoint", function(?x:Float = 0, ?y:Float = 0) {
-			game.camFollow.x += x;
-			game.camFollow.y += y;
-		});
 		Lua_helper.add_callback(lua, "getCameraScrollX", () -> FlxG.camera.scroll.x + FlxG.width/2);
 		Lua_helper.add_callback(lua, "getCameraScrollY", () -> FlxG.camera.scroll.y + FlxG.height/2);
-		Lua_helper.add_callback(lua, "getCameraFollowX", () -> game.camFollow.x);
-		Lua_helper.add_callback(lua, "getCameraFollowY", () -> game.camFollow.y);
-
+		Lua_helper.add_callback(lua, "setCameraScroll", function(x:Float, y:Float) FlxG.camera.scroll.set(x - FlxG.width/2, y - FlxG.height/2));
+		Lua_helper.add_callback(lua, "addCameraScroll", function(?x:Float = 0, ?y:Float = 0) FlxG.camera.scroll.add(x, y));
 		Lua_helper.add_callback(lua, "cameraShake", function(camera:String, intensity:Float, duration:Float) {
 			LuaUtils.cameraFromString(camera).shake(intensity, duration);
 		});
@@ -921,19 +660,7 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "cameraFade", function(camera:String, color:String, duration:Float, forced:Bool, ?fadeOut:Bool = false) {
 			LuaUtils.cameraFromString(camera).fade(CoolUtil.colorFromString(color), duration, fadeOut, null, forced);
 		});
-		Lua_helper.add_callback(lua, "setRatingPercent", function(value:Float) {
-			game.comboManager.ratingPercent = value;
-			game.setOnScripts('rating', game.comboManager.ratingPercent);
-		});
-		Lua_helper.add_callback(lua, "setRatingName", function(value:String) {
-			game.comboManager.ratingName = value;
-			game.setOnScripts('ratingName', game.comboManager.ratingName);
-		});
-		Lua_helper.add_callback(lua, "setRatingFC", function(value:String) {
-			game.comboManager.ratingFC = value;
-			game.setOnScripts('ratingFC', game.comboManager.ratingFC);
-		});
-		Lua_helper.add_callback(lua, "updateScoreText", function() game.updateScoreText());
+
 		Lua_helper.add_callback(lua, "getMouseX", function(?camera:String = 'game') {
 			var cam:FlxCamera = LuaUtils.cameraFromString(camera);
 			return FlxG.mouse.getScreenPosition(cam).x;
@@ -1002,13 +729,6 @@ class FunkinLua {
 			if(obj != null) return obj.getScreenPosition(LuaUtils.cameraFromString(camera)).y;
 
 			return 0;
-		});
-		Lua_helper.add_callback(lua, "characterDance", function(character:String) {
-			switch(character.toLowerCase()) {
-				case 'dad': game.dad.dance();
-				case 'gf' | 'girlfriend': if(game.gf != null) game.gf.dance();
-				default: game.boyfriend.dance();
-			}
 		});
 
 		Lua_helper.add_callback(lua, "makeLuaSprite", function(tag:String, ?image:String = null, ?x:Float = 0, ?y:Float = 0) {
@@ -1241,25 +961,6 @@ class FunkinLua {
 			return (obj != null && Std.isOfType(obj, FlxSound));
 		});
 
-		Lua_helper.add_callback(lua, "setHealthBarColors", function(left:String, right:String) {
-			var left_color:Null<FlxColor> = null;
-			var right_color:Null<FlxColor> = null;
-			if (left != null && left != '')
-				left_color = CoolUtil.colorFromString(left);
-			if (right != null && right != '')
-				right_color = CoolUtil.colorFromString(right);
-			game.healthBar.setColors(left_color, right_color);
-		});
-		Lua_helper.add_callback(lua, "setTimeBarColors", function(left:String, right:String) {
-			var left_color:Null<FlxColor> = null;
-			var right_color:Null<FlxColor> = null;
-			if (left != null && left != '')
-				left_color = CoolUtil.colorFromString(left);
-			if (right != null && right != '')
-				right_color = CoolUtil.colorFromString(right);
-			game.timeBar.setColors(left_color, right_color);
-		});
-
 		Lua_helper.add_callback(lua, "setObjectCamera", function(obj:String, camera:String = 'game') {
 			var real:FlxBasic = game.getLuaObject(obj);
 			if(real != null) {
@@ -1350,77 +1051,6 @@ class FunkinLua {
 
 			if(spr != null) return spr.pixels.getPixel32(x, y);
 			return FlxColor.BLACK;
-		});
-		Lua_helper.add_callback(lua, "startDialogue", function(dialogueFile:String, ?music:String = null) {
-			var path:String;
-			var songPath:String = Paths.formatToSongPath(Song.loadedSongName);
-			#if TRANSLATIONS_ALLOWED
-			path = Paths.getPath('data/$songPath/${dialogueFile}_${ClientPrefs.data.language}.json', TEXT);
-			#if MODS_ALLOWED
-			if(!FileSystem.exists(path))
-			#else
-			if(!Assets.exists(path, TEXT))
-			#end
-			#end
-				path = Paths.getPath('data/$songPath/$dialogueFile.json', TEXT);
-
-			luaTrace('startDialogue: Trying to load dialogue: ' + path);
-
-			#if MODS_ALLOWED
-			if(FileSystem.exists(path))
-			#else
-			if(Assets.exists(path, TEXT))
-			#end
-			{
-				var shit:DialogueFile = DialogueBoxPsych.parseDialogue(path);
-				if(shit.dialogue.length > 0)
-				{
-					game.startDialogue(shit, music);
-					luaTrace('startDialogue: Successfully loaded dialogue', false, false, FlxColor.GREEN);
-					return true;
-				}
-				else luaTrace('startDialogue: Your dialogue file is badly formatted!', false, false, FlxColor.RED);
-			}
-			else
-			{
-				luaTrace('startDialogue: Dialogue file not found', false, false, FlxColor.RED);
-				if(game.endingSong)
-					game.endSong();
-				else
-					game.startCountdown();
-			}
-			return false;
-		});
-		Lua_helper.add_callback(lua, "startVideo", function(videoFile:String, ?canSkip:Bool = true, ?forMidSong:Bool = false, ?shouldLoop:Bool = false, ?playOnLoad:Bool = true) {
-			#if VIDEOS_ALLOWED
-			if(FileSystem.exists(Paths.video(videoFile)))
-			{
-				if(game.videoCutscene != null)
-				{
-					game.remove(game.videoCutscene);
-					game.videoCutscene.destroy();
-				}
-				game.videoCutscene = game.startVideo(videoFile, forMidSong, canSkip, shouldLoop, playOnLoad);
-				return true;
-			}
-			else
-			{
-				luaTrace('startVideo: Video file not found: ' + videoFile, false, false, FlxColor.RED);
-			}
-			return false;
-
-			#else
-			PlayState.instance.inCutscene = true;
-			new FlxTimer().start(0.1, function(tmr:FlxTimer)
-			{
-				PlayState.instance.inCutscene = false;
-				if(game.endingSong)
-					game.endSong();
-				else
-					game.startCountdown();
-			});
-			return true;
-			#end
 		});
 
 		Lua_helper.add_callback(lua, "playMusic", function(sound:String, ?volume:Float = 1, ?loop:Bool = false) {

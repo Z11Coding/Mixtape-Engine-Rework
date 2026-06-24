@@ -276,6 +276,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 		suspendedSubstateData = [];
 		conductor.reset();
 
+		scripts.destroyCurrentScripts();
+
 		if (allowNuke)
 			Paths.nukeMemory(useLite);
 		super.destroy();
@@ -300,6 +302,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	public var conductor:RConductor = MegaManager.conductor;
 	public var playfield:PlayfieldManager = MegaManager.playfield;
 	public var mcm:CharacterManager = MegaManager.charaManager;
+	public var scripts:ScriptManager = MegaManager.scriptManager;
 
 	override function create()
 	{
@@ -309,6 +312,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 			backend.TransitionState.transitionState(states.ExitState, {transitionType: getRandomTransition()});
 			return;
 		}
+
+		scripts.addDebugText();
 
 		// Handle Garbage Collection for this state
 		handleGarbageCollection();
@@ -1069,7 +1074,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 	{
 		return try
 		{
-		cast(FlxG.state, MusicBeatState);
+			cast(FlxG.state, MusicBeatState);
 		}
 		catch (e:Dynamic)
 		{
@@ -1241,4 +1246,80 @@ class MusicBeatState extends yutautil.SafeManagedState
 	{
 		super.onFocusLost();
 	}
+
+	// Script Functions
+	public function addTextToDebug(text:String, ?color:FlxColor) {
+		if (!ClientPrefs.data.disableDebugTraces) {
+			scripts.addTextToDebug(text, color??FlxColor.WHITE);
+		}
+	}
+
+	public function callOnScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		return scripts.callOnScripts(funcToCall, args, ignoreStops, exclusions, excludeValues);
+	}
+
+	public function callOnLuas(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		return scripts.callOnLuas(funcToCall, args, ignoreStops, exclusions, excludeValues);
+	}
+
+	public function callOnHScript(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		return scripts.callOnHScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
+	}
+
+	public function callOnYScript(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		return scripts.callOnYScript(funcToCall, args, ignoreStops, exclusions, excludeValues);
+	}
+
+	public function callOnPyScripts(funcToCall:String, args:Array<Dynamic> = null, ?ignoreStops:Bool = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
+		return scripts.callOnPyScripts(funcToCall, args, ignoreStops, exclusions, excludeValues);
+	}
+
+	public function setOnScripts(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		scripts.setOnScripts(variable, arg, exclusions);
+	}
+
+	public function setOnLuas(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		scripts.setOnLuas(variable, arg, exclusions);
+	}
+
+	public function setOnHScript(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		scripts.setOnHScript(variable, arg, exclusions);
+	}
+
+	public function setOnYScript(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		scripts.setOnYScript(variable, arg, exclusions);
+	}
+
+	public function setOnPyScripts(variable:String, arg:Dynamic, exclusions:Array<String> = null) {
+		scripts.setOnPyScripts(variable, arg, exclusions);
+	}
+
+	public function initLuaScript(file:String) {
+		scripts.initLuaScript(file);
+	}
+
+	public function initHScript(file:String) {
+		scripts.initHScript(file);
+	}
+
+	public function initYScript(file:String) {
+		scripts.initYScript(file);
+	}
+
+	public function startLuasNamed(luaFile:String) {
+		scripts.startLuasNamed(luaFile);
+	}
+
+	public function startHScriptsNamed(scriptFile:String) {
+		scripts.startHScriptsNamed(scriptFile);
+	}
+
+	public function startYScriptsNamed(scriptFile:String) {
+		scripts.startYScriptsNamed(scriptFile);
+	}
+
+	public function getLuaObject(tag:String, text:Bool = true):FlxSprite {
+		return scripts.getLuaObject(tag, text);
+	}
+
 }

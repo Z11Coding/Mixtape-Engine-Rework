@@ -2234,7 +2234,7 @@ class APPlayState extends PlayState {
         }
 
         // If we're in Legacy Lua testing mode, switch to regular PlayState
-        if (PlayState.isLegacyLuaTest && !startedCountdown) {
+        if (ScriptManager.isLegacyLuaTest && !startedCountdown) {
             FlxG.switchState(new PlayState());
             return;
         }

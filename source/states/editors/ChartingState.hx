@@ -489,8 +489,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	override function create()
 	{
-		instance = this;
-
 		if(Difficulty.list.length < 1) Difficulty.resetList();
 		_keysPressedBuffer.resize(keysArray.length);
 		_heldNotes.resize(keysArray.length);
@@ -1116,6 +1114,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 				lilPlayer.animOffsets[key][1] *= lilPlayer.scale.y;
 			}
 			lilPlayer.dance();
+			startCharacterScripts(name);
 		}
 	}
 
@@ -6240,7 +6239,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		super.destroy();
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDown);
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, keyUp);
-		instance = null;
 	}
 
 	function keyDown(event:KeyboardEvent) {
@@ -6949,7 +6947,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		if(doPush)
 		{
-			for (script in luaArray)
+			for (script in scripts.luaArray)
 			{
 				if(script.scriptName == luaFile)
 				{
@@ -6957,7 +6955,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 					break;
 				}
 			}
-			if(doPush) new FunkinLua(luaFile);
+			if(doPush) initLuaScript(luaFile);
 		}
 		#end
 
@@ -6989,78 +6987,6 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		}
 		#end
 	}
-
-	// Lua shit
-	public static var instance:ChartingState;
-	#if LUA_ALLOWED public var luaArray:Array<FunkinLua> = []; #end
-	#if HSCRIPT_ALLOWED
-	public var hscriptArray:Array<HScript> = [];
-	#end
-	#if LUA_ALLOWED
-	public function startLuasNamed(luaFile:String)
-	{
-		#if MODS_ALLOWED
-		var luaToLoad:String = Paths.modFolders(luaFile);
-		if(!FileSystem.exists(luaToLoad))
-			luaToLoad = Paths.getSharedPath(luaFile);
-
-		if(FileSystem.exists(luaToLoad))
-		#elseif sys
-		var luaToLoad:String = Paths.getSharedPath(luaFile);
-		if(OpenFlAssets.exists(luaToLoad))
-		#end
-		{
-			for (script in luaArray)
-				if(script.scriptName == luaToLoad) return false;
-
-			new FunkinLua(luaToLoad);
-			return true;
-		}
-		return false;
-	}
-	#end
-
-	#if HSCRIPT_ALLOWED
-	public function startHScriptsNamed(scriptFile:String)
-	{
-		#if MODS_ALLOWED
-		var scriptToLoad:String = Paths.modFolders(scriptFile);
-		if(!FileSystem.exists(scriptToLoad))
-			scriptToLoad = Paths.getSharedPath(scriptFile);
-		#else
-		var scriptToLoad:String = Paths.getSharedPath(scriptFile);
-		#end
-
-		if(FileSystem.exists(scriptToLoad))
-		{
-			if (Iris.instances.exists(scriptToLoad)) return false;
-
-			initHScript(scriptToLoad);
-			return true;
-		}
-		return false;
-	}
-
-	public function initHScript(file:String)
-	{
-		var newScript:HScript = null;
-		try
-		{
-			newScript = new HScript(null, file);
-			if (newScript.exists('onCreate')) newScript.call('onCreate');
-			trace('initialized hscript interp successfully: $file');
-			hscriptArray.push(newScript);
-		}
-		catch(e:IrisError)
-		{
-			var pos:HScriptInfos = cast {fileName: file, showLine: false};
-			Iris.error(Printer.errorToString(e, false), pos);
-			var newScript:HScript = cast (Iris.instances.get(file), HScript);
-			if(newScript != null)
-				newScript.destroy();
-		}
-	}
-	#end
 
 	public function sortByMetaTime(Obj1:MetaNote, Obj2:MetaNote):Int
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);

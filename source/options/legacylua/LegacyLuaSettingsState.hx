@@ -98,7 +98,7 @@ class LegacyLuaSettingsState extends MusicBeatState {
             FlxG.sound.play(Paths.sound('cancelMenu'));
             // Reset the main settings mode flag when explicitly going back
             inLegacyLuaSettingsMode = false;
-            states.PlayState.isLegacyLuaTest = false; // Reset testing flag
+            ScriptManager.isLegacyLuaTest = false; // Reset testing flag
             MusicBeatState.switchState(new options.OptionsState());
         }
 
@@ -139,7 +139,7 @@ class LegacyLuaSettingsState extends MusicBeatState {
         if (!inLegacyLuaSettingsMode) {
             states.CategoryState.legacyLuaMode = null;
             options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode = false;
-            states.PlayState.isLegacyLuaTest = false;
+            ScriptManager.isLegacyLuaTest = false;
         }
         super.destroy();
     }

@@ -233,7 +233,7 @@ class LegacyLuaFreeplayState extends FreeplayState {
             Mods.currentModDirectory = fpManager.songList[getCurrentSelected()].folder;
 
             // Set flag to indicate we're testing from Legacy Lua settings
-            PlayState.isLegacyLuaTest = isTestMode;
+            ScriptManager.isLegacyLuaTest = isTestMode;
 
             if (!getAlreadyClicked()) {
                 setAlreadyClicked(true);

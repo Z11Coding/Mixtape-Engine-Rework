@@ -490,9 +490,9 @@ class PauseSubState extends MusicBeatSubstate
 					#else
 						MusicBeatState.switchState(new PlaylistState());
 					#end
-					else if (PlayState.isLegacyLuaTest) {
+					else if (ScriptManager.isLegacyLuaTest) {
 						// Return to Legacy Lua settings system
-						PlayState.isLegacyLuaTest = false;
+						ScriptManager.isLegacyLuaTest = false;
 						MusicBeatState.switchState(new options.legacylua.LegacyLuaFreeplayState());
 					} else {
 						states.CategoryState.instaFreeplay = true;

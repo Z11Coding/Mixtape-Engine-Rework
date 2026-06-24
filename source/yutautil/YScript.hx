@@ -592,6 +592,8 @@ class YScript {
     #if !macro
     private var attachedToPlayState:Bool = false;
     private var playStateInstance:states.PlayState = null; // Reference to PlayState instance
+    private var attachedToMusicBeatState:Bool = false;
+    private var musicBeatStateInstance:MusicBeatState = null; // Reference to MusicBeatState instance
     #end
 
     public function new() {
@@ -620,6 +622,48 @@ class YScript {
             column: 0
         };
     }
+
+    #if !macro
+    /**
+     * ✅ PLAYSTATE INTEGRATION: Attach to PlayState for error reporting
+     */
+    public function attachToState(?state:MusicBeatState):Bool {
+        #if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+        try {
+            // If no specific instance provided, try to get current MusicBeatState
+            if (state == null) {
+                // Try to get MusicBeatState from the game
+                var curMusState = MusicBeatState.getState();
+                state = curMusState;
+            }
+
+            if (state == null) {
+                // Try to get MusicBeatState from FlxG.state
+                var currentState = flixel.FlxG.state;
+                state = cast(currentState, MusicBeatState);
+            }
+
+            if (state != null) {
+                musicBeatStateInstance = state;
+                attachedToMusicBeatState = true;
+            } else {
+                trace('YScript: Cannot attach to state - instance is null');
+                return false;
+            }
+
+            trace('YScript: Successfully attached to state for error reporting');
+            return true;
+
+        } catch (e:Dynamic) {
+            trace('YScript: Failed to attach to state: $e');
+            return false;
+        }
+        #else
+        trace('YScript: State integration not available - LUA_ALLOWED or HSCRIPT_ALLOWED required');
+        return false;
+        #end
+    }
+    #end
 
     #if !macro
     /**
@@ -672,6 +716,24 @@ class YScript {
             try {
                 var color = isError ? flixel.util.FlxColor.RED : flixel.util.FlxColor.YELLOW;
                 playStateInstance.addTextToDebug(message, color);
+            } catch (e:Dynamic) {
+                trace('YScript: Failed to forward error to PlayState: $e');
+            }
+        }
+        #end
+    }
+    #end
+
+    #if !macro
+    /**
+     * Forward error to state debug system
+     */
+    private function forwardErrorToState(message:String, ?isError:Bool = true):Void {
+        #if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+        if (attachedToMusicBeatState && musicBeatStateInstance != null) {
+            try {
+                var color = isError ? flixel.util.FlxColor.RED : flixel.util.FlxColor.YELLOW;
+                musicBeatStateInstance.addTextToDebug(message, color);
             } catch (e:Dynamic) {
                 trace('YScript: Failed to forward error to PlayState: $e');
             }
