@@ -27,7 +27,7 @@ class CategoryState extends MusicBeatState
 	var grpLocks:FlxTypedGroup<FlxSprite>;
 
 	public var menuItems:Array<String> = [
-		"All", "Base", "Erect", "Pico", "Playlists", "Music Player"
+		"All", "Base", "Erect", "Pico", "Mods", "Playlists", "Music Player"
 	];
 	private var showMods:Bool = true;
 	private var showSecrets:Bool = true;
@@ -165,9 +165,9 @@ class CategoryState extends MusicBeatState
 		//menuItems = menuItems.filter(it -> (!it.isEmpty() && Alphabet.isValidText(it)));
 		FlxTransitionableState.skipNextTransOut = false;
 
-		if (showSecrets && (FlxG.save.data.gotIntoAnArgument || FlxG.save.data.gotbeatbattle || FlxG.save.data.gotbeatbattle2)) menuItems.insert(menuItems.length+1, "Secrets");
+		if (showSecrets && (FlxG.save.data.gotIntoAnArgument || FlxG.save.data.gotbeatbattle || FlxG.save.data.gotbeatbattle2)) menuItems.insert(menuItems.indexOf("Mods"), "Secrets");
 
-		if (showSpecial && (FlxG.save.data.specialbabyboy || FlxG.save.data.specialbabygirl)) menuItems.insert(menuItems.length+1, "Special");
+		if (showSpecial && (FlxG.save.data.specialbabyboy || FlxG.save.data.specialbabygirl)) menuItems.insert(menuItems.indexOf("Mods"), "Special");
 
 		WeekData.reloadWeekFiles(false);
 		var weeks:Array<WeekData> = [];
@@ -200,7 +200,7 @@ class CategoryState extends MusicBeatState
 			existingCategories.push(item.toLowerCase());
 		}
 
-			if (softCoded && catMode != 'Mods')
+		if (softCoded && catMode != 'Mods')
 		for (week in weeks) {
 			if (week.category != null) {
 				if (Std.is(week.category, String)) {
@@ -247,7 +247,12 @@ class CategoryState extends MusicBeatState
 		} else
 		{ if (menuItems.contains("All")) menuItems.remove("All"); }
 
-
+		// Make sure the Mods category actually gets added
+		if (showMods && catMode != 'Mods') {
+			if (!menuItems.contains("Mods")) {
+				menuItems.push("Mods");
+			}
+		}
 
 
 		// Main.simulateIntenseMaps();

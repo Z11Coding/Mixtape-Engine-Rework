@@ -127,7 +127,7 @@ class Mods
 			if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(Paths.mods(fileToFind));
 
 			// And lastly, the loaded mod's folder
-			if (useAlt) {
+			if (!useAlt) {
 				if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
 				{
 					var folder:String = Paths.mods(Mods.currentModDirectory + '/' + fileToFind);

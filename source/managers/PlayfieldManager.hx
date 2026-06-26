@@ -312,14 +312,16 @@ class PlayfieldManager {
 
         field.fadeIn(skipArrowStartTween);
 
-        if (field.modNumber == 0) {
-          for (strum in field.strumNotes) {
-            playerStrums.add(strum);
-            strumLineNotes.add(strum);
-          }
-        } else if (field.modNumber == 1) {
+        // Opponent first (for proper strumline priority)
+        if (field.modNumber == 1) {
           for (strum in field.strumNotes) {
             opponentStrums.add(strum);
+            strumLineNotes.add(strum);
+          }
+        }
+        else if (field.modNumber == 0) {
+          for (strum in field.strumNotes) {
+            playerStrums.add(strum);
             strumLineNotes.add(strum);
           }
         }
@@ -610,7 +612,7 @@ class PlayfieldManager {
           else if (note.isSustainNote)
             note.holdType = PART;
 
-          if (note.isSustainNote || note.sustainLength > 0)
+          if (note.isSustainNote && note.sustainLength > 0)
             note.reloadNote();
         }
         column.sort(PlayField.sortNotesAscend);
@@ -628,13 +630,14 @@ class PlayfieldManager {
           else if (note.isSustainNote)
             note.holdType = PART;
 
-          if (note.isSustainNote || note.sustainLength > 0)
+          if (note.isSustainNote && note.sustainLength > 0)
             note.reloadNote();
         }
         column.sort(PlayField.sortNotesAscend);
       }
 
       unspawnNotes = curChart = allNotes;
+      noteTypes = chartCache.get(tempSongObj).noteTypes.copy();
 
       try
       {

@@ -351,18 +351,63 @@ class ScriptManager {
 		// Clear tween managers
 		if (modchartTweens != null) {
 			for (tween in modchartTweens) {
-				if (tween != null) tween.cancel();
+				if (tween != null) {
+					tween.cancel();
+					tween = null;
+				}
 			}
 			modchartTweens.clear();
-			modchartTweens = null;
 		}
 
 		if (modchartTimers != null) {
 			for (timer in modchartTimers) {
-				if (timer != null) timer.cancel();
+				if (timer != null) {
+					timer.cancel();
+					timer = null;
+				}
 			}
 			modchartTimers.clear();
-			modchartTimers = null;
+		}
+
+		if (modchartSprites != null) {
+			for (sprite in modchartSprites) {
+				if (sprite != null) {
+					sprite.destroy();
+					sprite = null;
+				}
+			}
+			modchartSprites.clear();
+		}
+
+		if (modchartSounds != null) {
+			for (sound in modchartSounds) {
+				if (sound != null) {
+					sound.stop();
+					sound.destroy();
+					sound = null;
+				}
+			}
+			modchartSounds.clear();
+		}
+
+		if (modchartSaves != null) {
+			for (save in modchartSaves) {
+				if (save != null) {
+					save.destroy();
+					save = null;
+				}
+			}
+			modchartSaves.clear();
+		}
+
+		if (modchartObjects != null) {
+			for (object in modchartObjects) {
+				if (object != null) {
+					object.destroy();
+					object = null;
+				}
+			}
+			modchartObjects.clear();
 		}
 	}
 

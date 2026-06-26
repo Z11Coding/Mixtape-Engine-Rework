@@ -1298,7 +1298,7 @@ class PlayState extends MusicBeatState
 		else if (stageData.isPixelStage == true) //Backward compatibility
 			stageUI = "pixel";
 
-		FlxG.game.stage.quality = isPixelStage ? StageQuality.LOW : ClientPrefs.getQuality();
+		//FlxG.game.stage.quality = isPixelStage ? StageQuality.LOW : ClientPrefs.getQuality();
 		camGame.pixelPerfectRender = isPixelStage;
 		camGame.antialiasing = isPixelStage ? false : ClientPrefs.data.antialiasing;
 
@@ -1901,12 +1901,12 @@ class PlayState extends MusicBeatState
 
 		// SONG SPECIFIC SCRIPTS
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'data/$songName/'))
+		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'data/$_cachedSongName/'))
 			for (file in FileSystem.readDirectory(folder))
 			{
 				#if LUA_ALLOWED
 				if(file.toLowerCase().endsWith('.lua'))
-					startLuasNamed(folder + file);
+					initLuaScript(folder + file);
 				#end
 
 				#if HSCRIPT_ALLOWED
@@ -6933,7 +6933,7 @@ class PlayState extends MusicBeatState
 	}
 
 	public function tweenCamIn() {
-		if (songName == 'tutorial' && cameraTwn == null && FlxG.camera.zoom != 1.3) {
+		if (_cachedSongName == 'tutorial' && cameraTwn == null && FlxG.camera.zoom != 1.3) {
 			cameraTwn = FlxTween.tween(FlxG.camera, {zoom: 1.3}, (Conductor.stepCrochet * 4 / 1000), {ease: FlxEase.elasticInOut, onComplete:
 				function (twn:FlxTween) {
 					cameraTwn = null;
@@ -8569,7 +8569,7 @@ class PlayState extends MusicBeatState
 
 		if(result == LuaUtils.Function_Stop) return;
 
-		if (songName != 'tutorial')
+		if (_cachedSongName != 'tutorial')
 			camZooming = true;
 
 		if (AIPlayer.active && !note.isSustainNote)
@@ -8695,7 +8695,7 @@ class PlayState extends MusicBeatState
 
 		note.wasGoodHit = true;
 
-		if (songName != 'tutorial')
+		if (_cachedSongName != 'tutorial')
 			camZooming = true;
 
 		if (note.hitsoundVolume > 0 && !note.hitsoundDisabled)
@@ -9282,16 +9282,16 @@ class PlayState extends MusicBeatState
 							&& !ClientPrefs.data.allowVis);
 
 					case 'debugger':
-						unlock = (songName == 'test' && !usedPractice);
+						unlock = (_cachedSongName == 'test' && !usedPractice);
 
 					case 'play_fnf':
 						unlock = !usedPractice;
 
 					case 'pico_mixed':
-						unlock = (!usedPractice && songName.contains("(pico-mix)"));
+						unlock = (!usedPractice && _cachedSongName.contains("(pico-mix)"));
 
 					case 'pico_stressed':
-						unlock = (!usedPractice && songName == "stress-(pico-mix)");
+						unlock = (!usedPractice && _cachedSongName == "stress-(pico-mix)");
 
 					case 'l':
 						unlock = (!usedPractice && (deathCounter >= 30 || CoolUtil.floorDecimal(comboManager.ratingPercent * 100, 2) == 0));

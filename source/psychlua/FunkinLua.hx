@@ -1317,6 +1317,12 @@ class FunkinLua {
 		stages.VSliceLoader.implement(this);
 		WindowFunctions.implement(this);
 
+		switch (MusicBeatState.getState() {
+			case PlayState.instance:
+				PlayStateFunctions.implement(this);
+
+		})
+
 		for (name => func in customFunctions)
 		{
 			if(func != null)
