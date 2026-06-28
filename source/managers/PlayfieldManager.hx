@@ -37,6 +37,9 @@ class PlayfieldManager {
   public var cpuControlled:Bool = false;
   public var curSong:String = "";
 
+  // So that the chart is used instead of the file (will be labled differently in cache)
+  public static var fromChartState:Bool = false;
+
   @:noCompletion function set_cpuControlled(value:Bool):Bool {
 		cpuControlled = value;
 
@@ -557,6 +560,7 @@ class PlayfieldManager {
 
   // Chart Loading
   public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = false) {
+    if (fromChartState) songName+=" (temp)";
     var tempSongObj:String = new SongObjectType(songName, folder).toString();
     trace('Song Info: $tempSongObj\nCache: $chartCache\nDoes it exist?: ${chartCache.exists(tempSongObj)}');
     this.songName = Paths.formatToSongPath(SONG.song).toLowerCase();
@@ -576,8 +580,9 @@ class PlayfieldManager {
       {
         var note = Note.quickMakeNote(allNotes[i]);
         allNotes[i] = note;
-        if (allNotes[note.ID-1] != null)
-          note.prevNote = allNotes[note.ID-1];
+        if (allNotes[note.noteIndex-1] != null)
+          note.prevNote = allNotes[note.noteIndex-1];
+
         if (playerField != null) {
           if (note.mustPress) {
             note.field = playerField;
@@ -605,11 +610,11 @@ class PlayfieldManager {
         for (note in column)
         {
           // Sustain Fix
-          if (note.sustainLength > 0 && !note.isSustainNote)
+          if (note.sustainLength > 0 && note.isParent)
             note.holdType = HEAD;
-          else if (note.isSustainNote && note.spotInLine == note.parent.tail.length - 1)
+          else if (note.isSustainNote && note.istail)
             note.holdType = END;
-          else if (note.isSustainNote)
+          else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
             note.holdType = PART;
 
           if (note.isSustainNote && note.sustainLength > 0)
@@ -623,11 +628,11 @@ class PlayfieldManager {
         for (note in column)
         {
           // Sustain Fix
-          if (note.sustainLength > 0 && !note.isSustainNote)
+          if (note.sustainLength > 0 && note.isParent)
             note.holdType = HEAD;
-          else if (note.isSustainNote && note.spotInLine == note.parent.tail.length - 1)
+          else if (note.isSustainNote && note.istail)
             note.holdType = END;
-          else if (note.isSustainNote)
+          else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
             note.holdType = PART;
 
           if (note.isSustainNote && note.sustainLength > 0)
@@ -675,6 +680,7 @@ class PlayfieldManager {
       catch(e:Dynamic) {
         trace('in-chart events DOESN\'T EXSIST FOR SONG ${this.songName}!');
       }
+      fromChartState = false;
     } else {
       trace("Generate chart normally");
       generateChart(SONG, preload);
@@ -1634,7 +1640,8 @@ class PlayfieldManager {
     // curChart = cast (curChart:objects.NotePool.NoteArray);
 
     if (preload) {
-      var tempSongObj:String = new SongObjectType(songName+Difficulty.getFilePath(), Mods.currentModDirectory).toString();
+      var isTempChart:String = (fromChartState ? " (temp)" : "");
+      var tempSongObj:String = new SongObjectType(songName+isTempChart+Difficulty.getFilePath(), Mods.currentModDirectory).toString();
       if (!chartCache.exists(tempSongObj)) {
         var songObject:SongObject = new SongObject();
         songObject.chart = allNotes;
@@ -1643,6 +1650,7 @@ class PlayfieldManager {
         chartCache.set(tempSongObj, songObject);
       }
       resetChartStuff();
+      fromChartState = false;
     } else generatedChart = true;
     trace('Finished Generating Notes for ${songData.song}!');
   }

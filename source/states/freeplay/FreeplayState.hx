@@ -379,7 +379,7 @@ class FreeplayState extends MusicBeatState
 		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
 		{
 			FlxG.camera.zoom = zoomies;
-			FlxTween.tween(FlxG.camera, {zoom: 1}, Conductor.crochet*0.001*4, {
+			FlxTween.tween(FlxG.camera, {zoom: 1}, MegaManager.conductor.stepLengthMs*0.001*4, {
 				ease: FlxEase.quadOut
 			});
 
@@ -1226,6 +1226,7 @@ class FreeplayState extends MusicBeatState
 						{
 							alreadyClicked = true;
 							MusicBeatState.reopen = false; //Fix a sticker bug
+							PlayfieldManager.fromChartState = false;
 							LoadingState.prepareToSong();
 							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
 								archipelago.APPlayState.currentSong = fpManager.songList[curSelected].songName;

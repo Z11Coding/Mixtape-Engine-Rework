@@ -819,7 +819,7 @@ class LoadingState extends MusicBeatState
 		}, isIntrusive))
 		.then((_) -> new Future<Bool>(() -> {
 			var song:SwagSong = PlayfieldManager.SONG;
-			var songName = Paths.formatToSongPath('${song.song.toLowerCase()}${Difficulty.getFilePath()}');
+			var songName = Paths.formatToSongPath('${song.song.toLowerCase()}${PlayfieldManager.fromChartState ? " (temp)" : ""}${Difficulty.getFilePath()}');
 			var tempSongObj:String = new PlayfieldManager.SongObjectType(songName, Mods.currentModDirectory).toString();
 			if (!PlayfieldManager.chartCache.exists(tempSongObj))
 				MegaManager.playfield.loadChart(songName, Mods.currentModDirectory, true);

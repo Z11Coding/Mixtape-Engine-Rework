@@ -306,6 +306,7 @@ class ScriptManager {
 				if (lua != null) {
 					lua.call('onDestroy', []);
 					lua.stop();
+					luaArray.remove(lua);
 				}
 			}
 		}
@@ -316,6 +317,7 @@ class ScriptManager {
 				if (lua != null) {
 					lua.call('onDestroy', []);
 					lua.stop();
+					legacyLuaArray.remove(lua);
 				}
 			}
 		}
@@ -331,6 +333,7 @@ class ScriptManager {
 			{
 				if(script.exists('onDestroy')) script.call('onDestroy');
 				script.destroy();
+				hscriptArray.remove(script);
 			}
 		}
 
@@ -343,6 +346,7 @@ class ScriptManager {
 			{
 				if(script.hasFunction('onDestroy')) script.callFunction('onDestroy');
 				script.destroy();
+				yscriptArray.remove(script);
 			}
 		}
 
@@ -469,6 +473,8 @@ class ScriptManager {
 
 	public function initHScript(file:String)
 	{
+		if (Iris.instances.exists(file)) return;
+
 		var newScript:HScript = null;
 		try
 		{

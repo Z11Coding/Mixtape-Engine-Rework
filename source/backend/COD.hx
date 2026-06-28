@@ -2,21 +2,14 @@ package backend;
 import objects.Note;
 class COD
 {
-    public static var deathVar:String;
-    public static var missDeath:String;
-	public static var missDeath2:String;
-    public static var rDeath:String;
-	public static var ukTxt:String;
+	public static var deathVar:String = "Cause of death: ";
+  public static var ukTxt:String;
 	public static var COD:String;
 	public static var scriptCOD:String;
 	public static var custom:String;
 
 	public static function initCOD():Void
 	{
-		deathVar = "Cause of death: ";
-    	missDeath = "Missed a note at 0 health.";
-		missDeath2 = "Missed a note.";
-		rDeath = "Pressed R.";
 		ukTxt = "Unknown.";
 		scriptCOD = "???";
 		COD = "???";
@@ -34,11 +27,11 @@ class COD
 			switch (reason)
 			{
 				case "miss0":
-					COD = missDeath;
+					COD = "Missed a note at 0 health.";
 				case "miss":
-					COD = missDeath2;
+					COD = "Missed a note.";
 				case "r":
-					COD = rDeath;
+					COD = "Pressed R.";
 				case "badNote":
 					COD = "Hit a Hurt Note.";
 				case "custom":

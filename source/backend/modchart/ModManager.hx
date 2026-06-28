@@ -177,9 +177,6 @@ class ModManager {
 			registerAux('flash${i}B');
 		}
 
-		registerAux('arrowPathAlpha');
-		registerAux('arrowPathThickness');
-
 
 		var toAlternate:Array<String> = ["transformX", "transformY", "transformZ", "flashR", "flashG", "flashB", "vibrate"];
 		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {

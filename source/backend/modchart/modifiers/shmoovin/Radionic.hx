@@ -15,20 +15,16 @@ class Radionic extends NoteModifier {
 			return pos;
 
 		final modArray = modMgr.getActiveMods(player);
-
 		final reverse = modMgr.register.get('reverse');
-
 		final angle = ((1 / Conductor.crochet) * ((Conductor.songPosition + visualDiff) * Math.PI * .25) + (Math.PI * player));
 		final offsetX = pos.x - modMgr.getBaseX(data, player, field.field.keyCount);
 		final offsetY = (reverse != null ? (pos.y - reverse.getPos(visualDiff, timeDiff, beat, pos, data, player, obj, field).y) : 0);
 
 		final circf = Note.swagWidth + data * Note.swagWidth;
-
 		final sinAng = sin(angle);
 		final cosAng = cos(angle);
 
 		final radionicVec = new Vector3();
-
 		radionicVec.x = FlxG.width * 0.5 + ((sinAng * offsetY + cosAng * (circf + offsetX)) * Note.scales[field.field.keyCount-1]) * 1.125;
 		radionicVec.y = FlxG.height * 0.5 + ((cosAng * offsetY + sinAng * (circf + offsetX)) * Note.scales[field.field.keyCount-1]) * 0.875;
 		radionicVec.z = pos.z;

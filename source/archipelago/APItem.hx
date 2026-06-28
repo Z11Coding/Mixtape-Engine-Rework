@@ -341,8 +341,10 @@ class APItem {
                             TrapLinkFunctions.doHighQualityTrap();
                             // Reset the state to apply High Quality changes
                             if (ClientPrefs.data.preloadSong) {
+                                LoadingState.prepareToSong();
                                 states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
                             } else {
+                                LoadingState.prepareToSong();
                                 MusicBeatState.resetState();
                             }
                             return;
@@ -715,8 +717,10 @@ class APItem {
 
                         if (Std.is(FlxG.state, APPlayState)) {
                             if (ClientPrefs.data.preloadSong) {
+                                LoadingState.prepareToSong();
                                 states.LoadingState.loadAndSwitchState(new APPlayState());
                             } else {
+                                LoadingState.prepareToSong();
                                 MusicBeatState.resetState();
                             }
                         } else {
@@ -1598,8 +1602,10 @@ class APItem {
 
                                     if (Std.is(FlxG.state, APPlayState)) {
                                         if (ClientPrefs.data.preloadSong) {
+                                            LoadingState.prepareToSong();
                                             states.LoadingState.loadAndSwitchState(new APPlayState());
                                         } else {
+                                            LoadingState.prepareToSong();
                                             MusicBeatState.resetState();
                                         }
                                     } else {
@@ -1796,8 +1802,10 @@ class APItem {
                     Paths.freeGraphicsFromMemory();
                     trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
                     if (ClientPrefs.data.preloadSong) {
+                        LoadingState.prepareToSong();
                         states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
                     } else {
+                        LoadingState.prepareToSong();
                         MusicBeatState.resetState();
                     }
                     new FlxTimer().start(120, function(tmr:FlxTimer)
@@ -1810,8 +1818,10 @@ class APItem {
                         Paths.freeGraphicsFromMemory();
                         trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
                         if (ClientPrefs.data.preloadSong) {
+                            LoadingState.prepareToSong();
                             states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
                         } else {
+                            LoadingState.prepareToSong();
                             MusicBeatState.resetState();
                         }
                     });
@@ -2370,8 +2380,10 @@ class APChartModifier extends APTrap {
             APItem.popup("Chart Modifier Trap (" + this.chartModifier + ")");
             if (archipelago.APPlayState.instance?.startingSong) {
                 if (ClientPrefs.data.preloadSong) {
+                    LoadingState.prepareToSong();
                     states.LoadingState.loadAndSwitchState(new archipelago.APPlayState());
                 } else {
+                    LoadingState.prepareToSong();
                     MusicBeatState.switchState(new states.PlayState()); // Don't ask why I had to do this. - Yuta
                 }
             }

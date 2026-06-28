@@ -7338,7 +7338,7 @@ class PlayState extends MusicBeatState
 					trace(Mods.currentModDirectory);
 					Song.loadFromJson(Paths.formatToSongPath(curSonglist[0].songName) + difficulty, curSonglist[0].songName);
 
-					//LoadingState.prepareToSong();
+					LoadingState.prepareToSong();
 
 					#if ARCHIPELAGO_ALLOWED
 					if (archipelago.APEntryState.inArchipelagoMode && nextState != null) {
@@ -8546,8 +8546,13 @@ class PlayState extends MusicBeatState
 			FlxG.sound.play(Paths.sound('fnf_loss_sfx'));
 			health = 1 / lives * lives;
 		}
-			if (note.cod != null && note.cod.trim() != '') {
-			COD.setCOD(note.cod);
+
+		if (note?.cod != null) {
+			if (note.cod.trim() != '') {
+				COD.setCOD('miss');
+			}
+		} else {
+			COD.setPresetCOD("miss");
 		}
 	}
 
@@ -9017,7 +9022,8 @@ class PlayState extends MusicBeatState
 			resetSubState();
 		}
 
-
+		conductor.reset();
+		scripts.destroyCurrentScripts();
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 
 		// Clear character references

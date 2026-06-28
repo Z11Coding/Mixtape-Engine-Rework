@@ -6207,6 +6207,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		setSongPlaying(false);
 		updateChartData();
 		StageData.loadDirectory(PlayfieldManager.SONG);
+		PlayfieldManager.fromChartState = true;
+		LoadingState.prepareToSong();
 		LoadingState.loadAndSwitchState(new PlayState());
 		ClientPrefs.toggleVolumeKeys(true);
 	}

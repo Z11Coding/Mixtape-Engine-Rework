@@ -26,6 +26,7 @@ import psychlua.DebugLuaText;
 import psychlua.LuaUtils.LuaTweenOptions;
 import psychlua.LuaUtils;
 import psychlua.ModchartSprite;
+import psychlua.states.*;
 import states.MainMenuState;
 import states.StoryMenuState;
 import states.freeplay.FreeplayState;
@@ -630,6 +631,7 @@ class FunkinLua {
 		Lua_helper.add_callback(lua, "getColorFromName", function(color:String) return FlxColor.fromString(color));
 		Lua_helper.add_callback(lua, "getColorFromString", function(color:String) return FlxColor.fromString(color));
 		Lua_helper.add_callback(lua, "getColorFromHex", function(color:String) return FlxColor.fromString('#$color'));
+		Lua_helper.add_callback(lua, "getColorFromRGB", function(color:Array<Int>) return FlxColor.fromRGB(color[0], color[1], color[2]));
 
 		// precaching
 		Lua_helper.add_callback(lua, "precacheImage", function(name:String, ?allowGPU:Bool = true) {
@@ -1317,11 +1319,11 @@ class FunkinLua {
 		stages.VSliceLoader.implement(this);
 		WindowFunctions.implement(this);
 
-		switch (MusicBeatState.getState() {
-			case PlayState.instance:
+		// TODO: make one for each important state, and make one for custom states, as well as make it the default
+		switch (Type.getClassName(Type.getClass(FlxG.state)).split(".")[Lambda.count(Type.getClassName(Type.getClass(FlxG.state)).split(".")) - 1]) {
+			case "PlayState":
 				PlayStateFunctions.implement(this);
-
-		})
+		}
 
 		for (name => func in customFunctions)
 		{
@@ -1607,7 +1609,7 @@ class FunkinLua {
 			if(deprecated && !getBool('luaDeprecatedWarnings')) {
 				return;
 			}
-			PlayState.instance.addTextToDebug(text, color);
+			MusicBeatState.getState().addTextToDebug(text, color);
 		}
 	}
 

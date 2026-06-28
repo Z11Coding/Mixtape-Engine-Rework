@@ -89,13 +89,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		camCOD.scroll.set();
 		camCOD.target = null;
 		camCOD.visible = true;
-
-
-
 		FlxG.camera.bgColor = 0xFF000000; // to fix mods that like to change its color (looking at you, 17bucks)
-
-
-
 		Conductor.songPosition = 0;
 
 		if(boyfriend == null)

@@ -136,7 +136,7 @@ class PlayStateFunctions {
 				if (causeOfDeath != null && causeOfDeath.trim() != "") {
 					backend.COD.setCOD(null, causeOfDeath);
 				} else {
-					backend.COD.setCOD(null, 'Took lethal damage. (${this.scriptName})');
+					backend.COD.setCOD(null, 'Took lethal damage. (${funk.scriptName})');
 				}
 
 				// Apply damage and trigger death
@@ -321,7 +321,7 @@ class PlayStateFunctions {
 			#end
 				path = Paths.getPath('data/$songPath/$dialogueFile.json', TEXT);
 
-			luaTrace('startDialogue: Trying to load dialogue: ' + path);
+			FunkinLua.luaTrace('startDialogue: Trying to load dialogue: ' + path);
 
 			#if MODS_ALLOWED
 			if(FileSystem.exists(path))
@@ -333,14 +333,14 @@ class PlayStateFunctions {
 				if(shit.dialogue.length > 0)
 				{
 					game.startDialogue(shit, music);
-					luaTrace('startDialogue: Successfully loaded dialogue', false, false, FlxColor.GREEN);
+					FunkinLua.luaTrace('startDialogue: Successfully loaded dialogue', false, false, FlxColor.GREEN);
 					return true;
 				}
-				else luaTrace('startDialogue: Your dialogue file is badly formatted!', false, false, FlxColor.RED);
+				else FunkinLua.luaTrace('startDialogue: Your dialogue file is badly formatted!', false, false, FlxColor.RED);
 			}
 			else
 			{
-				luaTrace('startDialogue: Dialogue file not found', false, false, FlxColor.RED);
+				FunkinLua.luaTrace('startDialogue: Dialogue file not found', false, false, FlxColor.RED);
 				if(game.endingSong)
 					game.endSong();
 				else
@@ -362,7 +362,7 @@ class PlayStateFunctions {
 			}
 			else
 			{
-				luaTrace('startVideo: Video file not found: ' + videoFile, false, false, FlxColor.RED);
+				FunkinLua.luaTrace('startVideo: Video file not found: ' + videoFile, false, false, FlxColor.RED);
 			}
 			return false;
 
