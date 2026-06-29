@@ -163,12 +163,20 @@ class FirstCheckState extends MusicBeatState
 			#if TRACY_ENABLED
 			backend.util.WindowUtil.initTracy();
 			#end
+
+			// Just gonna put this here...
+			var modFolder = Paths.mods();
+			if(!FileSystem.exists(modFolder))
+			{
+				trace('created missing folder');
+				FileSystem.createDirectory(modFolder);
+			}
 		}
 
 		// if (AprilFools.allowAF)
 			// ClientPrefs.data.ultratrashMode = true;
 
-			ClientPrefs.data.ultratrashMode = ClientPrefs.data.ogultratrashMode;
+		ClientPrefs.data.ultratrashMode = ClientPrefs.data.ogultratrashMode;
 
 		if(Main.fpsVar != null) {
 			Main.fpsVar.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "fps" || ClientPrefs.data.performanceCounter == "fps-mem" || ClientPrefs.data.performanceCounter == "fps-mem-peak");

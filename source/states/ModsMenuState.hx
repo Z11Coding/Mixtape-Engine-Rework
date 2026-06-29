@@ -20,6 +20,7 @@ class ModsMenuState extends MusicBeatState
 	var modDesc:FlxText;
 	var modRestartText:FlxText;
 	var modsList:ModsList = null;
+	var globalModsList:Array<String> = null;
 
 	var bgList:FlxSprite;
 	var buttonReload:MenuButton;
@@ -58,6 +59,7 @@ class ModsMenuState extends MusicBeatState
 		persistentUpdate = false;
 
 		modsList = Mods.parseList();
+		globalModsList = Mods.getGlobalMods();
 		Mods.loadTopMod();
 
 		#if DISCORD_ALLOWED
@@ -81,6 +83,11 @@ class ModsMenuState extends MusicBeatState
 			if(startMod == mod) curSelectedMod = i;
 
 			var modItem:ModItem = new ModItem(mod);
+			if(globalModsList.contains(mod))
+			{
+				modItem.icon.color = 0xFFFFFC5D;
+				modItem.text.color = FlxColor.GRAY;
+			}
 			if(modsList.disabled.contains(mod))
 			{
 				modItem.icon.color = 0xFFFF6666;
@@ -123,6 +130,11 @@ class ModsMenuState extends MusicBeatState
 					modsList.enabled.push(mod.folder);
 					mod.icon.color = FlxColor.WHITE;
 					mod.text.color = FlxColor.WHITE;
+					if(globalModsList.contains(mod.folder))
+					{
+						mod.icon.color = 0xFFFFFC5D;
+						mod.text.color = FlxColor.GRAY;
+					}
 				}
 			}
 			updateModDisplayData();
@@ -267,6 +279,12 @@ class ModsMenuState extends MusicBeatState
 			}
 			curMod.icon.color = modsList.disabled.contains(mod) ? 0xFFFF6666 : FlxColor.WHITE;
 			curMod.text.color = modsList.disabled.contains(mod) ? FlxColor.GRAY : FlxColor.WHITE;
+
+			if(modsList.enabled.contains(mod) && globalModsList.contains(mod))
+			{
+				curMod.icon.color = 0xFFFFFC5D;
+				curMod.text.color = FlxColor.GRAY;
+			}
 
 			if(curMod.mustRestart) waitingToRestart = true;
 			updateModDisplayData();
@@ -549,6 +567,7 @@ class ModsMenuState extends MusicBeatState
 				@:privateAccess
 				Mods.updateModList();
 				modsList = Mods.parseList();
+				globalModsList = Mods.getGlobalMods();
 				if(modsList.all.length > 0)
 				{
 					trace('mod(s) found! reloading');

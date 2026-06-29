@@ -8099,6 +8099,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			var ret:Dynamic = callOnScripts('onGameOver', null, true);
 			if(ret != LuaUtils.Function_Stop)
 			{
+				if (curHealthMode == "Kade" || curHealthMode == "OG")
+					COD.setPresetCOD(null, 'noHealth');
 				savedTime = -1;
 				FlxG.animationTimeScale = 1;
 				boyfriend.stunned = true;
@@ -11484,9 +11486,26 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			health = 1 / lives * lives;
 		}
 
-		if (note.cod != null && note.cod.trim() != '') {
-			COD.setCOD(note.cod);
+		if (note?.cod != null) {
+			if (note.cod.trim() != '') {
+				COD.setCOD('miss');
+			}
+		} else {
+			switch (curHealthMode) {
+				case "Lives":
+					backend.COD.setPresetCOD('missL');
+				case "Lives + HealthBar" | "Lives + Mixtape":
+					backend.COD.setPresetCOD('missL0');
+				case "Amalgam":
+					backend.COD.custom = "Genuinely, [wait:0.5]How do you lose with Amalgam on???";
+					backend.COD.setPresetCOD('custom');
+				case "Double" | "Tabi" | "Mixtape":
+					backend.COD.setPresetCOD('miss0');
+				default:
+					backend.COD.setPresetCOD('miss');
+			}
 		}
+
 	}
 
 	public function opponentNoteHit(note:Note, field:PlayField):Void

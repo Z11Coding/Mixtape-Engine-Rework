@@ -968,14 +968,7 @@ class PlaylistState extends MusicBeatState {
 
 		// mod-specific playlist support maybe??? idk could be cool
 		#if MODS_ALLOWED
-		var directories:Array<String> = [
-			Paths.mods('playlists/'),
-			Paths.mods(Mods.currentModDirectory + '/playlists/'),
-			Paths.getSharedPath('playlists/'),
-			'playlists/'
-		];
-		for (mod in Mods.getGlobalMods())
-			directories.push(Paths.mods(mod + '/playlists/'));
+		var directories:Array<String> = Mods.directoriesWithFile(Paths.getSharedPath(), 'playlists/');
 		for (directory in directories)
 		{
 			if (FileSystem.exists(directory))

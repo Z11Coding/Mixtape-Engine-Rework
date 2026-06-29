@@ -820,6 +820,7 @@ class Note extends NoteObject
 					hitCausesMiss = true;
 					hitsound = 'cancelMenu';
 					hitsoundChartEditor = false;
+					cod = "Hit a Base Psych Hurt Note.";
 				case 'Kill Note':
 					ignoreNote = mustPress;
 					reloadNote('noteSkins/mechanicsmod/KILLNOTE_assets');
@@ -828,6 +829,7 @@ class Note extends NoteObject
 					missHealth = FlxMath.MAX_VALUE_FLOAT;
 					lowPriority = true;
 					hitCausesMiss = true;
+					cod = "Hit an Instakill Note.";
 				case 'Burst Note':
 					ignoreNote = mustPress;
 					reloadNote('noteSkins/mechanicsmod/BURSTNOTE_assets');
@@ -843,6 +845,7 @@ class Note extends NoteObject
 					}
 					hitCausesMiss = true;
 					lowPriority = true;
+					cod = "Hit a Burst Note and couldn't recover.";
 				case 'Sleep Note':
 					ignoreNote = mustPress;
 					reloadNote('noteSkins/mechanicsmod/SLEEPYNOTE_assets');
@@ -858,6 +861,7 @@ class Note extends NoteObject
 					}
 					hitCausesMiss = true;
 					lowPriority = true;
+					cod = "Hit too many Sleep Notes and passed out.";
 				case 'Restore Note':
 					reloadNote('noteSkins/mechanicsmod/RESTORENOTE_assets');
 					if (isSustainNote)
@@ -869,6 +873,7 @@ class Note extends NoteObject
 						missHealth = 0.0475;
 					}
 					rgbShader.enabled = false;
+					cod = "Missed too many Restore Notes and couldn't recover.";
 				case 'Fake Note':
 					ignoreNote = mustPress;
 					reloadNote('noteSkins/mechanicsmod/FAKENOTE_assets');
@@ -883,6 +888,7 @@ class Note extends NoteObject
 						missHealth = 0.0475;
 					}
 					hitCausesMiss = true;
+					cod = "Hit a Fake Note.";
 				case 'Swap Note':
 					reloadNote('noteSkins/mechanicsmod/SWAPNOTE_assets');
 					rgbShader.enabled = false;
@@ -894,6 +900,7 @@ class Note extends NoteObject
 					{
 						missHealth = 0.0475;
 					}
+					cod = "Missed a Swap Note.";
 				case 'Alt Animation':
 					animSuffix = '-alt';
 				case 'No Animation':
@@ -913,10 +920,13 @@ class Note extends NoteObject
 					missHealth = 0.0475;
 				case 'sakura-joint':
 					//animSuffix = '-both';
+					cod = "Beefed the Duet.";
 				case 'sakura-bf1':
 					animSuffix = '-bf';
+					cod = "Messed up their solo.";
 				case 'sakura-bf2':
 					animSuffix = '-bfA';
+					cod = "Messed up their solo during the cool part.";
 			}
 			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
 			if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound); //precache new sound for being idiot-proof

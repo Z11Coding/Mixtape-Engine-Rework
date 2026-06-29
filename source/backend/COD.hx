@@ -2,10 +2,13 @@ package backend;
 import objects.Note;
 class COD
 {
-    public static var deathVar:String;
-    public static var missDeath:String;
+	public static var deathVar:String;
+	public static var missDeath:String;
 	public static var missDeath2:String;
-    public static var rDeath:String;
+	public static var missDeath3:String;
+	public static var missDeath4:String;
+	public static var noHealth:String;
+  public static var rDeath:String;
 	public static var ukTxt:String;
 	public static var COD:String;
 	public static var scriptCOD:String;
@@ -14,8 +17,11 @@ class COD
 	public static function initCOD():Void
 	{
 		deathVar = "Cause of death: ";
+		noHealth = "Ran out of health.";
     missDeath = "Missed a note at 0 health.";
 		missDeath2 = "Missed a note.";
+		missDeath3 = "Out of Lives.";
+		missDeath4 = "Missed a note at 0 health and no lives.";
 		rDeath = "Pressed R.";
 		ukTxt = "Unknown.";
 		scriptCOD = "???";
@@ -37,6 +43,12 @@ class COD
 					COD = missDeath;
 				case "miss":
 					COD = missDeath2;
+				case "missL":
+					COD = missDeath3;
+				case "missL0":
+					COD = missDeath4;
+				case "noHealth":
+					COD = noHealth;
 				case "r":
 					COD = rDeath;
 				case "badNote":

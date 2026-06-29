@@ -448,7 +448,7 @@ class APPlayState extends PlayState {
             'spin' => function() {
                 var ttl:Float = 15;
                 var onEnd:(Void->Void) = function() {
-                    modManager.setValue('orient', 0);
+                    modManager.setValue('confusion', 0);
                 };
                 var playSound:String = "spin";
                 var playSoundVol:Float = 1;
@@ -2659,7 +2659,7 @@ class APPlayState extends PlayState {
             trace("Ghost Chat got stuck! Re-activating!");
         }
 
-        if (bfAscend) boyfriendGroup.y += 0.01;
+        if (bfAscend) boyfriendGroup.y += 0.1;
 
         if (releasethebeast && !noHorny) {
             if (resistanceAmount > 1) resistanceAmount = 1;
