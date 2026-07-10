@@ -572,6 +572,8 @@ class Note extends NoteObject
 	public static var colArrayAlt:Array<String> = ['purple', 'blue', 'green', 'red', 'white', 'yellow', 'violet', 'black', 'dark'];
 	public static var defaultNoteSkin(default, never):String = 'noteSkins/NOTE_assets';
 
+	public static inline final pixelsPerMS:Float = 0.45;
+
 	public var noteSplashData:NoteSplashData = {
 		disabled: false,
 		texture: null,

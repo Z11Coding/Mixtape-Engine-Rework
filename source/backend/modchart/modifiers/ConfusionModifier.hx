@@ -41,7 +41,7 @@ class ConfusionModifier extends NoteModifier {
 					angleZ += getSubmodValue("noteAngle", player) + getSubmodValue("note" + data + "Angle", player);
 				}
 
-				angleZ += note.typeOffsetAngle;
+				//angleZ += note.typeOffsetAngle;
 
 			case STRUM:
 				angleX += getSubmodValue("receptorAngleX", player) + getSubmodValue("receptor" + data + "AngleX", player);
@@ -84,7 +84,7 @@ class ConfusionModifier extends NoteModifier {
 			"dizzy"
 		];
 
-		for (i in 0...Note.ammo[PlayState.mania]) {
+		for(i in 0...PlayState.mania+1){
 			subMods.push('note${i}AngleX');
 			subMods.push('receptor${i}AngleX');
 			subMods.push('note${i}AngleY');

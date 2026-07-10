@@ -239,6 +239,10 @@ class HScript extends Iris
 			return LuaUtils.getModSetting(saveTag, modName);
 		});
 
+		set('degtorad', function(deg:Float) {
+			return deg / 180.0 * Math.PI;
+		});
+
 		// Keyboard & Gamepads
 		set('keyboardJustPressed', function(name:String) return Reflect.getProperty(FlxG.keys.justPressed, name));
 		set('keyboardPressed', function(name:String) return Reflect.getProperty(FlxG.keys.pressed, name));

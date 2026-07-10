@@ -1,16 +1,5 @@
 package backend.modchart.modifiers;
 
-import backend.math.*;
-import backend.math.Vector3;
-import backend.modchart.*;
-import backend.ui.*;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.math.FlxAngle;
-import flixel.math.FlxMath;
-import flixel.math.FlxPoint;
-import objects.playfields.NoteField;
-
 class RotateModifier extends NoteModifier { // this'll be rotateX in ModManager
 	override function getName()
 		return '${prefix}rotateX';
@@ -28,7 +17,7 @@ class RotateModifier extends NoteModifier { // this'll be rotateX in ModManager
 	}
 
 	override function getPos( visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField) {
-		var origin:Vector3 = daOrigin ?? new Vector3(field.field.getBaseX(data), FlxG.height* 0.5);
+		var origin:Vector3 = daOrigin ?? Vector3.weak(field.field.getBaseX(data), FlxG.height* 0.5);
 
 		pos.decrementBy(origin); // diff
 		VectorHelpers.rotateV3(pos, // out
@@ -46,7 +35,7 @@ class RotateModifier extends NoteModifier { // this'll be rotateX in ModManager
 		var shid:Array<String> = ['rotateX', 'rotateY', 'rotateZ'];
 
 		var submods:Array<String> = [
-			for (d in 0...Note.ammo[PlayState.mania])
+			for (d in 0...PlayState.mania+1)
 			{
 				for (s in shid)
 					'$prefix$d$s';

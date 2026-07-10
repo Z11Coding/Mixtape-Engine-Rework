@@ -873,39 +873,39 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 		if (!controls.controllerMode)
 		{
 			if (key > -1)
-            {
-                var hitNotes:Array<Note> = [];
-                var controlledFields:Array<PlayField> = [];
+			{
+				var hitNotes:Array<Note> = [];
+				var controlledFields:Array<PlayField> = [];
 
-                for (field in playfields.members)
-                {
-                    if (!field.autoPlayed && field.isPlayer && field.inControl)
-                    {
-                        controlledFields.push(field);
-                        field.keysPressed[key] = true;
-                        var note:Note = null;
-                        note = field.input(key);
+				for (field in playfields.members)
+				{
+					if (!field.autoPlayed && field.isPlayer && field.inControl)
+					{
+						controlledFields.push(field);
+						field.keysPressed[key] = true;
+						var note:Note = null;
+						note = field.inputDown(key);
 
-                        if (note == null)
-                        {
-                            var spr:StrumNote = field.strumNotes[key];
-                            if (spr != null && spr.animation.curAnim.name != 'confirm')
-                            {
-                                spr.playAnim('pressed');
-                                spr.resetAnim = 0;
-                            }
-                        }
-                        else
-                        {
-                            hitNotes.push(note);
-                        }
-                    }
-                }
-            }
+						if (note == null)
+						{
+							var spr:StrumNote = field.strumNotes[key];
+							if (spr != null && spr.animation.curAnim.name != 'confirm')
+							{
+								spr.playAnim('pressed');
+								spr.resetAnim = 0;
+							}
+						}
+						else
+						{
+							hitNotes.push(note);
+						}
+					}
+				}
+			}
 		}
 	}
 
-    public function getKeyFromEvent(key:FlxKey):Int
+  public function getKeyFromEvent(key:FlxKey):Int
 	{
 		// var tempKeys:Array<Dynamic> = backend.Keybinds.fill();
 		if (key != NONE)

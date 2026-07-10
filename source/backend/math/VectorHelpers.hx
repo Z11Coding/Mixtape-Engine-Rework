@@ -3,14 +3,14 @@ package backend.math;
 import backend.math.CoolMath;
 import backend.math.Vector3;
 
-class VectorHelpers 
+class VectorHelpers
 {
 	public static function project(pos:Vector3, resultVector:Null<Vector3> = null, cameraMaxSize:Float = 1280):Vector3
 	{
-		if (resultVector == null) resultVector = new Vector3();
+		resultVector ??= Vector3.get();
 		resultVector.z = pos.z / -cameraMaxSize;
 		resultVector.y = pos.y / resultVector.z;
-		resultVector.x = pos.x / resultVector.z; 
+		resultVector.x = pos.x / resultVector.z;
 		return resultVector;
 	}
 
@@ -21,7 +21,7 @@ class VectorHelpers
 		var rotateY = CoolMath.rotate(rotateZ.x, vec.z, yA);
 		var rotateX = CoolMath.rotate(rotateY.y, rotateZ.y, xA);
 
-		if (resultVector == null) resultVector = new Vector3();
+		resultVector ??= Vector3.weak();
 		resultVector.x = rotateY.x;
 		resultVector.y = rotateX.y;
 		resultVector.z = rotateX.x;
@@ -29,6 +29,8 @@ class VectorHelpers
 		rotateZ.putWeak();
 		rotateX.putWeak();
 		rotateY.putWeak();
+
+		vec.putWeak();
 
 		return resultVector;
 	}

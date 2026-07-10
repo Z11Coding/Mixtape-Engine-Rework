@@ -91,6 +91,18 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '%v FPS';
 		option.onChange = onChangeFramerate;
 
+		var option:Option = new Option('Playfield Framerate',
+			"The framerate of the notes (doesn't affect input, only smoothness\n\nalso improves proformance on lower framerates)",
+			'fieldFramerate',
+			INT);
+		addOption(option);
+
+		var option:Option = new Option('Anti-Refresh Playfields',
+			"If checked, the playfields have that one Windows XP effect\n(MAY LAG ON LOW-END PC'S!)",
+			'antiRefresh',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Max FPS', //Name
 			"If checked, the FPS limit will be set to 1000.\nThis setting makes the input timing more accurate, but in cost of minor graphical issues.", //Description
 			'unlockFramerate',

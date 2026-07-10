@@ -1,12 +1,5 @@
 package backend.modchart.modifiers;
 
-import backend.math.*;
-import backend.modchart.*;
-import backend.modchart.Modifier.ModifierOrder;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import objects.NoteObject.ObjectType;
-import objects.playfields.NoteField;
 class ReverseModifier extends NoteModifier
 {
 	override function getOrder()
@@ -20,7 +13,7 @@ class ReverseModifier extends NoteModifier
 		return false;
 
 	public function getReverseValue(dir:Int, player:Int){
-		var kNum = Note.ammo[PlayState.mania];
+		var kNum = PlayState.mania+1;
 
 		var val:Float = 0;
 		if(dir>=kNum * 0.5)
@@ -58,7 +51,7 @@ class ReverseModifier extends NoteModifier
 		#end
 	}
 
-	var distanceVec = new Vector3();
+	var distanceVec = Vector3.get();
 
 	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:NoteObject, field:NoteField)
 	{
@@ -92,10 +85,10 @@ class ReverseModifier extends NoteModifier
 		return pos;
 	}
 
-	override function getSubmods() {
+	override function getSubmods(){
 		var subMods:Array<String> = ["cross", "split", "alternate", "centered", "unboundedReverse", "incomingAngleX", "incomingAngleY", "incomingAngleZ"];
 
-		for (i in 0...Note.ammo[PlayState.mania]) {
+		for (i in 0...PlayState.mania+1){
 			subMods.push('reverse${i}');
 			subMods.push('incomingAngleX${i}');
 			subMods.push('incomingAngleY${i}');

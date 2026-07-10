@@ -308,6 +308,8 @@ import states.TitleState;
 	public var showScoreText:Bool = true;
 
 	public var gameQuality:String = 'MEDIUM';
+	public var fieldFramerate:Int = 60;
+	public var antiRefresh:Bool = false;
 }
 
 class ClientPrefs {

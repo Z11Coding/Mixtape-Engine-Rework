@@ -1,18 +1,5 @@
 package backend.modchart.modifiers;
 
-import backend.math.*;
-import backend.math.Vector3;
-import backend.modchart.*;
-import backend.ui.*;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.math.FlxAngle;
-import flixel.math.FlxMath;
-import flixel.math.FlxPoint;
-import objects.playfields.NoteField;
-
-using StringTools;
-
 // NOTE: THIS SHOULDNT HAVE ITS PERCENTAGE MODIFIED
 // THIS IS JUST HERE TO ALLOW OTHER MODIFIERS TO HAVE PERSPECTIVE
 
@@ -37,7 +24,7 @@ class PerspectiveModifier extends NoteModifier
 	{
 		var subMods:Array<String> = ["fieldRoll", "fieldYaw", "fieldPitch", "fieldX", "fieldY", "fieldZ"];
 
-		for(col in 0...Note.ammo[PlayState.mania]){
+		for(col in 0...PlayState.mania+1){
 			subMods.push('${col}Roll');
 			subMods.push('${col}Yaw');
 			subMods.push('${col}Pitch');
@@ -50,8 +37,8 @@ class PerspectiveModifier extends NoteModifier
 		return subMods;
 	}
 
-	var origin = new Vector3(FlxG.width * 0.5, FlxG.height * 0.5); // vertex origin
-	var fieldPos = new Vector3();
+	var origin = Vector3.get(FlxG.width * 0.5, FlxG.height * 0.5); // vertex origin
+	var fieldPos = Vector3.get();
 	override function getPos(visualDiff:Float, timeDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField):Vector3
 	{
 		var legacyZAxis:Bool = getSubmodValue("legacyZAxis", player) > 0;

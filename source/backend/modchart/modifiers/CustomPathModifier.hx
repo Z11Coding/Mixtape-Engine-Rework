@@ -1,10 +1,5 @@
 package backend.modchart.modifiers;
 
-import backend.math.Vector3;
-import backend.modchart.*;
-import flixel.FlxSprite;
-import objects.playfields.NoteField;
-
 @:structInit
 class PathInfo {
 	public final position:Vector3;

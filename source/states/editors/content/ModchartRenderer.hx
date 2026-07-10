@@ -107,7 +107,6 @@ class ModchartRenderer extends FlxSprite // Apparently this is the best way to d
 		trace("Making PlayerField!");
 		playerField = playfields.members[0];
 		if (playerField != null) {
-			playerField.noteField.isEditor = false;
 			playerField.isPlayer = true;
 			playerField.autoPlayed = true;
 			playerField.owner = null;
@@ -117,7 +116,6 @@ class ModchartRenderer extends FlxSprite // Apparently this is the best way to d
 		trace("Making DadField!");
 		dadField = playfields.members[1];
 		if (dadField != null) {
-			dadField.noteField.isEditor = false;
 			dadField.isPlayer = false;
 			dadField.autoPlayed = true;
 			dadField.AIPlayer = false;

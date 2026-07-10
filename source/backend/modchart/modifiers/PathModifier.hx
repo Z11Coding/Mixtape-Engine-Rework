@@ -1,11 +1,8 @@
 package backend.modchart.modifiers;
 
-import backend.math.CoolMath.fastTan as tan;
 import backend.math.CoolMath.square;
 import backend.math.CoolMath.triangle;
 import backend.math.CoolMath;
-import flixel.math.FlxMath.fastCos as cos;
-import flixel.math.FlxMath.fastSin as sin;
 class PathModifier extends NoteModifier
 {
 	override function getName()
@@ -166,19 +163,19 @@ class PathModifier extends NoteModifier
 		var digitalVal = getSubmodValue("digital", player);
 		if(digitalVal > 0){
 			var steps = this.getSubmodValue("digitalSteps", player) + 1;
-			var period = this.getSubmodValue("digitalOffset", player);
-			var offset = this.getSubmodValue("digitalPeriod", player);
+			var period = this.getSubmodValue("digitalPeriod", player);
+			var offset = this.getSubmodValue("digitalOffset", player);
 
-			pos.x += (digitalVal * Note.halfWidth) * Math.floor(0.5 + (steps * FlxMath.fastSin(getDigitalAngle(diff, offset, period)))) / steps;
+			pos.x += (digitalVal * Note.halfWidth) * Math.floor(0.5 + (steps * Math.sin(getDigitalAngle(diff, offset, period)))) / steps;
 		}
 
 		var digitalZVal = getSubmodValue("digitalZ", player);
 		if (digitalZVal > 0) {
 			var steps = this.getSubmodValue("digitalZSteps", player) + 1;
-			var period = this.getSubmodValue("digitalZOffset", player);
-			var offset = this.getSubmodValue("digitalZPeriod", player);
+			var period = this.getSubmodValue("digitalZPeriod", player);
+			var offset = this.getSubmodValue("digitalZOffset", player);
 
-			pos.z += (digitalZVal * Note.halfWidth) * Math.floor(0.5 + (steps * FlxMath.fastSin(getDigitalAngle(diff, offset, period)))) / steps;
+			pos.z += (digitalZVal * Note.halfWidth) * Math.floor(0.5 + (steps * Math.sin(getDigitalAngle(diff, offset, period)))) / steps;
 		}
 
 		return pos;

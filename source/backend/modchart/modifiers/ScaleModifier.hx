@@ -1,11 +1,5 @@
 package backend.modchart.modifiers;
 
-import backend.math.Vector3;
-import backend.modchart.Modifier.ModifierOrder;
-import backend.modchart.Modifier.RenderInfo;
-import flixel.math.FlxPoint;
-import objects.playfields.NoteField;
-
 class ScaleModifier extends NoteModifier {
 	override function getName() return 'tiny';
 	override function getOrder() return ModifierOrder.PRE_REVERSE;
@@ -40,8 +34,8 @@ class ScaleModifier extends NoteModifier {
 
 		var angle = 0;
 		var rad = angle * Math.PI / 180;
-		var sin = FlxMath.fastSin(rad);
-		var cos = FlxMath.fastCos(rad);
+		var sin = Math.sin(rad);
+		var cos = Math.cos(rad);
 
 		scale.x *= (sin * squishY) + (cos * squishX);
 		scale.y *= (cos * squishY) + (sin * squishX);
@@ -106,7 +100,7 @@ class ScaleModifier extends NoteModifier {
 	{
 		var subMods:Array<String> = ["squish", "stretch", "scale", "scaleX", "scaleY", "tinyX", "tinyY"];
 
-		for (i in 0...Note.ammo[PlayState.mania])
+		for (i in 0...PlayState.mania+1)
 		{
 			subMods.push('tiny${i}');
 			subMods.push('tiny${i}X');

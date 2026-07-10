@@ -1389,7 +1389,6 @@ class PlayState extends MusicBeatState
 		//trace("Making PlayerField!");
 		playerField = playfields.members[0];
 		if (playerField != null) {
-			playerField.noteField.isEditor = false;
 			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
 			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || playAsGF;
 			playerField.noteHitCallback = goodNoteHit;
@@ -1400,7 +1399,6 @@ class PlayState extends MusicBeatState
 		//trace("Making DadField!");
 		dadField = playfields.members[1];
 		if (dadField != null) {
-			dadField.noteField.isEditor = false;
 			dadField.isPlayer = opponentmode && !playAsGF || bothMode;
 			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || (opponentmode && ClientPrefs.getGameplaySetting('showcase', false)) || playAsGF) || (bothMode && cpuControlled) || (bothMode && ClientPrefs.getGameplaySetting('showcase', false));
 			dadField.AIPlayer = mixupMode;
@@ -10452,7 +10450,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				var ret:Dynamic = callOnScripts("onFieldInput", [field, column, hitNotes]);
 				if (ret == LuaUtils.Function_Stop) null;
 				else if (ret is Note) ret;
-				else field.input(column);
+				else field.inputDown(column);
 			}
 
 			if (note == null) {
@@ -10555,7 +10553,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
 								if (ret == LuaUtils.Function_Stop) continue;
 								else if ((ret.objType == NOTE)) note = ret;
-								else note = field.input(key);
+								else note = field.inputDown(key);
 
 								if (note == null)
 								{
@@ -10758,10 +10756,10 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				} else if (ret is Note) {
 					note = ret;
 				} else {
-					note = field.input(key);
+					note = field.inputDown(key);
 				}
 			} else {
-				note = field.input(key);
+				note = field.inputDown(key);
 			}
 
 			if (note == null) {
@@ -10867,7 +10865,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								var ret:Dynamic = callOnScripts("onFieldInput", [field, keyDirection, hitNotes]);
 								if (ret == LuaUtils.Function_Stop) continue;
 								else if ((ret.objType == NOTE)) note = ret;
-								else note = field.input(key);
+								else note = field.inputDown(key);
 
 								if (note == null)
 								{
@@ -10920,7 +10918,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							var ret:Dynamic = callOnScripts("onFieldInput", [field, direction, hitNotes]);
 							if (ret == LuaUtils.Function_Stop) continue;
 							else if ((ret.objType == NOTE)) note = ret;
-							else note = field.input(key);
+							else note = field.inputDown(key);
 
 							if (note == null)
 							{
@@ -10993,7 +10991,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								var ret:Dynamic = callOnScripts("onFieldInput", [field, key, hitNotes]);
 								if (ret == LuaUtils.Function_Stop) continue;
 								else if ((ret.objType == NOTE)) note = ret;
-								else note = field.input(key);
+								else note = field.inputDown(key);
 
 								if (note == null)
 								{

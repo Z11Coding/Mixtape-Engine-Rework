@@ -1,16 +1,5 @@
 package backend.modchart.modifiers;
 
-import backend.math.*;
-import backend.math.Vector3;
-import backend.modchart.*;
-import backend.ui.*;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.math.FlxAngle;
-import flixel.math.FlxMath;
-import flixel.math.FlxPoint;
-import objects.playfields.NoteField;
-
 // Rotates notes and receptors on each axis with the origin at the middle of the player's receptors
 class LocalRotateModifier extends NoteModifier { // this'll be rotateX in ModManager
 	override function getName()
@@ -26,7 +15,7 @@ class LocalRotateModifier extends NoteModifier { // this'll be rotateX in ModMan
 
 	}
 
-	private var origin = new Vector3(0.0, FlxG.height * 0.5, 0.0);
+	private var origin = Vector3.get(0.0, FlxG.height * 0.5, 0.0);
 	private function getFieldOrigin(field:NoteField):Vector3 {
 		final field = field.field;
 		final FKC = field.keyCount;
@@ -66,7 +55,7 @@ class LocalRotateModifier extends NoteModifier { // this'll be rotateX in ModMan
 		var shid:Array<String> = ['rotateX', 'rotateY', 'rotateZ'];
 
 		var submods:Array<String> = [
-			for (d in 0...Note.ammo[PlayState.mania])
+			for (d in 0...PlayState.mania+1)
 			{
 				for (s in shid)
 					'$prefix$d$s';

@@ -1,14 +1,17 @@
 package backend.math;
 
+#if cpp
+import cpp.Native;
+import cpp.RawPointer;
+import cpp.Stdlib;
+import haxe.Int64;
+#end
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
 
 class CoolMath/*Games*/{
 	inline public static function coolLerp(current:Float, target:Float, elapsed:Float):Float
 		return FlxMath.lerp(target, current, Math.exp(-elapsed));
-
-	inline public static function fastTan(radians:Float):Float
-		return FlxMath.fastSin(radians) / FlxMath.fastCos(radians);
 
 	inline public static function square(angle:Float) {
 		var fAngle = angle % (Math.PI * 2);
@@ -20,9 +23,9 @@ class CoolMath/*Games*/{
 		var fAngle:Float = angle % (Math.PI * 2.0);
 		if (fAngle < 0.0)
 			fAngle += Math.PI * 2.0;
-		
+
 		var result:Float = fAngle / Math.PI;
-		
+
 		if (result < 0.5) {
 			return 2.0 * result;
 		}
@@ -59,7 +62,7 @@ class CoolMath/*Games*/{
 		var tempMult:Float = 1.0;
 		for (_ in 0...decimals)
 			tempMult *= 10.0;
-		
+
 		return Math.ffloor(value * tempMult) / tempMult;
 	}
 
@@ -75,7 +78,6 @@ class CoolMath/*Games*/{
 
 		var p = point ?? FlxPoint.weak();
 		p.set((x * c) - (y * s), (x * s) + (y * c));
-
 
 		return p;
 	}

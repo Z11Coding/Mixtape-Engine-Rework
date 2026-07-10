@@ -1,11 +1,4 @@
 package backend.modchart.modifiers;
-import backend.math.*;
-import backend.modchart.*;
-import backend.ui.*;
-import flixel.FlxSprite;
-import flixel.math.FlxMath;
-import flixel.math.FlxPoint;
-import objects.playfields.NoteField;
 
 class BeatModifier extends NoteModifier {
 	override function getName()return 'beat';
@@ -46,12 +39,12 @@ class BeatModifier extends NoteModifier {
 		var amount:Float = 0;
 		if (beat < accelTime)
 		{
-			amount = CoolUtil.scale(beat, 0, accelTime, 0, 1);
+			amount = CoolMath.scale(beat, 0, accelTime, 0, 1);
 			amount *= amount;
 		}
 		else
 		{
-			amount = CoolUtil.scale(beat, accelTime, totalTime, 1, 0);
+			amount = CoolMath.scale(beat, accelTime, totalTime, 1, 0);
 			amount = 1 - (1 - amount) * (1 - amount);
 		}
 
@@ -77,9 +70,9 @@ class BeatModifier extends NoteModifier {
 			updateBeat(2, beat, player, getSubmodValue('beatZOffset', player), getSubmodValue('beatZMult', player));
 		}
 
-		pos.x += getValue(player) * (beatFactors[player][0] * FlxMath.fastSin((visualDiff / ((getSubmodValue('beatPeriod', player) * 30) + 30)) + Math.PI * 0.5));
-		pos.y += getSubmodValue('beatY', player) * (beatFactors[player][1] * FlxMath.fastSin((visualDiff / ((getSubmodValue('beatYPeriod', player) * 30) + 30)) + Math.PI * 0.5));
-		pos.z += adjust(getSubmodValue('beatZ', player) * (beatFactors[player][2] * FlxMath.fastSin((visualDiff / ((getSubmodValue('beatZPeriod', player) * 30) + 30)) + Math.PI * 0.5)), player);
+		pos.x += getValue(player) * (beatFactors[player][0] * Math.sin((visualDiff / ((getSubmodValue('beatPeriod', player) * 30) + 30)) + Math.PI * 0.5));
+		pos.y += getSubmodValue('beatY', player) * (beatFactors[player][1] * Math.sin((visualDiff / ((getSubmodValue('beatYPeriod', player) * 30) + 30)) + Math.PI * 0.5));
+		pos.z += adjust(getSubmodValue('beatZ', player) * (beatFactors[player][2] * Math.sin((visualDiff / ((getSubmodValue('beatZPeriod', player) * 30) + 30)) + Math.PI * 0.5)), player);
 		return pos;
 	}
 
