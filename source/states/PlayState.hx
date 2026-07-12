@@ -1500,6 +1500,7 @@ class PlayState extends MusicBeatState
 		iconP1.visible = !ClientPrefs.data.hideHud && !isNotITG; // Hide icons in NotITG
 		iconP1.alpha = ClientPrefs.data.healthBarAlpha;
 		iconP1.visible = (curHealthMode != "Lives");
+		if (!isNotITG) uiGroup.add(iconP1);
 
 		if (bf2 != null)
 		{
@@ -1512,13 +1513,12 @@ class PlayState extends MusicBeatState
 		}
 		else iconP12 = null;
 
-		if (!isNotITG) uiGroup.add(iconP1);
-
 		iconP2 = new HealthIcon(dad.healthIcon, false);
 		iconP2.y = healthBar.y - 75;
 		iconP2.visible = !ClientPrefs.data.hideHud && !isNotITG;
 		iconP2.alpha = ClientPrefs.data.healthBarAlpha;
 		iconP2.visible = (curHealthMode != "Lives");
+		if (!isNotITG) uiGroup.add(iconP2);
 
 		if (dad2 != null)
 		{
@@ -1529,8 +1529,6 @@ class PlayState extends MusicBeatState
 			if (!isNotITG) uiGroup.add(iconP22);
 			iconP22.visible = (curHealthMode != "Lives");
 		} else iconP22 = null;
-
-		if (!isNotITG) uiGroup.add(iconP2);
 
 		healthBarBlock = new FlxSprite(-16, 0).makeGraphic(10, 20, FlxColor.RED);
 		healthBarBlock.y = healthBar.bg.getGraphicMidpoint().y - (healthBarBlock.height / 2);

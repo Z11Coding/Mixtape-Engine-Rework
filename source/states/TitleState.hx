@@ -790,6 +790,7 @@ class TitleState extends MusicBeatState
 				FlxG.sound.music.stop();
 				new FlxTimer().start(1, function(tmr:FlxTimer)
 				{
+					Achievements.unlock("the_man", false);
 					Main.closeGame();
 				});
 			}

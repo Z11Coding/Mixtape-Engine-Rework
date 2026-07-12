@@ -116,6 +116,7 @@ class Achievements {
 		createAchievement('lessismore',	        	{name: "Master of Less", description: "Beat any song in a mania of 1-3", hidden: true});
 		createAchievement('toomanynotes',	        {name: "Master of Mania", description: "Beat any song in a mania higher than 4", hidden: true});
 		createAchievement('h',	                  {name: "h?", description: "h?", hidden: true});
+		createAchievement('the_man',	            {name: "The Man Who Speaks in Hands", description: "Beware The Man Who Speaks in Hands.", hidden: true});
 
 		#if !MODS_ALLOWED //it doesn't go here if mods are enabled, otherwise it'll be above the mods
 		// Omega Achievements

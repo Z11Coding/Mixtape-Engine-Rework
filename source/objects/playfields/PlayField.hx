@@ -187,7 +187,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	}
 
 	/** destroys a note **/
-	public function removeNote(daNote:Note){
+	public function removeNote(daNote:Note, ?killTail:Bool = false){
 		daNote.active = false;
 		daNote.visible = false;
 		daNote.kill();
@@ -223,7 +223,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		if (noteQueue[daNote.column] != null)
 			noteQueue[daNote.column].sort(sortNotesAscend);
 
-		/* Keep this just in case
+		// glad i kept it
 		if (killTail) {
 			if (daNote.unhitTail.length > 0)
 				while (daNote.unhitTail.length > 0)
@@ -237,10 +237,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			daNote.parent.unhitTail.remove(daNote);
 
 		if (noteQueue[daNote.column] != null)
-			noteQueue[daNote.column].sort(sortNotesAscend);*/
+			noteQueue[daNote.column].sort(sortNotesAscend);
 
 		remove(daNote);
 		daNote.destroy();
+		daNote = null;
 	}
 
 	/** spawns a note **/
@@ -1027,18 +1028,23 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			}
 			modManager.updateObject(curDecBeat, daNote, modNumber);
 
+			// daNote.clipToStrumNote(strumNotes[daNote.column]);
+
 			// check for hold inputs
 			if(!daNote.isSustainNote){
-				if(daNote.column >= keyCount){
+				if(daNote.column > keyCount-1){
 					garbage.push(daNote);
 					continue;
 				}
 				if(daNote.holdingTime < daNote.sustainLength && inControl && (!daNote.blockHit || !daNote.forceBlockHit)){
 					if(!daNote.tooLate && daNote.wasGoodHit){
+						// Always update input state and animations (every frame)
 						var isHeld:Bool = autoPlayed || keysPressed[daNote.column];
 						var wasHeld:Bool = daNote.isHeld;
 						daNote.isHeld = isHeld;
 						isHolding[daNote.column] = true;
+
+						// Handle input state changes
 						if(wasHeld != isHeld){
 							if(isHeld){
 								if(holdPressCallback != null)
@@ -1047,64 +1053,25 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 								holdReleaseCallback(daNote, this);
 						}
 
+						// Update receptor animations (every frame for responsiveness)
 						var receptor = strumNotes[daNote.column];
-						var oldSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
-						var lastTime:Float = daNote.holdingTime;
-						daNote.holdingTime = Conductor.songPosition - daNote.strumTime;
-						if (daNote.holdingTime > daNote.sustainLength)
-							daNote.holdingTime = daNote.sustainLength;
-						var currentSteps:Int = Math.floor(daNote.holdingTime / Conductor.stepCrochet);
-						if(oldSteps < currentSteps)
-							if(holdStepCallback != null)
-								holdStepCallback(daNote, this);
-						holdUpdated.dispatch(daNote, this, daNote.holdingTime - lastTime);
-
 						if(isHeld && !daNote.isRoll){
-							if(daNote.unhitTail.length > 0)
-								if (receptor.animation.finished || receptor.animation.name != "confirm")
-									receptor.playAnim("confirm", true, daNote);
-
-							daNote.tripProgress = 1.0;
-						}else
-							daNote.tripProgress -= elapsed / (daNote.maxReleaseTime * 1);
-
-						if(daNote.isRoll && autoPlayed && daNote.tripProgress <= 0.5)
-							holdPressCallback(daNote, this); // would set tripProgress back to 1 but idk maybe the roll script wants to do its own shit
-
-						if(daNote.tripProgress <= 0){
-							holdDropped.dispatch(daNote, this);
-							daNote.tripProgress = 0;
-							daNote.tooLate=true;
-							daNote.wasGoodHit=false;
-							for(tail in daNote.unhitTail){
-								tail.tooLate = true;
-								tail.blockHit = true;
-								tail.ignoreNote = true;
+							var currentAnimName = receptor.animation.curAnim?.name ?? "static";
+							if ((receptor.animation.finished || currentAnimName != "confirm")) {
+								receptor.playAnim("confirm", true, daNote);
 							}
-							isHolding[daNote.column] = false;
-							if (!isHeld)
-								receptor.playAnim("static", true);
-
-						}else{
-							for (tail in daNote.unhitTail)
-							{
-								if ((tail.strumTime - 25) <= Conductor.songPosition && !tail.wasGoodHit && !tail.tooLate){
-									noteHitCallback(tail, this);
-								}
-							}
-
-							if (daNote.holdingTime >= daNote.sustainLength)
-							{
-								//trace("finished hold");
-								holdFinished.dispatch(daNote, this);
-								daNote.holdingTime = daNote.sustainLength;
-								isHolding[daNote.column] = false;
-								if (!isHeld)
-									receptor.playAnim("static", true);
-							}
-
+						} else if (!isHeld) {
+							receptor.playAnim("static", true);
 						}
 					}
+				} else {
+					// note is done being held
+					isHolding[daNote.column] = false;
+				}
+			} else {
+				// also set sustain notes to being held
+				if(daNote.parent != null){
+					daNote.isHeld = daNote.parent.isHeld;
 				}
 			}
 
@@ -1126,18 +1093,20 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 			else
 			{
 
-				if (!daNote.causedMiss && daNote.active && daNote.tooLate && !daNote.isSustainNote)
+				if (daNote.tooLate && daNote.active && !daNote.causedMiss && !daNote.isSustainNote)
 				{
 					daNote.causedMiss = true;
-					if (!daNote.ignoreNote)
+					if (!daNote.ignoreNote && (daNote.tooLate || !daNote.wasGoodHit) && inControl) {
 						noteMissed.dispatch(daNote, this);
+					}
 				}
 
-				if (
-					(!daNote.isSustainNote || (daNote.strumTime - Conductor.songPosition < -350))
-					&& (daNote.sustainLength == 0 || daNote.tooLate || daNote.wasGoodHit)
-					&& daNote.strumTime - Conductor.songPosition < -(200 + ClientPrefs.data.badWindow + daNote.sustainLength)
-				)
+				if((
+					(daNote.holdingTime>=daNote.sustainLength) && daNote.sustainLength>0 ||
+					daNote.isSustainNote && daNote.strumTime - Conductor.songPosition < -350 ||
+					!daNote.isSustainNote
+					&& (daNote.sustainLength == 0 || daNote.tooLate)
+					&& daNote.strumTime - Conductor.songPosition < -(200 + ClientPrefs.data.badWindow + daNote.sustainLength)) && (daNote.tooLate || daNote.wasGoodHit))
 				{
 					daNote.garbage = true;
 					garbage.push(daNote);
