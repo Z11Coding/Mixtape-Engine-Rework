@@ -293,6 +293,7 @@ import states.TitleState;
 	public var warmupCompleted:Bool = false;
 	public var skipWarmup:Bool = false;
 	public var alwaysWarmup:Bool = false;
+	public var warmupStyle:String = "Ask";
 
 	//SplashScreen
 	public var memeSplash:Bool = false;

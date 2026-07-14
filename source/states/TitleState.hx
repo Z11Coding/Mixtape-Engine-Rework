@@ -136,7 +136,7 @@ class TitleState extends MusicBeatState
 			FlxTransitionableState.skipNextTransOut = true;
 			MusicBeatState.switchState(new setup.SetupGuideState());
 		}
-		else if(!ClientPrefs.data.warmupCompleted && (!ClientPrefs.data.warmupStyle == "Never" || ClientPrefs.data.warmupStyle == "Always"))
+		else if(!ClientPrefs.data.warmupCompleted && (ClientPrefs.data.warmupStyle != "Never" || ClientPrefs.data.warmupStyle == "Always"))
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;

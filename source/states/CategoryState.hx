@@ -27,7 +27,7 @@ class CategoryState extends MusicBeatState
 	var grpLocks:FlxTypedGroup<FlxSprite>;
 
 	public var menuItems:Array<String> = [
-		"All", "Base", "Erect", "Pico", "Mods", "Playlists", if (Sys.args().indexOf('-livereload') != -1) "Music Player"
+		"All", "Base", "Erect", "Pico", "Mods", "Playlists"
 	];
 	private var showMods:Bool = true;
 	private var showSecrets:Bool = true;
@@ -71,6 +71,8 @@ class CategoryState extends MusicBeatState
 	public function new(?categories:Dynamic, ?showmods:Bool = true, ?showsecrets:Bool = true, ?showall:Bool = true, ?h:Bool = true, ?softCoded:Bool = true, ?showspecial:Bool = true) {
 		super();
 		this.softCoded = softCoded;
+		if (Sys.args().indexOf('-livereload') != -1)
+			menuItems.push("Music Player");
 		if (categories != null) {
 			menuItems = [];
 			if (Std.is(categories, Array)) {
