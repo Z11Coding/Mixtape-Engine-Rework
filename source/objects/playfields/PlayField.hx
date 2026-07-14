@@ -209,11 +209,6 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		if (noteQueue[daNote.column] != null)
 			noteQueue[daNote.column].remove(daNote);
 
-		if (daNote.unhitTail.length > 0)
-			while (daNote.unhitTail.length > 0)
-				removeNote(daNote.unhitTail.shift());
-
-
 		if (daNote.parent != null)
 			daNote.parent.tail.remove(daNote);
 
@@ -229,6 +224,9 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				while (daNote.unhitTail.length > 0)
 					removeNote(daNote.unhitTail.shift());
 		}
+
+		if (noteQueue[daNote.column] != null)
+			noteQueue[daNote.column].sort(sortNotesAscend);
 
 		if (daNote.parent != null && daNote.parent.tail.contains(daNote))
 			daNote.parent.tail.remove(daNote);
@@ -321,7 +319,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					hitTime ??= Conductor.songPosition;
 					keysPressed[column] = true;
 
-					var noteList = getTapNotes(column, (note:Note) -> !note.tooLate);
+					var noteList = getNotes(column, (note:Note) -> !note.tooLate);
 					noteList.sort(sortNotesDescend); // so lowPriority actually works (even though i hate it lol!)
 
 					var retNote:Null<Note> = null;
@@ -353,7 +351,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 				case "Troll Engine":
 					hitTime ??= Conductor.songPosition;
 
-					var noteList = getTapNotes(column, (note:Note) -> !note.tooLate);
+					var noteList = getNotes(column, (note:Note) -> !note.tooLate);
 					noteList.sort(sortNotesDescend); // so lowPriority actually works (even though i hate it lol!)
 
 					var recentHold:Null<Note> = null;
@@ -1032,7 +1030,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 			// check for hold inputs
 			if(!daNote.isSustainNote){
-				if(daNote.column > keyCount-1){
+				if(daNote.column >= keyCount){
 					garbage.push(daNote);
 					continue;
 				}
@@ -1101,12 +1099,11 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					}
 				}
 
-				if((
-					(daNote.holdingTime>=daNote.sustainLength) && daNote.sustainLength>0 ||
-					daNote.isSustainNote && daNote.strumTime - Conductor.songPosition < -350 ||
-					!daNote.isSustainNote
-					&& (daNote.sustainLength == 0 || daNote.tooLate)
-					&& daNote.strumTime - Conductor.songPosition < -(200 + ClientPrefs.data.badWindow + daNote.sustainLength)) && (daNote.tooLate || daNote.wasGoodHit))
+				if (
+					(!daNote.isSustainNote || (daNote.strumTime - Conductor.songPosition < -350))
+					&& (daNote.sustainLength == 0 || daNote.tooLate || daNote.wasGoodHit)
+					&& daNote.strumTime - Conductor.songPosition < -(200 + ClientPrefs.data.badWindow + daNote.sustainLength)
+				)
 				{
 					daNote.garbage = true;
 					garbage.push(daNote);
@@ -1141,7 +1138,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		else if (inControl && autoPlayed)
 		{
 			for(i in 0...keyCount){
-				for (note in getTapNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && !note.ignoreNote && !note.hitCausesMiss)){
+				for (note in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && (note.allowBotHit || !note.ignoreNote && !note.hitCausesMiss))){
 					var hitDiff = Conductor.songPosition - note.strumTime;
 					if (!note.isSustainNote && hitDiff >= 0 || note.isSustainNote && hitDiff + 80 >= 0){
 						noteHitCallback(note, this);
@@ -1152,7 +1149,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 		}else{
 			// Check for Bot Notes.
 			for(i in 0...keyCount){
-				for (daNote in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && !note.ignoreNote && !note.hitCausesMiss && note.botNote)){
+				for (daNote in getNotes(i, (note:Note) -> !note.tooLate && !note.wasGoodHit && (note.allowBotHit || !note.ignoreNote && !note.hitCausesMiss) && note.botNote)){
 					var hitDiff = Conductor.songPosition - daNote.strumTime;
 					if (!daNote.isSustainNote && hitDiff >= 0 || daNote.isSustainNote && hitDiff + 80 >= 0){
 						noteHitCallback(daNote, this);
@@ -1162,7 +1159,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 
 			for(column in 0...keyCount){
 				if (keysPressed[column]){
-					var noteList = getTapNotesWithEnd(column, Conductor.songPosition + ClientPrefs.data.badWindow, (note:Note) -> !note.isSustainNote, false);
+					var noteList = getNotesWithEnd(column, Conductor.songPosition, (note:Note) -> (note.isSustainNote || note.istail) && (note.prevNote != null || note.unhitTail.length > -1));
 					noteList.sort(sortNotesDescend);
 					while (noteList.length > 0)
 					{

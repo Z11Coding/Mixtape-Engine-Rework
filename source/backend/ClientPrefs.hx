@@ -664,14 +664,22 @@ class ClientPrefs {
 		}
 
 		if (ClientPrefs.data.unlockFramerate) {
-			FlxG.updateFramerate = 1000;
-			FlxG.drawFramerate = 1000;
-		} else if(data.framerate > FlxG.drawFramerate) {
-			FlxG.updateFramerate = data.framerate;
-			FlxG.drawFramerate = data.framerate;
+			if (data.fpsRework)
+				FlxG.stage.window.frameRate = 1000;
+			else {
+				FlxG.updateFramerate = 1000;
+				FlxG.drawFramerate = 1000;
+			}
 		} else {
-			FlxG.drawFramerate = data.framerate;
-			FlxG.updateFramerate = data.framerate;
+			if (data.fpsRework)
+				FlxG.stage.window.frameRate = data.framerate;
+			else if(data.framerate > FlxG.drawFramerate) {
+				FlxG.updateFramerate = data.framerate;
+				FlxG.drawFramerate = data.framerate;
+			} else {
+				FlxG.drawFramerate = data.framerate;
+				FlxG.updateFramerate = data.framerate;
+			}
 		}
 		#end
 
@@ -699,22 +707,6 @@ class ClientPrefs {
 			}
 		}
 		#end
-
-		if (data.fpsRework)
-			FlxG.stage.window.frameRate = data.framerate;
-		else
-		{
-			if (data.framerate > FlxG.drawFramerate)
-			{
-				FlxG.updateFramerate = data.framerate;
-				FlxG.drawFramerate = data.framerate;
-			}
-			else
-			{
-				FlxG.drawFramerate = data.framerate;
-				FlxG.updateFramerate = data.framerate;
-			}
-		}
 
 		if(FlxG.save.data.gameplaySettings != null)
 		{

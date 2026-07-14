@@ -530,6 +530,7 @@ class Note extends NoteObject
 	public var ignoreNote:Bool = false;
 	public var hitByOpponent:Bool = false;
 	public var noteWasHit:Bool = false;
+	public var allowBotHit:Bool = false; // For notes the player can't hit, but the opponent can
 	public var prevNote:Note;
 	public var nextNote:Note;
 
@@ -802,6 +803,7 @@ class Note extends NoteObject
 			switch(value) {
 				case 'Hurt Note':
 					ignoreNote = mustPress;
+					allowBotHit = true;
 
 					// note colors
 				// Store temporarily if in preload mode, otherwise set directly

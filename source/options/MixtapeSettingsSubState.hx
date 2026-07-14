@@ -72,14 +72,14 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"Native-old",
 			"Andromeda (legacy)",
 			"Troll Engine",
-			"Troll Engine New",
+			/*"Troll Engine New",
 			"BEAT! Engine",
 			"Kade Engine",
 			"ZoroForce EK",
 			"Mic'ed Up Engine",
 			"YoshiEngine",
 			"Kade Engine Community",
-			"Rhythm"
+			"Rhythm"*/
 		]);
 		addOption(option);
 		option.displayFormat = '< %v >';

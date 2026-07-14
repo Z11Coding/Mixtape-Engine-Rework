@@ -1056,11 +1056,11 @@ class APItem {
             case "PowerPoint Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
                     popup('Average Nintendo Switch 2 Chatroom Camera Feed:', 'TrapLink: PowerPoint Trap');
-                    FlxG.updateFramerate = 15;
+                    //FlxG.updateFramerate = 15;
                     FlxG.drawFramerate = 15;
                     new FlxTimer().start(30, function(tmr:FlxTimer)
                     {
-                        FlxG.updateFramerate = ClientPrefs.data.framerate;
+                        //FlxG.updateFramerate = ClientPrefs.data.framerate;
                         FlxG.drawFramerate = ClientPrefs.data.framerate;
                     });
                 }, true, true).funcAndReturn(function(t:APItem) {

@@ -124,7 +124,7 @@ class FPSCounter extends TextField
 			{
 				// Flixel keeps reseting this to 60 on focus gained
 				if (FlxG.stage.window.frameRate != ClientPrefs.data.framerate && FlxG.stage.window.frameRate != FlxG.game.focusLostFramerate)
-					FlxG.stage.window.frameRate = ClientPrefs.data.framerate;
+					FlxG.stage.window.frameRate = ClientPrefs.data.unlockFramerate ? 1000 : ClientPrefs.data.framerate;
 
 				var currentTime = openfl.Lib.getTimer();
 				framesCount++;
@@ -145,9 +145,8 @@ class FPSCounter extends TextField
 				{
 					FlxG.updateFramerate = FlxG.drawFramerate = Std.int(currentFPS);
 					lastFramerateUpdateTime = haxe.Timer.stamp();
+					updateText();
 				}
-
-				updateText();
 			}
 			else
 			{

@@ -73,7 +73,11 @@ class NotefieldRenderer extends FlxBasic {
 	override function draw(){
 		fieldTimer += FlxG.elapsed;
 
-		if (fieldTimer >= 1.0/ClientPrefs.data.fieldFramerate) {
+		var fps:Int = ClientPrefs.data.fieldFramerate;
+		if (fps == -1)
+			fps = 1000;
+
+		if (fieldTimer >= 1.0/fps) {
 			if (ClientPrefs.data.antiRefresh) {
 				if (finalDrawQueue.length >= 240)
 					finalDrawQueue.pop();
@@ -81,6 +85,7 @@ class NotefieldRenderer extends FlxBasic {
 				finalDrawQueue = [];
 				fieldTimer = 0;
 			}
+
 			// Get all the drawing stuff from the fields
 			for(field in members){
 				if ((!field.exists || !field.visible) && !field.forcePreDraw) // maybe rename forcePreDraw to something that makes more sense (i.e forceDrawQueuing or some shit)
@@ -124,54 +129,54 @@ class NotefieldRenderer extends FlxBasic {
 					});
 				}
 			}
+		}
 
-			finalDrawQueue.sort(drawQueueSort); // TODO: Sort the *individual vertices* for better looking z-sorting
+		finalDrawQueue.sort(drawQueueSort); // TODO: Sort the *individual vertices* for better looking z-sorting
 
-			// Now that it's all sorted, it's rendering time!
+		// Now that it's all sorted, it's rendering time!
 
-			// TODO: Put a callback here to allow us to use scripts to fuck w/ the final draw queue
+		// TODO: Put a callback here to allow us to use scripts to fuck w/ the final draw queue
 
-			for (object in finalDrawQueue) {
-				if (object == null)
-					continue;
-				var shader = object.shader;
-				var graphic = object.graphic;
-				var alphas = object.alphas;
-				var glows = object.glows;
-				var vertices = object.vertices;
-				var uvData = object.uvData;
-				var indices = object.indices;
-				var colorSwap = object.colorSwap;
-				var transforms:Array<ColorTransform> = []; // todo use fastvector
-				var multAlpha = object.sourceField.alpha * 1;
-				for (n in 0...Std.int(vertices.length / 2)) {
-					var glow = glows[n];
-					var transfarm:ColorTransform = new ColorTransform();
-					transfarm.redMultiplier = (1 - glow) * object.sourceField.color.redFloat;
-					transfarm.greenMultiplier = (1 - glow) * object.sourceField.color.greenFloat;
-					transfarm.blueMultiplier = (1 - glow) * object.sourceField.color.blueFloat;
-					transfarm.redOffset = (object.glowColour.red * glow) * object.sourceField.glowColor.redFloat;
-					transfarm.greenOffset = (object.glowColour.green * glow) * object.sourceField.glowColor.greenFloat;
-					transfarm.blueOffset = (object.glowColour.blue * glow) * object.sourceField.glowColor.blueFloat;
-					transfarm.alphaMultiplier = alphas[n] * multAlpha;
-					transforms.push(transfarm);
-				}
-				for (camera in object.cameras) {
-					if (camera != null && camera.canvas != null && camera.canvas.graphics != null) {
-						if (camera.alpha == 0 || !camera.visible)
-							continue;
-						for (shit in transforms)
-							shit.alphaMultiplier *= camera.alpha;
+		for (object in finalDrawQueue) {
+			if (object == null)
+				continue;
+			var shader = object.shader;
+			var graphic = object.graphic;
+			var alphas = object.alphas;
+			var glows = object.glows;
+			var vertices = object.vertices;
+			var uvData = object.uvData;
+			var indices = object.indices;
+			var colorSwap = object.colorSwap;
+			var transforms:Array<ColorTransform> = []; // todo use fastvector
+			var multAlpha = object.sourceField.alpha * 1;
+			for (n in 0...Std.int(vertices.length / 2)) {
+				var glow = glows[n];
+				var transfarm:ColorTransform = new ColorTransform();
+				transfarm.redMultiplier = (1 - glow) * object.sourceField.color.redFloat;
+				transfarm.greenMultiplier = (1 - glow) * object.sourceField.color.greenFloat;
+				transfarm.blueMultiplier = (1 - glow) * object.sourceField.color.blueFloat;
+				transfarm.redOffset = (object.glowColour.red * glow) * object.sourceField.glowColor.redFloat;
+				transfarm.greenOffset = (object.glowColour.green * glow) * object.sourceField.glowColor.greenFloat;
+				transfarm.blueOffset = (object.glowColour.blue * glow) * object.sourceField.glowColor.blueFloat;
+				transfarm.alphaMultiplier = alphas[n] * multAlpha;
+				transforms.push(transfarm);
+			}
+			for (camera in object.cameras) {
+				if (camera != null && camera.canvas != null && camera.canvas.graphics != null) {
+					if (camera.alpha == 0 || !camera.visible)
+						continue;
+					for (shit in transforms)
+						shit.alphaMultiplier *= camera.alpha;
 
-						object.sourceField.getScreenPosition(point, camera);
-						var drawItem = camera.startTrianglesBatch(graphic, object.antialiasing, true, null, true, shader);
-						@:privateAccess
-						{
-							drawItem.addTrianglesColorArray(vertices, indices, uvData, null, point, camera._bounds, transforms, colorSwap);
-						}
-						for (n in 0...transforms.length)
-							transforms[n].alphaMultiplier = alphas[n] * multAlpha;
+					object.sourceField.getScreenPosition(point, camera);
+					var drawItem = camera.startTrianglesBatch(graphic, object.antialiasing, true, null, true, shader);
+					@:privateAccess
+					{
+						drawItem.addTrianglesColorArray(vertices, indices, uvData, null, point, camera._bounds, transforms, colorSwap);
 					}
+					for (n in 0...transforms.length)
+						transforms[n].alphaMultiplier = alphas[n] * multAlpha;
 				}
 			}
 		}

@@ -96,12 +96,16 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			'fieldFramerate',
 			INT);
 		addOption(option);
+		option.minValue = -1;
+		option.maxValue = 1000;
+		option.defaultValue = ClientPrefs.data.framerate;
+		option.displayFormat = '%v FPS';
 
 		var option:Option = new Option('Anti-Refresh Playfields',
 			"If checked, the playfields have that one Windows XP effect\n(MAY LAG ON LOW-END PC'S!)",
 			'antiRefresh',
 			BOOL);
-		addOption(option);
+		//addOption(option);
 
 		var option:Option = new Option('Max FPS', //Name
 			"If checked, the FPS limit will be set to 1000.\nThis setting makes the input timing more accurate, but in cost of minor graphical issues.", //Description
@@ -215,8 +219,12 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 	function onChangeFramerate()
 	{
 		if (ClientPrefs.data.unlockFramerate) {
-			FlxG.updateFramerate = 1000;
-			FlxG.drawFramerate = 1000;
+			if (ClientPrefs.data.fpsRework)
+				FlxG.stage.window.frameRate = 1000;
+			else {
+				FlxG.updateFramerate = 1000;
+				FlxG.drawFramerate = 1000;
+			}
 			return;
 		}
 

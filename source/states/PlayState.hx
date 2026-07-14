@@ -12188,6 +12188,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		}
 
 		if (modManager != null) {
+			modManager.timeline = null;
 			modManager = null;
 		}
 

@@ -294,7 +294,7 @@ function driveCar(sprite:FlxSprite){
 
 function driveCarBack(sprite:FlxSprite){
     car2Interruptable = false;
-    try{FlxTween.cancelTweensOf(sprite);}catch(e){}
+    FlxTween.cancelTweensOf(sprite);
     var variant:Int = FlxG.random.int(1,4);
     sprite.animation.play('car' + variant);
     // setting an offset here because the current implementation of stage prop offsets was not working at all for me
