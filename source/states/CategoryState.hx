@@ -27,7 +27,7 @@ class CategoryState extends MusicBeatState
 	var grpLocks:FlxTypedGroup<FlxSprite>;
 
 	public var menuItems:Array<String> = [
-		"All", "Base", "Erect", "Pico", "Mods", "Playlists", "Music Player"
+		"All", "Base", "Erect", "Pico", "Mods", "Playlists", if (Sys.args().indexOf('-livereload') != -1) "Music Player"
 	];
 	private var showMods:Bool = true;
 	private var showSecrets:Bool = true;

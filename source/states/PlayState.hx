@@ -6706,8 +6706,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				openChartEditor();
 			else if (controls.justPressed('debug_2'))
 				openCharacterEditor();
-			else if (controls.justPressed('debug_3'))
-				openModChartEditor();
+			/*else if (controls.justPressed('debug_3'))
+				openModChartEditor();*/
 		}
 
 		// === BATCHED ICON UPDATES ===
@@ -7198,7 +7198,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			skipActive = false;
 		}
 
-		//#if debug
+		#if debug
 		if(!endingSong && !startingSong) {
 			if (FlxG.keys.justPressed.ONE) {
 				KillNotes();
@@ -7209,7 +7209,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				clearNotesBefore(Conductor.songPosition);
 			}
 		}
-		//#end
+		#end
 
 		for (i in shaderUpdates)
 		{
