@@ -708,25 +708,25 @@ class MusicBeatState extends yutautil.SafeManagedState
 			super.openSubState(nextSubstate);
 		}
 
-		if (false == true) {
-			// if (FlxG.sound.music != null && FlxG.sound.music.playing) {
-			// 	afm.applyFilter(FlxG.sound.music);
-			// }
+		if (ClientPrefs.data.ultratrashMode) {
+			if (FlxG.sound.music != null && FlxG.sound.music.playing) {
+				afm.applyFilter(FlxG.sound.music);
+			}
 
 			// done like this so that it actually does it once as to not blow out your ears lol
-		// 	if (getState() == PlayState.instance) {
-		// 		for (vocal in [PlayState.instance.vocals, PlayState.instance.opponentVocals, PlayState.instance.gfVocals]) {
-		// 			if (vocal != null && vocal.playing) {
-		// 				afm.applyFilter(vocal);
-		// 			}
-		// 		}
-		// 	}
+			if (getState() == PlayState.instance) {
+				for (vocal in [PlayState.instance.vocals, PlayState.instance.opponentVocals, PlayState.instance.gfVocals]) {
+					if (vocal != null && vocal.playing) {
+						afm.applyFilter(vocal);
+					}
+				}
+			}
 
-		// 	for (sound in FlxG.sound.list) {
-		// 		if (sound != null && sound.playing) {
-		// 			afm.applyFilter(sound);
-		// 		}
-		// 	}
+			for (sound in FlxG.sound.list) {
+				if (sound != null && sound.playing) {
+					afm.applyFilter(sound);
+				}
+			}
 		}
 
 		#if ARCHIPELAGO_ALLOWED

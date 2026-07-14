@@ -274,7 +274,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		// Clear all cached graphics when trash mode is toggled
 		// This ensures that the compression setting takes effect immediately
 		// if (AprilFools.allowAF) ClientPrefs.data.ultratrashMode = true; //Can't turn it off during april fools :)
-		ClientPrefs.data.ogultratrashMode = false; // Until we fix this, NO.
+		ClientPrefs.data.ogultratrashMode = ClientPrefs.data.ultratrashMode; //Make sure it gets properly reset
 		for (effect in MusicBeatState.effectArray) {
 			if (!ClientPrefs.data.ultratrashMode && effect != null) {
 				effect.removeFilter(FlxG.sound.music);

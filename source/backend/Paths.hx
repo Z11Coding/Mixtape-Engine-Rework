@@ -673,7 +673,7 @@ class Paths
 		if (original == null) return null;
 
 		// it's done like this so that if you have trash mode on it'll override it
-		if (false == true) compressionFactor = (AprilFools.allowAF ? 0.05 : 0.1); //144p my belovid
+		if (ClientPrefs.data.ultratrashMode) compressionFactor = (AprilFools.allowAF ? 0.05 : 0.1); //144p my belovid
 
 		// Keep original dimensions to preserve spritesheet layouts
 		var originalWidth:Int = original.width;
