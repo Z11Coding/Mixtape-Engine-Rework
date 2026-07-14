@@ -136,7 +136,7 @@ class TitleState extends MusicBeatState
 			FlxTransitionableState.skipNextTransOut = true;
 			MusicBeatState.switchState(new setup.SetupGuideState());
 		}
-		else if(!ClientPrefs.data.warmupCompleted && (!ClientPrefs.data.skipWarmup || ClientPrefs.data.alwaysWarmup))
+		else if(!ClientPrefs.data.warmupCompleted && (!ClientPrefs.data.warmupStyle == "Never" || ClientPrefs.data.warmupStyle == "Always"))
 		{
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
@@ -238,7 +238,7 @@ class TitleState extends MusicBeatState
 	private function proceedWithWarmupCheck(hasWarmup:Bool, playlist:PlaylistMetadata, allLists:Array<PlaylistMetadata>, warmupPlaylists:Array<PlaylistMetadata>):Void
 	{
 		if (hasWarmup && playlist != null) {
-			if (ClientPrefs.data.alwaysWarmup) {
+			if (ClientPrefs.data.warmupStyle == "Always") {
 				persistentUpdate = true;
 				PlayState.isWarmUp = true;
 				PlayState.altInstrumentals = null; // ? P-Slice
@@ -267,7 +267,7 @@ class TitleState extends MusicBeatState
 					LoadingState.prepareToSong();
 					LoadingState.loadAndSwitchState(new PlayState());
 				}
-			} else {
+			} else if (ClientPrefs.data.warmupStyle == "Ask") {
 				closedState = true;
 				transitioning = true;
 				var warmup = new haxe.ui.containers.dialogs.MessageBox();
@@ -313,7 +313,7 @@ class TitleState extends MusicBeatState
 				warmup.show();
 				Cursor.show();
 			}
-		} else {
+		} else if (ClientPrefs.data.warmupStyle == "Ask") {
 			closedState = true;
 			transitioning = true;
 			trace('[WARN] No warmup playlist found!');
@@ -345,6 +345,14 @@ class TitleState extends MusicBeatState
 
 			warmup.show();
 			Cursor.show();
+		} else if (ClientPrefs.data.warmupStyle == "Never") {
+			closedState = false;
+			transitioning = false;
+			ClientPrefs.data.warmupCompleted = true;
+			ClientPrefs.saveSettings();
+			FlxG.resetState();
+			Cursor.hide();
+			sickBeats = 0;
 		}
 	}
 

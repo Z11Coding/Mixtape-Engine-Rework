@@ -418,6 +418,18 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			LABEL);
 		addOption(option);
 
+		var option:Option = new Option('Warm-Up Mode',
+			"Choose how you would like to recieve warm-ups.",
+			'warmupStyle',
+			STRING,
+			[
+				'Ask',
+				'Never',
+				'Always'
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
+
 		var option:Option = new Option('Chart Editor Style',
 			"Choose the style of the chart editor.\nNew: Modern Psych Engine editor\nOld: Original chart editor\nMixtape: Advanced editor with Archipelago-style UI, animations, and analytics",
 			'chartEditorStyle',
