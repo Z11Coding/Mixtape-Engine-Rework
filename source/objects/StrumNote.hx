@@ -114,8 +114,12 @@ class StrumNote extends NoteObject
 		if (skin == null || skin == '') {
 			if (Note.getNoteSkinPostfix() != '')
 			{
-				var customSkin:String = skin + Note.getNoteSkinPostfix();
+				var customSkin:String = "noteSkins/NOTE_assets";
 				if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
+				else {
+					var customSkin:String = "NOTE_assets";
+					if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
+				}
 			}
 			else {
 				var customSkin:String = (PlayState.SONG != null && PlayState.SONG.arrowSkin != null ? PlayState.SONG.arrowSkin : 'NOTE_assets') + Note.getNoteSkinPostfix();
@@ -322,6 +326,6 @@ class StrumNote extends NoteObject
 			centerOffsets();
 		}
 		if(useRGBShader) rgbShader.enabled = (animation.curAnim != null && animation.curAnim.name != 'static');
-		rgbShader.forceDisabled = forcedOff;
+		rgbShader.forceDisabled = (forcedOff || Note.getNoteSkinPostfix().toLowerCase() == '-retribution');
 	}
 }
