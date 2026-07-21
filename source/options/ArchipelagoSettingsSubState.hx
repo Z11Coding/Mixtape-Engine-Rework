@@ -19,9 +19,9 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		option.onChange = function()
 		{
-			if (archipelago.APEntryState.inArchipelagoMode)
+			if (archipelago.APInfo.inArchipelagoMode)
 			{
-				archipelago.APEntryState.ap.toggleDeathLink(option.getValue());
+				archipelago.APInfo.ap.toggleDeathLink(option.getValue());
 				ClientPrefs.data.deathlink = option.getValue(); // Fixed: was incorrectly setting traplink
 				ClientPrefs.saveSettings(); // Ensure settings are saved immediately
 			}
@@ -34,9 +34,9 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		option.onChange = function()
 		{
-			if (archipelago.APEntryState.inArchipelagoMode)
+			if (archipelago.APInfo.inArchipelagoMode)
 			{
-				archipelago.APEntryState.ap.toggleTrapLink(option.getValue());
+				archipelago.APInfo.ap.toggleTrapLink(option.getValue());
 				ClientPrefs.data.traplink = option.getValue();
 				ClientPrefs.saveSettings(); // Ensure settings are saved immediately
 			}
@@ -67,7 +67,7 @@ class ArchipelagoSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		flip.onChange = function()
 		{
-			if (archipelago.APEntryState.inArchipelagoMode)
+			if (archipelago.APInfo.inArchipelagoMode)
 			{
 				var targetAngle = flip.getValue() ? 180 : 0;
 				FlxTween.tween(FlxG.camera, {angle: targetAngle}, 0.5, {

@@ -44,7 +44,7 @@ class SideUI extends Sprite {
 
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, (e:KeyboardEvent) -> {
 			if (checkKey(e.keyCode, ClientPrefs.keyBinds.get('sidebar')) && stage.focus == null) {
-				if (APEntryState.inArchipelagoMode) {
+				if (APInfo.inArchipelagoMode) {
 					active = !active;
 					return;
 				}
@@ -53,7 +53,7 @@ class SideUI extends Sprite {
 					trace('Cannot open the console while not in Archipelago Mode!');
 				}
 			}
-			
+
 			if (active)
 				curTab.keyDown(e);
 		});
@@ -110,7 +110,7 @@ class SideUI extends Sprite {
 		}
 		return active = show;
 	}
-	
+
 	public static function checkKey(key:Int, keys:Array<Int>):Bool {
 		for (k in keys) {
 			if (key == k)

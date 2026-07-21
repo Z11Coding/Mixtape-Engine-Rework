@@ -61,9 +61,9 @@ class OsuFreeplayState extends MusicBeatState
 
 	var hh:Array<Chance> = [
 		{item: "normal error", chance: 95}, // 95% chance to got the normal error screen
-		{item: "small argument", chance: FlxG.save.data.gotsmallargument || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
-		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle || APEntryState.inArchipelagoMode ? 0 : 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
-		{item: "beat battle 2", chance: FlxG.save.data.gotbeatbattle2 || APEntryState.inArchipelagoMode ? 0 : 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
+		{item: "small argument", chance: FlxG.save.data.gotsmallargument || APInfo.inArchipelagoMode ? 0 : 5}, // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
+		{item: "beat battle", chance: FlxG.save.data.gotbeatbattle || APInfo.inArchipelagoMode ? 0 : 5}, // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
+		{item: "beat battle 2", chance: FlxG.save.data.gotbeatbattle2 || APInfo.inArchipelagoMode ? 0 : 5} // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
 	];
 
 	var songChoices:Array<String> = [];
@@ -83,7 +83,7 @@ class OsuFreeplayState extends MusicBeatState
 		instance = this; // For Archipelago
 
 		Paths.clearStoredWithoutStickers();
-		
+
 		Cursor.cursorMode = Default;
 
 		#if windows
@@ -103,7 +103,7 @@ class OsuFreeplayState extends MusicBeatState
 		songBoxGrp = new FlxTypedGroup<SongBox>();
 		songBoxGrpOG = new FlxTypedGroup<SongBox>();
 		add(songBoxGrp);
-		
+
 		textGrp = new FlxTypedGroup<FlxText>();
 		add(textGrp);
 
@@ -121,12 +121,12 @@ class OsuFreeplayState extends MusicBeatState
 		botBar.setGraphicSize(1280, 119);
 		botBar.screenCenter(X);
 		add(botBar);
-		
+
 		var logo:FlxSprite = new FlxSprite(0, 460).loadGraphic(Paths.image('logobutsmaller'));
 		logo.setGraphicSize(200, 100);
 		logo.screenCenter(X);
 		add(logo);
-		
+
 		fakeLogo = new FlxSprite(0, 460).loadGraphic(Paths.image('logobutsmaller'));
 		fakeLogo.setGraphicSize(200, 100);
 		fakeLogo.screenCenter(X);
@@ -168,7 +168,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		changeSong();
 
-		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
+		if (APInfo.apGame != null && APInfo.apGame.info() != null) {
 			ticketCounterTop = new FlxText(albumPhoto.x - 130, albumPhoto.y - 230, 0, "0/0", 32);
 			ticketCounterTop.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			ticketCounterTop.scrollFactor.set();
@@ -187,14 +187,14 @@ class OsuFreeplayState extends MusicBeatState
 		missingTextBG.alpha = 0.6;
 		missingTextBG.visible = false;
 		add(missingTextBG);
-		
+
 		missingText = new FlxText(50, 0, FlxG.width - 100, '', 24);
 		missingText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		missingText.scrollFactor.set();
 		missingText.visible = false;
 		add(missingText);
 
-		if (APEntryState.inArchipelagoMode) {
+		if (APInfo.inArchipelagoMode) {
 			if (archipelago.APItem.activeItem?.condition.type == archipelago.APItem.ConditionType.PlayState)
 				archipelago.APItem.activeItem = null;
 		}
@@ -244,7 +244,7 @@ class OsuFreeplayState extends MusicBeatState
 		}
 
 		#if ARCHIPELAGO_ALLOWED
-		if (APEntryState.inArchipelagoMode) {
+		if (APInfo.inArchipelagoMode) {
 			victoryColor = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
 
 			for (i in 0...FreeplayManager.songList.length) {
@@ -253,7 +253,7 @@ class OsuFreeplayState extends MusicBeatState
 				}
 			}
 
-			if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !isTyping)  {
+			if (FlxG.keys.justPressed.L && APInfo.inArchipelagoMode && !isTyping)  {
 				try { //Because this menu has no actual difficulty select, just assume it's the first difficulty
 					var songLowercase:String = Paths.formatToSongPath(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName);
 					var poop:String = Highscore.formatSong(songLowercase, 0);
@@ -272,11 +272,11 @@ class OsuFreeplayState extends MusicBeatState
 				MusicBeatState.resetState();
 			}
 
-			if (FlxG.keys.justPressed.H && APEntryState.inArchipelagoMode && !isTyping) {
+			if (FlxG.keys.justPressed.H && APInfo.inArchipelagoMode && !isTyping) {
 				try {
-					var SongInfo = APEntryState.apGame.getSongAndMod(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName + (FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder != "" ? " (" + FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder + ")" : ""));
-					if (APEntryState.ap != null) {
-						APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
+					var SongInfo = APInfo.apGame.getSongAndMod(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName + (FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder != "" ? " (" + FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder + ")" : ""));
+					if (APInfo.ap != null) {
+						APInfo.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
 						archipelago.console.SideUI.instance.active = true;
 					}
 				} catch (e:Dynamic) {
@@ -357,7 +357,7 @@ class OsuFreeplayState extends MusicBeatState
 				changeSong(shiftMult);
 				holdTime = 0;
 			}
-			
+
 			if(controls.UI_UP || controls.UI_DOWN) {
 				var checkLastHold:Int = Math.floor((holdTime - 0.5) * 10);
 				holdTime += elapsed;
@@ -380,7 +380,7 @@ class OsuFreeplayState extends MusicBeatState
 			}
 			else if(FlxG.keys.justPressed.PAGEUP || FlxG.keys.justPressed.PAGEDOWN)
 				changeSong(FlxG.keys.justPressed.PAGEUP? -6 : 6);
-			
+
 			if(controls.ACCEPT)
 			{
 				var vicCheck:Bool = FreeplayManager.isVictorySong(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName, FreeplayManager.songList[songBoxGrp.members[curSelected].songID].folder) && APInfo.ticketCount >= APInfo.ticketWinCount;
@@ -397,7 +397,7 @@ class OsuFreeplayState extends MusicBeatState
 					FlxTween.color(ticketCounterTop, 1, 0xffcc0002, 0xffffffff, {ease: FlxEase.sineIn});
 					return;
 				}
-				
+
 				if (FreeplayManager.trueMissing.contains(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName) && !FreeplayManager.unplayedList.contains(FreeplayManager.songList[songBoxGrp.members[curSelected].songID].songName)) {
 					FlxG.camera.shake(0.005, 0.5);
 					FlxG.sound.play(Paths.sound("badnoise"+FlxG.random.int(1,3)), 1);
@@ -433,7 +433,7 @@ class OsuFreeplayState extends MusicBeatState
 							if (songLowercase == "song-not-found")
 							{
 								var h = yutautil.ChanceSelector.selectOption(hh, false, true, true);
-								if (APEntryState.inArchipelagoMode) {
+								if (APInfo.inArchipelagoMode) {
 									h = "normal error";
 								}
 								switch (h)
@@ -504,7 +504,7 @@ class OsuFreeplayState extends MusicBeatState
 							super.update(elapsed);
 							return;
 						}
-					
+
 						if (FlxG.keys.pressed.SHIFT){
 							ClientPrefs.openChartEditor();
 						} else{
@@ -513,7 +513,7 @@ class OsuFreeplayState extends MusicBeatState
 								alreadyClicked = true;
 								MusicBeatState.reopen = false; //Fix a sticker bug
 								LoadingState.prepareToSong();
-								LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+								LoadingState.loadAndSwitchState(APInfo.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
 							}
 							#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 							stopMusicPlay = true;
@@ -529,7 +529,7 @@ class OsuFreeplayState extends MusicBeatState
 					reloadSongArray();
 				}
 			}
-				
+
 
 			if(FlxG.keys.justPressed.TAB || FlxG.keys.justPressed.CONTROL) //adding control for consistancy sake
 			{
@@ -684,7 +684,7 @@ class OsuFreeplayState extends MusicBeatState
 				}
 			}
 		}
-		if(playSound) 
+		if(playSound)
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 	}
 
@@ -728,11 +728,11 @@ class OsuFreeplayState extends MusicBeatState
 			var color:FlxColor = 0xFFFFFFFF;
 			var someLocationsNotMissing:Bool = false;
 
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				songName = FreeplayManager.songList[i].songName;
 				modName = FreeplayManager.songList[i].folder;
-				locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-				isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+				locationId = APInfo.apGame.locationData(songName, modName).concat(APInfo.apGame.noteData(songName, modName));
+				isMissing = [for (ID in locationId) APInfo.apGame.isLocationMissing(APInfo.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 				color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 			}
 
@@ -742,16 +742,16 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
 			songBox.songID = i;
-			
-			if (APEntryState.inArchipelagoMode) {
+
+			if (APInfo.inArchipelagoMode) {
 				var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 				var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-				songBox.color = FreeplayManager.isVictorySong(songName, modName) ? 
-					(isMissing ? 
-						(someLocationsNotMissing ? 
-							songBox.color = bronzeOrOrangeColor 
-							: songBox.color = victoryColor) 
-						: songBox.color = 0xFFFFD700) 
+				songBox.color = FreeplayManager.isVictorySong(songName, modName) ?
+					(isMissing ?
+						(someLocationsNotMissing ?
+							songBox.color = bronzeOrOrangeColor
+							: songBox.color = victoryColor)
+						: songBox.color = 0xFFFFD700)
 					: songBox.color = color;
 			} else {
 				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
@@ -760,7 +760,7 @@ class OsuFreeplayState extends MusicBeatState
 			this.songBoxGrp.add(songBox);
 			this.songBoxGrpOG.add(songBox);
 
-			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
+			var isLock:Bool = APInfo.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
 			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter, false);
 			icon.setPosition(320, 100);
 			icon.ID = i;
@@ -779,7 +779,7 @@ class OsuFreeplayState extends MusicBeatState
 			text.ID = i;
 			textGrp.add(text);
 		}
-		
+
 		maxSelected = songBoxGrp.length;
 
 		changeSong();
@@ -794,7 +794,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		trueInt = 0;
 
-		if (APEntryState.inArchipelagoMode) 
+		if (APInfo.inArchipelagoMode)
 			FreeplayManager.checkSongStatus();
 
 		for (i in 0...FreeplayManager.songList.length)
@@ -806,11 +806,11 @@ class OsuFreeplayState extends MusicBeatState
 			var color:FlxColor = 0xFFFFFFFF;
 			var someLocationsNotMissing:Bool = false;
 
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				songName = FreeplayManager.songList[i].songName;
 				modName = FreeplayManager.songList[i].folder;
-				locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-				isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+				locationId = APInfo.apGame.locationData(songName, modName).concat(APInfo.apGame.noteData(songName, modName));
+				isMissing = [for (ID in locationId) APInfo.apGame.isLocationMissing(APInfo.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 				color = isMissing ? FlxColor.RED : FlxColor.GREEN;
 			}
 
@@ -819,16 +819,16 @@ class OsuFreeplayState extends MusicBeatState
 			var songBox:SongBox = new SongBox(320, 100);
 			songBox.loadGraphic(Paths.image('OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
-			
-			if (APEntryState.inArchipelagoMode) {
+
+			if (APInfo.inArchipelagoMode) {
 				var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 				var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
-				songBox.color = FreeplayManager.isVictorySong(songName, modName) ? 
-					(isMissing ? 
-						(someLocationsNotMissing ? 
-							songBox.color = bronzeOrOrangeColor 
-							: songBox.color = victoryColor) 
-						: songBox.color = 0xFFFFD700) 
+				songBox.color = FreeplayManager.isVictorySong(songName, modName) ?
+					(isMissing ?
+						(someLocationsNotMissing ?
+							songBox.color = bronzeOrOrangeColor
+							: songBox.color = victoryColor)
+						: songBox.color = 0xFFFFD700)
 					: songBox.color = color;
 			} else {
 				songBox.setColorTransform(-1, -1, -1, 1, FreeplayManager.songList[i].color[0][0], FreeplayManager.songList[i].color[0][1], FreeplayManager.songList[i].color[0][2], 1);
@@ -837,7 +837,7 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.songID = i;
 			this.songBoxGrp.add(songBox);
 
-			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
+			var isLock:Bool = APInfo.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !FreeplayManager.unplayedList.contains(songName);
 			var icon:HealthIcon = new HealthIcon(isLock ? "lock" : FreeplayManager.songList[i].songCharacter, false);
 			icon.setPosition(320, 100);
 			icon.ID = i + trueInt;
@@ -863,7 +863,7 @@ class OsuFreeplayState extends MusicBeatState
 				trueInt = i+1;
 				for (j in 0...Difficulty.list.length)
 				{
-					
+
 					var songBox:DiffBox = new DiffBox(320, 100);
 					songBox.difID = j;
 					songBox.difName = Difficulty.list[j];
@@ -896,7 +896,7 @@ class OsuFreeplayState extends MusicBeatState
 				//trace(FreeplayManager.songList[curSelected].songName);
 			}
 		}
-		
+
 		maxSelected = songBoxGrp.length;
 
 		changeSong();

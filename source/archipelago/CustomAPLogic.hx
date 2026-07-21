@@ -1520,7 +1520,7 @@ class APHScriptProcessor {
         interpreter.variables.set("availableMods", context.availableMods);
 
         // Add player settings access
-        interpreter.variables.set("playerSettings", archipelago.APEntryState.gameSettings.FNF);
+        interpreter.variables.set("playerSettings", archipelago.APInfo.gameSettings.FNF);
 
         // Add mod settings access
         interpreter.variables.set("currentModSettings", context.currentModSettings);

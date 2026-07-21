@@ -332,7 +332,7 @@ class APVictorySubstate extends GameOverSubstate
 				// Send the main song location check (but don't force it - use the regular logic)
 				if (APInfo.unlockMethod != "Note Checks") {
 					trace("Sending main location check...");
-					var locationIdInts = APEntryState.apGame.locationData(songName.trim(), currentMod.trim());
+					var locationIdInts = APInfo.apGame.locationData(songName.trim(), currentMod.trim());
 					trace('Location IDs: ' + locationIdInts);
 
 					for (locationIdInt in locationIdInts) {

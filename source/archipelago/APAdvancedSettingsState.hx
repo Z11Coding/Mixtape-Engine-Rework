@@ -536,10 +536,10 @@ class APAdvancedSettingsState extends MusicBeatState
 			}),
 			GenericProgressSubstate.createIterTask("Importing YAML settings", yamlFields, function(field:String)
 			{
-				if (Reflect.hasField(APEntryState.gameSettings.FNF, field))
+				if (Reflect.hasField(APInfo.gameSettings.FNF, field))
 				{
 					var value:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
-					Reflect.setField(APEntryState.gameSettings.FNF, field, value);
+					Reflect.setField(APInfo.gameSettings.FNF, field, value);
 
 					// Map YAML settings to local variables
 					switch (field)
@@ -650,7 +650,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			GenericProgressSubstate.createTask("Applying player name", function(results:Array<Dynamic>)
 			{
 				playerName = yaml.name;
-				APEntryState.gameSettings.name = yaml.name;
+				APInfo.gameSettings.name = yaml.name;
 				return "Player name set to: " + playerName;
 			}),
 			GenericProgressSubstate.createTask("Refreshing UI", function(results:Array<Dynamic>)
@@ -2686,16 +2686,16 @@ class APAdvancedSettingsState extends MusicBeatState
 		// First save the current settings so the song list generation can use them
 		saveCurrentSettings();
 
-		// Sync include options with APEntryState before generating the song list
+		// Sync include options with APInfo before generating the song list
 		// This ensures generateSongList() uses the correct include/exclude settings
-		if (includeVanilla != APEntryState.gameSettings.FNF.include_vanilla)
-			APEntryState.gameSettings.FNF.include_vanilla = includeVanilla;
-		if (includeSecrets != APEntryState.gameSettings.FNF.include_secrets)
-			APEntryState.gameSettings.FNF.include_secrets = includeSecrets;
-		if (includePico != APEntryState.gameSettings.FNF.include_pico)
-			APEntryState.gameSettings.FNF.include_pico = includePico;
-		if (includeErect != APEntryState.gameSettings.FNF.include_erect)
-			APEntryState.gameSettings.FNF.include_erect = includeErect;
+		if (includeVanilla != APInfo.gameSettings.FNF.include_vanilla)
+			APInfo.gameSettings.FNF.include_vanilla = includeVanilla;
+		if (includeSecrets != APInfo.gameSettings.FNF.include_secrets)
+			APInfo.gameSettings.FNF.include_secrets = includeSecrets;
+		if (includePico != APInfo.gameSettings.FNF.include_pico)
+			APInfo.gameSettings.FNF.include_pico = includePico;
+		if (includeErect != APInfo.gameSettings.FNF.include_erect)
+			APInfo.gameSettings.FNF.include_erect = includeErect;
 
 		// Regenerate the song list with current settings
 		APSettingsSubState.generateSongList();
@@ -3377,7 +3377,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	{
 		trace('Validating song JSON files...');
 
-		if (APEntryState.gameSettings.FNF.songList.length == 0)
+		if (APInfo.gameSettings.FNF.songList.length == 0)
 		{
 			trace('Song list is empty, nothing to validate');
 			return;
@@ -3428,9 +3428,9 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 
 		// Validate each song by converting YAML-safe format back to real names
-		trace('Validating chart files for ${APEntryState.gameSettings.FNF.songList.length} songs...');
+		trace('Validating chart files for ${APInfo.gameSettings.FNF.songList.length} songs...');
 
-		for (yamlSongInList in APEntryState.gameSettings.FNF.songList)
+		for (yamlSongInList in APInfo.gameSettings.FNF.songList)
 		{
 			if (yamlSongInList == null || yamlSongInList.length == 0) continue;
 
@@ -3525,10 +3525,10 @@ class APAdvancedSettingsState extends MusicBeatState
 		// Remove songs that have no valid charts
 		if (yamlSongsToRemove.length > 0)
 		{
-			var originalLength = APEntryState.gameSettings.FNF.songList.length;
+			var originalLength = APInfo.gameSettings.FNF.songList.length;
 			var filteredList:Array<String> = [];
 
-			for (yamlSongInList in APEntryState.gameSettings.FNF.songList)
+			for (yamlSongInList in APInfo.gameSettings.FNF.songList)
 			{
 				if (yamlSongsToRemove.contains(yamlSongInList))
 				{
@@ -3552,7 +3552,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				}
 			}
 
-			APEntryState.gameSettings.FNF.songList = filteredList;
+			APInfo.gameSettings.FNF.songList = filteredList;
 			trace('Song validation complete - removed ${originalLength - filteredList.length} songs with no valid charts');
 		}
 		else
@@ -3723,10 +3723,10 @@ class APAdvancedSettingsState extends MusicBeatState
 
 	function loadCurrentSettings()
 	{
-		// Load from APEntryState.gameSettings.FNF
-		if (APEntryState.gameSettings != null && APEntryState.gameSettings.FNF != null)
+		// Load from APInfo.gameSettings.FNF
+		if (APInfo.gameSettings != null && APInfo.gameSettings.FNF != null)
 		{
-			var settings = APEntryState.gameSettings.FNF;
+			var settings = APInfo.gameSettings.FNF;
 			progression_balancing = settings.progression_balancing;
 			accessibility = settings.accessibility;
 			unlockType = settings.unlock_type;
@@ -3792,10 +3792,10 @@ class APAdvancedSettingsState extends MusicBeatState
 	function saveCurrentSettings()
 	{
 		enforceSanityCompatibility(false);
-		// Save to APEntryState.gameSettings.FNF
-		if (APEntryState.gameSettings != null && APEntryState.gameSettings.FNF != null)
+		// Save to APInfo.gameSettings.FNF
+		if (APInfo.gameSettings != null && APInfo.gameSettings.FNF != null)
 		{
-			var settings = APEntryState.gameSettings.FNF;
+			var settings = APInfo.gameSettings.FNF;
 			settings.progression_balancing = progression_balancing;
 			settings.accessibility = accessibility;
 			settings.unlock_type = unlockType;
@@ -4302,15 +4302,15 @@ class APAdvancedSettingsState extends MusicBeatState
 				throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
 			}
 		}
-		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+		APInfo.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
 
-		if (APEntryState.gameSettings.FNF.songList.length == 0)
+		if (APInfo.gameSettings.FNF.songList.length == 0)
 		{
-			while (APEntryState.gameSettings.FNF.songList.length == 0)
+			while (APInfo.gameSettings.FNF.songList.length == 0)
 			{
 				APSettingsSubState.generateSongList();
 				checks++;
-				APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+				APInfo.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
 				if (checks >= 20)
 				{
 					throw new Exception("No songs were found within the allowed time. Check to make sure your settings permit songs to be selected.");
@@ -4334,9 +4334,9 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		// Build base YAML object from game settings
 		var yamlThing = {};
-		for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
+		for (thing in Reflect.fields(APInfo.gameSettings.FNF))
 		{
-			Reflect.setField(yamlThing, thing, Reflect.field(APEntryState.gameSettings.FNF, thing));
+			Reflect.setField(yamlThing, thing, Reflect.field(APInfo.gameSettings.FNF, thing));
 		}
 
 		// Add all advanced settings
@@ -4434,8 +4434,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 
 		// Shuffle song list
-		APEntryState.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
-		FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
+		APInfo.gameSettings.FNF.songList = APSettingsSubState.globalSongList;
+		FlxG.random.shuffle(APInfo.gameSettings.FNF.songList);
 
 		return yamlThing;
 	}
@@ -4445,8 +4445,8 @@ class APAdvancedSettingsState extends MusicBeatState
 	{
 		var mainSettings = {
 			name: playerName,
-			description: APEntryState.gameSettings.description,
-			game: APEntryState.gameSettings.game
+			description: APInfo.gameSettings.description,
+			game: APInfo.gameSettings.game
 		};
 
 		var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
@@ -4944,14 +4944,14 @@ class APAdvancedSettingsState extends MusicBeatState
 
 				// Apply settings to the current state
 				playerName = yaml.name;
-				APEntryState.gameSettings.name = yaml.name;
+				APInfo.gameSettings.name = yaml.name;
 
 				for (field in Reflect.fields(yaml.settings))
 				{
-					if (Reflect.hasField(APEntryState.gameSettings.FNF, field))
+					if (Reflect.hasField(APInfo.gameSettings.FNF, field))
 					{
 						var value:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
-						Reflect.setField(APEntryState.gameSettings.FNF, field, value);
+						Reflect.setField(APInfo.gameSettings.FNF, field, value);
 
 						// Map YAML settings to local variables
 						switch (field)
@@ -5112,33 +5112,33 @@ class APAdvancedSettingsState extends MusicBeatState
 			if (glowEffect != null) glowEffect.color = FlxColor.fromHSL(((elapsed / 2.5) / 300 * 360) % 360, 1.0, 0.5*1.0);
 		}
 
-		if (allowMods != APEntryState.gameSettings.FNF.mods_enabled)
+		if (allowMods != APInfo.gameSettings.FNF.mods_enabled)
 		{
-			APEntryState.gameSettings.FNF.mods_enabled = allowMods;
+			APInfo.gameSettings.FNF.mods_enabled = allowMods;
 			refreshCurrentPage();
 		}
 
-		if (includeVanilla != APEntryState.gameSettings.FNF.include_vanilla)
+		if (includeVanilla != APInfo.gameSettings.FNF.include_vanilla)
 		{
-			APEntryState.gameSettings.FNF.include_vanilla = includeVanilla;
+			APInfo.gameSettings.FNF.include_vanilla = includeVanilla;
 			refreshCurrentPage();
 		}
 
-		if (includeSecrets != APEntryState.gameSettings.FNF.include_secrets)
+		if (includeSecrets != APInfo.gameSettings.FNF.include_secrets)
 		{
-			APEntryState.gameSettings.FNF.include_secrets = includeSecrets;
+			APInfo.gameSettings.FNF.include_secrets = includeSecrets;
 			refreshCurrentPage();
 		}
 
-		if (includePico != APEntryState.gameSettings.FNF.include_pico)
+		if (includePico != APInfo.gameSettings.FNF.include_pico)
 		{
-			APEntryState.gameSettings.FNF.include_pico = includePico;
+			APInfo.gameSettings.FNF.include_pico = includePico;
 			refreshCurrentPage();
 		}
 
-		if (includeErect != APEntryState.gameSettings.FNF.include_erect)
+		if (includeErect != APInfo.gameSettings.FNF.include_erect)
 		{
-			APEntryState.gameSettings.FNF.include_erect = includeErect;
+			APInfo.gameSettings.FNF.include_erect = includeErect;
 			refreshCurrentPage();
 		}
 
@@ -5970,8 +5970,8 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		// Store original settings
 		var originalSettings = null;
-		if (APEntryState.gameSettings != null && APEntryState.gameSettings.FNF != null) {
-			var settings = APEntryState.gameSettings.FNF;
+		if (APInfo.gameSettings != null && APInfo.gameSettings.FNF != null) {
+			var settings = APInfo.gameSettings.FNF;
 			originalSettings = {
 				include_vanilla: Reflect.hasField(settings, "include_vanilla") ? settings.include_vanilla : true,
 				include_erect: Reflect.hasField(settings, "include_erect") ? settings.include_erect : true,
@@ -5982,16 +5982,16 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 
 		// Initialize settings if they don't exist
-		if (APEntryState.gameSettings == null) {
-			trace("Warning: APEntryState.gameSettings is null - cannot test filtering");
+		if (APInfo.gameSettings == null) {
+			trace("Warning: APInfo.gameSettings is null - cannot test filtering");
 			return;
 		}
-		if (APEntryState.gameSettings.FNF == null) {
-			trace("Warning: APEntryState.gameSettings.FNF is null - cannot test filtering");
+		if (APInfo.gameSettings.FNF == null) {
+			trace("Warning: APInfo.gameSettings.FNF is null - cannot test filtering");
 			return;
 		}
 
-		var settings = APEntryState.gameSettings.FNF;
+		var settings = APInfo.gameSettings.FNF;
 
 		// Test 1: Only Vanilla songs
 		trace("Test 1: Only Vanilla songs");

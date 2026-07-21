@@ -937,7 +937,7 @@ class LegacyFunkinLua {
 
 		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
 			#if ARCHIPELAGO_ALLOWED
-			if(archipelago.APEntryState.inArchipelagoMode)
+			if(archipelago.APInfo.inArchipelagoMode)
 			{
 				luaTrace('loadSong: A Script is loading a new song. Checking!', false, false, FlxColor.RED);
 				APFreeplayManager.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);

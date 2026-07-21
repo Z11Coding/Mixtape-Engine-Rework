@@ -222,7 +222,8 @@ class CustomFreeplayState extends MusicBeatState {
         // Archipelago support
         #if ARCHIPELAGO_ALLOWED
         iris.set('APEntryState', APEntryState);
-        iris.set('inArchipelagoMode', APEntryState.inArchipelagoMode);
+        iris.set('APInfo', APInfo);
+        iris.set('inArchipelagoMode', APInfo.inArchipelagoMode);
         #end
 
         // Additional classes for fallback script
@@ -431,7 +432,7 @@ class CustomFreeplayState extends MusicBeatState {
 
     public function isArchipelagoMode():Bool {
         #if ARCHIPELAGO_ALLOWED
-        return APEntryState.inArchipelagoMode;
+        return APInfo.inArchipelagoMode;
         #else
         return false;
         #end
@@ -439,8 +440,8 @@ class CustomFreeplayState extends MusicBeatState {
 
     public function goToCategoryState():Void {
         #if ARCHIPELAGO_ALLOWED
-        if (APEntryState.inArchipelagoMode) {
-            FlxG.switchState(new archipelago.APCategoryState(APEntryState.apGame, APEntryState.ap));
+        if (APInfo.inArchipelagoMode) {
+            FlxG.switchState(new archipelago.APCategoryState(APInfo.apGame, APInfo.ap));
         } else {
             FlxG.switchState(new CategoryState());
         }
@@ -802,7 +803,7 @@ class CustomFreeplayState extends MusicBeatState {
         };
 
         #if ARCHIPELAGO_ALLOWED
-        if (APEntryState.inArchipelagoMode) {
+        if (APInfo.inArchipelagoMode) {
             // Check if this is a victory song
             result.isVictorySong = APFreeplayManager.isVictorySong(songName, modName);
 
@@ -846,7 +847,7 @@ class CustomFreeplayState extends MusicBeatState {
 
                 if (songData != null) {
                     // Check for missing sanity items (characters, stages, etc.)
-                    var missingSanityItems = APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+                    var missingSanityItems = APInfo.apGame.checkSongCharactersAndStageUnlocked(songData);
                     hasMissingItems = (missingSanityItems != null && missingSanityItems.length > 0);
                 }
             } catch (e:Dynamic) {

@@ -139,13 +139,13 @@ class APCategoryState extends states.CategoryState {
                     try {
                         // Clean up all static references to apGame and client
 
-                        // APEntryState references
-                        archipelago.APEntryState.inArchipelagoMode = false;
-                        if (archipelago.APEntryState.apGame != null) {
-                            archipelago.APEntryState.apGame = null;
+                        // APInfo references
+                        archipelago.APInfo.inArchipelagoMode = false;
+                        if (archipelago.APInfo.apGame != null) {
+                            archipelago.APInfo.apGame = null;
                         }
-                        if (archipelago.APEntryState.ap != null) {
-                            archipelago.APEntryState.ap = null;
+                        if (archipelago.APInfo.ap != null) {
+                            archipelago.APInfo.ap = null;
                         }
 
                         // APInfo references
@@ -211,9 +211,9 @@ class APCategoryState extends states.CategoryState {
 
                     // Ensure emergency cleanup happens even on error
                     try {
-                        archipelago.APEntryState.inArchipelagoMode = false;
-                        archipelago.APEntryState.apGame = null;
-                        archipelago.APEntryState.ap = null;
+                        archipelago.APInfo.inArchipelagoMode = false;
+                        archipelago.APInfo.apGame = null;
+                        archipelago.APInfo.ap = null;
                         archipelago.APInfo.apGame = null;
                         archipelago.APInfo.ap = null;
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
@@ -313,9 +313,9 @@ class APCategoryState extends states.CategoryState {
 
             // Nullify all static references
             try {
-                archipelago.APEntryState.inArchipelagoMode = false;
-                archipelago.APEntryState.apGame = null;
-                archipelago.APEntryState.ap = null;
+                archipelago.APInfo.inArchipelagoMode = false;
+                archipelago.APInfo.apGame = null;
+                archipelago.APInfo.ap = null;
                 archipelago.APInfo.apGame = null;
                 archipelago.APInfo.ap = null;
                 archipelago.APPlayState.apGame = null;
@@ -346,9 +346,9 @@ class APCategoryState extends states.CategoryState {
     override function create()
     {
         super.create();
-        if (APEntryState.gonnaRunSync && APEntryState.inArchipelagoMode && APEntryState.apGame != null) {
+        if (APInfo.gonnaRunSync && APInfo.inArchipelagoMode && APInfo.apGame != null) {
             try {
-                var apClient = APEntryState.apGame.info();
+                var apClient = APInfo.apGame.info();
                 if (apClient != null) {
                     apClient.Sync();
                 } else {

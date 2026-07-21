@@ -89,10 +89,10 @@ class PauseSubState extends MusicBeatSubstate
 		} else if(PlayState.instance.practiceMode && !PlayState.instance.startingSong)
 			menuItemsOG.insert(3, 'Skip Time');
 
-		if (archipelago.APEntryState.inArchipelagoMode)
+		if (archipelago.APInfo.inArchipelagoMode)
 			menuItemsOG.insert(3, 'Skip Check');
 
-		if (archipelago.APEntryState.inArchipelagoMode && archipelago.APInfo.inSongTrap)
+		if (archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.inSongTrap)
 		{
 			menuItemsOG.remove('Exit to menu');
 			menuItemsOG.remove('Skip Check');
@@ -321,7 +321,7 @@ class PauseSubState extends MusicBeatSubstate
 						if (ClientPrefs.data.preloadSong)
 						{
 							#if ARCHIPELAGO_ALLOWED
-							states.LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
+							states.LoadingState.loadAndSwitchState(archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
 							#else
 							states.LoadingState.loadAndSwitchState(new PlayState(playlistMeta, songlistMeta));
 							#end
@@ -329,7 +329,7 @@ class PauseSubState extends MusicBeatSubstate
 						else
 						{
 							#if ARCHIPELAGO_ALLOWED
-							MusicBeatState.switchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
+							MusicBeatState.switchState(archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
 							#else
 							MusicBeatState.switchState(new PlayState(playlistMeta, songlistMeta));
 							#end
@@ -361,7 +361,7 @@ class PauseSubState extends MusicBeatSubstate
 						if (ClientPrefs.data.preloadSong)
 						{
 							#if ARCHIPELAGO_ALLOWED
-							states.LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
+							states.LoadingState.loadAndSwitchState(archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
 							#else
 							states.LoadingState.loadAndSwitchState(new PlayState(playlistMeta, songlistMeta));
 							#end
@@ -369,7 +369,7 @@ class PauseSubState extends MusicBeatSubstate
 						else
 						{
 							#if ARCHIPELAGO_ALLOWED
-							MusicBeatState.switchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
+							MusicBeatState.switchState(archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
 							#else
 							MusicBeatState.switchState(new PlayState(playlistMeta, songlistMeta));
 							#end
@@ -483,7 +483,7 @@ class PauseSubState extends MusicBeatSubstate
 					}
 					else if(PlayState.isPlaylist)
 					#if ARCHIPELAGO_ALLOWED
-						if (archipelago.APEntryState.inArchipelagoMode)
+						if (archipelago.APInfo.inArchipelagoMode)
 							MusicBeatState.switchState(new archipelago.APPlaylistState());
 						else
 							MusicBeatState.switchState(new PlaylistState());
@@ -540,7 +540,7 @@ class PauseSubState extends MusicBeatSubstate
 		var songlistMeta = PlayState.isPlaylist && PlayState.instance != null ? PlayState.instance.curSonglist : null;
 
 		#if ARCHIPELAGO_ALLOWED
-		return archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta);
+		return archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta);
 		#else
 		return new PlayState(playlistMeta, songlistMeta);
 		#end
@@ -594,7 +594,7 @@ class PauseSubState extends MusicBeatSubstate
 		if (ClientPrefs.data.preloadSong)
 		{
 			#if ARCHIPELAGO_ALLOWED
-			states.LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
+			states.LoadingState.loadAndSwitchState(archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
 			#else
 			states.LoadingState.loadAndSwitchState(new PlayState(playlistMeta, songlistMeta));
 			#end
@@ -602,7 +602,7 @@ class PauseSubState extends MusicBeatSubstate
 		else
 		{
 			#if ARCHIPELAGO_ALLOWED
-			MusicBeatState.switchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
+			MusicBeatState.switchState(archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState(playlistMeta, songlistMeta) : new PlayState(playlistMeta, songlistMeta));
 			#else
 			MusicBeatState.switchState(new PlayState(playlistMeta, songlistMeta));
 			#end

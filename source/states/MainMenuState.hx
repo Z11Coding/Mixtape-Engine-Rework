@@ -69,7 +69,7 @@ class MainMenuState extends MusicBeatState
 
 		super.create();
 
-		if (archipelago.APEntryState.inArchipelagoMode) {
+		if (archipelago.APInfo.inArchipelagoMode) {
 			FlxG.switchState(new archipelago.APCategoryState(archipelago.APPlayState.apGame));
 		}
 		if(!states.FirstCheckState.dropFileSetup)
@@ -570,7 +570,7 @@ class MainMenuState extends MusicBeatState
 							selectedSomethin = false;
 							item.visible = true;
 						case 'archipelago':
-							archipelago.APVersionSelectionState.smartLaunch();
+							MusicBeatState.switchState(new APStyledEntryState());
 						default:
 							trace('Menu Item ${option} doesn\'t do anything');
 							selectedSomethin = false;

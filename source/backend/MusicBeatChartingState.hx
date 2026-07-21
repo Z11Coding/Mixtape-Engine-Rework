@@ -163,7 +163,7 @@ class MusicBeatChartingState extends FlxUIState
 		updateCurStep();
 		updateBeat();
 
-		if (archipelago.APEntryState.inArchipelagoMode)
+		if (archipelago.APInfo.inArchipelagoMode)
 			archipelago.APItem.doCheck();
 
 		if (oldStep != curStep)
@@ -189,8 +189,8 @@ class MusicBeatChartingState extends FlxUIState
 		});
 
 		super.update(elapsed);
-		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
-			APEntryState.apGame.info().poll();
+		if (APInfo.apGame != null && APInfo.inArchipelagoMode)
+			APInfo.apGame.info().poll();
 	}
 
 	private function updateSection():Void

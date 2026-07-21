@@ -323,7 +323,7 @@ class FunkinLua {
 
 		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
 			#if ARCHIPELAGO_ALLOWED
-			if(APEntryState.inArchipelagoMode)
+			if(APInfo.inArchipelagoMode)
 			{
 				luaTrace('loadSong: A Script is loading a new song. Checking!', false, false, FlxColor.RED);
 				APFreeplayManager.forceUnlockCheck(Song.loadedSongName, archipelago.APPlayState.currentMod);
@@ -1750,7 +1750,7 @@ class FunkinLua {
 
 		// Register callback for item received
 		Lua_helper.add_callback(lua, "registerItemReceivedCallback", function(funcName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				luaTrace('registerItemReceivedCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
@@ -1763,7 +1763,7 @@ class FunkinLua {
 
 		// Register callback for custom item received
 		Lua_helper.add_callback(lua, "registerCustomItemReceivedCallback", function(funcName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				luaTrace('registerCustomItemReceivedCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
@@ -1776,7 +1776,7 @@ class FunkinLua {
 
 		// Register callback for item sent
 		Lua_helper.add_callback(lua, "registerItemSentCallback", function(funcName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				luaTrace('registerItemSentCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
@@ -1789,7 +1789,7 @@ class FunkinLua {
 
 		// Register callback for location sent
 		Lua_helper.add_callback(lua, "registerLocationSentCallback", function(funcName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				luaTrace('registerLocationSentCallback: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
@@ -1802,7 +1802,7 @@ class FunkinLua {
 
 		// Send location function
 		Lua_helper.add_callback(lua, "sendArchipelagoLocation", function(locationName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				luaTrace('sendArchipelagoLocation: Archipelago mode is not enabled!', false, false, FlxColor.RED);
 				return false;
 			}
@@ -1812,13 +1812,13 @@ class FunkinLua {
 
 		// Check if item exists
 		Lua_helper.add_callback(lua, "hasArchipelagoItem", function(itemName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return false;
+			if (!archipelago.APInfo.inArchipelagoMode) return false;
 			return archipelago.APScriptingSupport.hasItem(itemName);
 		});
 
 		// Get item count
 		Lua_helper.add_callback(lua, "getArchipelagoItemCount", function(itemName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return 0;
+			if (!archipelago.APInfo.inArchipelagoMode) return 0;
 			return archipelago.APScriptingSupport.getItemCount(itemName);
 		});
 
@@ -1829,30 +1829,30 @@ class FunkinLua {
 
 		// Get player name
 		Lua_helper.add_callback(lua, "getArchipelagoPlayerName", function() {
-			if (!archipelago.APEntryState.inArchipelagoMode) return "";
+			if (!archipelago.APInfo.inArchipelagoMode) return "";
 			return archipelago.APScriptingSupport.getPlayerName();
 		});
 
 		// Get slot data field from APInfo
 		Lua_helper.add_callback(lua, "getArchipelagoSlotData", function(fieldName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return null;
+			if (!archipelago.APInfo.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSlotDataField(fieldName);
 		});
 
 		// Get available songs from slot data
 		Lua_helper.add_callback(lua, "getArchipelagoAvailableSongs", function() {
-			if (!archipelago.APEntryState.inArchipelagoMode) return [];
+			if (!archipelago.APInfo.inArchipelagoMode) return [];
 			return archipelago.APScriptingSupport.getAvailableSongs();
 		});
 
 		// Get song data for a specific song
 		Lua_helper.add_callback(lua, "getArchipelagoSongData", function(songName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return null;
+			if (!archipelago.APInfo.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSongData(songName);
 		});
 
 		// Archipelago status variables
-		set('archipelagoEnabled', archipelago.APEntryState.inArchipelagoMode);
+		set('archipelagoEnabled', archipelago.APInfo.inArchipelagoMode);
 		set('connectedToArchipelago', archipelago.APScriptingSupport.isConnected());
 	}
 	#end

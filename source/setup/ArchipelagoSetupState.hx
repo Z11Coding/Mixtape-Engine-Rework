@@ -260,7 +260,7 @@ class ArchipelagoSetupState extends SetupBaseState {
         // Use the actual APWorld installation function
         #if ARCHIPELAGO_ALLOWED
         try {
-            APEntryState.installAPWorld();
+            APInfo.installAPWorld();
             canNavigate = true;
             showAPWorldResult("✓ APWorld installation completed successfully!\n\nThe Friday Night Funkin APWorld file has been installed to your Archipelago custom_worlds folder.", FlxColor.LIME);
         } catch (e:Dynamic) {
@@ -278,7 +278,7 @@ class ArchipelagoSetupState extends SetupBaseState {
 
         #if ARCHIPELAGO_ALLOWED
         try {
-            APEntryState.outputAPWorld();
+            APInfo.outputAPWorld();
             canNavigate = true;
             showAPWorldResult("✓ APWorld exported successfully!\n\nThe fridaynightfunkin.apworld file has been saved to your main directory. You can now distribute this file or install it manually.", FlxColor.LIME);
         } catch (e:Dynamic) {

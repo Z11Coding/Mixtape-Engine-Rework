@@ -65,7 +65,7 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 		var menuTitle = new Label();
 
 		#if ARCHIPELAGO_ALLOWED
-		if (APEntryState.inArchipelagoMode)
+		if (APInfo.inArchipelagoMode)
 		{
 			menuTitle.text = "Archipelago Options";
 
@@ -79,7 +79,7 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 			hintingSection.addComponent(hintingTitle);
 
 			// Sanity section (character/stage hinting)
-			if (APEntryState.apGame?.sanitySettings?.sanity_types != null)
+			if (APInfo.apGame?.sanitySettings?.sanity_types != null)
 			{
 				var sanitySection = new VBox();
 				sanitySection.spacing = 3;
@@ -90,7 +90,7 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 				sanitySection.addComponent(sanityTitle);
 
 				// Character hinting
-				if (APEntryState.apGame.sanitySettings.sanity_types.contains("characters"))
+				if (APInfo.apGame.sanitySettings.sanity_types.contains("characters"))
 				{
 					var charHintButton = new Button();
 					updateCharacterHintButton(charHintButton); // Will update text and cost
@@ -101,7 +101,7 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 				}
 
 				// Stage hinting
-				if (APEntryState.apGame.sanitySettings.sanity_types.contains("stages"))
+				if (APInfo.apGame.sanitySettings.sanity_types.contains("stages"))
 				{
 					var stageHintButton = new Button();
 					updateStageHintButton(stageHintButton); // Will update text and cost
@@ -196,11 +196,11 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 
 		try {
 			var song = backend.Song.loadFromJson(songId, songId);
-			if (song?.player1 != null && !APEntryState.ap.getIsReceivedItem("character-" + song.player1))
+			if (song?.player1 != null && !APInfo.ap.getIsReceivedItem("character-" + song.player1))
 				missingCharacters.push("character-" + song.player1);
-			if (song?.player2 != null && !APEntryState.ap.getIsReceivedItem("character-" + song.player2))
+			if (song?.player2 != null && !APInfo.ap.getIsReceivedItem("character-" + song.player2))
 				missingCharacters.push("character-" + song.player2);
-			if (song?.gfVersion != null && !APEntryState.ap.getIsReceivedItem("character-" + song.gfVersion))
+			if (song?.gfVersion != null && !APInfo.ap.getIsReceivedItem("character-" + song.gfVersion))
 				missingCharacters.push("character-" + song.gfVersion);
 		} catch (e:Dynamic) {
 			trace("Error loading song for character hints: " + e);
@@ -232,7 +232,7 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 
 		try {
 			var song = backend.Song.loadFromJson(songId, songId);
-			if (song?.stage != null && !APEntryState.ap.getIsReceivedItem("stage-" + song.stage))
+			if (song?.stage != null && !APInfo.ap.getIsReceivedItem("stage-" + song.stage))
 				missingStages.push("stage-" + song.stage);
 		} catch (e:Dynamic) {
 			trace("Error loading song for stage hints: " + e);
@@ -251,7 +251,7 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 		{
 			if (APInfo.hintPoints >= APInfo.hintCost)
 			{
-				APEntryState.ap.Say("!hint " + character);
+				APInfo.ap.Say("!hint " + character);
 				APInfo.hintPoints -= APInfo.hintCost;
 			}
 			else
@@ -273,7 +273,7 @@ class HaxeUIOptionsSubstate extends MusicBeatSubstate
 		{
 			if (APInfo.hintPoints >= APInfo.hintCost)
 			{
-				APEntryState.ap.Say("!hint " + stage);
+				APInfo.ap.Say("!hint " + stage);
 				APInfo.hintPoints -= APInfo.hintCost;
 			}
 			else

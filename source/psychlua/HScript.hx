@@ -833,7 +833,7 @@ class HScript extends Iris
 
 		// Register callback for item received
 		set('registerItemReceivedCallback', function(callback:String->Void) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				trace('registerItemReceivedCallback: Archipelago mode is not enabled!');
 				return false;
 			}
@@ -844,7 +844,7 @@ class HScript extends Iris
 
 		// Register callback for custom item received
 		set('registerCustomItemReceivedCallback', function(callback:String->Void) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				trace('registerCustomItemReceivedCallback: Archipelago mode is not enabled!');
 				return false;
 			}
@@ -855,7 +855,7 @@ class HScript extends Iris
 
 		// Register callback for item sent
 		set('registerItemSentCallback', function(callback:String->Void) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				trace('registerItemSentCallback: Archipelago mode is not enabled!');
 				return false;
 			}
@@ -866,7 +866,7 @@ class HScript extends Iris
 
 		// Register callback for location sent
 		set('registerLocationSentCallback', function(callback:String->Int->Void) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				trace('registerLocationSentCallback: Archipelago mode is not enabled!');
 				return false;
 			}
@@ -877,7 +877,7 @@ class HScript extends Iris
 
 		// Send location function
 		set('sendArchipelagoLocation', function(locationName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) {
+			if (!archipelago.APInfo.inArchipelagoMode) {
 				trace('sendArchipelagoLocation: Archipelago mode is not enabled!');
 				return false;
 			}
@@ -887,13 +887,13 @@ class HScript extends Iris
 
 		// Check if item exists
 		set('hasArchipelagoItem', function(itemName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return false;
+			if (!archipelago.APInfo.inArchipelagoMode) return false;
 			return archipelago.APScriptingSupport.hasItem(itemName);
 		});
 
 		// Get item count
 		set('getArchipelagoItemCount', function(itemName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return 0;
+			if (!archipelago.APInfo.inArchipelagoMode) return 0;
 			return archipelago.APScriptingSupport.getItemCount(itemName);
 		});
 
@@ -904,30 +904,30 @@ class HScript extends Iris
 
 		// Get player name
 		set('getArchipelagoPlayerName', function() {
-			if (!archipelago.APEntryState.inArchipelagoMode) return "";
+			if (!archipelago.APInfo.inArchipelagoMode) return "";
 			return archipelago.APScriptingSupport.getPlayerName();
 		});
 
 		// Get slot data field from APInfo
 		set('getArchipelagoSlotData', function(fieldName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return null;
+			if (!archipelago.APInfo.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSlotDataField(fieldName);
 		});
 
 		// Get available songs from slot data
 		set('getArchipelagoAvailableSongs', function() {
-			if (!archipelago.APEntryState.inArchipelagoMode) return [];
+			if (!archipelago.APInfo.inArchipelagoMode) return [];
 			return archipelago.APScriptingSupport.getAvailableSongs();
 		});
 
 		// Get song data for a specific song
 		set('getArchipelagoSongData', function(songName:String) {
-			if (!archipelago.APEntryState.inArchipelagoMode) return null;
+			if (!archipelago.APInfo.inArchipelagoMode) return null;
 			return archipelago.APScriptingSupport.getSongData(songName);
 		});
 
 		// Archipelago status variables
-		set('archipelagoEnabled', archipelago.APEntryState.inArchipelagoMode);
+		set('archipelagoEnabled', archipelago.APInfo.inArchipelagoMode);
 		set('connectedToArchipelago', archipelago.APScriptingSupport.isConnected());
 	}
 	#end

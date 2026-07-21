@@ -105,11 +105,7 @@ class APStyledEntryState extends MusicBeatState {
     // Connection state
     var connectionElements:Array<FlxSprite> = [];
 
-    // Static references from original APEntryState
-    public static var ap:Client;
-    public static var apGame:APGameState;
-    public static var inArchipelagoMode:Bool = false;
-    public static var gonnaRunSync:Bool = false;
+    // Static references from original APInfo
     public static var lowFilterAmount:Float = 1;
     public static var deathLink:Bool = false;
     public static var victorySong:String = '???';
@@ -667,7 +663,7 @@ class APStyledEntryState extends MusicBeatState {
         handleMouseInput();
 
         a++; //without this the rambow effect just doesn't work. At all. No idea why.
-        // Update visual effects (similar to original APEntryState)
+        // Update visual effects (similar to original APInfo)
         var e = Std.int(a * 60 / 2); // Convert to frame-based
         titleText.color = FlxColor.fromHSL(((a / 2) / 300 * 360) % 360, 1.0, 0.5*1.0);
 
@@ -795,7 +791,7 @@ class APStyledEntryState extends MusicBeatState {
     }
 
     function onConnect() {
-        // Validation logic from original APEntryState
+        // Validation logic from original APInfo
         var port = Std.parseInt(portValue);
         if (hostValue == "")
             postError('noHost');
@@ -828,7 +824,7 @@ class APStyledEntryState extends MusicBeatState {
     function onConnectionSuccess(client:Client, slotData:Dynamic) {
         // Connection successful, prepare for AP mode with special animation
         ap = client;
-        APEntryState.gonnaRunSync = true;
+        APInfo.gonnaRunSync = true;
 
         // Clear this here so that the save doesn't mess up between playthoughs
         APItem.triggeredPermaTraps.clear();
@@ -838,9 +834,9 @@ class APStyledEntryState extends MusicBeatState {
         // Note: The connection-specific callbacks (onRoomInfo, onSlotRefused, etc.)
         // are already cleaned up by the ConnectionSubstate
 
-        APEntryState.deathLink = slotData.deathlink == 0 ? false : true;
-        APEntryState.victorySong = slotData.victoryLocation;
-        APEntryState.fullSongCount = slotData.fullSongCount;
+        APInfo.deathLink = slotData.deathlink == 0 ? false : true;
+        APInfo.victorySong = slotData.victoryLocation;
+        APInfo.fullSongCount = slotData.fullSongCount;
         APInfo.ticketWinCount = slotData.ticketWinCount;
         APInfo.ticketCount = 0;
         APInfo.grabLimits(slotData.gradeNeeded, slotData.accuracyNeeded);
@@ -848,7 +844,7 @@ class APStyledEntryState extends MusicBeatState {
         APInfo.inHardMode = slotData.hardmode;
 
         FlxG.save.flush();
-        APEntryState.inArchipelagoMode = true;
+        APInfo.inArchipelagoMode = true;
 
         // Save last game settings
         var FNF = new FlxSave();
@@ -858,10 +854,10 @@ class APStyledEntryState extends MusicBeatState {
             port: portValue,
             slot: slotValue
         };
-        FNF.data.gameSettings = APEntryState.gameSettings;
+        FNF.data.gameSettings = APInfo.gameSettings;
         FNF.close();
 
-        APEntryState.ap = ap;
+        APInfo.ap = ap;
 
 
 
@@ -920,7 +916,7 @@ class APStyledEntryState extends MusicBeatState {
 
     function runArch(slotData):Void {
         inArchipelagoMode = true;
-        APEntryState.inArchipelagoMode = true; // Global flag
+        APInfo.inArchipelagoMode = true; // Global flag
         backend.WeekData.reloadWeekFiles(false);
         FlxG.save.data.closeDuringOverRide = false;
         FlxG.save.data.manualOverride = false;
@@ -940,7 +936,7 @@ class APStyledEntryState extends MusicBeatState {
 
         APGameState.isSync = true;
 
-        APEntryState.apGame = apGame;
+        APInfo.apGame = apGame;
 
         // Check if high quality content is expected and should be downloaded
         if (slotData != null && slotData.highQualityExpected == true) {
@@ -1019,7 +1015,7 @@ class APStyledEntryState extends MusicBeatState {
             }),
             GenericProgressSubstate.createTask("Applying settings", function(results:Array<Dynamic>) {
                 var yaml:archipelago.APYaml = results[1];
-                APEntryState.gameSettings.name = yaml.name;
+                APInfo.gameSettings.name = yaml.name;
                 slotValue = yaml.name;
                 trace('YAML Slot Name: $slotValue');
                 if (slotValue.isEmpty()) slotValue = "Player";
@@ -1027,9 +1023,9 @@ class APStyledEntryState extends MusicBeatState {
 
                 try {
                     for (field in Reflect.fields(yaml.settings)) {
-                        if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
+                        if (Reflect.hasField(APInfo.gameSettings.FNF, field)) {
                             var fieldValue:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
-                            Reflect.setField(APEntryState.gameSettings.FNF, field, fieldValue);
+                            Reflect.setField(APInfo.gameSettings.FNF, field, fieldValue);
                         }
                     }
                 } catch (e:Dynamic) {
@@ -1037,7 +1033,7 @@ class APStyledEntryState extends MusicBeatState {
                 }
                 return "Settings applied successfully";
             }),
-            GenericProgressSubstate.createIterTask("Validating...", Reflect.fields(APEntryState.gameSettings.FNF), function(results:Dynamic) {
+            GenericProgressSubstate.createIterTask("Validating...", Reflect.fields(APInfo.gameSettings.FNF), function(results:Dynamic) {
                 // Simulate validation delay
                 Sys.sleep(0.1);
                 trace('Validated setting: ' + results);
@@ -1092,7 +1088,7 @@ class APStyledEntryState extends MusicBeatState {
                     return "Directory verified";
                 }),
                 GenericProgressSubstate.createTask("Copying APWorld file", function(results:Array<Dynamic>) {
-                    APEntryState.installAPWorld();
+                    APInfo.installAPWorld();
                     return "APWorld installed";
                 }),
                 GenericProgressSubstate.createTask("Verifying installation", function(results:Array<Dynamic>) {
@@ -1164,7 +1160,7 @@ class APStyledEntryState extends MusicBeatState {
             }),
             GenericProgressSubstate.createTask("Applying settings", function(results:Array<Dynamic>) {
                 var yaml:archipelago.APYaml = results[1];
-                APEntryState.gameSettings.name = yaml.name;
+                APInfo.gameSettings.name = yaml.name;
                 slotValue = yaml.name;
                 trace('YAML Slot Name: $slotValue');
                 if (slotValue.isEmpty()) slotValue = "Player";
@@ -1172,9 +1168,9 @@ class APStyledEntryState extends MusicBeatState {
 
                 try {
                     for (field in Reflect.fields(yaml.settings)) {
-                        if (Reflect.hasField(APEntryState.gameSettings.FNF, field)) {
+                        if (Reflect.hasField(APInfo.gameSettings.FNF, field)) {
                             var fieldValue:archipelago.APYaml.APOption = Reflect.field(yaml.settings, field);
-                            Reflect.setField(APEntryState.gameSettings.FNF, field, fieldValue);
+                            Reflect.setField(APInfo.gameSettings.FNF, field, fieldValue);
                         }
                     }
                 } catch (e:Dynamic) {
@@ -1182,7 +1178,7 @@ class APStyledEntryState extends MusicBeatState {
                 }
                 return "Settings applied successfully";
             }),
-            GenericProgressSubstate.createIterTask("Validating...", Reflect.fields(APEntryState.gameSettings.FNF), function(results:Dynamic) {
+            GenericProgressSubstate.createIterTask("Validating...", Reflect.fields(APInfo.gameSettings.FNF), function(results:Dynamic) {
                 // Simulate validation delay
                 Sys.sleep(0.1);
                 trace('Validated setting: ' + results);
@@ -1297,7 +1293,7 @@ class APStyledEntryState extends MusicBeatState {
     }
     #end
 
-    // Error handling (from original APEntryState)
+    // Error handling (from original APInfo)
     var daReason:String = "man idk";
     function errDesc(a:String) {
         switch (a) {

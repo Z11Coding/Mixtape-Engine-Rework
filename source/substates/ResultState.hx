@@ -786,7 +786,7 @@ class ResultState extends MusicBeatSubState
 
       #if ARCHIPELAGO_ALLOWED
       // Handle Archipelago mode logic
-      if (APEntryState.inArchipelagoMode && PlayState.gameplayArea == "APFreeplay")
+      if (APInfo.inArchipelagoMode && PlayState.gameplayArea == "APFreeplay")
       {
         trace('WENT BACK TO ARCHIPELAGO FREEPLAY FROM RESULTS??');
 
@@ -822,7 +822,7 @@ class ResultState extends MusicBeatSubState
           if (APInfo.unlockMethod != "Note Checks") {
             trace(archipelago.APPlayState.currentMod);
             trace("Starting location ID processing for: " + locationId.trim());
-            var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+            var locationIdInts = APInfo.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
             trace('Initial Location IDs: ' + locationIdInts);
 
             // Location ID processing logic (same as RankingSubstate)
@@ -834,7 +834,7 @@ class ResultState extends MusicBeatSubState
                     (cast song[0] : String).toLowerCase().trim().replace(" ", "-") == PlayfieldManager.SONG.song.trim().toLowerCase().replace(" ", "-")) {
                   trace("Match found for song: " + song[0]);
                   locationId = song[0];
-                  locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+                  locationIdInts = APInfo.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
                   trace("Updated Location IDs: " + locationIdInts);
                   break;
                 }
@@ -844,7 +844,7 @@ class ResultState extends MusicBeatSubState
 							if (managers.APFreeplayManager.isVictorySong(locationId, archipelago.APPlayState.currentMod))
 							{
 								trace("Song is a victory song, adding victory location ID");
-								var vicLocation:Null<Int> = APEntryState.apGame.info().get_location_id("Victory Goal");
+								var vicLocation:Null<Int> = APInfo.apGame.info().get_location_id("Victory Goal");
 								if (vicLocation != null && vicLocation != -1)
 								{
 									locationIdInts = locationIdInts.concat([vicLocation]);
@@ -855,8 +855,8 @@ class ResultState extends MusicBeatSubState
             trace("Final Location IDs: " + locationIdInts);
             for (locationIdInt in locationIdInts) {
               trace("Processing Location ID: " + locationIdInt);
-              trace("Location Check Result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
-              trace("Location Name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
+              trace("Location Check Result: " + APInfo.apGame.info().LocationChecks([locationIdInt]));
+              trace("Location Name: " + APInfo.apGame.info().get_location_name(locationIdInt));
             }
             trace("Current Song: " + PlayfieldManager.SONG.song);
 
@@ -876,19 +876,19 @@ class ResultState extends MusicBeatSubState
           // Clear active effects
           archipelago.APItem.clearActiveEffects();
 
-          if (archipelago.APEntryState.inArchipelagoMode) {
+          if (archipelago.APInfo.inArchipelagoMode) {
             ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
           }
 
           // Check sanity locations on beating if enabled
-          if (archipelago.APEntryState.apGame != null) {
+          if (archipelago.APInfo.apGame != null) {
             var songName = PlayfieldManager.SONG.song;
             var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
-            archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
+            archipelago.APInfo.apGame.checkSanityLocationsOnBeating(songName, modName);
           }
 
           if (backend.ClientPrefs.data.apNoticeStyle == "Achievement") {
-            if (archipelago.APEntryState.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
+            if (archipelago.APInfo.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
               archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
               trace("Goal achievement popup triggered.");
               FlxG.sound.playMusic(Paths.sound('You Win'));

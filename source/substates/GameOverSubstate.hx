@@ -371,7 +371,7 @@ class GameOverSubstate extends MusicBeatSubstate
 								if (ClientPrefs.data.preloadSong) {
 									#if ARCHIPELAGO_ALLOWED
 								var nextState:PlayState;
-									if (archipelago.APEntryState.inArchipelagoMode) {
+									if (archipelago.APInfo.inArchipelagoMode) {
 										// Preserve playlist and songlist for AP mode
 										if (PlayState.instance != null && PlayState.isPlaylist) {
 											nextState = new archipelago.APPlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);
@@ -401,7 +401,7 @@ class GameOverSubstate extends MusicBeatSubstate
 									if (PlayState.instance != null && PlayState.isPlaylist) {
 										#if ARCHIPELAGO_ALLOWED
 										var nextState:PlayState;
-										if (archipelago.APEntryState.inArchipelagoMode) {
+										if (archipelago.APInfo.inArchipelagoMode) {
 											nextState = new archipelago.APPlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);
 										} else {
 											nextState = new PlayState(PlayState.instance.curPlaylist, PlayState.instance.curSonglist);

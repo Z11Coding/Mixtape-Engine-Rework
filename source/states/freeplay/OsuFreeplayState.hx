@@ -76,8 +76,8 @@ class OsuFreeplayState extends MusicBeatState
 		fpManager = FreeplayManager.loadFPManager();
 
 		// Check if the Victory Song is cleared.
-		if (APEntryState.inArchipelagoMode) {
-			trace(APEntryState.victorySong);
+		if (APInfo.inArchipelagoMode) {
+			trace(APInfo.victorySong);
 			APFreeplayManager.updateArchFreeplay();
 			APFreeplayManager.checkVictory();
 		}
@@ -205,7 +205,7 @@ class OsuFreeplayState extends MusicBeatState
 		add(showcaseWarning);
 
 		// Check if showcase mode is enabled, not in Archipelago mode, and warnings are enabled
-		if (ClientPrefs.getGameplaySetting('showcase', false) && !APEntryState.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
+		if (ClientPrefs.getGameplaySetting('showcase', false) && !APInfo.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
 			showcaseWarning.text = "⚠️ SHOWCASE MODE\nENABLED";
 			showcaseWarning.visible = true;
 			showcaseWarningBG.visible = true;
@@ -217,7 +217,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		changeSong();
 
-		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
+		if (APInfo.apGame != null && APInfo.apGame.info() != null) {
 			ticketCounterTop = new FlxText(albumPhoto.x - 130, albumPhoto.y - 230, 0, "0/0", 32);
 			ticketCounterTop.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			ticketCounterTop.scrollFactor.set();
@@ -315,7 +315,7 @@ class OsuFreeplayState extends MusicBeatState
 		}
 
 		#if ARCHIPELAGO_ALLOWED
-		if (APEntryState.inArchipelagoMode) {
+		if (APInfo.inArchipelagoMode) {
 			victoryColor = FlxColor.fromHSL(((e / 2) / 300 * 360) % 360, 1.0, 0.5 * 1.0);
 
 			for (i in 0...fpManager.songList.length) {
@@ -324,7 +324,7 @@ class OsuFreeplayState extends MusicBeatState
 				}
 			}
 
-			if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !isTyping)  {
+			if (FlxG.keys.justPressed.L && APInfo.inArchipelagoMode && !isTyping)  {
 				try { //Because this menu has no actual difficulty select, just assume it's the first difficulty
 					var songLowercase:String = Paths.formatToSongPath(fpManager.songList[curSelected].songName);
 					var poop:String = Highscore.formatSong(songLowercase, 0);
@@ -343,11 +343,11 @@ class OsuFreeplayState extends MusicBeatState
 				MusicBeatState.resetState();
 			}
 
-			if (FlxG.keys.justPressed.H && APEntryState.inArchipelagoMode && !isTyping) {
+			if (FlxG.keys.justPressed.H && APInfo.inArchipelagoMode && !isTyping) {
 				try {
-					var SongInfo = APEntryState.apGame.getSongAndMod(fpManager.songList[curSelected].songName + (fpManager.songList[curSelected].folder != "" ? " (" + fpManager.songList[curSelected].folder + ")" : ""));
-					if (APEntryState.ap != null) {
-						APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
+					var SongInfo = APInfo.apGame.getSongAndMod(fpManager.songList[curSelected].songName + (fpManager.songList[curSelected].folder != "" ? " (" + fpManager.songList[curSelected].folder + ")" : ""));
+					if (APInfo.ap != null) {
+						APInfo.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
 						archipelago.console.SideUI.instance.active = true;
 					}
 				} catch (e:Dynamic) {
@@ -498,8 +498,8 @@ class OsuFreeplayState extends MusicBeatState
 				}
 
 				// Check if song is locked (not in curUnlocked)
-				var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == fpManager.songList[curSelected].songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == fpManager.songList[curSelected].folder].contains(true);
-				var isLocked = APEntryState.inArchipelagoMode && !isUnlocked;
+				var isUnlocked = APInfo.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == fpManager.songList[curSelected].songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == fpManager.songList[curSelected].folder].contains(true);
+				var isLocked = APInfo.inArchipelagoMode && !isUnlocked;
 
 				if (isLocked) {
 					trace('Song is locked (not in curUnlocked)!');
@@ -800,7 +800,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		var trueInt:Int = 0;
 
-		if (APEntryState.inArchipelagoMode)
+		if (APInfo.inArchipelagoMode)
 			APFreeplayManager.checkSongStatus();
 
 		for (i in 0...fpManager.songList.length)
@@ -812,11 +812,11 @@ class OsuFreeplayState extends MusicBeatState
 			var color:FlxColor = 0xFFFFFFFF;
 			var someLocationsNotMissing:Bool = false;
 
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				songName = fpManager.songList[i].songName;
 				modName = fpManager.songList[i].folder;
-				locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-				isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+				locationId = APInfo.apGame.locationData(songName, modName).concat(APInfo.apGame.noteData(songName, modName));
+				isMissing = [for (ID in locationId) APInfo.apGame.isLocationMissing(APInfo.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
 				// Check if song is unlocked
 				var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
@@ -824,7 +824,7 @@ class OsuFreeplayState extends MusicBeatState
 				// Color logic: RED = missing, WHITE = unlocked but not checked, GREEN = checked
 				color = isMissing ? FlxColor.RED : (isUnlocked ? FlxColor.GREEN : FlxColor.WHITE);
 
-				someLocationsNotMissing = isMissing && [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+				someLocationsNotMissing = isMissing && [for (ID in locationId) APInfo.apGame.isLocationMissing(APInfo.apGame.info().get_location_name(ID))].contains(false);
 
 				for (songObj in APFreeplayManager.curUnlocked)
 				{
@@ -844,7 +844,7 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
 
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 				var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
 				songBox.color = APFreeplayManager.isVictorySong(songName, modName) ?
@@ -860,8 +860,8 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.ID = i;
 			this.songBox.add(songBox);
 
-			var isLock:Bool = APEntryState.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains({song: songName, mod: modName});
-			var iconName = isLock ? "lock" : (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
+			var isLock:Bool = APInfo.inArchipelagoMode && CategoryState.loadWeekForce == "all" && isMissing && !APFreeplayManager.unplayedList.contains({song: songName, mod: modName});
+			var iconName = isLock ? "lock" : (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
 			var icon:HealthIcon = new HealthIcon(iconName, false);
 			icon.setPosition(320, 100);
 			icon.ID = i;
@@ -872,7 +872,7 @@ class OsuFreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-			var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
+			var displayName = (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
 			var displayArtist = "Unknown";
 
 			// Only show real artist if songs are not hidden
@@ -900,7 +900,7 @@ class OsuFreeplayState extends MusicBeatState
 
 		trueInt = 0;
 
-		if (APEntryState.inArchipelagoMode)
+		if (APInfo.inArchipelagoMode)
 			APFreeplayManager.checkSongStatus();
 
 		for (i in 0...fpManager.songList.length)
@@ -912,11 +912,11 @@ class OsuFreeplayState extends MusicBeatState
 			var color:FlxColor = 0xFFFFFFFF;
 			var someLocationsNotMissing:Bool = false;
 
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				songName = fpManager.songList[i].songName;
 				modName = fpManager.songList[i].folder;
-				locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
-				isMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
+				locationId = APInfo.apGame.locationData(songName, modName).concat(APInfo.apGame.noteData(songName, modName));
+				isMissing = [for (ID in locationId) APInfo.apGame.isLocationMissing(APInfo.apGame.info().get_location_name(ID))].indexOf(true) != -1 || locationId.length == 0;
 
 				// Check if song is unlocked (in curUnlocked)
 				var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
@@ -926,7 +926,7 @@ class OsuFreeplayState extends MusicBeatState
 				// WHITE = unlocked with all locations missing
 				// GRAY = unlocked with some locations missing
 				// GREEN = unlocked with no locations missing (completed)
-				someLocationsNotMissing = [for (ID in locationId) APEntryState.apGame.isLocationMissing(APEntryState.apGame.info().get_location_name(ID))].contains(false);
+				someLocationsNotMissing = [for (ID in locationId) APInfo.apGame.isLocationMissing(APInfo.apGame.info().get_location_name(ID))].contains(false);
 				color = !isUnlocked ? FlxColor.RED
 					: !isMissing ? FlxColor.GREEN
 					: someLocationsNotMissing ? FlxColor.GRAY
@@ -939,7 +939,7 @@ class OsuFreeplayState extends MusicBeatState
 			songBox.loadGraphic(Paths.image('freeplay/OSUState/bars/background2'));
 			songBox.setGraphicSize(650, 100);
 
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				// Apply the color we calculated based on unlock/completion status
 				// Victory songs get special colors only if they're unlocked
 				if (APFreeplayManager.isVictorySong(songName, modName)) {
@@ -965,7 +965,7 @@ class OsuFreeplayState extends MusicBeatState
 			var isLock:Bool = false;
 			var iconName:String = "";
 
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				// Song is locked if it's not in curUnlocked
 				var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
 				isLock = !isUnlocked;
@@ -984,7 +984,7 @@ class OsuFreeplayState extends MusicBeatState
 			catch(e) {metadata = null;}
 
 			var text:FlxText = new FlxText(0, 0, 500, '', 20);
-			var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
+			var displayName = (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
 			var displayArtist = "Unknown";
 
 			// Only show real artist if songs are not hidden
@@ -1023,7 +1023,7 @@ class OsuFreeplayState extends MusicBeatState
 					catch(e) {metadata = null;}
 
 					var text:FlxText = new FlxText(0, 0, 500, '', 20);
-					var displayName = (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
+					var displayName = (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) ? "Unknown" : fpManager.songList[i].songName;
 					text.text = displayName + '\n' + Difficulty.list[j];
 					text.alignment = 'left';
 					text.ID = trueInt;

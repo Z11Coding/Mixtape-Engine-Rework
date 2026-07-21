@@ -134,13 +134,13 @@ class APConnectionErrorState extends backend.MusicBeatState
 				try {
 					// Clean up all static references to apGame and client
 
-					// APEntryState references
-					archipelago.APEntryState.inArchipelagoMode = false;
-					if (archipelago.APEntryState.apGame != null) {
-						archipelago.APEntryState.apGame = null;
+					// APInfo references
+					archipelago.APInfo.inArchipelagoMode = false;
+					if (archipelago.APInfo.apGame != null) {
+						archipelago.APInfo.apGame = null;
 					}
-					if (archipelago.APEntryState.ap != null) {
-						archipelago.APEntryState.ap = null;
+					if (archipelago.APInfo.ap != null) {
+						archipelago.APInfo.ap = null;
 					}
 
 					// APInfo references
@@ -203,9 +203,9 @@ class APConnectionErrorState extends backend.MusicBeatState
 
 				// Ensure emergency cleanup happens even on error
 				try {
-					archipelago.APEntryState.inArchipelagoMode = false;
-					archipelago.APEntryState.apGame = null;
-					archipelago.APEntryState.ap = null;
+					archipelago.APInfo.inArchipelagoMode = false;
+					archipelago.APInfo.apGame = null;
+					archipelago.APInfo.ap = null;
 					archipelago.APInfo.apGame = null;
 					archipelago.APInfo.ap = null;
 					archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;

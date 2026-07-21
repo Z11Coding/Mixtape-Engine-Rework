@@ -226,7 +226,7 @@ class PlaylistSongSelectorState extends MusicBeatState
 
 		// if(curSelected >= songs.length) curSelected = -1;
 		try {
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				bg.color = FlxColor.fromString('#FD719B'); // Default pink color
 				intendedColor = bg.color;
 			} else {

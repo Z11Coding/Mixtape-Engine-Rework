@@ -464,7 +464,7 @@ class CategoryState extends MusicBeatState
 			// trace('CategoryState: ' + catMode + ' | ' + showModsAsCategories + ' | ' + ClientPrefs.data.showMods);
 
 		// Don't switch to AP versions if we're in LegacyLua mode or already in LegacyLua CategoryState
-		if (archipelago.APEntryState.inArchipelagoMode && !(this is archipelago.APCategoryState) && legacyLuaMode == null && !(this is options.legacylua.LegacyLuaCategoryState)) {
+		if (archipelago.APInfo.inArchipelagoMode && !(this is archipelago.APCategoryState) && legacyLuaMode == null && !(this is options.legacylua.LegacyLuaCategoryState)) {
 			FlxG.switchState(new archipelago.APCategoryState(archipelago.APGameState.instance));
 			return;
 		}

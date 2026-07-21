@@ -123,7 +123,7 @@ class RankingSubstate extends MusicBeatSubstate
 		add(hint);
 
 		#if ARCHIPELAGO_ALLOWED
-		if (!archipelago.APEntryState.inArchipelagoMode) {
+		if (!archipelago.APInfo.inArchipelagoMode) {
 			trace("Not in AP");
 			switch (comboRank)
 			{
@@ -247,7 +247,7 @@ class RankingSubstate extends MusicBeatSubstate
 					//MusicManager.playMenuMusic();
 					TransitionState.transitionState(states.StoryMenuState, {transitionType: "stickers"});
 				case "Freeplay":
-					if (archipelago.APEntryState.inArchipelagoMode) { // Failsafe
+					if (archipelago.APInfo.inArchipelagoMode) { // Failsafe
 						PlayState.gameplayArea = "APFreeplay";
 						return;
 					}
@@ -316,7 +316,7 @@ class RankingSubstate extends MusicBeatSubstate
 							// 	locationId += " (" + archipelago.APPlayState.currentMod + ")";
 							// }
 							trace("Starting location ID processing for: " + locationId.trim());
-							var locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+							var locationIdInts = APInfo.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 							trace('Initial Location IDs: ' + locationIdInts);
 
 							if (locationIdInts == null || locationIdInts.length == 0 || locationIdInts.indexOf(0) != -1)
@@ -330,7 +330,7 @@ class RankingSubstate extends MusicBeatSubstate
 									{
 										trace("Match found for song: " + song[0]);
 										locationId = song[0];
-										locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+										locationIdInts = APInfo.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 										trace("Updated Location IDs: " + locationIdInts);
 										break;
 									}
@@ -366,7 +366,7 @@ class RankingSubstate extends MusicBeatSubstate
 												{
 													trace("Song JSON matches current song: " + songJson.song);
 													locationId = song[0];
-													locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+													locationIdInts = APInfo.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 													trace("Updated Location IDs from JSON: " + locationIdInts);
 													break;
 												} 													else
@@ -375,7 +375,7 @@ class RankingSubstate extends MusicBeatSubstate
 													if (songJson != null && songJson.song != null)
 													{
 														locationId = songJson.song;
-														locationIdInts = APEntryState.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
+														locationIdInts = APInfo.apGame.locationData(locationId.trim(), archipelago.APPlayState.currentMod.trim());
 														trace("Updated Location IDs using JSON name: " + locationIdInts);
 														attempts++;
 														if (attempts >= 200)
@@ -394,7 +394,7 @@ class RankingSubstate extends MusicBeatSubstate
 							if (managers.APFreeplayManager.isVictorySong(locationId, archipelago.APPlayState.currentMod))
 							{
 								trace("Song is a victory song, adding victory location ID");
-								var vicLocation:Null<Int> = APEntryState.apGame.info().get_location_id("Victory Goal");
+								var vicLocation:Null<Int> = APInfo.apGame.info().get_location_id("Victory Goal");
 								if (vicLocation != null && vicLocation != -1)
 								{
 									locationIdInts = locationIdInts.concat([vicLocation]);
@@ -406,8 +406,8 @@ class RankingSubstate extends MusicBeatSubstate
 							for (locationIdInt in locationIdInts)
 							{
 								trace("Processing Location ID: " + locationIdInt);
-								trace("Location Check Result: " + APEntryState.apGame.info().LocationChecks([locationIdInt]));
-								trace("Location Name: " + APEntryState.apGame.info().get_location_name(locationIdInt));
+								trace("Location Check Result: " + APInfo.apGame.info().LocationChecks([locationIdInt]));
+								trace("Location Name: " + APInfo.apGame.info().get_location_name(locationIdInt));
 							}
 							trace("Current Song: " + archipelago.APPlayState.currentSong);
 
@@ -426,15 +426,15 @@ class RankingSubstate extends MusicBeatSubstate
 							// Clear active effects
 							archipelago.APItem.clearActiveEffects();
 
-							if (archipelago.APEntryState.inArchipelagoMode) {
+							if (archipelago.APInfo.inArchipelagoMode) {
 								ClientPrefs.data.gameplaySettings.set('chartModifier', 'Normal');
 							}	// Check sanity locations on beating if enabled
 
-							if (archipelago.APEntryState.apGame != null)
+							if (archipelago.APInfo.apGame != null)
 							{
 								var songName = PlayfieldManager.SONG.song;
 								var modName = archipelago.APPlayState.currentMod != null && archipelago.APPlayState.currentMod.trim() != "" ? archipelago.APPlayState.currentMod.trim() : null;
-								archipelago.APEntryState.apGame.checkSanityLocationsOnBeating(songName, modName);
+								archipelago.APInfo.apGame.checkSanityLocationsOnBeating(songName, modName);
 							}
 
 							// for (locationIdInt in locationIdInts)
@@ -453,13 +453,13 @@ class RankingSubstate extends MusicBeatSubstate
 						}
 
 						if (backend.ClientPrefs.data.apNoticeStyle != "Achievement") {
-							if (archipelago.APEntryState.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
+							if (archipelago.APInfo.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
 								archipelago.console.obj.Alert.alert("Congratulations! You've achieved your goal!", "Well Done!");
 								trace("Goal achievement popup triggered.");
 								FlxG.sound.playMusic(Paths.sound('You Win'));
 							}
 						} else {
-							if (archipelago.APEntryState.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
+							if (archipelago.APInfo.apGame.checkGoal(PlayfieldManager.SONG.song, archipelago.APPlayState.currentMod)) {
 								trace("Congratulations! You've achieved your goal! Popup triggered.");
 							ArchPopup.startPopupCustom("Congratulations! You've achieved your goal!", 'Well Done!', 'archColor');
 							}

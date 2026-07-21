@@ -92,9 +92,9 @@ class FreeplayManager {
 
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
     public static function loadFPManager(?ensureLoaded:Bool = false):FreeplayManager {
-        //trace("FP in Arch Mode: " + APEntryState.inArchipelagoMode);
+        //trace("FP in Arch Mode: " + APInfo.inArchipelagoMode);
         #if ARCHIPELAGO_ALLOWED
-        return switch (APEntryState.inArchipelagoMode) {
+        return switch (APInfo.inArchipelagoMode) {
             case true:
                 if (instance != null && Std.isOfType(instance, APFreeplayManager)) {
                     //trace("Using existing APFreeplayManager instance.");

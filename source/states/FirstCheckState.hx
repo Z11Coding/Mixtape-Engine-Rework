@@ -550,7 +550,7 @@ class APCheckState extends MusicBeatState
 	override public function create()
 	{
 		super.create();
-		if (!archipelago.APEntryState.checkAndAlertAPWorld())
+		if (!archipelago.APInfo.checkAndAlertAPWorld())
 		{
 			var update = new haxe.ui.containers.dialogs.MessageBox();
 			update.title = "Archipelago World";
@@ -561,7 +561,7 @@ class APCheckState extends MusicBeatState
 			{
 				if (event.button == haxe.ui.containers.dialogs.Dialog.DialogButton.YES)
 				{
-					archipelago.APEntryState.installAPWorld();
+					archipelago.APInfo.installAPWorld();
 					FirstCheckState.goToSplashScreen();
 				}
 				else

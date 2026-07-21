@@ -39,7 +39,7 @@ class APPongTrapState extends PongGameState {
 
     override function create() {
 
-        if (!archipelago.APEntryState.inArchipelagoMode)
+        if (!archipelago.APInfo.inArchipelagoMode)
             throw "Error: APPongTrapState can only be used in Archipelago mode!";
 
         super.create();
@@ -211,7 +211,7 @@ class APPongTrapState extends PongGameState {
                         archipelago.APItem.APPongTrap.onTrapStateExit();
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                         // Save AP Data.
-                            APEntryState.apGame.updateSaveData();
+                            APInfo.apGame.updateSaveData();
                         if (previousState != null) {
                             FlxG.switchState(Type.createInstance(previousState, []));
                         } else {
@@ -318,8 +318,8 @@ class APPongTrapState extends PongGameState {
     override function update(elapsed:Float) {
         super.update(elapsed);
         #if ARCHIPELAGO_ALLOWED
-		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
-			APEntryState.apGame.info()?.poll();
+		if (APInfo.apGame != null && APInfo.inArchipelagoMode)
+			APInfo.apGame.info()?.poll();
 		#end
     }
 

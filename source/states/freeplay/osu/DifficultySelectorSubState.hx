@@ -81,7 +81,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         PlayState.storyWeek = song.week;
 
         // If unknownSongs is active, replace difficulty list with just "Unknown"
-        if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+        if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
             // Store original difficulties for later random selection
             originalDifficultyList = Difficulty.list.copy();
             Difficulty.list = ['Unknown'];
@@ -130,7 +130,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
             if(controls.UI_LEFT_P || controls.UI_RIGHT_P)
             {
                 // Block difficulty navigation if unknown songs is active
-                if (!(APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
+                if (!(APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
                     changeDiff(controls.UI_LEFT_P? -1 : 1);
                 }
             }
@@ -141,7 +141,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                 var actualDifficulty:Int = difficulty;
 
                 // If unknownSongs is active, randomly select an actual difficulty
-                if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs && originalDifficultyList.length > 0) {
+                if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs && originalDifficultyList.length > 0) {
                     var availableDifficulties:Array<Int> = [];
                     var songLowercase:String = Paths.formatToSongPath(song.songName);
 
@@ -191,8 +191,8 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                     trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
 
                     // Check if required characters and stage are unlocked via sanity system
-                    if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-                        var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
+                    if (APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
+                        var missingItems = archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
                         if (missingItems.length > 0) {
                             trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
 
@@ -219,7 +219,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
 
                     var errorStr:String;
                     // If unknownSongs is active, show anonymous error message
-                    if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+                    if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
                         errorStr = 'Unable to load song data.';
                     } else {
                         errorStr = e.toString();
@@ -236,7 +236,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
                     return;
                 }
                 LoadingState.prepareToSong();
-                LoadingState.loadAndSwitchState(archipelago.APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
+                LoadingState.loadAndSwitchState(archipelago.APInfo.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
 					@:privateAccess
                     {
                         archipelago.APPlayState.currentSong = OsuFreeplayState.instance.fpManager.songList[OsuFreeplayState.curSelected].songName;
@@ -264,7 +264,7 @@ class DifficultySelectorSubState extends MusicBeatSubstate
         buildDifficultySprite(Difficulty.list[difficulty].toLowerCase());
 
         // Hide difficulty info when unknownSongs is active
-        if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+        if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
             difficultyStars.visible = false;
             return;
         }
