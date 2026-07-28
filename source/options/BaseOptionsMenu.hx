@@ -156,7 +156,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			switch(curOption.type)
 			{
 				case BOOL:
-					if(controls.ACCEPT)
+					if(controls.ACCEPT && curOption.enterAction == null)
 					{
 						FlxG.sound.play(Paths.sound('scrollMenu'));
 						curOption.setValue((curOption.getValue() == true) ? false : true);
@@ -189,7 +189,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 					}
 
 				default:
-					if(controls.UI_LEFT || controls.UI_RIGHT)
+					if (curOption.enterAction != null && controls.ACCEPT)
+					{
+						curOption.enterAction();
+						FlxG.sound.play(Paths.sound('confirmMenu'));
+					}
+					else if(controls.UI_LEFT || controls.UI_RIGHT)
 					{
 						var pressed = (controls.UI_LEFT_P || controls.UI_RIGHT_P);
 						if(holdTime > 0.5 || pressed)

@@ -42,7 +42,39 @@ class Option
 	public var defaultKeys:Keybind = null; //Only used in keybind type
 	public var keys:Keybind = null; //Only used in keybind type
 
-	public function new(name:String, description:String = '', variable:String, type:OptionType = BOOL, ?options:Array<String> = null, ?translation:String = null)
+	/*
+		Enter action is a function that is called when the user presses enter on this option.
+		If used on a toggle, the value will be chosen by the function's bool return value.
+		If used on a string/int/float/percent, the option will ignore the bool value.
+		If using a non-toggle, you should always return true, unless you want to prevent the option from being changed.
+	*/
+	public var enterAction(set, get):Option->Bool = null;
+	private var _enterAction:Option->Bool = null;
+
+	private function get_enterAction() {
+		function wrapper():Bool {
+			if(_enterAction != null) {
+				var originalValue = getValue();
+				var result = _enterAction(this);
+				if(type != BOOL && result) //If it's not a toggle, we don't care about the return value, just that it was pressed
+					change();
+				else if(type == BOOL && result != originalValue) //If it's a toggle, we only change the value if the return value is different from the original value
+					setValue(result);
+				else if (type != BOOL && !result) //If it's not a toggle and the return value is false, we don't change the value
+					setValue(originalValue);
+				return result;
+			}
+			return true;
+		}
+		return wrapper;
+	}
+
+	private function set_enterAction(value:Option->Bool) {
+		_enterAction = value;
+	}
+
+
+	public function new(name:String, description:String = '', variable:String, type:OptionType = BOOL, ?options:Array<String> = null, ?translation:String = null, ?enterAction:Option->Bool = null, ?defaultValue:Dynamic = null)
 	{
 		_name = name;
 		_translationKey = translation != null ? translation : _name;
@@ -51,8 +83,9 @@ class Option
 		this.variable = variable;
 		this.type = type;
 		this.options = options;
-
-		if(this.type != KEYBIND) this.defaultValue = Reflect.getProperty(ClientPrefs.defaultData, variable);
+		this.enterAction = enterAction;
+		if (this.type == KEYBIND && enterAction != null) throw 'Keybind options should not have an enterAction. Fix the ${name} option for variable ${variable} to solve this.'
+		if(this.type != KEYBIND) this.defaultValue = defaultValue ?? Reflect.getProperty(ClientPrefs.defaultData, variable);
 		switch(type)
 		{
 			case BOOL:
@@ -86,7 +119,7 @@ class Option
 		{
 			if(getValue() == null)
 				setValue(defaultValue);
-	
+
 			switch(type)
 			{
 				case STRING:

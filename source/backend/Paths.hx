@@ -1223,6 +1223,13 @@ class Paths
 	inline static public function font(key:String)
 	{
 		var folderKey:String = Language.getFileTranslation('fonts/$key');
+
+		// Apply Runic font substitution if Runic language is active
+		if (ClientPrefs.data.language == "runic")
+		{
+			folderKey = yutautil.Runic.getFontForLanguage(folderKey);
+		}
+
 		#if MODS_ALLOWED
 		var file:String = modFolders(folderKey);
 		if(FileSystem.exists(file)) return file;
