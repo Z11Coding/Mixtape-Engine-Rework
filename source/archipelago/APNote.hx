@@ -81,7 +81,7 @@ class APNote extends objects.Note {
 
         if (flatNotes.length == 0) {
             trace("No notes available to replace.");
-            trace(archipelago.APEntryState.apGame.info().LocationChecks(locations));
+            trace(archipelago.APInfo.apGame.info().LocationChecks(locations));
             trace("Couldn't place any notes, so we're just sending the checks.");
             return newNotes; // Return an empty array if there are no notes
         }

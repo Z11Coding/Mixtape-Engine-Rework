@@ -406,7 +406,7 @@ class SongMenuItem extends FlxSpriteGroup
 		{
 			// Ultimate Confusion Trap - Hide song names when AP unknown songs is active
 			#if ARCHIPELAGO_ALLOWED
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				if (APItem.unknownSongs)
 				{
 					songText.text = '???';
@@ -425,7 +425,7 @@ class SongMenuItem extends FlxSpriteGroup
 					// Do it in here for Vslice so that it's automatically per capsule
 					var songName:String = songData.songName;
 					var modName:String = songData.folder;
-					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+					locationId = APInfo.apGame.locationData(songName, modName).concat(APInfo.apGame.noteData(songName, modName));
 
 					// Get color state and color value from centralized manager
 					var colorState = APFreeplayManager.getSongColorState(songName, modName, locationId);

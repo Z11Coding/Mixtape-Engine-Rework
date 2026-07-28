@@ -30,6 +30,7 @@ class OptionsState extends MusicBeatState
 	public static var menuBG:FlxSprite;
 	public var onPlayState:Bool = false;
 	public static var fromPlayState:Bool = false;
+	public static var
 
 	function openSelectedSubstate(label:String) {
 		switch(label)
@@ -160,9 +161,10 @@ class OptionsState extends MusicBeatState
 		if (controls.BACK)
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
-			if(onPlayState)
+			if(onPlayState || fromPlayState)
 			{
 				StageData.loadDirectory(PlayfieldManager.SONG);
+				LoadingState.prepareToSong();
 				LoadingState.loadAndSwitchState(new PlayState());
 				FlxG.sound.music.volume = 0;
 				fromPlayState = false;

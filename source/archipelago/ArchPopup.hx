@@ -188,7 +188,7 @@ class ArchPopup extends openfl.display.Sprite {
 			if(popup == null) continue;
             popup.intendedY += 150;
 		}
-		if (!APEntryState.gonnaRunSync)
+		if (!APInfo.gonnaRunSync)
 		{
 			var songName = daSong.song;
 			var modName = daSong.mod;

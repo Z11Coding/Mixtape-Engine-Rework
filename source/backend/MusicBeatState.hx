@@ -440,7 +440,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		#if ARCHIPELAGO_ALLOWED
 		// Check for pending Archipelago reconnection
-		if (archipelago.APEntryState.inArchipelagoMode &&
+		if (archipelago.APInfo.inArchipelagoMode &&
 			archipelago.APGameState.pendingReconnection &&
 			archipelago.APGameState.reconnectionCallback != null) {
 
@@ -671,7 +671,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 		//curSection = RConductor.instance.currentMeasure;
 
 		#if ARCHIPELAGO_ALLOWED
-		if (archipelago.APEntryState.inArchipelagoMode)
+		if (archipelago.APInfo.inArchipelagoMode)
 			archipelago.APItem.doCheck();
 		#end
 
@@ -736,8 +736,8 @@ class MusicBeatState extends yutautil.SafeManagedState
 		}
 
 		#if ARCHIPELAGO_ALLOWED
-		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
-			APEntryState.apGame.info()?.poll();
+		if (APInfo.apGame != null && APInfo.inArchipelagoMode)
+			APInfo.apGame.info()?.poll();
 		#end
 	}
 
@@ -950,7 +950,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 
 		// Check for pending Archipelago reconnection
 		if (!(FlxG.state is PlayState))
-		if (archipelago.APEntryState.inArchipelagoMode &&
+		if (archipelago.APInfo.inArchipelagoMode &&
 			archipelago.APGameState.pendingReconnection &&
 			archipelago.APGameState.reconnectionCallback != null) {
 
@@ -1007,7 +1007,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			PlayState.nextReloadAll = true;
 
 			#if ARCHIPELAGO_ALLOWED
-			var newState:FlxState = archipelago.APEntryState.inArchipelagoMode ?
+			var newState:FlxState = archipelago.APInfo.inArchipelagoMode ?
 				new archipelago.APPlayState(playlistMeta, songlistMeta) :
 				new PlayState(playlistMeta, songlistMeta);
 			#else
@@ -1040,7 +1040,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 			PlayState.nextReloadAll = true;
 
 			#if ARCHIPELAGO_ALLOWED
-			var newState:FlxState = archipelago.APEntryState.inArchipelagoMode ?
+			var newState:FlxState = archipelago.APInfo.inArchipelagoMode ?
 				new archipelago.APPlayState(playlistMeta, songlistMeta) :
 				new PlayState(playlistMeta, songlistMeta);
 			#else
@@ -1131,10 +1131,10 @@ class MusicBeatState extends yutautil.SafeManagedState
 	{
 		#if ARCHIPELAGO_ALLOWED
 		// Only update tags if we're in Archipelago mode and have a valid client
-		if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.ap != null) {
+		if (archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.ap != null) {
 			try {
 				// Set base tags and add DeathLink/TrapLink based on settings
-				archipelago.APEntryState.ap.updateLinkTags(ClientPrefs.data.deathlink, ClientPrefs.data.traplink);
+				archipelago.APInfo.ap.updateLinkTags(ClientPrefs.data.deathlink, ClientPrefs.data.traplink);
 				trace("MusicBeatState: Updated AP tags - DeathLink: " + ClientPrefs.data.deathlink + ", TrapLink: " + ClientPrefs.data.traplink);
 			} catch (e:Dynamic) {
 				trace("MusicBeatState: Error updating AP tags: " + e);

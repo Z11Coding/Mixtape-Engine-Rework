@@ -35,7 +35,7 @@ class APUnoTrapState extends UnoTestState {
 
     override function create() {
 
-        if (!archipelago.APEntryState.inArchipelagoMode)
+        if (!archipelago.APInfo.inArchipelagoMode)
             throw "Error: APUnoTrapState can only be used in Archipelago mode!";
 
         super.create();
@@ -101,7 +101,7 @@ class APUnoTrapState extends UnoTestState {
                         new FlxTimer().start(2.0, function(timer) {
                             archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                             // Save AP Data.
-                                APEntryState.apGame.updateSaveData();
+                                APInfo.apGame.updateSaveData();
                             if (previousState != null) {
                                 LoadingState.loadAndSwitchState(Type.createInstance(states.MainMenuState, []));
                             } else {
@@ -115,7 +115,7 @@ class APUnoTrapState extends UnoTestState {
                         new FlxTimer().start(2.0, function(timer) {
                             archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                             // Save AP Data.
-                                APEntryState.apGame.updateSaveData();
+                                APInfo.apGame.updateSaveData();
                             TrapDeathHandler.forceDeath("Lost UNO Challenge");
                         });
                     }
@@ -166,7 +166,7 @@ class APUnoTrapState extends UnoTestState {
         if (unoGame != null) {
 
             // Add human player
-            var humanPlayer = new UnoPlayer("human", '${APEntryState.ap.slot} (You)', true);
+            var humanPlayer = new UnoPlayer("human", '${APInfo.ap.slot} (You)', true);
             unoGame.addPlayer(humanPlayer);
 
             var diffArray = [UnoDifficulty.EASY, UnoDifficulty.NORMAL, UnoDifficulty.HARD, UnoDifficulty.EXPERT];

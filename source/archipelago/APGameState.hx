@@ -1681,13 +1681,13 @@ class APGameState
 
 		_ap.disconnect_socket();
 		_ap = null;
-		if (APEntryState.ap != null)
+		if (APInfo.ap != null)
 		{
-			APEntryState.ap = null;
+			APInfo.ap = null;
 		}
-		if (APEntryState.apGame != null)
+		if (APInfo.apGame != null)
 		{
-			APEntryState.apGame = null;
+			APInfo.apGame = null;
 		}
 		if (APInfo.ap != null)
 		{
@@ -3808,7 +3808,7 @@ class APGameState
 						function(client:Client, slotData:Dynamic) {
 							// Reconnection successful - update the AP client and continue
 							gameStateInstance._ap = client;
-							APEntryState.ap = client;
+							APInfo.ap = client;
 
 							// Update game state with new connection
 							archipelago.APPlayState.apGame = gameStateInstance;
@@ -3827,7 +3827,7 @@ class APGameState
 							// Validate that the death link state was restored correctly
 							gameStateInstance.validateDeathLinkState();
 
-										APEntryState.gonnaRunSync = true; // Force sync on next update
+										APInfo.gonnaRunSync = true; // Force sync on next update
 										client.Sync();
 
 
@@ -3900,7 +3900,7 @@ class APGameState
 						function(client:Client, slotData:Dynamic) {
 							// Same success handler as above
 							gameStateInstance._ap = client;
-							APEntryState.ap = client;
+							APInfo.ap = client;
 							archipelago.APPlayState.apGame = gameStateInstance;
 							archipelago.APInfo.apGame = gameStateInstance;
 							archipelago.APInfo.ap = gameStateInstance._ap;
@@ -4002,9 +4002,9 @@ class APGameState
 		_ap.clientStatus = ClientStatus.UNKNOWN;
 		_ap.onSocketDisconnected.remove(onSocketDisconnected);
 		_ap = null;
-		APEntryState.ap = null;
-		APEntryState.apGame = null;
-		APEntryState.inArchipelagoMode = false;
+		APInfo.ap = null;
+		APInfo.apGame = null;
+		APInfo.inArchipelagoMode = false;
 		MusicBeatState.switchState(new APEntryState());
 	}
 

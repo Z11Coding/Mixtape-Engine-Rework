@@ -468,7 +468,7 @@ class LoadingState extends MusicBeatState
 		_startPool();
 		loadNextDirectory();
 
-		if (APEntryState.inArchipelagoMode && APInfo.inHardMode) {
+		if (APInfo.inArchipelagoMode && APInfo.inHardMode) {
 			trace('Stage Access Key: ${APInfo.hasItem("Stage Access Key")}');
 			if (!APInfo.hasItem("Stage Access Key")) {
 				FlxG.sound.music.stop();

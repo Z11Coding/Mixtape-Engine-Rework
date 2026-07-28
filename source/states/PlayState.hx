@@ -984,7 +984,7 @@ class PlayState extends MusicBeatState
 			setOnScripts("healthMode", curHealthMode);
 			callOnScripts("onSetHealthMode", [curHealthMode]);
 
-			if (archipelago.APEntryState.inArchipelagoMode) {
+			if (archipelago.APInfo.inArchipelagoMode) {
 				if (archipelago.APPlayState.livecount > 1)
 					curHealthMode = "Lives + Mixtape";
 				else
@@ -997,7 +997,7 @@ class PlayState extends MusicBeatState
 			var poop:String = Highscore.formatSong(songLowercase, storyDifficulty);
 			Song.loadFromJson(poop, songLowercase);
 		}
-		inArchipelagoMode = archipelago.APEntryState.inArchipelagoMode;
+		inArchipelagoMode = archipelago.APInfo.inArchipelagoMode;
 		#if ARCHIPELAGO_ALLOWED
 		if (inArchipelagoMode && !(this is archipelago.APPlayState) && !isLegacyLuaTest && !options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode)
 		{
@@ -7022,7 +7022,7 @@ class PlayState extends MusicBeatState
 		trace('isWarmUp: ${isWarmUp}');
 		trace('curSonglist: ${curSonglist}');
 		if (curSonglist != null) trace('curSonglist length: ${curSonglist.length}');
-		trace('inArchipelagoMode: ${archipelago.APEntryState.inArchipelagoMode}');
+		trace('inArchipelagoMode: ${archipelago.APInfo.inArchipelagoMode}');
 		trace('=============================');
 
 		//Should kill you if you tried to cheat
@@ -7133,13 +7133,13 @@ class PlayState extends MusicBeatState
 						camHUD.alpha -= 1 / 10;
 					}, 10);
 
-					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay') && !ClientPrefs.getGameplaySetting('showcase', false) && !archipelago.APEntryState.inArchipelagoMode) {
+					if(!ClientPrefs.getGameplaySetting('practice') && !ClientPrefs.getGameplaySetting('botplay') && !ClientPrefs.getGameplaySetting('showcase', false) && !archipelago.APInfo.inArchipelagoMode) {
 						Highscore.savePlaylistScore(curPlaylist.playlistName, campaignScore);
 						FlxG.save.flush();
 					}
 
 					#if ARCHIPELAGO_ALLOWED
-					if (archipelago.APEntryState.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
+					if (archipelago.APInfo.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
 						var apPlayState = cast(this, archipelago.APPlayState);
 
 						// Collect all checks: accumulated + this song's final checks
@@ -7166,7 +7166,7 @@ class PlayState extends MusicBeatState
 
 						// Add final song location checks
 						if (archipelago.APInfo.unlockMethod != "Note Checks") {
-							var songLocationIds = archipelago.APEntryState.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
+							var songLocationIds = archipelago.APInfo.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
 							if (songLocationIds != null) {
 								trace('Adding ${songLocationIds.length} final song location checks');
 								for (locId in songLocationIds) {
@@ -7195,7 +7195,7 @@ class PlayState extends MusicBeatState
 						openSubState(new StickerSubState(function(s) {
 							return new archipelago.APPlaylistState();
 						}));
-					} else if (archipelago.APEntryState.inArchipelagoMode) {
+					} else if (archipelago.APInfo.inArchipelagoMode) {
 						openSubState(new StickerSubState(function(s) {
 							return new archipelago.APPlaylistState();
 						}));
@@ -7244,7 +7244,7 @@ class PlayState extends MusicBeatState
 					// More songs remain in playlist
 					// For AP mode: transfer checks from this song to next instance
 					#if ARCHIPELAGO_ALLOWED
-					if (archipelago.APEntryState.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
+					if (archipelago.APInfo.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
 						var apPlayState = cast(this, archipelago.APPlayState);
 
 						// Will be transferred via funcAndReturn below
@@ -7274,7 +7274,7 @@ class PlayState extends MusicBeatState
 					// Set AP variables for next song if in AP mode
 					#if ARCHIPELAGO_ALLOWED
 					var nextState:archipelago.APPlayState = null;
-					if (archipelago.APEntryState.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
+					if (archipelago.APInfo.inArchipelagoMode && Std.isOfType(this, archipelago.APPlayState)) {
 						var apPlayState = cast(this, archipelago.APPlayState);
 						archipelago.APPlayState.currentSong = curSonglist[0].songName;
 						archipelago.APPlayState.currentMod = curSonglist[0].folder != null ? curSonglist[0].folder : '';
@@ -7304,7 +7304,7 @@ class PlayState extends MusicBeatState
 
 							// Add current song's location checks
 							if (archipelago.APInfo.unlockMethod != "Note Checks") {
-								var songLocationIds = archipelago.APEntryState.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
+								var songLocationIds = archipelago.APInfo.apGame.locationData(archipelago.APPlayState.currentSong.trim(), archipelago.APPlayState.currentMod.trim());
 								if (songLocationIds != null && songLocationIds.length > 0) {
 									trace('Adding ${songLocationIds.length} location checks from this song');
 									for (locId in songLocationIds) {
@@ -7324,7 +7324,7 @@ class PlayState extends MusicBeatState
 					if(Math.isNaN(percent)) percent = 0;
 					// Don't save scores in AP mode
 					#if ARCHIPELAGO_ALLOWED
-					if (!archipelago.APEntryState.inArchipelagoMode) {
+					if (!archipelago.APInfo.inArchipelagoMode) {
 						Highscore.saveScore(Song.loadedSongName, comboManager.songScore, storyDifficulty, percent, comboManager.songMisses, deathCounter);
 					}
 					#else
@@ -7341,9 +7341,9 @@ class PlayState extends MusicBeatState
 					LoadingState.prepareToSong();
 
 					#if ARCHIPELAGO_ALLOWED
-					if (archipelago.APEntryState.inArchipelagoMode && nextState != null) {
+					if (archipelago.APInfo.inArchipelagoMode && nextState != null) {
 						LoadingState.loadAndSwitchState(nextState);
-					} else if (archipelago.APEntryState.inArchipelagoMode) {
+					} else if (archipelago.APInfo.inArchipelagoMode) {
 						LoadingState.loadAndSwitchState(new archipelago.APPlayState(null, curSonglist));
 					} else {
 						LoadingState.loadAndSwitchState(new PlayState(curPlaylist, curSonglist));

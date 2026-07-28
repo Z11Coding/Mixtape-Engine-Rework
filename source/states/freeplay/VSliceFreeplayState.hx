@@ -375,8 +375,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
         // Check if the Victory Song is cleared.
 		#if ARCHIPELAGO_ALLOWED
-		if (APEntryState.inArchipelagoMode) {
-			trace(APEntryState.victorySong);
+		if (APInfo.inArchipelagoMode) {
+			trace(APInfo.victorySong);
 			APFreeplayManager.updateArchFreeplay();
 			APFreeplayManager.checkVictory();
 
@@ -481,7 +481,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// So we don't need to duplicate that work here. The songs array is already populated by refreshSongList()
 
 		// Yeah so turns out AP literally doesn't work in this state without this????
-		if (APEntryState.inArchipelagoMode && !alreadyLoadedAP) {
+		if (APInfo.inArchipelagoMode && !alreadyLoadedAP) {
 			alreadyLoadedAP =  true;
 			for (globalSong in fpManager.songList)
 			{
@@ -678,7 +678,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		charSelectHint.color = 0xFF5F5F5F;
 
 // Check if showcase mode is enabled, not in Archipelago mode, and warnings are enabled
-	if (ClientPrefs.getGameplaySetting('showcase', false) && !APEntryState.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
+	if (ClientPrefs.getGameplaySetting('showcase', false) && !APInfo.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
 			charSelectHint.text = '⚠️ SHOWCASE MODE ENABLED ⚠️';
 			charSelectHint.color = 0xFFFFFF00; // Yellow color for warning
 		} else {
@@ -1003,7 +1003,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	 */
 	public function generateSongList(filterStuff:Null<SongFilter>, force:Bool = false, onlyIfChanged:Bool = true):Void
 	{
-		if (APEntryState.inArchipelagoMode) APFreeplayManager.checkSongStatus();
+		if (APInfo.inArchipelagoMode) APFreeplayManager.checkSongStatus();
 
 		var tempSongs:Array<Null<FreeplaySongData>> = songs;
 
@@ -1651,7 +1651,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		#if ARCHIPELAGO_ALLOWED
 		// Update AP text elements dynamically in AP mode
-		if (APEntryState.inArchipelagoMode)
+		if (APInfo.inArchipelagoMode)
 		{
 			if (apTicketText != null)
 			{
@@ -2018,7 +2018,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		{
 			PlayState.isPlaylist = false;
 			PlayState.isWarmUp = false;
-			if (APEntryState.inArchipelagoMode) {
+			if (APInfo.inArchipelagoMode) {
 				// Handle random song selection in AP mode
 				if (curSelected == 0) {
 					// Random button was selected - find accessible songs and pick randomly
@@ -2062,7 +2062,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 						}
 
 						// Check sanity items if song is otherwise accessible
-						if (songAccessible && archipelago.APEntryState.apGame != null) {
+						if (songAccessible && archipelago.APInfo.apGame != null) {
 							// Store original mod directory
 							var originalModDirectory = Mods.currentModDirectory;
 
@@ -2096,7 +2096,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 							}
 
 							if (songData != null) {
-								var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+								var missingItems = archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(songData);
 								if (missingItems.length > 0) {
 									songAccessible = false;
 								}
@@ -2205,8 +2205,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				}
 
 				// Check if song is locked (not in curUnlocked)
-				var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == curCapsule.songData.songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == curCapsule.songData.folder].contains(true);
-				var isLocked = APEntryState.inArchipelagoMode && !isUnlocked;
+				var isUnlocked = APInfo.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == curCapsule.songData.songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == curCapsule.songData.folder].contains(true);
+				var isLocked = APInfo.inArchipelagoMode && !isUnlocked;
 
 				if (isLocked) {
 					trace('Song is locked (not in curUnlocked)!');
@@ -2327,7 +2327,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			}
 
 			// Check if required characters and stage are unlocked via sanity system
-			if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+			if (APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
 				// Load the song data to get character information instead of relying on PlayfieldManager.SONG
 				var songData = null; // Declare songData outside try-catch blocks
 				// Make sure the folder is correct.
@@ -2367,8 +2367,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				}
 
 				if (songData != null) {
-					trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData)}');
-					var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+					trace('Missing Items for this song: ${archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(songData)}');
+					var missingItems = archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(songData);
 					if (missingItems.length > 0) {
 						trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
 
@@ -2962,7 +2962,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			tweenCurSongColor(daSongCapsule);
 
 		// Update hint button costs when song selection changes
-		if (optionsBox != null && archipelago.APEntryState.inArchipelagoMode) {
+		if (optionsBox != null && archipelago.APInfo.inArchipelagoMode) {
 			// Since PsychUI components are added directly, we can reference them directly
 			// The buttons are already member variables, so we can use them directly
 			if (characterHintButton != null)
@@ -3262,7 +3262,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 	 */
 	function createOptionsMenu():Void
 	{
-		trace("createOptionsMenu() called - APEntryState.inArchipelagoMode: " + APEntryState.inArchipelagoMode);
+		trace("createOptionsMenu() called - APInfo.inArchipelagoMode: " + APInfo.inArchipelagoMode);
 
 		// Set up animation positions
 		optionsTargetX = FlxG.width - 360; // Final position (visible)
@@ -3272,7 +3272,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		optionsVisible = ClientPrefs.data.freeplayOptionsOpen ?? false;
 
 		#if ARCHIPELAGO_ALLOWED
-		if (APEntryState.inArchipelagoMode)
+		if (APInfo.inArchipelagoMode)
 		{
 			trace("Creating Archipelago options menu");
 			// Position lower and make taller for more options
@@ -3307,10 +3307,10 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 				// Hint the song
 				if (APFreeplayManager.isVictorySong(songName, modName) && APInfo.ticketCount <= APInfo.ticketWinCount) {
-					APEntryState.ap.Say("!hint Ticket");
+					APInfo.ap.Say("!hint Ticket");
 				} else {
 					var hintCommand = "!hint " + songName + ((modName != "" && modName != null) ? " (" + modName + ")" : "");
-					APEntryState.ap.Say(hintCommand);
+					APInfo.ap.Say(hintCommand);
 				}
 									archipelago.console.SideUI.instance.active = true;
 			}, 280);
@@ -3320,19 +3320,19 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			// Charactersanity/Stagesanity hinting - Check if sanity is enabled
 			// Note: Hint buttons should show when sanity types are configured,
 			// regardless of enable_sanity_locations setting
-			var sanityTypesEnabled = APEntryState.apGame.sanitySettings.sanity_types.length > 0;
+			var sanityTypesEnabled = APInfo.apGame.sanitySettings.sanity_types.length > 0;
 
 			trace("Sanity settings check:");
-			trace("  sanity_types: " + APEntryState.apGame.sanitySettings.sanity_types);
-			trace("  sanity_types.length: " + APEntryState.apGame.sanitySettings.sanity_types.length);
-			trace("  enable_sanity_locations: " + APEntryState.apGame.sanitySettings.enable_sanity_locations);
+			trace("  sanity_types: " + APInfo.apGame.sanitySettings.sanity_types);
+			trace("  sanity_types.length: " + APInfo.apGame.sanitySettings.sanity_types.length);
+			trace("  enable_sanity_locations: " + APInfo.apGame.sanitySettings.enable_sanity_locations);
 			trace("  sanityTypesEnabled: " + sanityTypesEnabled);
 
 			if (sanityTypesEnabled)
 			{
 				trace("ENTERED sanityTypesEnabled condition - creating buttons");
 				// Character hinting
-				if (APEntryState.apGame.sanitySettings.sanity_types.contains("characters"))
+				if (APInfo.apGame.sanitySettings.sanity_types.contains("characters"))
 				{
 					trace("Creating character hint button at yPos: " + yPos);
 					characterHintButton = new PsychUIButton(10, yPos, "", function() {
@@ -3348,7 +3348,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 				}
 
 				// Stage hinting
-				if (APEntryState.apGame.sanitySettings.sanity_types.contains("stages"))
+				if (APInfo.apGame.sanitySettings.sanity_types.contains("stages"))
 				{
 					trace("Creating stage hint button at yPos: " + yPos);
 					stageHintButton = new PsychUIButton(10, yPos, "", function() {
@@ -3365,15 +3365,15 @@ class VSliceFreeplayState extends MusicBeatSubstate
 			} else {
 				trace("ENTERED else block - Sanity hint buttons will NOT be created");
 				trace("  Reason: sanityTypesEnabled = " + sanityTypesEnabled);
-				trace("  sanity_types: " + APEntryState.apGame.sanitySettings.sanity_types);
-				trace("  sanity_types.length: " + APEntryState.apGame.sanitySettings.sanity_types.length);
+				trace("  sanity_types: " + APInfo.apGame.sanitySettings.sanity_types);
+				trace("  sanity_types.length: " + APInfo.apGame.sanitySettings.sanity_types.length);
 				trace("  Expected: sanity_types.length > 0 should be true if array has items");
 			}
 
 			// Skip Song button (Debug) - similar to L key functionality in other freeplay states
 			// #if FEATURE_DEBUG_FUNCTIONS
 			var skipSongButton = new PsychUIButton(10, yPos, "Skip Song (Debug)", function() {
-				if (APEntryState.inArchipelagoMode && !busy && curCapsule != null) {
+				if (APInfo.inArchipelagoMode && !busy && curCapsule != null) {
 					try {
 						var songName = curCapsule.songData.songName;
 						var modName = curCapsule.songData.folder ?? "";
@@ -3713,7 +3713,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 
 		if (songData != null) {
-			var allMissingItems = APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+			var allMissingItems = APInfo.apGame.checkSongCharactersAndStageUnlocked(songData);
 			return allMissingItems.filter(item -> item.startsWith("Character:"));
 		}
 
@@ -3762,7 +3762,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		}
 
 		if (songData != null) {
-			var allMissingItems = APEntryState.apGame.checkSongCharactersAndStageUnlocked(songData);
+			var allMissingItems = APInfo.apGame.checkSongCharactersAndStageUnlocked(songData);
 			return allMissingItems.filter(item -> item.startsWith("Stage:"));
 		}
 
@@ -3788,7 +3788,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		// Send hint commands
 		for (character in missingCharacters) {
-			APEntryState.ap.Say("!hint " + character);
+			APInfo.ap.Say("!hint " + character);
 		}
 	}
 
@@ -3812,7 +3812,7 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		// Send hint commands
 		for (stage in missingStages) {
-			APEntryState.ap.Say("!hint " + stage);
+			APInfo.ap.Say("!hint " + stage);
 		}
 	}
 

@@ -123,8 +123,8 @@ class MainTab extends TabSprite {
 
 	override function keyDown(event:KeyboardEvent):Void {
 		if (stage.focus == chatInput && event.keyCode == 13) {
-			if (APEntryState.ap != null) {
-				APEntryState.ap.Say(chatInput.text);
+			if (APInfo.ap != null) {
+				APInfo.ap.Say(chatInput.text);
 			}
 			else {
 				addMessage("Not connected to the server!");
@@ -151,14 +151,14 @@ class MainTab extends TabSprite {
 	}
 
 	override function onShow() {
-		nickname.text = APEntryState.inArchipelagoMode ? APEntryState.ap.slot : "Archipelago Not Active!";
+		nickname.text = APInfo.inArchipelagoMode ? APInfo.ap.slot : "Archipelago Not Active!";
 		info.text =
-		  "Song Needed for Completion: "+APEntryState.victorySong
-		+ "\nDeathLink: "+APEntryState.deathLink
-		+ "\nTotal Song Amount: "+APEntryState.fullSongCount
-		+ "\nHint Cost: "+ APEntryState.apGame.info().hintCostPoints
-		+ "\nHint Points Left: "+ APEntryState.apGame.info().hintPoints
-		+ "\nCurrent Run Time: "+ APEntryState.apGame.info().localConnectTime;
+		  "Song Needed for Completion: "+APInfo.victorySong
+		+ "\nDeathLink: "+APInfo.deathLink
+		+ "\nTotal Song Amount: "+APInfo.fullSongCount
+		+ "\nHint Cost: "+ APInfo.apGame.info().hintCostPoints
+		+ "\nHint Points Left: "+ APInfo.apGame.info().hintPoints
+		+ "\nCurrent Run Time: "+ APInfo.apGame.info().localConnectTime;
 
 		nickname.x = widthTab / 2 - nickname.width / 2;
 		updateMessages();

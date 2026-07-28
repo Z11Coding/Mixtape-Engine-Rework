@@ -184,7 +184,7 @@ class APPlayState extends PlayState {
     override public function create()
     {
         // Check if the current song/mod is unlocked; if not, set flag and show info panel
-        if (APEntryState.inArchipelagoMode && !archipelago.APInfo.inSongTrap)
+        if (APInfo.inArchipelagoMode && !archipelago.APInfo.inSongTrap)
         {
             var found = false;
             var missingItems:Array<String> = [];
@@ -218,9 +218,9 @@ class APPlayState extends PlayState {
             }
 
             // If song is unlocked, also check if required characters and stage are unlocked via sanity system
-            if (found && archipelago.APEntryState.apGame != null) {
+            if (found && archipelago.APInfo.apGame != null) {
                 // Check sanity items for this song's characters and stage
-                missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
+                missingItems = archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
                 if (missingItems.length > 0) {
                     trace('APPlayState: Song requires unlocked sanity items: ' + missingItems.join(", "));
                     found = false; // Mark as not accessible due to missing sanity items
@@ -278,7 +278,7 @@ class APPlayState extends PlayState {
 
 
 
-        if (!APEntryState.inArchipelagoMode)
+        if (!APInfo.inArchipelagoMode)
         {
             FlxG.switchState(new PlayState());
             return;
@@ -1872,7 +1872,7 @@ class APPlayState extends PlayState {
     public function doEffect(effect:String)
     {
         // trace('im finna act up');
-        if (!APEntryState.inArchipelagoMode) return; //why are you here lol
+        if (!APInfo.inArchipelagoMode) return; //why are you here lol
 
         if (paused || endingSong || transitioning) return;
 
@@ -1884,7 +1884,7 @@ class APPlayState extends PlayState {
 
         effectsRan++;
 
-        if (APEntryState.inArchipelagoMode && (paused || endingSong || transitioning)) {
+        if (APInfo.inArchipelagoMode && (paused || endingSong || transitioning)) {
             new FlxTimer().start(0.1, function(tmr:FlxTimer) {
                 if (!paused && !endingSong && !transitioning &&
                     backend.TransitionState.currenttransition == null &&
@@ -2211,8 +2211,8 @@ class APPlayState extends PlayState {
         if (archipelago.APInfo.inMinigame != None)
         {
             // Save current state before switching to minigame
-            if (APEntryState.apGame != null) {
-                APEntryState.apGame.updateSaveData();
+            if (APInfo.apGame != null) {
+                APInfo.apGame.updateSaveData();
             }
 
             switch (archipelago.APInfo.inMinigame) {
@@ -2669,7 +2669,7 @@ class APPlayState extends PlayState {
         return (function(shouldKill:Bool):Bool {
             if (shouldKill && health <= 0 && bfkilledcheck && !deathByLink && !alreadySent) {
                 alreadySent = true; // because indie cross likes to spam this every frame for some reason
-                APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
+                APInfo.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
             }
             if (shouldKill && activeItems[0] <= 0) {
                 ClientPrefs.data.downScroll = ogScroll;

@@ -1357,7 +1357,7 @@ class CommandPrompt
 
 			case "testTrapLink":
 				@:privateAccess
-				if (archipelago.APEntryState.inArchipelagoMode)
+				if (archipelago.APInfo.inArchipelagoMode)
 					if (args.length > 0)
 						archipelago.APGameState.instance?.doTrapLink({
 							source: "apTest",
@@ -1365,7 +1365,7 @@ class CommandPrompt
 							time: haxe.Timer.stamp()
 						});
 
-						if (!archipelago.APEntryState.inArchipelagoMode)
+						if (!archipelago.APInfo.inArchipelagoMode)
 						{
 							print("Error: You can only use this command in Archipelago mode.");
 						}
@@ -2242,7 +2242,7 @@ class CommandPrompt
 			case "testTrap":
 				#if ARCHIPELAGO_ALLOWED
 				// Check if we're in a valid state for testing (not AP mode, not PlayState)
-				if (archipelago.APEntryState.inArchipelagoMode) {
+				if (archipelago.APInfo.inArchipelagoMode) {
 					print("Error: Cannot test High Quality Trap while in Archipelago mode.");
 					return;
 				}
@@ -2321,8 +2321,8 @@ class CommandPrompt
 
 			case "debugSanity":
 				#if ARCHIPELAGO_ALLOWED
-				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-					archipelago.APEntryState.apGame.debugSanityItems();
+				if (archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
+					archipelago.APInfo.apGame.debugSanityItems();
 				} else {
 					print("Error: Not in Archipelago mode or AP game instance not available.");
 				}
@@ -2332,9 +2332,9 @@ class CommandPrompt
 
 			case "refreshSanity":
 				#if ARCHIPELAGO_ALLOWED
-				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+				if (archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
 					print("Refreshing sanity items...");
-					archipelago.APEntryState.apGame.refreshSanityItems();
+					archipelago.APInfo.apGame.refreshSanityItems();
 					print("Sanity item refresh completed.");
 				} else {
 					print("Error: Not in Archipelago mode or AP game instance not available.");
@@ -2345,16 +2345,16 @@ class CommandPrompt
 
 			case "forceSanitySync":
 				#if ARCHIPELAGO_ALLOWED
-				if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+				if (archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
 					print("Forcing sanity item synchronization with save data...");
 
 					// Get all unlocked sanity items
-					var unlockedItems = archipelago.APEntryState.apGame.unlockedSanityItems;
+					var unlockedItems = archipelago.APInfo.apGame.unlockedSanityItems;
 					var count = [for (key in unlockedItems.keys()) key].length;
 
 					if (count > 0) {
 						// Force save immediately using the public method
-						var success = archipelago.APEntryState.apGame.forceSaveSanityItems();
+						var success = archipelago.APInfo.apGame.forceSaveSanityItems();
 						if (success) {
 							print("Successfully synced " + count + " sanity items to save data.");
 						} else {

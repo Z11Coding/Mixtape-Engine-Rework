@@ -38,7 +38,7 @@ class MusicBeatSubstate extends FlxSubState
 
 		#if ARCHIPELAGO_ALLOWED
 		// Essential Archipelago function - APItem checking
-		if (archipelago.APEntryState.inArchipelagoMode)
+		if (archipelago.APInfo.inArchipelagoMode)
 			archipelago.APItem.doCheck();
 		#end
 
@@ -49,8 +49,8 @@ class MusicBeatSubstate extends FlxSubState
 
 		#if ARCHIPELAGO_ALLOWED
 		// Essential Archipelago polling
-		if (APEntryState.apGame != null && APEntryState.inArchipelagoMode)
-			APEntryState.apGame.info()?.poll();
+		if (APInfo.apGame != null && APInfo.inArchipelagoMode)
+			APInfo.apGame.info()?.poll();
 		#end
 	}
 }

@@ -244,7 +244,7 @@ class APPlaylistState extends MusicBeatState {
 			updateTexts(elapse);
 			// Refresh playlist colors in AP mode to reflect location completion changes
 			#if ARCHIPELAGO_ALLOWED
-			if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+			if (archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
 				for (i in 0...grpPlaylists.members.length) {
 					if (i < loadedPlaylists.length && grpPlaylists.members[i] != null) {
 						var playlistColor = getPlaylistLocationColor(loadedPlaylists[i]);
@@ -334,7 +334,7 @@ class APPlaylistState extends MusicBeatState {
 				for (song in selectedPlaylist.songList) {
 					// Load all songs, and check using the checker.
 					Mods.currentModDirectory = song.folder != null ? song.folder : '';
-					var missingData = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(Song.loadFromJson(Paths.formatToSongPath(song.songName + (song.difficulty.toLowerCase() != "normal" ? "-"+song.difficulty.toLowerCase() : "")), Paths.formatToSongPath(song.songName)));
+					var missingData = archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(Song.loadFromJson(Paths.formatToSongPath(song.songName + (song.difficulty.toLowerCase() != "normal" ? "-"+song.difficulty.toLowerCase() : "")), Paths.formatToSongPath(song.songName)));
 					if (missingData.length > 0) {
 						missingItems = missingItems.concat(missingData);
 					}
@@ -470,9 +470,9 @@ class APPlaylistState extends MusicBeatState {
 
 			// Check AP locations and color the playlist accordingly
 			#if ARCHIPELAGO_ALLOWED
-			if (archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
+			if (archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
 				// Check if all song locations are already completed and send playlist location if so
-				var checkedLocations = archipelago.APEntryState.apGame.info().checkedLocations;
+				var checkedLocations = archipelago.APInfo.apGame.info().checkedLocations;
 				var allSongsCompleted = true;
 				if (loadedPlaylists[i].songLocations != null && loadedPlaylists[i].songLocations.length > 0) {
 					for (songLocationId in loadedPlaylists[i].songLocations) {
@@ -512,7 +512,7 @@ class APPlaylistState extends MusicBeatState {
 
 					var checkedCount = 0;
 					for (locationId in allLocations) {
-						if (archipelago.APEntryState.apGame.info().checkedLocations.contains(locationId)) {
+						if (archipelago.APInfo.apGame.info().checkedLocations.contains(locationId)) {
 							checkedCount++;
 						}
 					}
@@ -556,7 +556,7 @@ class APPlaylistState extends MusicBeatState {
 	 */
   function hasPlaylistEnabledBundles():Bool {
 	#if ARCHIPELAGO_ALLOWED
-	return archipelago.APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null;
+	return archipelago.APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null;
 	#else
 	return false;
 	#end
@@ -593,7 +593,7 @@ class APPlaylistState extends MusicBeatState {
 	 */
   function getPlaylistLocationColor(playlist:APPlaylistMetadata):FlxColor {
 	  #if ARCHIPELAGO_ALLOWED
-	  if (!archipelago.APEntryState.inArchipelagoMode || archipelago.APEntryState.apGame == null)
+	  if (!archipelago.APInfo.inArchipelagoMode || archipelago.APInfo.apGame == null)
 	      return FlxColor.WHITE;
 
 	  // Check if this is a bundle without difficulties set - color purple
@@ -601,7 +601,7 @@ class APPlaylistState extends MusicBeatState {
 		  return 0xFF800080; // PURPLE
 	  }
 
-	  var apGame = archipelago.APEntryState.apGame;
+	  var apGame = archipelago.APInfo.apGame;
 	  var allLocations:Array<Int> = [];
 
 	  // Add the playlist's location_id
@@ -705,7 +705,7 @@ class APPlaylistState extends MusicBeatState {
 		var tempList:Array<APPlaylistSongMetadata> = [];
 		for (song in playlistItem.songs) {
 			trace('Loading song ${song} from playlist ${playlistItem.name}');
-			var data = APEntryState.apGame.getSongAndMod(song).funcAndReturn((d) -> {
+			var data = APInfo.apGame.getSongAndMod(song).funcAndReturn((d) -> {
 				d.song = d.song != null ? d.song : song; // Fallback to song name if lookup fails
 				d.mod = d.mod != null ? d.mod : ''; // Fallback to empty string if lookup fails
 			});

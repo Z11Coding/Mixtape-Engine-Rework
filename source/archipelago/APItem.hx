@@ -405,8 +405,8 @@ class APItem {
                     popup('Ok but can you beat the Pong Master?', "APItem: Pong Challenge", true);
 
                     // Save current state before switching to minigame
-                    if (APEntryState.apGame != null) {
-                        APEntryState.apGame.updateSaveData();
+                    if (APInfo.apGame != null) {
+                        APInfo.apGame.updateSaveData();
                     }
 
                     if (MusicBeatState.getState() == APPlayState.instance) {
@@ -483,8 +483,8 @@ class APItem {
                     popup('Win the round to survive!', "APItem: UNO Challenge", true);
 
                     // Save current state before switching to minigame
-                    if (APEntryState.apGame != null) {
-                        APEntryState.apGame.updateSaveData();
+                    if (APInfo.apGame != null) {
+                        APInfo.apGame.updateSaveData();
                     }
 
                     if (MusicBeatState.getState() == APPlayState.instance) {
@@ -885,13 +885,13 @@ class APItem {
                         unknownSongs = false;
 
                         // Reload freeplay to refresh the display
-                        if (APEntryState.inArchipelagoMode) {
+                        if (APInfo.inArchipelagoMode) {
                             managers.FreeplayManager.loadFPManager().reloadFreeplayState();
                         }
                     }, 300000); // 5 minutes = 300000 milliseconds
 
                     // Reload freeplay immediately to show the confusion
-                    if (APEntryState.inArchipelagoMode) {
+                    if (APInfo.inArchipelagoMode) {
                         if (states.freeplay.FreeplayState.instance != null)
                             states.freeplay.FreeplayState.instance.reloadSongs(true);
                         if (states.freeplay.OsuFreeplayState.instance != null)
@@ -906,7 +906,7 @@ class APItem {
 
             case "Sore Throat Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('Oh no! BF can\'t sing anymore!', "Z11 Hell Trap: Sore Throat Trap");
                     APInfo.soreThroat = true;
                     APPlayState.instance?.removeThroatNotes();
@@ -918,7 +918,7 @@ class APItem {
 
             case "Vocal Inverter Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('How are you inverse singing???', "Z11 Hell Trap: Vocal Inverter Trap");
                     APInfo.backwardsSinging = true;
                     triggeredPermaTraps.push(name);
@@ -929,7 +929,7 @@ class APItem {
 
             case "Blindness Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('Wait, where did I put the notes?', "Z11 Hell Trap: Blindness Trap");
                     APInfo.blindness = false;
                     APPlayState.instance?.adjustSight();
@@ -941,7 +941,7 @@ class APItem {
 
             case "Mechanical Hell Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('#NotEnoughMechanics', "Z11 Hell Trap: Mechanical Hell Trap");
                     APInfo.fivenightsatmechanicsmod = true;
                     APPlayState.instance?.removeLeMechanics();
@@ -953,7 +953,7 @@ class APItem {
 
             case "Metronome Madness Trap":
                 return new APTrap(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('ERROR: Speed Module currupted!', "Z11 Hell Trap: Metronome Madness Trap");
                     APInfo.unstableSpeed = true;
                     triggeredPermaTraps.push(name);
@@ -964,7 +964,7 @@ class APItem {
 
             case "Throat Medicine":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('Much Better.', "APItem: Throat Medicine");
                     APInfo.soreThroat = false;
                     APPlayState.instance?.removeThroatNotes();
@@ -973,7 +973,7 @@ class APItem {
 
             case "Voice Inverter":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('Now you can stop singing backwards!', "APItem: Voice Inverter");
                     APInfo.backwardsSinging = false;
                     triggeredAntiPermaTraps.push(name);
@@ -981,7 +981,7 @@ class APItem {
 
             case "Contact Lenses":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('Oh so THATS where I put the notes!', "APItem: Contact Lenses");
                     APInfo.blindness = false;
                     APPlayState.instance?.adjustSight();
@@ -990,7 +990,7 @@ class APItem {
 
             case "The Simplifier 3000":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('#NoMoreMechanics', "APItem: The Simplifier 3000");
                     APInfo.fivenightsatmechanicsmod = false;
                     APPlayState.instance?.removeLeMechanics();
@@ -999,7 +999,7 @@ class APItem {
 
             case "Metronome Stabilizer":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
-                    if (!APEntryState.gonnaRunSync)
+                    if (!APInfo.gonnaRunSync)
                         popup('ALERT: Speed Module has been fixed', "APItem: Metronome Stabilizer");
                     APInfo.unstableSpeed = false;
                     states.PlayState.instance?.lerpSongSpeed(1, 1);
@@ -1919,8 +1919,8 @@ class APItem {
                     popup('Ok but can you beat the Pong Master?', "TrapLink: Pong Trap", true);
 
                     // Save current state before switching to minigame
-                    if (APEntryState.apGame != null) {
-                        APEntryState.apGame.updateSaveData();
+                    if (APInfo.apGame != null) {
+                        APInfo.apGame.updateSaveData();
                     }
 
                     if (MusicBeatState.getState() == APPlayState.instance) {
@@ -2423,8 +2423,8 @@ class APPongTrap extends APTrap {
                 var previousState = cast(currentState, MusicBeatState);
 
                 // Save current state before switching to minigame
-                if (APEntryState.apGame != null) {
-                    APEntryState.apGame.updateSaveData();
+                if (APInfo.apGame != null) {
+                    APInfo.apGame.updateSaveData();
                 }
 
                 activeTrapState = new archipelago.traps.games.APPongTrapState(previousState, this.difficulty);
@@ -2463,8 +2463,8 @@ class APPongTrap extends APTrap {
                     var previousState = cast(currentState, MusicBeatState);
 
                     // Save current state before switching to minigame
-                    if (APEntryState.apGame != null) {
-                        APEntryState.apGame.updateSaveData();
+                    if (APInfo.apGame != null) {
+                        APInfo.apGame.updateSaveData();
                     }
 
                     activeTrapState = new archipelago.traps.games.APPongTrapState(previousState, nextDifficulty);
@@ -2553,7 +2553,7 @@ class APrilFools extends APTrap {
                             states.PlayState.isStoryMode = false;
                             states.PlayState.storyDifficulty = randomDiff;
                             LoadingState.prepareToSong();
-                            LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
+                            LoadingState.loadAndSwitchState(APInfo.inArchipelagoMode ? new archipelago.APPlayState() : new states.PlayState());
                         }
                     }
                 });

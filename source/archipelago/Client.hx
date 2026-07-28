@@ -1116,7 +1116,7 @@ class Client {
 		// 	tagsManager.syncToClient();
 		// }
 
-		if (!archipelago.APEntryState.inArchipelagoMode && state > State.SLOT_CONNECTED) {
+		if (!archipelago.APInfo.inArchipelagoMode && state > State.SLOT_CONNECTED) {
 			// Kill all references, to ensure this disconnects, as it should be dead.
 			dontTryToReconnect = true;
 			var disconnectedGracefully = try {archipelago.APGameState.instance.disconnectAP(); true; } catch (e:Dynamic) { disconnect_socket(); false;};
@@ -1125,7 +1125,7 @@ class Client {
 			// Remove references to this Client instance to allow for garbage collection.
 			archipelago.APInfo.ap = null;
 			archipelago.APGameState.instance = null;
-			archipelago.APEntryState.apGame = null;
+			archipelago.APInfo.apGame = null;
 		}
 
 

@@ -35,10 +35,10 @@ class TrapDeathHandler {
         }
 
         // Trigger death link if enabled and connected
-        if (APEntryState.apGame != null && APEntryState.apGame.info() != null &&
+        if (APInfo.apGame != null && APInfo.apGame.info() != null &&
             ClientPrefs.data.deathlink) {
             try {
-                APEntryState.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
+                APInfo.apGame.info().sendDeathLink(undertale.UnderTextParser.removeFormatting(COD.COD));
                 trace("TrapDeathHandler: Death link sent with cause: " + COD.COD);
             } catch (e:Dynamic) {
                 trace("TrapDeathHandler: Failed to send death link: " + e);

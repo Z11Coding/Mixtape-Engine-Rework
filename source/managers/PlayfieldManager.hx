@@ -1870,7 +1870,7 @@ class PlayfieldManager {
 		var hitNotes:Array<Note> = []; // what could scripts possibly do with this information
 		var controlledFields:Array<PlayField> = [];
 
-		if (APEntryState.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
+		if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
 			return;
 
 		for (field in playfields.members) {

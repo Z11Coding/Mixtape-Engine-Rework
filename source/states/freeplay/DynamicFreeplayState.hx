@@ -139,8 +139,8 @@ class DynamicFreeplayState extends MusicBeatState
 		fpManager = FreeplayManager.loadFPManager();
 
 		// Check if the Victory Song is cleared.
-		if (APEntryState.inArchipelagoMode) {
-			trace(APEntryState.victorySong);
+		if (APInfo.inArchipelagoMode) {
+			trace(APInfo.victorySong);
 			APFreeplayManager.updateArchFreeplay();
 			APFreeplayManager.checkVictory();
 		}
@@ -289,7 +289,7 @@ class DynamicFreeplayState extends MusicBeatState
 		add(showcaseWarning);
 
 		// Check if showcase mode is enabled, not in Archipelago mode, and warnings are enabled
-		if (ClientPrefs.getGameplaySetting('showcase', false) && !APEntryState.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
+		if (ClientPrefs.getGameplaySetting('showcase', false) && !APInfo.inArchipelagoMode && ClientPrefs.data.showcaseWarnings) {
 			showcaseWarning.text = "⚠️ SHOWCASE MODE\nENABLED";
 			showcaseWarning.visible = true;
 			showcaseWarningBG.visible = true;
@@ -309,7 +309,7 @@ class DynamicFreeplayState extends MusicBeatState
 		// if(curSelected >= songs.length) curSelected = -1;
 		try {
 			// Use default color if songs are hidden to avoid identifying the song
-			if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+			if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
 				bg.color = FlxColor.fromString('#FD719B'); // Default pink color
 				intendedColor = bg.color;
 			} else {
@@ -375,16 +375,16 @@ class DynamicFreeplayState extends MusicBeatState
 			Mods.currentModDirectory = fpManager.songList[curSelected].folder;
 		}
 
-		if (!FlxG.save.data.gotIntoAnArgument && !APEntryState.inArchipelagoMode)
+		if (!FlxG.save.data.gotIntoAnArgument && !APInfo.inArchipelagoMode)
 			hh.push({item: "small argument", chance: 5}); // 5% chance to play Small Argument if not already unlocked or in Archipelago Mode
-		if (!FlxG.save.data.gotbeatbattle && !APEntryState.inArchipelagoMode)
+		if (!FlxG.save.data.gotbeatbattle && !APInfo.inArchipelagoMode)
 			hh.push({item: "beat battle", chance: 5}); // 5% chance to play Beat Battle if not already unlocked or in Archipelago Mode
-		if (!FlxG.save.data.gotbeatbattle2 && !APEntryState.inArchipelagoMode)
+		if (!FlxG.save.data.gotbeatbattle2 && !APInfo.inArchipelagoMode)
 			hh.push({item: "beat battle 2", chance: 5}); // 5% chance to do Beat Battle 2 if not already unlocked or in Archipelago Mode
-		if (!FlxG.save.data.gotgeostar && !APEntryState.inArchipelagoMode)
+		if (!FlxG.save.data.gotgeostar && !APInfo.inArchipelagoMode)
 			hh.push({item: "geostar", chance: 5}); // 5% chance to do GeoStar if not already unlocked or in Archipelago Mode
 
-		if (APEntryState.apGame != null && APEntryState.apGame.info() != null) {
+		if (APInfo.apGame != null && APInfo.apGame.info() != null) {
 			ticketCounter = new FlxText(FlxG.width - 470, FlxG.height - 630, 0, "0/0", 32);
 			ticketCounter.setFormat(Paths.font("fnf1.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			ticketCounter.scrollFactor.set();
@@ -514,7 +514,7 @@ class DynamicFreeplayState extends MusicBeatState
 			}
 
 			// trace (curUnlocked);
-			if (APEntryState.inArchipelagoMode) APFreeplayManager.checkSongStatus();
+			if (APInfo.inArchipelagoMode) APFreeplayManager.checkSongStatus();
 			for (i in 0...fpManager.songList.length)
 			{
 				var songName:String = '';
@@ -524,10 +524,10 @@ class DynamicFreeplayState extends MusicBeatState
 				var color:FlxColor = 0xFFFFFFFF;
 				var someLocationsNotMissing:Bool = false;
 
-				if (APEntryState.inArchipelagoMode) {
+				if (APInfo.inArchipelagoMode) {
 					songName = fpManager.songList[i].songName;
 					modName = fpManager.songList[i].folder;
-					locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+					locationId = APInfo.apGame.locationData(songName, modName).concat(APInfo.apGame.noteData(songName, modName));
 
 					// Get color state and color value from centralized manager
 					var colorState = APFreeplayManager.getSongColorState(songName, modName, locationId);
@@ -539,7 +539,7 @@ class DynamicFreeplayState extends MusicBeatState
 				}
 
 				var songText:Alphabet = null;
-				if (APEntryState.inArchipelagoMode) {
+				if (APInfo.inArchipelagoMode) {
 					var isBronze:Bool = FlxG.random.bool(50); // Randomly decide between orange and bronze
 					var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500; // Bronze or Orange color
 					var displayName = archipelago.APItem.unknownSongs ? "Unknown" : songName;
@@ -571,12 +571,12 @@ class DynamicFreeplayState extends MusicBeatState
 				songText.targetY = i;
 				grpSongs.add(songText);
 
-				if (APEntryState.inArchipelagoMode) {
+				if (APInfo.inArchipelagoMode) {
 					APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
 
 					if (APFreeplayManager.callVictory) {
 						trace("Apparently, the victory song has been cleared, so... Goaling!");
-						APEntryState.apGame.checkGoal(songName, modName);
+						APInfo.apGame.checkGoal(songName, modName);
 					}
 				}
 
@@ -590,7 +590,7 @@ class DynamicFreeplayState extends MusicBeatState
 				var isLock:Bool = false;
 				var iconName:String = "";
 
-				if (APEntryState.inArchipelagoMode) {
+				if (APInfo.inArchipelagoMode) {
 					// Song is locked if it's not in curUnlocked
 					var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
 					isLock = !isUnlocked;
@@ -628,10 +628,10 @@ class DynamicFreeplayState extends MusicBeatState
 		var color:FlxColor = 0xFFFFFFFF;
 		var someLocationsNotMissing:Bool = false;
 
-		if (APEntryState.inArchipelagoMode) {
+		if (APInfo.inArchipelagoMode) {
 			songName = fpManager.songList[i].songName;
 			modName = fpManager.songList[i].folder;
-			locationId = APEntryState.apGame.locationData(songName, modName).concat(APEntryState.apGame.noteData(songName, modName));
+			locationId = APInfo.apGame.locationData(songName, modName).concat(APInfo.apGame.noteData(songName, modName));
 
 			// Get color state and color value from centralized manager
 			var colorState = APFreeplayManager.getSongColorState(songName, modName, locationId);
@@ -643,7 +643,7 @@ class DynamicFreeplayState extends MusicBeatState
 		}
 
 		var songText:Alphabet = null;
-		if (APEntryState.inArchipelagoMode) {
+		if (APInfo.inArchipelagoMode) {
 			var isBronze:Bool = FlxG.random.bool(50);
 			var bronzeOrOrangeColor:Int = isBronze ? 0xFFCD7F32 : 0xFFFFA500;
 			var displayName = archipelago.APItem.unknownSongs ? "Unknown" : songName;
@@ -670,12 +670,12 @@ class DynamicFreeplayState extends MusicBeatState
 		songText.targetY = i;
 		grpSongs.add(songText);
 
-		if (APEntryState.inArchipelagoMode) {
+		if (APInfo.inArchipelagoMode) {
 			APFreeplayManager.callVictory = APFreeplayManager.isVictorySong(songName, modName) && !isMissing && !someLocationsNotMissing;
 
 			if (APFreeplayManager.callVictory) {
 				trace("Apparently, the victory song has been cleared, so... Goaling!");
-				APEntryState.apGame.checkGoal(songName, modName);
+				APInfo.apGame.checkGoal(songName, modName);
 			}
 		}
 
@@ -690,7 +690,7 @@ class DynamicFreeplayState extends MusicBeatState
 		var isLock:Bool = false;
 		var iconName:String = "";
 
-		if (APEntryState.inArchipelagoMode) {
+		if (APInfo.inArchipelagoMode) {
 			var isUnlocked = [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == modName].contains(true);
 			isLock = !isUnlocked;
 			iconName = isLock ? "lock" : (archipelago.APItem.unknownSongs ? "face" : fpManager.songList[i].songCharacter);
@@ -801,8 +801,8 @@ class DynamicFreeplayState extends MusicBeatState
 			}
 		}
 
-		if (APEntryState.inArchipelagoMode)
-				APEntryState.apGame.info().poll();
+		if (APInfo.inArchipelagoMode)
+				APInfo.apGame.info().poll();
 
 
 		if (FlxG.sound.music != null)
@@ -852,7 +852,7 @@ class DynamicFreeplayState extends MusicBeatState
 			searchBar.updateHitbox();
 		}
 
-		if (FlxG.keys.justPressed.L && APEntryState.inArchipelagoMode && !searchBar.hasFocus)  {
+		if (FlxG.keys.justPressed.L && APInfo.inArchipelagoMode && !searchBar.hasFocus)  {
 			try {
 				var songLowercase:String = Paths.formatToSongPath(fpManager.songList[curSelected].songName);
 				var poop:String = Highscore.formatSong(songLowercase, curDifficulty);
@@ -871,17 +871,17 @@ class DynamicFreeplayState extends MusicBeatState
 			MusicBeatState.resetState();
 		}
 
-		if (FlxG.keys.justPressed.H && APEntryState.inArchipelagoMode && !searchBar.hasFocus) {
+		if (FlxG.keys.justPressed.H && APInfo.inArchipelagoMode && !searchBar.hasFocus) {
 			try {
-				var SongInfo = APEntryState.apGame.getSongAndMod(fpManager.songList[curSelected].songName + (fpManager.songList[curSelected].folder != "" ? " (" + fpManager.songList[curSelected].folder + ")" : ""));
-				if (APEntryState.ap != null) {
+				var SongInfo = APInfo.apGame.getSongAndMod(fpManager.songList[curSelected].songName + (fpManager.songList[curSelected].folder != "" ? " (" + fpManager.songList[curSelected].folder + ")" : ""));
+				if (APInfo.ap != null) {
 					// Check if this is the victory song and if it's already unlocked
 					if (APFreeplayManager.isVictorySong(SongInfo.song, SongInfo.mod) && APInfo.ticketCount <= APInfo.ticketWinCount && (APFreeplayManager.curUnlocked.filter(function(entry:{song:String, mod:String}) {
 						return entry.song == SongInfo.song && entry.mod == (SongInfo.mod != null ? SongInfo.mod : "");
 					}).length != 0)) {
-						APEntryState.ap.Say("!hint Ticket");
+						APInfo.ap.Say("!hint Ticket");
 					} else {
-						APEntryState.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
+						APInfo.ap.Say("!hint " + SongInfo.song + ((SongInfo.mod != "" && SongInfo.mod != null) ? " (" + SongInfo.mod + ")" : ""));
 					}
 					archipelago.console.SideUI.instance.active = true;
 				}
@@ -968,7 +968,7 @@ class DynamicFreeplayState extends MusicBeatState
 			if (controls.UI_LEFT_P)
 			{
 				// Block difficulty navigation if unknown songs is active
-				if (!(APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
+				if (!(APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
 					changeDiff(-1);
 					_updateSongLastDifficulty();
 				}
@@ -977,7 +977,7 @@ class DynamicFreeplayState extends MusicBeatState
 			else if (controls.UI_RIGHT_P)
 			{
 				// Block difficulty navigation if unknown songs is active
-				if (!(APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
+				if (!(APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs)) {
 					changeDiff(1);
 					_updateSongLastDifficulty();
 				}
@@ -1021,8 +1021,8 @@ class DynamicFreeplayState extends MusicBeatState
 					}
 					FlxG.sound.play(Paths.sound('cancelMenu'));
 					// Don't switch to AP versions if we're in LegacyLua mode
-					if (APEntryState.inArchipelagoMode && !options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode)
-						FlxG.switchState(new archipelago.APCategoryState(APEntryState.apGame, APEntryState.ap));
+					if (APInfo.inArchipelagoMode && !options.legacylua.LegacyLuaFreeplayState.inLegacyLuaMode)
+						FlxG.switchState(new archipelago.APCategoryState(APInfo.apGame, APInfo.ap));
 					else
 						FlxG.switchState(new CategoryState());
 				}
@@ -1053,7 +1053,7 @@ class DynamicFreeplayState extends MusicBeatState
 						return;
 					}
 
-					if (archipelago.APItem.unknownSongs && APEntryState.inArchipelagoMode) {
+					if (archipelago.APItem.unknownSongs && APInfo.inArchipelagoMode) {
 						FlxG.camera.shake(0.005, 0.5);
 						// 1 in 20 chance to play metal_pipe instead of badnoise
 						FlxG.sound.play(
@@ -1148,8 +1148,8 @@ class DynamicFreeplayState extends MusicBeatState
 				}
 
 				// Check if song is locked (not in curUnlocked)
-				var isUnlocked = APEntryState.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == fpManager.songList[curSelected].songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == fpManager.songList[curSelected].folder].contains(true);
-				var isLocked = APEntryState.inArchipelagoMode && !isUnlocked;
+				var isUnlocked = APInfo.inArchipelagoMode && [for (songObj in APFreeplayManager.curUnlocked) songObj.song.trim().toLowerCase().replace('-', ' ') == fpManager.songList[curSelected].songName.trim().toLowerCase().replace('-', ' ') && songObj.mod == fpManager.songList[curSelected].folder].contains(true);
+				var isLocked = APInfo.inArchipelagoMode && !isUnlocked;
 
 				if (isLocked) {
 					trace('Song is locked (not in curUnlocked)!');
@@ -1236,7 +1236,7 @@ class DynamicFreeplayState extends MusicBeatState
 				var actualDifficulty:Int = curDifficulty;
 
 				// If unknownSongs is active, randomly select an actual difficulty
-				if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+				if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
 					var availableDifficulties:Array<Int> = [];
 					// Try each difficulty to see which ones are valid
 					for (i in 0...Difficulty.list.length) {
@@ -1300,7 +1300,7 @@ class DynamicFreeplayState extends MusicBeatState
 						if (songLowercase == "song-not-found")
 						{
 							h = ChanceSelector.selectOption(hh, false, true, true);
-							if (APEntryState.inArchipelagoMode) {
+							if (APInfo.inArchipelagoMode) {
 								h = "normal error";
 							}
 							switch (h)
@@ -1364,9 +1364,9 @@ class DynamicFreeplayState extends MusicBeatState
 							Mods.currentModDirectory = FreeplayManager.instance.songList[curSelected].folder;
 
 							// Check if required characters and stage are unlocked via sanity system
-							if (APEntryState.inArchipelagoMode && archipelago.APEntryState.apGame != null) {
-								trace('Missing Items for this song: ${archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG)}');
-								var missingItems = archipelago.APEntryState.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
+							if (APInfo.inArchipelagoMode && archipelago.APInfo.apGame != null) {
+								trace('Missing Items for this song: ${archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG)}');
+								var missingItems = archipelago.APInfo.apGame.checkSongCharactersAndStageUnlocked(PlayfieldManager.SONG);
 								if (missingItems.length > 0) {
 									trace('Song requires unlocked sanity items: ' + missingItems.join(", "));
 
@@ -1397,7 +1397,7 @@ class DynamicFreeplayState extends MusicBeatState
 
 						var errorStr:String;
 						// If unknownSongs is active, show anonymous error message
-						if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+						if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
 							errorStr = 'Unable to load song data.';
 						} else {
 							errorStr = e.toString();
@@ -1426,7 +1426,7 @@ class DynamicFreeplayState extends MusicBeatState
 							alreadyClicked = true;
 							MusicBeatState.reopen = false; //Fix a sticker bug
 							LoadingState.prepareToSong();
-							LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
+							LoadingState.loadAndSwitchState(APInfo.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
 								archipelago.APPlayState.currentSong = fpManager.songList[curSelected].songName;
 								archipelago.APPlayState.currentMod = fpManager.songList[curSelected].folder;
 							}) : new PlayState());
@@ -1536,7 +1536,7 @@ class DynamicFreeplayState extends MusicBeatState
 			return;
 
 		// If unknownSongs trap is active, don't allow difficulty navigation
-		if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+		if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
 			// Keep difficulty at 0 and update display to show "Unknown"
 			curDifficulty = 0;
 			updateUnknownDifficultyDisplay();
@@ -1674,7 +1674,7 @@ class DynamicFreeplayState extends MusicBeatState
 					curSelected = -1;
 
 				var newColor:Int = FlxColor.fromString('#FD719B'); // Default color
-				if (!APEntryState.inArchipelagoMode || !archipelago.APItem.unknownSongs) {
+				if (!APInfo.inArchipelagoMode || !archipelago.APItem.unknownSongs) {
 					newColor = curSelected != -1 ? fpManager.songList[curSelected].color[1][0] : FlxColor.fromString('#FD719B');
 				}
 				if(newColor != intendedColor) {

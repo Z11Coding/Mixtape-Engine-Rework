@@ -70,7 +70,7 @@ class FreeplayHelpers
     var actualDifficulty:Int = diffId;
 
     // If unknownSongs is active, randomly select an actual difficulty
-    if (APEntryState.inArchipelagoMode && archipelago.APItem.unknownSongs) {
+    if (APInfo.inArchipelagoMode && archipelago.APItem.unknownSongs) {
       var availableDifficulties:Array<Int> = [];
       // Try each difficulty to see which ones are valid
       for (i in 0...Difficulty.list.length) {
@@ -167,7 +167,7 @@ class FreeplayHelpers
 
 		#if !SHOW_LOADING_SCREEN FlxG.sound.music.stop(); #end
 		LoadingState.prepareToSong();
-    LoadingState.loadAndSwitchState(APEntryState.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
+    LoadingState.loadAndSwitchState(APInfo.inArchipelagoMode ? new archipelago.APPlayState().funcAndReturn(function(ps:archipelago.APPlayState) {
       archipelago.APPlayState.currentSong = cap.getNativeSongId();
       archipelago.APPlayState.currentMod = cap.folder;
     }) : new PlayState());
