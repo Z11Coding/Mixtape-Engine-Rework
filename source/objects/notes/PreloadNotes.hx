@@ -11,4 +11,11 @@ typedef PreloadNotes =
   var animSuffix:String;
   var multSpeed:Float;
   var extraData:Dynamic;
+  var holdType:SustainPart;
+  var isNotePool:Bool;
+  var noteSplashTexture:String;
+  var createdFrom:Dynamic;
+  var prevNote:Note;
+  var isSustainNote:Bool;
+  var sustainLength:Float;
 }

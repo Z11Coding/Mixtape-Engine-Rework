@@ -137,8 +137,11 @@ class SplashScreen extends MusicBeatState
                 mixTA = FlxTween.tween(mix, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
             });
             super.create();
+            addManagerStuff();
         }
+    }
 
+    function addManagerStuff() {
         MegaManager.conductor.addStepCallback((curStep:Int, backward:Bool) ->
 		{
 			if (!isVideo) {

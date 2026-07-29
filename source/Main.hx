@@ -373,7 +373,7 @@ class Main extends Sprite
 		game._customSoundTray = backend.FunkinSoundTray;
 		addChild(game);
 
-		// ASync Test - create a slow function and test it
+		/*// ASync Test - create a slow function and test it
 		trace("=== ASync Test Starting ===");
 
 		function slowFunction():String {
@@ -389,7 +389,7 @@ class Main extends Sprite
 		trace("ASync: About to get result (this should block for ~8 seconds)...");
 		trace("ASync: Got result: " + result.get());
 		var testForString:String = result;
-		trace("=== ASync Test Complete ===");
+		trace("=== ASync Test Complete ===");*/
 
 		#if !mobile
 		fpsVar = new FPSCounter(10, 3, 0xFFFFFF);

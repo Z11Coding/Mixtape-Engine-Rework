@@ -168,7 +168,7 @@ class ModManager {
 		registerAux("xmod");
 		registerAux("cmod");
 		registerAux("movePastReceptors");
-		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {
+		for (i in 0...PlayfieldManager.maniaCount) {
 			registerAux("xmod" + i);
 			registerAux("cmod" + i);
 			registerAux("noteSpawnTime" + i);
@@ -179,7 +179,7 @@ class ModManager {
 
 
 		var toAlternate:Array<String> = ["transformX", "transformY", "transformZ", "flashR", "flashG", "flashB", "vibrate"];
-		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]) {
+		for (i in 0...PlayfieldManager.maniaCount) {
 			toAlternate.push('transform${i}X');
 			toAlternate.push('transform${i}Y');
 			toAlternate.push('transform${i}Z');
@@ -229,7 +229,7 @@ class ModManager {
 		setValue("arrowPathAlpha", 1, mN);
 		setValue("arrowPathThickness", 2, mN);
 
-		for (i in 0...Note.ammo[PlayfieldManager.mania[0]]){
+		for (i in 0...PlayfieldManager.maniaCount){
 			setValue('noteSpawnTime$i', 0, mN);
 			setValue('cmod$i', -1, mN);
 			setValue('xmod$i', 1, mN);

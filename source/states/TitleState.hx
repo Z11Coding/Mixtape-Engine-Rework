@@ -146,12 +146,12 @@ class TitleState extends MusicBeatState
 			if (allLists.length > 0) {
 				for (playlistItem in allLists) {
 					try {
-					if (playlistItem?.isWarmup) {
-						warmupPlaylists.push(playlistItem);
+						if (playlistItem?.isWarmup) {
+							warmupPlaylists.push(playlistItem);
+						}
+					}	catch (e:haxe.Exception) {
+						if (!playlistItem.isWarmup.isReal(true)) playlistItem.isWarmup = false; // Fix old playlists.
 					}
-				}	catch (e:haxe.Exception) {
-					if (!playlistItem.isWarmup.isReal(true)) playlistItem.isWarmup = false; // Fix old playlists.
-				}
 				}
 			}
 
@@ -901,7 +901,7 @@ class TitleState extends MusicBeatState
 		}
 	}
 
-	public var sickBeats:Int = 0; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
+	public var sickBeats:Int = -1; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
 	public static var closedState:Bool = false;
 	var skippedIntro:Bool = false;
 	var increaseVolume:Bool = false;
