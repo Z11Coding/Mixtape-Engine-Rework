@@ -56,7 +56,7 @@ enum GCBehavior {
 }
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatState))
-class MusicBeatState extends yutautil.SafeManagedState
+class MusicBeatState extends FlxState
 {
 	/**
 	 * Garbage Collection behavior for this state

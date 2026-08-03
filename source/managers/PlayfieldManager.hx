@@ -17,6 +17,7 @@ class PlayfieldManager {
   public static var instance:PlayfieldManager;
   public static var SONG:SwagSong = null;
   public static var mania:Array<Int> = [3, 3];
+  public static var maniaCount:Int = 7;
 
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
@@ -154,8 +155,11 @@ class PlayfieldManager {
         }
       else fMania = 3;
 
+      maniaCount +=  fMania;
+
       trace("Mania set: " + fMania);
     }
+    maniaCount += 1;
   }
 
   public function changeMania(newValue:Int, field:PlayField = null, skipStrumFadeOut:Bool = false)
@@ -205,6 +209,9 @@ class PlayfieldManager {
         field.fadeIn(skipStrumFadeOut); // TODO: check if its the first song so it should fade the notes in on song 1 of story mode
 
       field.singAnimations = Note.keysShit.get(mania[field.modNumber]).get('singAnims');
+      for (fMania in mania)
+        maniaCount += fMania;
+      maniaCount += 1; // For offset correction
 
       if (MusicBeatState.getState() == PlayState.instance)
         PlayState.instance?.callOnScripts('postChangeMania', [mania, newValue, skipStrumFadeOut]);
@@ -249,16 +256,30 @@ class PlayfieldManager {
 
 			if (note.isSustainNote && prevNote != null)
 			{
+        note.alpha = 0.6;
+        note.multAlpha = 0.6;
+        note.hitsoundDisabled = true;
+        if(ClientPrefs.data.downScroll)
+          note.flipY = true;
+
+        note.istail = true;
+
 				note.offsetX += note.width / 2;
 
-				note.animation.play(Note.keysShit.get(mania[note.fieldIndex]).get('letters')[noteData] + ' tail');
+				var animToPlay:String = '';
+        animToPlay = Note.keysShit.get(mania[note.fieldIndex]).get('letters')[note.noteData] + ' tail';
+        if (!note.hasAnimation(animToPlay))
+        {
+          animToPlay = Note.colArray[Note.keysShit.get(mania[note.fieldIndex]).get('colArray')[note.noteData]] + 'holdend';
+        }
+        note.animation.play(animToPlay);
 
 				note.updateHitbox();
+        note.centerOffsets();
 
-				note.offsetX -= note.width / 2;
-
-				if (note != null && prevNote != null && prevNote.isSustainNote && prevNote.animation != null)
-				{ // haxe flixel
+				if (prevNote != null && prevNote.isSustainNote)
+				{
+          // haxe flixel
 					prevNote.animation.play(Note.keysShit.get(mania[note.fieldIndex]).get('letters')[noteData % tMania] + ' hold');
 
 					prevNote.scale.y *= MegaManager.conductor.stepLengthMs / 100 * 1.05;
@@ -271,6 +292,7 @@ class PlayfieldManager {
 					}
 
 					prevNote.updateHitbox();
+          prevNote.centerOffsets();
 					// trace(prevNote.scale.y);
 				}
 
@@ -278,6 +300,7 @@ class PlayfieldManager {
 				{
 					prevNote.scale.y *= PlayState.daPixelZoom * (Note.pixelScales[mania[prevNote.fieldIndex]]); // Fuck urself
 					prevNote.updateHitbox();
+          prevNote.centerOffsets();
 				}
 			}
 			else if (!note.isSustainNote && noteData > -1 && noteData < tMania)
@@ -579,14 +602,23 @@ class PlayfieldManager {
       for (i in 0...allNotes.length)
       {
         var note = Note.quickMakeNote(allNotes[i]);
-        allNotes[i] = note;
-        if (allNotes[note.noteIndex-1] != null)
-          note.prevNote = allNotes[note.noteIndex-1];
+        if (allNotes[i-1] != null)
+          note.prevNote = Note.quickMakeNote(allNotes[i-1]);
+
+        if (note.sustainLength > 0 && note.isParent)
+          note.holdType = HEAD;
+        else if (note.isSustainNote && note.istail)
+          note.holdType = END;
+        else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
+          note.holdType = PART;
 
         if (playerField != null) {
           if (note.mustPress) {
             note.field = playerField;
             updateNote(note);
+            for (tail in note.tail) {
+              tail.field = playerField;
+            }
             playerField.noteQueue[note.noteData].push(note);
           }
         }
@@ -595,9 +627,14 @@ class PlayfieldManager {
           if (!note.mustPress) {
             note.field = dadField;
             updateNote(note);
+            for (tail in note.tail) {
+              tail.field = dadField;
+            }
             dadField.noteQueue[note.noteData].push(note);
           }
         }
+
+        allNotes[i] = note;
 
         var rowArray = noteRows[note.mustPress?0:1];
         if(rowArray[note.row]==null)
@@ -617,8 +654,37 @@ class PlayfieldManager {
           else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
             note.holdType = PART;
 
-          if (note.isSustainNote && note.sustainLength > 0)
-            note.reloadNote();
+          for (tail in note.tail) {
+            switch (tail.holdType) {
+              case HEAD | TAP:
+                var animToPlay:String = '';
+                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData];
+                if (tail.hasAnimation(animToPlay))
+                  tail.animation.play(animToPlay);
+                else
+                {
+                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]];
+                  tail.animation.play(animToPlay + 'Scroll');
+                }
+              case END:
+                var animToPlay:String = '';
+                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' tail';
+                if (!tail.hasAnimation(animToPlay))
+                {
+                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'holdend';
+                }
+                tail.animation.play(animToPlay, true);
+              case PART:
+                var animToPlay2:String = '';
+                animToPlay2 = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' hold';
+                if (!tail.hasAnimation(animToPlay2))
+                {
+                  animToPlay2 = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'hold';
+                }
+                tail.animation.play(animToPlay2);
+
+            }
+          }
         }
         column.sort(PlayField.sortNotesAscend);
       }
@@ -635,8 +701,37 @@ class PlayfieldManager {
           else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
             note.holdType = PART;
 
-          if (note.isSustainNote && note.sustainLength > 0)
-            note.reloadNote();
+          for (tail in note.tail) {
+            switch (tail.holdType) {
+              case HEAD | TAP:
+                var animToPlay:String = '';
+                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData];
+                if (tail.hasAnimation(animToPlay))
+                  tail.animation.play(animToPlay, true);
+                else
+                {
+                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]];
+                  tail.animation.play(animToPlay + 'Scroll', true);
+                }
+              case END:
+                var animToPlay:String = '';
+                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' tail';
+                if (!tail.hasAnimation(animToPlay))
+                {
+                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'holdend';
+                }
+                tail.animation.play(animToPlay, true);
+              case PART:
+                var animToPlay2:String = '';
+                animToPlay2 = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' hold';
+                if (!tail.hasAnimation(animToPlay2))
+                {
+                  animToPlay2 = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'hold';
+                }
+                tail.animation.play(animToPlay2, true);
+
+            }
+          }
         }
         column.sort(PlayField.sortNotesAscend);
       }
@@ -2651,6 +2746,11 @@ class PlayfieldManager {
     if (fmManager != null) {
       fmManager.destroy();
       fmManager = null;
+    }
+
+    if (notes != null) {
+      notes.destroy();
+      notes = new FlxTypedGroup<Note>();
     }
 
     manualInputChecks = false;

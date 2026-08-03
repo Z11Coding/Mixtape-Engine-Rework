@@ -485,7 +485,7 @@ class ScriptManager {
 			if (newScript.exists('onLoad')) {
 				newScript.call('onLoad');
 			}
-			//trace('initialized hscript interp successfully: $file');
+
 			hscriptArray.push(newScript);
 			updateScriptFlags(); // Update script existence flags when adding HScript
 		}
