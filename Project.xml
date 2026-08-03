@@ -150,7 +150,7 @@
 	<haxelib name="flixel-addons" version="3.3.2"/>
 	<haxelib name="tjson" version="1.4.0"/>
 	<haxelib name="noisehx" />
-	<haxelib name="codename" />
+	<!-- <haxelib name="codename" /> -->
 
 	<!--Mixtape stuff needed-->
 	<haxelib name="openfl" version="9.4.1"/> <!-- Game engine backend -->

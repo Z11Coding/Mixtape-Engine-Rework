@@ -84,7 +84,7 @@ class Option
 		this.type = type;
 		this.options = options;
 		this.enterAction = enterAction;
-		if (this.type == KEYBIND && enterAction != null) throw 'Keybind options should not have an enterAction. Fix the ${name} option for variable ${variable} to solve this.'
+		if (this.type == KEYBIND && enterAction != null) throw 'Keybind options should not have an enterAction. Fix the ${name} option for variable ${variable} to solve this.';
 		if(this.type != KEYBIND) this.defaultValue = defaultValue ?? Reflect.getProperty(ClientPrefs.defaultData, variable);
 		switch(type)
 		{

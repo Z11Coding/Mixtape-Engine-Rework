@@ -30,7 +30,6 @@ class OptionsState extends MusicBeatState
 	public static var menuBG:FlxSprite;
 	public var onPlayState:Bool = false;
 	public static var fromPlayState:Bool = false;
-	public static var
 
 	function openSelectedSubstate(label:String) {
 		switch(label)

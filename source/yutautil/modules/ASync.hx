@@ -309,9 +309,9 @@ abstract AResult<T>(ASyncStatus<T>) {
 
     public function toString():String {
         return switch (this.status) {
-            case Pending: "AResult<Pending> (${elapsedTime}s)";
-            case Completed: "AResult<Completed>(${this.result})";
-            case Failed: "AResult<Failed>(${this.error})";
+            case Pending: 'AResult<Pending> (${elapsedTime}s)';
+            case Completed: 'AResult<Completed> (${this.result})';
+            case Failed: 'AResult<Failed> (${this.error})';
         }
     }
 }
