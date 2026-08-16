@@ -783,13 +783,19 @@ class CollectionUtils
 		return Type.getClass(input) != null ? Type.getClass(input) : throw "Input has no class (null)";
 	}
 
-	public static inline function open<State:flixel.FlxState>(state:State):State
+	public static inline extern overload function open<State:flixel.FlxState>(state:State):State
 	{
 		if (state is flixel.FlxSubState)
 			FlxG.state.openSubState(cast state);
 		else
 			FlxG.switchState(cast state);
 		return state;
+	}
+
+	public static inline extern overload function open<State:Class<flixel.FlxState>, Instance:flixel.FlxState>(state:State, ?args:Array<Dynamic>):Instance
+	{
+		var instance = Type.createInstance(state, args != null ? args : []);
+		return open(cast instance);
 	}
 
 	public static inline function objectIterator(input:Dynamic):Iterable<{key:Dynamic, value:Dynamic}>
@@ -1987,6 +1993,18 @@ class CollectionUtils
 	public static inline function makeAsync<TFunc:haxe.Constraints.Function>(func:TFunc):ASync<TFunc>
 	{
 		return new ASync<TFunc>(func);
+	}
+
+	public static inline function runAsyncDynamic<TFunc:haxe.Constraints.Function>(func:TFunc, ...args):AResult<Dynamic>
+	{
+		var asyncFunc = new ASync<TFunc>(func);
+		return asyncFunc.callWith(args);
+	}
+
+	public static inline function runAsync<TArg, TResult>(func:TArg->TResult, ...args):AResult<TResult>
+	{
+		var asyncFunc = new ASync<TArg->TResult>(func);
+		return asyncFunc.callWith(args);
 	}
 
 	public static inline function makeArray<T>(...items:T):Array<T>

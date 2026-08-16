@@ -4005,7 +4005,7 @@ class PlayState extends MusicBeatState
 					playbackRate *= FlxG.random.float(0.1, 2);
 				case 1: //Reverse Input
 					trace("Reverse Input");
-					playfield.reverseNoteRules = !inArchipelagoMode  || archipelago.APItem.activeItem?.name == "Input Reversal";
+					playfield.reverseNoteRules = !inArchipelagoMode  || archipelago.APItem.hasActiveItemNamed("Input Reversal");
 				case 2: //Random Speed Change
 					trace("Random Speed Change");
 					RandomSpeedChange = true;
@@ -4428,7 +4428,7 @@ class PlayState extends MusicBeatState
 		for (playfield in playfields.members)
 		{
 			if (playfield.isPlayer)
-				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || (archipelago.APItem.activeItem?.name == 'Tutorial Trap' && _cachedSongName != 'tutorial');
+				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || (archipelago.APItem.hasActiveItemNamed('Tutorial Trap') && _cachedSongName != 'tutorial');
 
 			playfield.noteField.songSpeed = songSpeed;
 		}

@@ -163,14 +163,6 @@ class APCategoryState extends states.CategoryState {
                             archipelago.APPlayState.apGame = null;
                         }
 
-                        // APStyledEntryState references
-                        if (archipelago.APStyledEntryState.apGame != null) {
-                            archipelago.APStyledEntryState.apGame = null;
-                        }
-                        if (archipelago.APStyledEntryState.ap != null) {
-                            archipelago.APStyledEntryState.ap = null;
-                        }
-
                         // APGameState instance reference
                         if (archipelago.APGameState.instance != null) {
                             archipelago.APGameState.instance = null;
@@ -218,8 +210,6 @@ class APCategoryState extends states.CategoryState {
                         archipelago.APInfo.ap = null;
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
                         archipelago.APPlayState.apGame = null;
-                        archipelago.APStyledEntryState.apGame = null;
-                        archipelago.APStyledEntryState.ap = null;
                         // archipelago.APGameState.instance?.updateSaveData();
                         archipelago.APGameState.instance = null;
                         AP = null;
@@ -319,8 +309,6 @@ class APCategoryState extends states.CategoryState {
                 archipelago.APInfo.apGame = null;
                 archipelago.APInfo.ap = null;
                 archipelago.APPlayState.apGame = null;
-                archipelago.APStyledEntryState.apGame = null;
-                archipelago.APStyledEntryState.ap = null;
                 archipelago.APGameState.instance = null;
                 managers.FreeplayManager.instance = null;
                 managers.APFreeplayManager.cleanup();

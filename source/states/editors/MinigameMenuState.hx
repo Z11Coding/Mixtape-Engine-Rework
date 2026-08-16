@@ -12,6 +12,7 @@ import flixel.tweens.FlxTween;
 import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import games.uno.beta.UnoBetaState;
 import objects.Alphabet;
 import states.MainMenuState;
 import yutautil.games.stealthmaze.StealthMazeGameState;

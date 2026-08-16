@@ -11,7 +11,8 @@ import states.DebugStateMenu;
 import states.editors.MasterEditorMenu;
 #if ARCHIPELAGO_ALLOWED
 import archipelago.APGameState;
-import archipelago.APVersionSelectionState;
+
+// import archipelago.APVersionSelectionState;
 #end
 
 

@@ -1,6 +1,8 @@
 package archipelago;
 
+import lime.app.Application;
 import substates.RankingSubstate;
+
 
 typedef APSettings =
 {
@@ -223,6 +225,11 @@ enum APMinigame {
 }
 
 class APInfo {
+
+	static var currentAPLocation:String = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") != null
+		? new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation")
+		: "C:/ProgramData/Archipelago";
+
 	public static var ap:Client;
 	public static var apGame:APGameState;
 
@@ -586,6 +593,78 @@ class APInfo {
 	public static function hasHMItem(item:APItemID):Bool {
 		return [for (item in APItem.hardmodeItems) item == grabAPItemName(item)].contains(true);
 	}
+
+		public static function checkAPWorld():{status:String, message:String}
+	{
+		#if sys
+		var programDataPath = currentAPLocation + "/";
+		var customWorldsPath = programDataPath + "custom_worlds/";
+		var apWorldFile = customWorldsPath + "fridaynightfunkin.apworld";
+
+		try {
+			if (FileSystem.exists(apWorldFile))
+			{
+				trace("APWorld file found.");
+				var apworld = haxe.Resource.getBytes("apworld");
+				var installedApworld = File.getBytes(apWorldFile);
+				if (apworld.compare(installedApworld) == 0) {
+					trace("APWorld file matches the current version.");
+					return {status: "exact", message: "APWorld file matches the current version."};
+				} else {
+					trace("APWorld file does not match the current version.");
+					return {status: "outdated", message: "APWorld file does not match the current version."};
+				}
+			}
+			else
+			{
+				trace("APWorld file not found.");
+				return {status: "missing", message: "APWorld file not found."};
+			}
+		} catch (e:Dynamic) {
+			trace("Error checking APWorld file: " + e);
+			return {status: "error", message: "Error checking APWorld file: " + e};
+		}
+		#end
+		return {status: "unsupported", message: "System not supported."};
+	}
+
+	public static function checkAndAlertAPWorld():Bool
+	{
+		return switch (checkAPWorld().status) {
+			case "outdated":
+				Application.current.window.alert("APWorld file does not match the current version.\nPlease update it in the AP Menu.", "APWorld Update Recommended");
+				false;
+			case "missing":
+				Application.current.window.alert("APWorld file not found.\nPlease install it in the AP Menu.", "APWorld Missing");
+				false;
+			case "error":
+				Application.current.window.alert("Error checking APWorld file.\nPlease try again.", "APWorld Error");
+				false;
+			case "unsupported":
+				Application.current.window.alert("System not supported.\nYou cannot use AP on this System.", "Unsupported Error");
+				true;
+			case "exact":
+				true;
+			default:
+				Application.current.window.alert("Unexpected status encountered.\nPlease report this issue.\nStatus = " + checkAPWorld().status, "Unexpected Error");
+				false;
+		};
+	}
+
+	public static function outputAPWorld():Void
+	{
+		#if sys
+		// var programDataPath = "C:/ProgramData/Archipelago/";
+		// var customWorldsPath = programDataPath + "custom_worlds/";
+		// var apWorldFile = customWorldsPath + "fridaynightfunkin.apworld";
+
+		trace("Outputting .apworld file.");
+		var apworld = haxe.Resource.getBytes("apworld");
+		File.saveBytes("fridaynightfunkin.apworld", apworld);
+		trace("APWorld output success!");
+		#end
+	}
+
 
 	public static function installAPWorld():Void
 	{

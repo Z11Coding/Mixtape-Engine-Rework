@@ -41,12 +41,12 @@ class ConditionHelper {
         return item.condition.checkFn(item) && (item.condition.extraConditions == null || item.condition.extraConditions.map(function(fn) { return fn(item); }).contains(false) == false);
     }
 
-    public static inline function Special():Condition {
+    public static inline function Special(?playStateType:PlayStateType = Anytime):Condition {
         return ConditionHelper.create(function(item:APItem):Bool {
             if (Std.is(FlxG.state, FreeplayManager.getFreeplay())) {
                 return true; // Acts like Everywhere in Freeplay
             } else if (Std.is(FlxG.state, states.PlayState)) {
-                return PlayState().checkFn(item);
+                return PlayState(playStateType).checkFn(item);
             }
             return false; // Default to false for other states
         }, ConditionType.Everywhere);
@@ -70,15 +70,12 @@ class ConditionHelper {
             // Handle different PlayState types
             switch (type) {
                 case Song:
-                    // Song affects entire song, check if another song-level effect is active
-                    if (APItem.activeSongEffects.length > 0) return false;
-                    return playState.startingSong || (item.isException && playState.startedCountdown);
+                    if (!APItemManager.canActivateSongEffect(item)) return false;
+                    return playState.startingSong || playState.startedCountdown;
                 case Effect:
-                    // Effect needs countdown, check if same effect is already active
                     if (APItem.activeEffects.exists(item.name)) return false;
-                    return !item.isException ? playState.startedCountdown : true;
+                    return playState.startedCountdown;
                 case Anytime:
-                    // Can trigger anytime during PlayState
                     return true;
             }
             return false;
@@ -155,7 +152,7 @@ class APItem {
     static function get_allowedToTrigger():Bool {
         return !waitingForTransition;
     }
-    public static var activeItem:APItem;
+    public static var activeItem(get, set):APItem;
     public static var shields:Int = 0;
     public static var maxHPUp:Int = 0;
     public static var hasPocketLens:Bool = false;
@@ -172,9 +169,9 @@ class APItem {
     public static var unknownSongs:Bool = false; // If true, songs are unknown.
     public static var queuedTrap:APItem = null; // Trap queued for execution when conditions are met
 
-    // Track active effects and song-level effects
-    public static var activeEffects:Map<String, APItem> = new Map<String, APItem>();
-    public static var activeSongEffects:Array<APItem> = [];
+    // Track active effects and song-level effects through the manager.
+    public static var activeEffects(get, never):Map<String, APItem>;
+    public static var activeSongEffects(get, never):Array<APItem>;
 
     private var toSync:Bool = true;
     public var triggered:Bool = false;
@@ -194,7 +191,21 @@ class APItem {
         return new managers.ChallengePlaylistGenerator(null).startAsync(FlxG.random.int(2, 10));
     })();
 
-    private static var allItems:ActiveArray = new ActiveArray([]);
+    static function get_activeItem():APItem {
+        return APItemManager.getActiveItem();
+    }
+
+    static function set_activeItem(value:APItem):APItem {
+        return APItemManager.setActiveItem(value);
+    }
+
+    static function get_activeEffects():Map<String, APItem> {
+        return APItemManager.getActiveEffects();
+    }
+
+    static function get_activeSongEffects():Array<APItem> {
+        return APItemManager.getActiveSongEffects();
+    }
 
     public function new(name:String, condition:Condition, onTrigger:Void->Void, isException:Bool = false, toSync:Bool = false, ?activeOnly:Bool = false, ?fromTrapLink:Bool = false) {
         this.name = name;
@@ -211,18 +222,15 @@ class APItem {
         }
 
         this.toSync = false;
-        if (!activeOnly)
-        allItems.push(this); else
-        if (activeItem == null || activeItem.isException || activeItem.name == "Tutorial Trap") {
-            activeItem != null ? allItems.unshift(activeItem) : null;
-            activeItem = this;
-        } else {
-            allItems.push(this);
-        }
+        APItemManager.registerItem(this, activeOnly);
     }
 
     public static function getItems():Array<APItem> {
-        return allItems.getItems().copy();
+        return APItemManager.getPendingItems();
+    }
+
+    public static function hasActiveItemNamed(name:String):Bool {
+        return APItemManager.hasActiveItemNamed(name);
     }
 
     public static function popup(desc:String, ?title:String, ?isWhite:Bool = false, ?onClick:Void->Void = null):Void {
@@ -566,7 +574,7 @@ class APItem {
                             popup('Go relearn the basics', "APItem: Tutorial Trap");
                             APPlayState.instance.doEffect('songSwitch');
                             if (APItem.activeItem !=null)
-                                allItems.push(APItem.activeItem);
+                                APItemManager.requeueFront(APItem.activeItem);
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
                                 APPlayState.instance.doEffect('songSwitch');
@@ -1152,7 +1160,7 @@ class APItem {
                             popup('Go relearn the basics', "TrapLink: Home Trap");
                             APPlayState.instance.doEffect('songSwitch');
                             if (APItem.activeItem !=null)
-                                allItems.push(APItem.activeItem);
+                                APItemManager.requeueFront(APItem.activeItem);
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "TrapLink: Home Trap");
                                 APPlayState.instance.doEffect('songSwitch');
@@ -1947,7 +1955,7 @@ class APItem {
         }
 
         // Ensure non-exception items wait until activeItem is null
-        if (!this.isException && APItem.activeItem != null) {
+        if (!this.isException && APItem.activeItem != null && APItem.activeItem != this) {
             return; // Exit if activeItem is still in use
         }
 
@@ -1963,40 +1971,36 @@ class APItem {
         }
 
         // Check conditions before triggering
-        if (this.condition.checkFn(this) && APItem.allowedToTrigger) {
-            if (this.condition.extraConditions != null) {
-                for (extraCondition in this.condition.extraConditions) {
-                    if (!extraCondition(this)) {
-                        return; // Exit if any extra condition fails
+        if (!APItem.allowedToTrigger || !ConditionHelper.check(this)) {
+            return;
+        }
+
+        if (this.condition.type == ConditionType.PlayState && this.condition.playStateType != null) {
+            switch (this.condition.playStateType) {
+                case Song:
+                    if (!APItemManager.canActivateSongEffect(this)) {
+                        return;
                     }
-                }
+                    APItemManager.registerActiveSongEffect(this);
+                case Effect:
+                    APItemManager.registerActiveEffect(this);
+                case Anytime:
             }
+        }
 
-            // Handle effect tracking based on PlayStateType
-            if (this.condition.type == ConditionType.PlayState && this.condition.playStateType != null) {
-                switch (this.condition.playStateType) {
-                    case Song:
-                        activeSongEffects.push(this);
-                    case Effect:
-                        activeEffects.set(this.name, this);
-                    case Anytime:
-                        // No effect tracking needed
-                }
-            }
-
-            if (!this.isException)
+        if (!this.isException && APItem.activeItem == null) {
             activeItem = this;
-            allItems.remove(this); // Remove the item from the queue
+        }
 
-            trace("Triggering item: " + this.name + "\n" + "Condition: " + this.condition.type + "\n" + "Triggered: " + this.triggered + "\n" + "Is Trap: " + this.isTrap + "\n" + "From Trap Link: " + this.fromTrapLink);
+        trace("Triggering item: " + this.name + "\n" + "Condition: " + this.condition.type + "\n" + "Triggered: " + this.triggered + "\n" + "Is Trap: " + this.isTrap + "\n" + "From Trap Link: " + this.fromTrapLink);
 
-            // Trigger the item without removing it from the queue
-            this.onTrigger();
-            this.triggered = true;
-            if (!this.fromTrapLink && (this.isTrap || this is APTrap) && ClientPrefs.data.traplink) {
-                trace("Sending trap link for: " + this.name);
-                this.sendTrapLink();
-            }
+        this.onTrigger();
+        this.triggered = true;
+        APItemManager.completeTriggeredItem(this);
+
+        if (!this.fromTrapLink && (this.isTrap || this is APTrap) && ClientPrefs.data.traplink) {
+            trace("Sending trap link for: " + this.name);
+            this.sendTrapLink();
         }
     }
 
@@ -2073,23 +2077,21 @@ class APItem {
      * Clear active effects when songs end or states change
      */
     public static function clearActiveEffects():Void {
-        activeEffects.clear();
-        activeSongEffects = [];
+        APItemManager.clearActiveEffects();
     }
 
     /**
      * Called when song ends - clears Song-type effects but keeps Effect-type for next song
      */
     public static function onSongEnd():Void {
-        activeSongEffects = [];
-        // Keep Effect-type effects for consistency across songs in same session
+        APItemManager.onSongEnd();
     }
 
     /**
      * Called when leaving PlayState - clears all effects
      */
     public static function onLeavePlayState():Void {
-        clearActiveEffects();
+        APItemManager.onLeavePlayState();
     }
 
     public static function createItems():Void {
@@ -2136,28 +2138,11 @@ class APItem {
     }
 
     public static function doCheck():Void {
-        allItems.checkAndTrigger();
+        APItemManager.doCheck();
         applyPendingDamage();
     }
     public static function checkAndTrigger(items:Array<APItem>):Void {
-        // Put the next item into the activeItems, if it isn't already filled by something.
-
-        if (activeItem?.isException && activeItem?.triggered) {
-            // If the active item is an exception and has been triggered, remove it from the list
-            activeItem = null;
-        }
-
-        // trace(activeItem?.name + " is the active item.");
-
-        activeItem?.trigger();
-
-        if (activeItem == null) {
-            for (item in items) {
-                if (item != null) {
-                    item.trigger();
-                }
-            }
-        }
+        APItemManager.doCheck();
     }
 
     /**
@@ -2266,23 +2251,7 @@ class APItem {
         // Clear the activeItem reference
         activeItem = null;
 
-        // Clear all items from the ActiveArray
-        if (allItems != null) {
-            var items = allItems.getItems();
-            for (item in items) {
-            if (item != null) {
-                // Mark item as triggered to prevent any further actions
-                item.triggered = true;
-                // Clear the item's trigger function to prevent accidental calls
-                item.onTrigger = function() {};
-            }
-            }
-            // Clear the items array completely
-            for (item in 0...allItems.getItems().length) {
-                trace('Removing item from allItems: ' + allItems.pop());
-            }
-            allItems = new ActiveArray([]);
-        }
+        APItemManager.cleanupAllAPData();
 
         trace('Active items cleared successfully');
         // Reset all static variables to default values

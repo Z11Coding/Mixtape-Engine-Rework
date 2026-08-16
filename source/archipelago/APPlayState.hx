@@ -1951,7 +1951,7 @@ class APPlayState extends PlayState {
     private override function postGen():Void
     {
         super.postGen();
-        if (PlayfieldManager.SONG == null || archipelago.APItem.activeItem?.name=="Tutorial Trap") return;
+        if (PlayfieldManager.SONG == null || archipelago.APItem.hasActiveItemNamed("Tutorial Trap")) return;
         try {
             apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
         } catch (e:Dynamic) {

@@ -2,7 +2,7 @@ package archipelago;
 
 import archipelago.APEntryState;
 import archipelago.APInfo;
-import archipelago.APVersionSelectionState;
+// import archipelago.APVersionSelectionState;
 import archipelago.CustomAPLogic;
 import archipelago.PlandoData;
 import archipelago.substates.APPlandoSubstate;
@@ -912,98 +912,98 @@ class APAdvancedSettingsState extends MusicBeatState
 		var fillerWeightsOptions:Array<SettingsOption> = [
 			{
 				name: "BBC Weight",
-				description: "Weight for Blue Balls Curse Trap (0-10)",
+				description: "You will be blueballed if you get this. (Death) (0-10)",
 				callback: () -> adjustBBCWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustBBCWeight())
 			},
 			{
 				name: "Ghost Chat Weight",
-				description: "Weight for Ghost Chat Trap (0-10)",
+				description: "Activates the Streamer VS Chat Feature, with a ghost at the controls. (0-10)",
 				callback: () -> adjustGhostChatWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustGhostChatWeight())
 			},
 			{
 				name: "Tutorial Trap Weight",
-				description: "Weight for the Tutorial Trap items (0-10)",
+				description: "Relearn the basics! (0-10)",
 				callback: () -> adjustTutorialWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustTutorialWeight())
 			},
 			{
 				name: "Song Switch Trap Weight",
-				description: "Weight for the Song Switch Trap items (0-10)",
+				description: "Be forced to play a special song! (0-10)",
 				callback: () -> adjustSongSwitchWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustSongSwitchWeight())
 			},
 			{
 				name: "Resistance Trap Weight",
-				description: "Weight for the Resistance Trap items (0-10)",
+				description: "Her... (0-10)",
 				callback: () -> adjustResistanceWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustResistanceWeight())
 			},
 			{
 				name: "UNO Challenge Trap Weight",
-				description: "Weight for the UNO Challenge Trap items (0-10)",
+				description: "Win UNO, or die! (0-10)",
 				callback: () -> adjustUNOWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustUNOWeight())
 			},
 			{
 				name: "Pong Challenge Trap Weight",
-				description: "Weight for the Pong Challenge Trap items (0-10)",
+				description: "Win PONG, or die! (0-10)",
 				callback: () -> adjustPongWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustPongWeight())
 			},
 			{
 				name: "Ultimate Confusion Trap Weight",
-				description: "Weight for the Ultimate Confusion Trap items (0-10)",
+				description: "Huh?... What songs do I have again? (0-10)",
 				callback: () -> adjustConfusionWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustConfusionWeight())
 			},
 			{
 				name: "Extra Life Weight",
-				description: "Weight for Extra Life items (0-10)",
+				description: "Grants an extra life. (0-10)",
 				callback: () -> adjustexLifeWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustexLifeWeight())
 			},
 			{
 				name: "SVC Weight",
-				description: "Weight for Streamer Vs. Chat items (0-10)",
+				description: "Activates a random Streamer VS Chat event. (0-10)",
 				callback: () -> adjustSVCWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustSVCWeight())
 			},
 			{
 				name: "Fake Transition Weight",
-				description: "Weight for Fake Transition items (0-10)",
+				description: "Why is the game closing???????? (0-10)",
 				callback: () -> adjustFakeTransWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustFakeTransWeight())
 			},
 			{
 				name: "Shield Weight",
-				description: "Weight for Shield items (0-10)",
+				description: "Shields you from the Blue Balls Curse. (0-10)",
 				callback: () -> adjustShieldWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustShieldWeight())
 			},
 			{
 				name: "Max HP Up Weight",
-				description: "Weight for Max HP Up filler items (0-10)",
+				description: "Increases your maximum HP. (0-10)",
 				callback: () -> adjustMHPWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustMHPWeight())
 			},
 			{
 				name: "Max HP Down Weight",
-				description: "Weight for Max HP Down filler items (0-10)",
+				description: "Decreases your maximum HP. (0-10)",
 				callback: () -> adjustMHPDWeight(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustMHPDWeight())
@@ -6153,7 +6153,8 @@ class APAdvancedSettingsState extends MusicBeatState
 		// Animate out all elements
 		animateOut(function()
 		{
-			archipelago.APVersionSelectionState.smartLaunch();
+			// archipelago.APVersionSelectionState.smartLaunch();
+			archipelago.APStyledEntryState.open();
 		});
 	}
 

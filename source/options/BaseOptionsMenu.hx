@@ -191,7 +191,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				default:
 					if (curOption.enterAction != null && controls.ACCEPT)
 					{
-						curOption.enterAction();
+						curOption.enterAction(curOption);
 						FlxG.sound.play(Paths.sound('confirmMenu'));
 					}
 					else if(controls.UI_LEFT || controls.UI_RIGHT)

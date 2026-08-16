@@ -1282,15 +1282,7 @@ class APGameState
 				item = APItem.createItemByName(itemName);
 			}
 
-			// Recreate the active tracking
-			if (savedActiveEffects.contains(itemName))
-			{
-				APItem.activeEffects.set(itemName, item);
-			}
-			if (savedActiveSongEffects.contains(itemName))
-			{
-				APItem.activeSongEffects.push(item);
-			}
+			APItemManager.restoreTrackedItem(item, savedActiveEffects.contains(itemName), savedActiveSongEffects.contains(itemName));
 		}
 
 		trace("Active effects restored successfully - " + allActiveEffectNames.length + " active items created");
@@ -1321,8 +1313,8 @@ class APGameState
 		_saveData.addItem("confusionStack", APItem.confusionStack);
 
 		// Save active effects tracking
-		_saveData.addItem("activeEffects", [for (name in APItem.activeEffects.keys()) name]);
-		_saveData.addItem("activeSongEffects", APItem.activeSongEffects.map(item -> item.name));
+		_saveData.addItem("activeEffects", APItemManager.getActiveEffectNames());
+		_saveData.addItem("activeSongEffects", APItemManager.getActiveSongEffectNames());
 
 		// Save current minigame state
 			var minigameValue:Int = switch (APInfo.inMinigame) {

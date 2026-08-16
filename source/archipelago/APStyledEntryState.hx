@@ -111,10 +111,6 @@ class APStyledEntryState extends MusicBeatState {
     public static var victorySong:String = '???';
     public static var fullSongCount:Int = 1;
 
-    static var currentAPLocation:String = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation") != null
-        ? new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true).getItem("apLocation")
-        : "C:/ProgramData/Archipelago";
-
     override function create() {
         if (APInfo.excludedSongs.length > 0)
             APInfo.excludedSongs = []; //Clear it so it stays empty when you go to load/make a yaml
@@ -450,7 +446,8 @@ class APStyledEntryState extends MusicBeatState {
 
         // Install button
         installButton = new FlxSprite(connectionPanel.x + connectionPanel.width + 20, buttonY + buttonSpacing * 4);
-        var installText = FileSystem.exists(currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld") ? "UPDATE" : "INSTALL";
+        @:privateAccess
+        var installText = FileSystem.exists(APInfo.currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld") ? "UPDATE" : "INSTALL";
         installButton.makeGraphic(120, 40, FlxColor.PURPLE);
         add(installButton);
 
@@ -823,7 +820,7 @@ class APStyledEntryState extends MusicBeatState {
 
     function onConnectionSuccess(client:Client, slotData:Dynamic) {
         // Connection successful, prepare for AP mode with special animation
-        ap = client;
+        APInfo.ap = client;
         APInfo.gonnaRunSync = true;
 
         // Clear this here so that the save doesn't mess up between playthoughs
@@ -857,12 +854,12 @@ class APStyledEntryState extends MusicBeatState {
         FNF.data.gameSettings = APInfo.gameSettings;
         FNF.close();
 
-        APInfo.ap = ap;
+        APInfo.ap = client;
 
 
 
         // Special AP Mode entry animation
-        startAPModeTransition(ap, slotData);
+        startAPModeTransition(client, slotData);
     }
 
     function onConnectionFailed(error:String) {
@@ -892,7 +889,7 @@ class APStyledEntryState extends MusicBeatState {
             ease: FlxEase.sineIn,
             onComplete: function(_) {
                 FlxFlicker.flicker(transitionText, 1, 0.1, false, false, function(_) {
-                    runArch(slotData);
+                    runArch(ap, slotData);
                 });
             }
         });
@@ -914,8 +911,8 @@ class APStyledEntryState extends MusicBeatState {
         }
     }
 
-    function runArch(slotData):Void {
-        inArchipelagoMode = true;
+    function runArch(ap, slotData):Void {
+        // inArchipelagoMode = true;
         APInfo.inArchipelagoMode = true; // Global flag
         backend.WeekData.reloadWeekFiles(false);
         FlxG.save.data.closeDuringOverRide = false;
@@ -929,10 +926,10 @@ class APStyledEntryState extends MusicBeatState {
         FlxG.save.flush();
 
         // Create AP game state
-        apGame = new APGameState(ap, slotData);
-        if (deathLink)
+        var apGame = new APGameState(ap, slotData);
+        if (archipelago.APInfo.deathLink)
             apGame.info().add_tag("DeathLink");
-        apGame.info().toggleDeathLink(deathLink);
+        apGame.info().toggleDeathLink(archipelago.APInfo.deathLink);
 
         APGameState.isSync = true;
 
@@ -1068,11 +1065,12 @@ class APStyledEntryState extends MusicBeatState {
 
     #if sys
     function handleAPWorldInstall() {
+        @:privateAccess {
         FlxG.sound.play(Paths.sound('confirmMenu'));
 
-        if (!FileSystem.exists(currentAPLocation)) {
+        if (!FileSystem.exists(archipelago.APInfo.currentAPLocation)) {
             // Use Prompt instead of InfoPanelSubstate for location change option
-            var locationPrompt = new Prompt("Archipelago not found at:\n" + currentAPLocation + "\n\nWould you like to change the AP location?", 0, function() {
+            var locationPrompt = new Prompt("Archipelago not found at:\n" + archipelago.APInfo.currentAPLocation + "\n\nWould you like to change the AP location?", 0, function() {
                 changeAPLocation();
             }, function() {
                 // Cancel
@@ -1082,17 +1080,17 @@ class APStyledEntryState extends MusicBeatState {
             // Create installation tasks
             var tasks = [
                 GenericProgressSubstate.createTask("Checking Archipelago installation", function(results:Array<Dynamic>) {
-                    if (!FileSystem.exists(currentAPLocation + "/custom_worlds")) {
-                        FileSystem.createDirectory(currentAPLocation + "/custom_worlds");
+                    if (!FileSystem.exists(archipelago.APInfo.currentAPLocation + "/custom_worlds")) {
+                        FileSystem.createDirectory(archipelago.APInfo.currentAPLocation + "/custom_worlds");
                     }
                     return "Directory verified";
                 }),
                 GenericProgressSubstate.createTask("Copying APWorld file", function(results:Array<Dynamic>) {
-                    APInfo.installAPWorld();
+                    archipelago.APInfo.installAPWorld();
                     return "APWorld installed";
                 }),
                 GenericProgressSubstate.createTask("Verifying installation", function(results:Array<Dynamic>) {
-                    var apworldPath = currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld";
+                    var apworldPath = archipelago.APInfo.currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld";
                     return FileSystem.exists(apworldPath) ? "Installation verified" : "Installation failed";
                 })
             ];
@@ -1104,7 +1102,7 @@ class APStyledEntryState extends MusicBeatState {
                     // On completion
                     var successPrompt = new InfoPanelSubstate(
                         "Installation Complete",
-                        "Friday Night Funkin APWorld has been successfully installed!\n\nLocation: " + currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld",
+                        "Friday Night Funkin APWorld has been successfully installed!\n\nLocation: " + archipelago.APInfo.currentAPLocation + "/custom_worlds/fridaynightfunkin.apworld",
                         FlxColor.LIME
                     );
                     openSubState(successPrompt);
@@ -1124,6 +1122,7 @@ class APStyledEntryState extends MusicBeatState {
 
             openSubState(progressSubstate);
         }
+    }
     }
 
     function refreshYAML() {
@@ -1341,20 +1340,22 @@ class APStyledEntryState extends MusicBeatState {
     }
 
     #if sys
+
     function changeAPLocation() {
+        @:privateAccess {
         FlxG.sound.play(Paths.sound('confirmMenu'));
 
-        var before = currentAPLocation;
-        currentAPLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
+        var before = archipelago.APInfo.currentAPLocation;
+        archipelago.APInfo.currentAPLocation = yutautil.ImprovedFileHandling.selectFolder("Select Archipelago Folder", true);
 
-        if (currentAPLocation != null && currentAPLocation.trim() != "") {
+        if (archipelago.APInfo.currentAPLocation != null && archipelago.APInfo.currentAPLocation.trim() != "") {
             var save = new yutautil.save.MixSaveWrapper(null, "save/apLocation.json", true);
-            save.addItem("apLocation", currentAPLocation);
+            save.addItem("apLocation", archipelago.APInfo.currentAPLocation);
 
             // Show success message using InfoPanelSubstate for consistency
             var successPanel = new InfoPanelSubstate(
                 "✅ Archipelago Location Changed",
-                "Archipelago location changed to:\n" + currentAPLocation + "\n\nThe state will refresh to apply changes.",
+                "Archipelago location changed to:\n" + archipelago.APInfo.currentAPLocation + "\n\nThe state will refresh to apply changes.",
                 FlxColor.LIME,
                 function() {
                     save.save();
@@ -1364,14 +1365,15 @@ class APStyledEntryState extends MusicBeatState {
             openSubState(successPanel);
         } else {
             // Show cancellation message
-            currentAPLocation = before;
+            archipelago.APInfo.currentAPLocation = before;
             var cancelPanel = new InfoPanelSubstate(
                 "❌ Location Change Cancelled",
-                "Archipelago location was not changed.\n\nThe current location remains:\n" + currentAPLocation,
+                "Archipelago location was not changed.\n\nThe current location remains:\n" + archipelago.APInfo.currentAPLocation,
                 FlxColor.ORANGE
             );
             openSubState(cancelPanel);
         }
+    }
     }
     #end
 }

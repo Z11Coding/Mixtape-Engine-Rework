@@ -531,25 +531,25 @@ class APFreeplayManager extends FreeplayManager {
 				return "";
 			}
 
-			if (curUnlocked.contains(APInfo.apGame.getSongAndMod(APInfo.victorySong)) && callVictory)
-			{
-				trace("GOAL COMPLETE");
-				callVictory = false;
-				APInfo.apGame.info().clientStatus = ClientStatus.GOAL;
-				FlxG.state.openSubState(new Prompt("Congradulations! You Win!", 0,
-				function()
-				{
-					collectAndRelease();
-					MusicBeatState.switchState(new APInfo());
-					APInfo.inArchipelagoMode = false;
-				},
-				function()
-				{
-					collectAndRelease();
-					MusicBeatState.switchState(new states.MainMenuState());
-					APInfo.inArchipelagoMode = false;
-				}, false, "Return to Archipelago Menu", "Return to Main Menu"));
-			}
+			// if (curUnlocked.contains(APInfo.apGame.getSongAndMod(APInfo.victorySong)) && callVictory)
+			// {
+			// 	trace("GOAL COMPLETE");
+			// 	callVictory = false;
+			// 	APInfo.apGame.info().clientStatus = ClientStatus.GOAL;
+			// 	FlxG.state.openSubState(new Prompt("Congradulations! You Win!", 0,
+			// 	function()
+			// 	{
+			// 		collectAndRelease();
+			// 		MusicBeatState.switchState(new APInfo());
+			// 		APInfo.inArchipelagoMode = false;
+			// 	},
+			// 	function()
+			// 	{
+			// 		collectAndRelease();
+			// 		MusicBeatState.switchState(new states.MainMenuState());
+			// 		APInfo.inArchipelagoMode = false;
+			// 	}, false, "Return to Archipelago Menu", "Return to Main Menu"));
+			// }
 		}
     }
 

@@ -158,13 +158,6 @@ class APConnectionErrorState extends backend.MusicBeatState
 						archipelago.APPlayState.apGame = null;
 					}
 
-					// APStyledEntryState references
-					if (archipelago.APStyledEntryState.apGame != null) {
-						archipelago.APStyledEntryState.apGame = null;
-					}
-					if (archipelago.APStyledEntryState.ap != null) {
-						archipelago.APStyledEntryState.ap = null;
-					}
 
 					// APGameState instance reference
 					if (archipelago.APGameState.instance != null) {
@@ -210,8 +203,6 @@ class APConnectionErrorState extends backend.MusicBeatState
 					archipelago.APInfo.ap = null;
 					archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.None;
 					archipelago.APPlayState.apGame = null;
-					archipelago.APStyledEntryState.apGame = null;
-					archipelago.APStyledEntryState.ap = null;
 					archipelago.APGameState.instance = null;
 					gameState = null;
 					managers.FreeplayManager.instance = null;

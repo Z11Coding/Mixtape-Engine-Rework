@@ -48,10 +48,12 @@ class Option
 		If used on a string/int/float/percent, the option will ignore the bool value.
 		If using a non-toggle, you should always return true, unless you want to prevent the option from being changed.
 	*/
-	public var enterAction(set, get):Option->Bool = null;
+	public var enterAction(get, set):Dynamic;
 	private var _enterAction:Option->Bool = null;
 
 	private function get_enterAction() {
+
+		if (_enterAction == null) return null;
 		function wrapper():Bool {
 			if(_enterAction != null) {
 				var originalValue = getValue();
@@ -71,6 +73,7 @@ class Option
 
 	private function set_enterAction(value:Option->Bool) {
 		_enterAction = value;
+		return _enterAction;
 	}
 
 

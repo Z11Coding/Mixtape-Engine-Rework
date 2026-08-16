@@ -631,6 +631,11 @@ abstract OneOrMany<T>(Array<T>) to Array<T> {
     }
 
     @:from
+    public static inline function fromRest<T>(...value:T):OneOrMany<T> {
+        return new OneOrMany(cast value.toArray());
+    }
+
+    @:from
     public static inline function fromSingle<T>(value:T):OneOrMany<T> {
         return new OneOrMany(value);
     }

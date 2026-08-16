@@ -350,11 +350,11 @@ class Runic
 	 *
 	 * @param callback Function to execute when dictionary is ready
 	 */
-	public static function onIPADictionaryReady(callback:Void->Void):Void
+	public static function onIPADictionaryReady(callback:Map<String, String>->Void):Void
 	{
 		if (ipaDictionary.isReady)
 		{
-			callback();
+			callback(ipaDictionary.get());
 			return;
 		}
 
@@ -546,7 +546,7 @@ class Runic
 			i++;
 		}
 
-		return Math.max(1, length);
+		return Math.max(1, length).toNum();
 	}
 
 	/**

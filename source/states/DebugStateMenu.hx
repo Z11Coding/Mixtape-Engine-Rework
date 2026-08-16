@@ -10,6 +10,8 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import games.match3.Match3TestState;
+import games.uno.beta.APUnoBetaTrapState;
+import games.uno.beta.UnoBetaState;
 import objects.Alphabet;
 import shop.DaShop;
 import states.MainMenuState;
