@@ -1,5 +1,7 @@
 package archipelago;
 
+import archipelago.APItem.ConditionType;
+import archipelago.APItem;
 import flixel.FlxG;
 
 typedef APItemConditionRunner = {

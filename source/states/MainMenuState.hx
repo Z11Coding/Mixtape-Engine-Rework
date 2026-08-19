@@ -20,6 +20,7 @@ enum MainMenuColumn {
 	LEFT;
 	CENTER;
 	RIGHT;
+	UPLEFT;
 	UPRIGHT;
 }
 
@@ -39,6 +40,7 @@ class MainMenuState extends MusicBeatState
 	var menuItems:FlxTypedGroup<FlxSprite>;
 	var leftItem:FlxSprite;
 	var rightItem:FlxSprite;
+	var updateItem:FlxSprite;
 	var archipelagoItem:FlxSprite;
 
 	var checker:FlxBackdrop;
@@ -54,6 +56,7 @@ class MainMenuState extends MusicBeatState
 
 	var leftOption:String = #if ACHIEVEMENTS_ALLOWED 'achievements' #else null #end;
 	var rightOption:String = 'options';
+	var updateOption:String = 'update';
 	var archipelagoOption:String = #if ARCHIPELAGO_ALLOWED 'archipelago' #else null #end;
 
 	var logoBl:FlxSprite;
@@ -195,6 +198,8 @@ class MainMenuState extends MusicBeatState
 
 		if (leftOption != null)
 			leftItem = createMenuItem(leftOption, 60, 490);
+		if (updateOption != null)
+			updateItem = createDarklessMenuItem(updateOption, 60, 260);
 		if (rightOption != null)
 		{
 			rightItem = createMenuItem(rightOption, FlxG.width - 60, 490);
@@ -302,9 +307,31 @@ class MainMenuState extends MusicBeatState
 	{
 		var menuItem:FlxSprite = new FlxSprite(x, y);
 		menuItem.frames = Paths.getSparrowAtlas('mainmenu/menu_$name' + (ClientPrefs.data.menuTheme == "Dark" ? '_dark' : ''));
-		menuItem.animation.addByPrefix('idle', '$name idle', 24, true);
-		menuItem.animation.addByPrefix('selected', '$name selected', 24, true);
+		var animPrefix:String = (name == 'update') ? 'Update' : name;
+		menuItem.animation.addByPrefix('idle', '$animPrefix idle', 24, true);
+		menuItem.animation.addByPrefix('selected', '$animPrefix selected', 24, true);
 		menuItem.animation.play('idle');
+		menuItem.updateHitbox();
+
+		menuItem.antialiasing = ClientPrefs.data.antialiasing;
+		menuItem.scrollFactor.set();
+		menuItems.add(menuItem);
+		return menuItem;
+	}
+
+	function createDarklessMenuItem(name:String, x:Float, y:Float):FlxSprite
+	{
+		var menuItem:FlxSprite = new FlxSprite(x, y);
+		menuItem.frames = Paths.getSparrowAtlas('mainmenu/menu_$name');
+		var animPrefix:String = (name == 'update') ? 'Update' : name;
+		menuItem.animation.addByPrefix('idle', '$animPrefix idle', 24, true);
+		menuItem.animation.addByPrefix('selected', '$animPrefix selected', 24, true);
+		menuItem.animation.play('idle');
+		if (name == 'update')
+		{
+			// update is too big...
+			menuItem.setGraphicSize(Std.int(menuItem.width * 0.2));
+		}
 		menuItem.updateHitbox();
 
 		menuItem.antialiasing = ClientPrefs.data.antialiasing;
@@ -372,6 +399,8 @@ class MainMenuState extends MusicBeatState
 						selectedItem = leftItem;
 					case RIGHT:
 						selectedItem = rightItem;
+						case UPLEFT:
+							selectedItem = updateItem;
 					case UPRIGHT:
 						selectedItem = archipelagoItem;
 				}
@@ -393,6 +422,16 @@ class MainMenuState extends MusicBeatState
 					if(selectedItem != rightItem)
 					{
 						curColumn = RIGHT;
+						changeItem();
+					}
+				}
+				else if(updateItem != null && FlxG.mouse.overlaps(updateItem))
+				{
+					Cursor.cursorMode = Pointer;
+					allowMouseDX = true;
+					if(selectedItem != updateItem)
+					{
+						curColumn = UPLEFT;
 						changeItem();
 					}
 				}
@@ -461,6 +500,12 @@ class MainMenuState extends MusicBeatState
 						changeItem();
 					}
 
+					if(controls.UI_UP_P)
+					{
+						curColumn = UPLEFT;
+						changeItem();
+					}
+
 				case RIGHT:
 					if(controls.UI_LEFT_P)
 					{
@@ -471,6 +516,19 @@ class MainMenuState extends MusicBeatState
 					if(controls.UI_UP_P)
 					{
 						curColumn = UPRIGHT;
+						changeItem();
+					}
+
+				case UPLEFT:
+					if(controls.UI_RIGHT_P)
+					{
+						curColumn = CENTER;
+						changeItem();
+					}
+
+					if(controls.UI_DOWN_P)
+					{
+						curColumn = LEFT;
 						changeItem();
 					}
 
@@ -531,6 +589,10 @@ class MainMenuState extends MusicBeatState
 						option = rightOption;
 						item = rightItem;
 
+						case UPLEFT:
+							option = updateOption;
+							item = updateItem;
+
 					case UPRIGHT:
 						option = archipelagoOption;
 						item = archipelagoItem;
@@ -572,6 +634,8 @@ class MainMenuState extends MusicBeatState
 							item.visible = true;
 						case 'archipelago':
 							MusicBeatState.switchState(new APStyledEntryState());
+						case 'update':
+							MusicBeatState.switchState(new ReleaseSelectionState());
 						default:
 							trace('Menu Item ${option} doesn\'t do anything');
 							selectedSomethin = false;
@@ -655,6 +719,8 @@ class MainMenuState extends MusicBeatState
 				selectedItem = leftItem;
 			case RIGHT:
 				selectedItem = rightItem;
+			case UPLEFT:
+				selectedItem = updateItem;
 			case UPRIGHT:
 				selectedItem = archipelagoItem;
 		}

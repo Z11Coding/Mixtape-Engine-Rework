@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<TextureAtlas imagePath="Update.png">
+<SubTexture name="Update idle0000" x="0" y="1320" width="548" height="615" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0001" x="0" y="1320" width="548" height="615" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0002" x="0" y="1320" width="548" height="615" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0003" x="736" y="687" width="548" height="616" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0004" x="736" y="687" width="548" height="616" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0005" x="736" y="687" width="548" height="616" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0006" x="548" y="1320" width="549" height="613" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0007" x="548" y="1320" width="549" height="613" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update idle0008" x="548" y="1320" width="549" height="613" frameX="-385" frameY="-12" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0000" x="0" y="687" width="736" height="633" frameX="-274" frameY="-54" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0001" x="0" y="687" width="736" height="633" frameX="-274" frameY="-54" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0002" x="0" y="0" width="674" height="687" frameX="-302" frameY="0" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0003" x="674" y="0" width="674" height="649" frameX="-302" frameY="0" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0004" x="1348" y="0" width="615" height="629" frameX="-326" frameY="-20" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0005" x="1348" y="0" width="615" height="629" frameX="-326" frameY="-20" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0006" x="1348" y="629" width="606" height="629" frameX="-334" frameY="-20" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0007" x="1348" y="629" width="606" height="629" frameX="-334" frameY="-20" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0008" x="1348" y="629" width="606" height="629" frameX="-334" frameY="-20" frameWidth="1280" frameHeight="720" />
+<SubTexture name="Update selected0009" x="1348" y="629" width="606" height="629" frameX="-334" frameY="-20" frameWidth="1280" frameHeight="720" />
+</TextureAtlas>
