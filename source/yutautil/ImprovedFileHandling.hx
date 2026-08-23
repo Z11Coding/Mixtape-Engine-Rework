@@ -165,16 +165,19 @@ class ImprovedFileHandling
 
 	/**
 	 * Saves multiple files. The first file is the main file, and extra files are objects with {name, data}.
+	 * If mainData is null, the main file itself is not written; only the extra files are saved
+	 * in the directory the save dialog points to.
 	 * @param title Dialog title
 	 * @param filter File filter
 	 * @param writeType ReadType.ByteData or ReadType.Text
-	 * @param mainData Main file data
+	 * @param mainData Main file data, or null to skip writing the main file
 	 * @param extraFiles Array of {name:String, data:Dynamic} for extra files
 	 * @param preserve_cwd Preserve current working directory
+	 * @param extrasUseSameExt If true, extra files will use the same extension as the main file if they don't already have one
 	 * @return Array of saved file paths (main file first, then extra files)
 	 */
 	public static function multiSaveOperation(title:String, ?filter:Filter, writeType:ReadType, mainData:Dynamic,
-			?extraFiles:Array<{name:String, data:Dynamic}>, ?preserve_cwd:Bool = true):Bool
+			?extraFiles:Array<{name:String, data:Dynamic}>, ?preserve_cwd:Bool = true, ?extrasUseSameExt:Bool = true):Bool
 	{
 		if (filter != null)
 		{
@@ -200,9 +203,12 @@ class ImprovedFileHandling
 					mainFilePath += ext;
 				}
 			}
-			writeType == ReadType.ByteData ? File.saveBytes(mainFilePath, mainData) : File.saveContent(mainFilePath, mainData);
-			lastPath = mainFilePath;
-			filePaths.push(mainFilePath);
+			if (mainData != null)
+			{
+				writeType == ReadType.ByteData ? File.saveBytes(mainFilePath, mainData) : File.saveContent(mainFilePath, mainData);
+				lastPath = mainFilePath;
+				filePaths.push(mainFilePath);
+			}
 
 			// Save extra files in the same directory as the main file
 			if (extraFiles != null)
@@ -211,7 +217,7 @@ class ImprovedFileHandling
 				for (extra in extraFiles)
 				{
 					var extraPath = Path.join([dir, extra.name]);
-					if (!extraPath.endsWith(ext))
+					if (extrasUseSameExt && !extraPath.endsWith(ext))
 					{
 						if (extraPath.endsWith("."))
 						{
@@ -228,6 +234,59 @@ class ImprovedFileHandling
 			}
 		}
 		return checkFilesExist(filePaths);
+	}
+
+	/**
+	 * Same as saveOperation, but writes the file using `fileName` instead of whatever name
+	 * the user typed into the save dialog. The directory chosen in the save dialog is still used.
+	 * @param title Dialog title
+	 * @param filter File filter
+	 * @param writeType ReadType.ByteData or ReadType.Text
+	 * @param data File data
+	 * @param fileName Name (with or without extension) to save the file as, ignoring the dialog's name
+	 * @param preserve_cwd Preserve current working directory
+	 * @return True if the file was saved and matches the given data
+	 */
+	public static function saveOperationNamed(title:String, ?filter:Filter, writeType:ReadType, data:Dynamic, fileName:String, ?preserve_cwd:Bool = true):Bool
+	{
+		if (filter != null)
+		{
+			var f:FileFilter = filter;
+			f.desc = f.desc != null ? f.desc : '${f.ext.toUpperCase()} File';
+		}
+		var dialogPath = saveFile(title, filter, preserve_cwd);
+		if (dialogPath == null || dialogPath.trim() == "")
+		{
+			return false;
+		}
+
+		var f:FileFilter = filter;
+		var filePath = Path.join([Path.directory(dialogPath), fileName]);
+		if (f != null)
+		{
+			var ext = "." + f.ext;
+			if (!filePath.endsWith(ext))
+			{
+				filePath += filePath.endsWith(".") ? f.ext : ext;
+			}
+		}
+
+		// Check if file exists and compare content before writing
+		var existingData:Dynamic = null;
+		if (FileSystem.exists(filePath))
+		{
+			existingData = writeType == ReadType.ByteData ? File.getBytes(filePath) : File.getContent(filePath);
+		}
+
+		// Only write if data is different
+		var dataChanged:Bool = existingData == null || !compareData(writeType, existingData, data);
+		if (dataChanged)
+		{
+			writeType == ReadType.ByteData ? File.saveBytes(filePath, data) : File.saveContent(filePath, data);
+		}
+
+		lastPath = filePath;
+		return FileSystem.exists(filePath) && (writeType == ReadType.ByteData ? haxe.crypto.Base64.encode(File.getBytes(filePath)) == haxe.crypto.Base64.encode(data) : File.getContent(filePath) == data);
 	}
 
 	public static function checkFileExists(filePath:String):Bool
@@ -277,6 +336,11 @@ class ImprovedFileHandling
 	}
 
 	public static function multiSaveOperation(title:String, ?filter:Filter, writeType:ReadType, mainData:Dynamic, ?extraFiles:Array<{name:String, data:Dynamic}>, ?preserve_cwd:Bool = true):Bool
+	{
+		// Nothing
+	}
+
+	public static function saveOperationNamed(title:String, ?filter:Filter, writeType:ReadType, data:Dynamic, fileName:String, ?preserve_cwd:Bool = true):Bool
 	{
 		// Nothing
 	}

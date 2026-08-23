@@ -30,6 +30,7 @@ import openfl.events.Event;
 import openfl.events.NativeProcessExitEvent;
 import psychlua.LuaUtils;
 import states.TitleState;
+import yutautil.DevTools;
 import yutautil.GenericProgressSubstate;
 #if debug
 import debug.DebugManager;
@@ -62,6 +63,7 @@ import haxe.io.BytesOutput;
 import sys.FileSystem;
 import sys.io.Process;
 #end
+
 
 
 // NATIVE API STUFF, YOU CAN IGNORE THIS AND SCROLL //
@@ -685,6 +687,23 @@ class Main extends Sprite
 			trace("Error extracting crash expression: " + e);
 			return null;
 		}
+	}
+
+	public static inline function restartEngine():Void
+	{
+		// Flush all queued traces before restart
+		backend.modules.TraceManager.flushAllQueuedTraces();
+
+		// Clean up trace system threading
+		#if sys
+		backend.modules.TraceManager.stopTraceThread();
+		#end
+
+		var args:Array<String> = Sys.args();
+		var exePath:String = Sys.executablePath();
+		var process:Process = new Process(exePath, args);
+		process.close();
+		Main.closeGame();
 	}
 
 	public static function onCrash(e:UncaughtErrorEvent):Void

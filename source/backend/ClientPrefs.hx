@@ -274,6 +274,7 @@ import states.TitleState;
 	public var ignoreThrows:Bool = false; // DANGEROUS: Ignores all throws in crash handler - only prevents crash escalation
 	public var yscriptDebugMode:Bool = false; // Enable YScript execution tracing for debugging
 	public var sourceAccessDebug:Bool = false; // Allow debug access to source files to edit the game at runtime - EXTREMELY DANGEROUS, USE WITH CAUTION
+	public var sourceAccessResourceMode:String = 'Any'; // Any, Compressed Only, Uncompressed Only
 
 	// Plus Engine cool stuff
 	public var accuracySystem:String = 'Wife3'; // 'Wife3', 'Psych', 'Mixtape, 'Simple', 'osu!mania', 'DJMAX', 'ITG'

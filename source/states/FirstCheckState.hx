@@ -2,10 +2,13 @@ package states;
 
 import archipelago.APEntryState;
 import backend.AudioSwitchFix;
+import backend.util.CoolSystemStuff;
 import backend.util.NativeAPI;
 import flixel.input.keyboard.FlxKey;
+import flixel.util.FlxGradient;
 import lime.utils.Assets;
 import states.MixtapeCrashSplash;
+import substates.AssetLocationChoiceSubstate;
 import yutautil.AprilFools;
 import yutautil.GenericProgressSubstate;
 import yutautil.modules.SyncUtils;
@@ -118,10 +121,23 @@ class FirstCheckState extends MusicBeatState
         return response != null || response == '';
     }
 
+	public static inline function getExpectedExecutableName():String {
+		var detected = CoolSystemStuff.executableFileName();
+		if (detected != null && detected.trim() != '') return detected;
+		return 'Mixtape.exe';
+	}
+
+	public static inline function hasRequiredResources(?expectedExe:String):Bool {
+		var exe = expectedExe;
+		if (exe == null || exe.trim() == '') exe = getExpectedExecutableName();
+		return Paths.exists(Paths.imagePath('fred')) && FileSystem.exists('./' + exe);
+	}
+
 	override function create()
 	{
+		var expectedExe = getExpectedExecutableName();
 		//backend.window.Priority.setPriority(0);
-		if (!Paths.exists(Paths.imagePath('fred'))) {
+		if (!hasRequiredResources(expectedExe)) {
 			trace("It seems like FNF cannot find files. If you're using Wine, this is likely why.");
 			var save:flixel.util.FlxSave = new flixel.util.FlxSave();
 			save.bind("MixtapeEngine");
@@ -130,40 +146,13 @@ class FirstCheckState extends MusicBeatState
 				Sys.setCwd(save.data.wineDir);
 				save.flush();
 				trace("Set working directory to " + save.data.wineDir);
-			} else {
+			}
 
-			var message = "**Wine Compatibility Notice**\n\n"
-				+ "If you are using Mixtape Engine with Wine, this may be the reason why certain files cannot be loaded.\n\n"
-				+ "To fix this issue, you'll need to tell the game where to load its assets from.";
-
-			archipelago.substates.InfoPanelSubstate.show(
-				"Asset Loading Help",
-				message,
-				null,
-				function() {
-					var mixtape = yutautil.ImprovedFileHandling.selectFolder("Tell me where Mixtape is.");
-					if (mixtape != null && mixtape.trim() != "") {
-						Sys.setCwd(mixtape);
-						save.data.wineDir = mixtape;
-						save.flush();
-						archipelago.substates.InfoPanelSubstate.show(
-							"Success!",
-							"Thanks for telling me where Mixtape is! I'll try to remember this for next time.",
-							null,
-							null
-						);
-					} else {
-						archipelago.substates.InfoPanelSubstate.show(
-							"Error",
-							"You didn't tell me where Mixtape is. I can't continue without it!",
-							null,
-							null
-						);
-					}
-				}
-			);
+			if (!hasRequiredResources(expectedExe)) {
+				FlxG.switchState(new AssetRecoveryState(expectedExe));
+				return;
+			}
 		}
-	}
 
 		if (!relaunch) {
 			ClientPrefs.loadPrefs();
@@ -542,6 +531,127 @@ class FirstCheckState extends MusicBeatState
 		else if (updateVerParts[2] > curVerParts[2] && updateVerParts[1] == curVerParts[1])
 			return {isOutdated: true, majorUpdate: false, minorUpdate: false, bugfix: true};
 		else return {isOutdated: false, majorUpdate: false, minorUpdate: false, bugfix: false};
+	}
+}
+
+class AssetRecoveryState extends MusicBeatState
+{
+	var expectedExe:String;
+
+	public function new(expectedExe:String)
+	{
+		super();
+		this.expectedExe = expectedExe;
+	}
+
+	override function create()
+	{
+		super.create();
+
+		var save:flixel.util.FlxSave = new flixel.util.FlxSave();
+		save.bind("MixtapeEngine");
+
+		var promptForManualPath:Void->Void = null;
+		promptForManualPath = function() {
+			var mixtape = yutautil.ImprovedFileHandling.selectFolder("Tell me where Mixtape is.");
+			if (mixtape != null && mixtape.trim() != "") {
+				Sys.setCwd(mixtape);
+				save.data.wineDir = mixtape;
+				save.flush();
+				archipelago.substates.InfoPanelSubstate.show(
+					"Success!",
+					"Thanks for telling me where Mixtape is! I'll try to remember this for next time.",
+					null,
+					function() {
+						Main.restartEngine();
+					}
+				);
+			} else {
+				archipelago.substates.InfoPanelSubstate.show(
+					"Error",
+					"You didn't tell me where Mixtape is. I can't continue without it!",
+					null,
+					function() {
+						Main.restartEngine();
+					}
+				);
+			}
+		};
+
+		var showRecoveryPrompts = function() {
+			var message = "**Wine Compatibility Notice**\n\n"
+				+ "If you are using Mixtape Engine with Wine, this may be the reason why certain files cannot be loaded.\n\n"
+				+ "To fix this issue, you'll need to tell the game where to load its assets from.";
+
+			archipelago.substates.InfoPanelSubstate.show(
+				"Asset Loading Help",
+				message,
+				null,
+				function() {
+					openSubState(new AssetLocationChoiceSubstate(
+						function() {
+							var detectedPath = haxe.io.Path.directory(Sys.programPath());
+							if (detectedPath != null && detectedPath.trim() != "") {
+								Sys.setCwd(detectedPath);
+								if (FirstCheckState.hasRequiredResources(expectedExe)) {
+									save.data.wineDir = detectedPath;
+									save.flush();
+									archipelago.substates.InfoPanelSubstate.show(
+										"Success!",
+										"I detected Mixtape from the executable path and saved it for next time.",
+										null,
+										function() {
+											Main.restartEngine();
+										}
+									);
+								} else {
+									archipelago.substates.InfoPanelSubstate.show(
+										"Auto-Detect Failed",
+										"I couldn't confirm Mixtape files from the detected path. Please choose the folder manually.",
+										null,
+										function() {
+											promptForManualPath();
+										}
+									);
+								}
+							} else {
+								archipelago.substates.InfoPanelSubstate.show(
+									"Auto-Detect Failed",
+									"I couldn't detect a valid executable path. Please choose the folder manually.",
+									null,
+									function() {
+										promptForManualPath();
+									}
+								);
+							}
+						},
+						function() {
+							promptForManualPath();
+						}
+					));
+				}
+			);
+		};
+
+		var recoveryGradient = FlxGradient.createGradientFlxSprite(
+			Math.round(FlxG.width),
+			Math.round(FlxG.height),
+			[0x00000000, 0xCC611EA0],
+			1,
+			90,
+			true
+		);
+		recoveryGradient.scrollFactor.set();
+		recoveryGradient.y = FlxG.height;
+		recoveryGradient.alpha = 0;
+		add(recoveryGradient);
+
+		FlxTween.tween(recoveryGradient, {y: 0, alpha: 1}, 1.25, {
+			ease: FlxEase.sineOut,
+			onComplete: function(_) {
+				showRecoveryPrompts();
+			}
+		});
 	}
 }
 

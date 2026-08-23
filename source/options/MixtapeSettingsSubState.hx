@@ -938,6 +938,19 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"If checked, allows viewing the source code of the engine at runtime for debugging purposes.\nWARNING: This may be resource-intensive and is intended for advanced users only.",
 			'sourceAccessDebug',
 			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Source Access Resource Mode',
+			"Choose which embedded type resources may be loaded when Runtime Source Code is enabled.\nAny: Try both compressed then uncompressed.\nCompressed Only: Only allow typeregistry_compressed_data.\nUncompressed Only: Only allow typeregistry_full_data.",
+			'sourceAccessResourceMode',
+			STRING,
+			[
+				'Any',
+				'Compressed Only',
+				'Uncompressed Only'
+			]);
+		addOption(option);
+		option.displayFormat = '< %v >';
 
 		var option:Option = new Option('AP Server Compression',
 		'Tell the Engine to ask for compressed data. (WIP)',

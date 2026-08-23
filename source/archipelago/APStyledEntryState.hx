@@ -1221,14 +1221,77 @@ class APStyledEntryState extends MusicBeatState {
                 performAPWorldExport("./fridaynightfunkin.apworld");
             },
             function() {
-                // Let user choose location
-                var savePath = yutautil.ImprovedFileHandling.saveFile("Export APWorld", {ext: "apworld", desc: "Archipelago World File"});
-                if (savePath != null) {
-                    performAPWorldExport(savePath);
-                }
+                // Let user choose the folder, but always save it as fridaynightfunkin.apworld
+                performAPWorldExportNamed();
             }
         );
         openSubState(choiceSubstate);
+    }
+
+    function performAPWorldExportNamed() {
+        var savedPath:String = null;
+
+        // Show progress while exporting APWorld
+        var tasks = [
+            GenericProgressSubstate.createTask("Retrieving embedded APWorld data", function(results:Array<Dynamic>) {
+                try {
+                    var apworldData = haxe.Resource.getBytes("apworld");
+                    if (apworldData == null) {
+                        throw new Exception("APWorld data not found in embedded resources");
+                    }
+                    return apworldData;
+                } catch (e:Exception) {
+                    throw e;
+                }
+            }),
+            GenericProgressSubstate.createTask("Saving APWorld to chosen location", function(results:Array<Dynamic>) {
+                try {
+                    var apworldData = results[0];
+                    var success = yutautil.ImprovedFileHandling.saveOperationNamed("Export APWorld", {ext: "apworld", desc: "Archipelago World File"}, yutautil.ImprovedFileHandling.ReadType.ByteData, apworldData, "fridaynightfunkin.apworld");
+                    if (!success) {
+                        throw new Exception("No file selected or file could not be saved");
+                    }
+                    savedPath = yutautil.ImprovedFileHandling.lastPath;
+                    return "APWorld file saved";
+                } catch (e:Exception) {
+                    throw e;
+                }
+            }),
+            GenericProgressSubstate.createTask("Verifying export", function(results:Array<Dynamic>) {
+                try {
+                    if (savedPath != null && FileSystem.exists(savedPath)) {
+                        var fileSize = FileSystem.stat(savedPath).size;
+                        return 'Export verified - ${fileSize} bytes written';
+                    } else {
+                        throw new Exception("Exported file not found at target path");
+                    }
+                } catch (e:Exception) {
+                    throw e;
+                }
+            })
+        ];
+
+        var progressSubstate = new GenericProgressSubstate(
+            "Exporting APWorld...",
+            tasks,
+            function(results:Array<Dynamic>) {
+                // On success
+                openSubState(new InfoPanelSubstate("Export Complete",
+                    "APWorld file exported successfully to:\n" + savedPath,
+                    FlxColor.GREEN));
+            },
+            function(error:String, shouldThrow:Bool) {
+                // On error
+                openSubState(new InfoPanelSubstate("Export Error",
+                    "Failed to export APWorld:\n" + error,
+                    FlxColor.RED));
+            },
+            function() {
+                // On cancel - do nothing
+            }
+        );
+
+        openSubState(progressSubstate);
     }
 
     function performAPWorldExport(targetPath:String) {

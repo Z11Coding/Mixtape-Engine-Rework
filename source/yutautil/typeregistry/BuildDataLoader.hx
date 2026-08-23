@@ -85,8 +85,6 @@ class BuildDataLoader {
             var asyncLoad:ASync<Void -> Dynamic> = function():Dynamic {
                 trace('BuildDataLoader: Async worker started');
 
-                if (ClientPrefs.data.sourceAccessDebug) {
-
                 // Strategy 1: Try filesystem (dev builds)
                 if (FileSystem.exists(dataPath)) {
                     trace('BuildDataLoader: Found compressed build data file, reading...');
@@ -110,26 +108,64 @@ class BuildDataLoader {
 
                 // Strategy 2: Try embedded Haxe resources (release builds)
                 trace('BuildDataLoader: No filesystem files found, trying embedded resources...');
-                var compressedResource = haxe.Resource.getString("typeregistry_compressed_data");
-                if (compressedResource != null) {
-                    trace('BuildDataLoader: Found compressed embedded resource (${compressedResource.length} chars), parsing with TJSON...');
-                    var data = TJSON.parse(compressedResource);
-                    dataSource = "resource";
-                    trace('BuildDataLoader: Loaded compressed build data from embedded resource.');
-                    return data;
+                var resourceMode:String = ClientPrefs.data.sourceAccessResourceMode;
+                if (resourceMode == null || resourceMode.length == 0)
+                    resourceMode = "Any";
+
+                // Only apply resource filtering when source-access debug is enabled.
+                // Otherwise keep default behavior to avoid breaking non-debug workflows.
+                var allowCompressed:Bool = true;
+                var allowUncompressed:Bool = true;
+                if (ClientPrefs.data.sourceAccessDebug) {
+                    switch (resourceMode) {
+                        case "Compressed Only":
+                            allowUncompressed = false;
+                        case "Uncompressed Only":
+                            allowCompressed = false;
+                        default:
+                            // Any
+                    }
                 }
 
-                var fullResource = haxe.Resource.getString("typeregistry_full_data");
-                if (fullResource != null) {
-                    trace('BuildDataLoader: Found full embedded resource (${fullResource.length} chars), parsing with TJSON...');
-                    var data = TJSON.parse(fullResource);
-                    dataSource = "resource";
-                    trace('BuildDataLoader: Loaded full type collection data from embedded resource');
-                    return data;
+                if (allowCompressed) {
+                    var compressedResource = haxe.Resource.getString("typeregistry_compressed_data");
+                    if (compressedResource == null) {
+                        var compressedBytes = haxe.Resource.getBytes("typeregistry_compressed_data");
+                        if (compressedBytes != null) compressedResource = compressedBytes.toString();
+                    }
+                    if (compressedResource != null) {
+                        trace('BuildDataLoader: Found compressed embedded resource (${compressedResource.length} chars), parsing with TJSON...');
+                        var data = TJSON.parse(compressedResource);
+                        dataSource = "resource";
+                        trace('BuildDataLoader: Loaded compressed build data from embedded resource.');
+                        return data;
+                    }
                 }
-            }
+
+                if (allowUncompressed) {
+                    var fullResource = haxe.Resource.getString("typeregistry_full_data");
+                    if (fullResource == null) {
+                        var fullBytes = haxe.Resource.getBytes("typeregistry_full_data");
+                        if (fullBytes != null) fullResource = fullBytes.toString();
+                    }
+                    if (fullResource != null) {
+                        trace('BuildDataLoader: Found full embedded resource (${fullResource.length} chars), parsing with TJSON...');
+                        var data = TJSON.parse(fullResource);
+                        dataSource = "resource";
+                        trace('BuildDataLoader: Loaded full type collection data from embedded resource');
+                        return data;
+                    }
+                }
 
                 trace('BuildDataLoader: No type collection data found - neither filesystem nor embedded resources available');
+                if (ClientPrefs.data.sourceAccessDebug) {
+                    trace('BuildDataLoader: Available data sources: ${haxe.Resource.listNames()}');
+                    trace('For debugging, here is what is in everything:');
+                    for (name in haxe.Resource.listNames()) {
+                        var bytes = haxe.Resource.getBytes(name);
+                        trace('$name -> ${(bytes != null) ? bytes.length : 0} bytes');
+                    }
+                }
                 if (ClientPrefs.data.sourceAccessDebug)
                     throw "No build data available";
                 else

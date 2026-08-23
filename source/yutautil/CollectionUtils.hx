@@ -2022,6 +2022,227 @@ class CollectionUtils
 		return arr;
 	}
 
+	/**
+	 * A real Timsort implementation: scans the array for naturally ordered runs
+	 * (ascending or descending), reverses descending runs in place, extends any run
+	 * shorter than the minimum run length via insertion sort, then merges the runs
+	 * bottom-up. If no `compare` is given, one is picked automatically based on the
+	 * array's contents (numeric, alphabetical, or reference/pointer-based).
+	 * All of Timsort's helper logic is nested here so it only exists while sorting.
+	 */
+	public static function timsort<T>(arr:Array<T>, ?compare:(a:T, b:T) -> Int):Array<T>
+	{
+		if (arr.length <= 1) return arr;
+
+		// Standard Timsort minimum run length calculation (target run count is a power of two).
+		function minRunLength(n:Int):Int
+		{
+			var r = 0;
+			var remaining = n;
+			while (remaining >= 64)
+			{
+				r |= remaining & 1;
+				remaining >>= 1;
+			}
+			return remaining + r;
+		}
+
+		function reverseRange(start:Int, end:Int):Void
+		{
+			var lo = start;
+			var hi = end - 1;
+			while (lo < hi)
+			{
+				var tmp = arr[lo];
+				arr[lo] = arr[hi];
+				arr[hi] = tmp;
+				lo++;
+				hi--;
+			}
+		}
+
+		function insertionSort(start:Int, end:Int, cmp:(a:T, b:T) -> Int):Void
+		{
+			for (i in (start + 1)...end)
+			{
+				var current = arr[i];
+				var j = i - 1;
+				while (j >= start && cmp(arr[j], current) > 0)
+				{
+					arr[j + 1] = arr[j];
+					j--;
+				}
+				arr[j + 1] = current;
+			}
+		}
+
+		function mergeInPlace(start:Int, leftLength:Int, rightLength:Int, cmp:(a:T, b:T) -> Int):Void
+		{
+			var left = arr.slice(start, start + leftLength);
+			var right = arr.slice(start + leftLength, start + leftLength + rightLength);
+			var i = 0;
+			var j = 0;
+			var k = start;
+			while (i < left.length && j < right.length)
+			{
+				if (cmp(left[i], right[j]) <= 0)
+					arr[k++] = left[i++];
+				else
+					arr[k++] = right[j++];
+			}
+			while (i < left.length) arr[k++] = left[i++];
+			while (j < right.length) arr[k++] = right[j++];
+		}
+
+		#if cpp
+		// Real memory address (as a hex string) via TypeUtils' pointer helpers - a genuine identity-based ordering.
+		function pointerAddress(obj:Dynamic):String
+		{
+			return Std.string(new yutautil.TypeUtils.HaxeAddress(obj));
+		}
+		#end
+
+		/**
+		 * Fallback comparator for non-numeric, non-string values. Prefers an object's
+		 * own `__compare__(other)` method if it has one, then falls back to comparing
+		 * `Std.string()` representations, and finally to a pure reference/pointer-style
+		 * ordering: the object's real memory address on cpp (since `hashcode()` returns
+		 * 0 for plain objects/class instances), or a hashcode-based ordering elsewhere.
+		 */
+		function referenceCompare(a:T, b:T):Int
+		{
+			if (a == b) return 0;
+			if (a == null) return -1;
+			if (b == null) return 1;
+
+			if (Reflect.isObject(a) && Reflect.hasField(a, "__compare__") && Reflect.isFunction(Reflect.field(a, "__compare__")))
+			{
+				return Reflect.callMethod(a, Reflect.field(a, "__compare__"), [b]);
+			}
+
+			var sa = Std.string(a);
+			var sb = Std.string(b);
+			if (sa != sb)
+				return sa < sb ? -1 : 1;
+
+			#if cpp
+			var pa = pointerAddress(a);
+			var pb = pointerAddress(b);
+			return pa < pb ? -1 : (pa > pb ? 1 : 0);
+			#else
+			var ha = hashcode(a);
+			var hb = hashcode(b);
+			return ha < hb ? -1 : (ha > hb ? 1 : 0);
+			#end
+		}
+
+		/**
+		 * Picks a comparator based on a representative element of the array: numeric
+		 * ordering for Int/Float, alphabetical ordering for String, and a reference/
+		 * pointer-based ordering for anything else (see `referenceCompare`).
+		 */
+		function buildDefaultCompare():(T, T) -> Int
+		{
+			var sample:Dynamic = null;
+			for (item in arr)
+			{
+				if (item != null)
+				{
+					sample = item;
+					break;
+				}
+			}
+
+			if (sample != null && (Std.is(sample, Int) || Std.is(sample, Float)))
+			{
+				return function(a:T, b:T):Int
+				{
+					var fa:Float = cast a;
+					var fb:Float = cast b;
+					return fa < fb ? -1 : (fa > fb ? 1 : 0);
+				};
+			}
+
+			if (sample != null && Std.is(sample, String))
+			{
+				return function(a:T, b:T):Int
+				{
+					var sa:String = cast a;
+					var sb:String = cast b;
+					return sa < sb ? -1 : (sa > sb ? 1 : 0);
+				};
+			}
+
+			return referenceCompare;
+		}
+
+		var cmp = compare != null ? compare : buildDefaultCompare();
+		var n = arr.length;
+		var minRun = minRunLength(n);
+
+		// Scan for runs, extending any that are too short via insertion sort.
+		var runs:Array<{start:Int, length:Int}> = [];
+		var i = 0;
+		while (i < n)
+		{
+			var runStart = i;
+			var runEnd = i + 1;
+
+			if (runEnd < n)
+			{
+				if (cmp(arr[runStart], arr[runEnd]) <= 0)
+				{
+					// Ascending run.
+					while (runEnd < n && cmp(arr[runEnd - 1], arr[runEnd]) <= 0)
+						runEnd++;
+				}
+				else
+				{
+					// Descending run - find its extent, then flip it in place.
+					while (runEnd < n && cmp(arr[runEnd - 1], arr[runEnd]) > 0)
+						runEnd++;
+					reverseRange(runStart, runEnd);
+				}
+			}
+
+			if (runEnd - runStart < minRun)
+			{
+				runEnd = Std.int(Math.min(runStart + minRun, n));
+				insertionSort(runStart, runEnd, cmp);
+			}
+
+			runs.push({start: runStart, length: runEnd - runStart});
+			i = runEnd;
+		}
+
+		// Merge runs bottom-up until only one remains.
+		while (runs.length > 1)
+		{
+			var merged:Array<{start:Int, length:Int}> = [];
+			var j = 0;
+			while (j < runs.length)
+			{
+				if (j + 1 < runs.length)
+				{
+					var left = runs[j];
+					var right = runs[j + 1];
+					mergeInPlace(left.start, left.length, right.length, cmp);
+					merged.push({start: left.start, length: left.length + right.length});
+					j += 2;
+				}
+				else
+				{
+					merged.push(runs[j]);
+					j++;
+				}
+			}
+			runs = merged;
+		}
+
+		return arr;
+	}
+
+
 
 
 

@@ -26,6 +26,7 @@ typedef APOptions =
 	var	ticket_percentage:Int;
 	var	ticket_win_percentage:Int;
 	var	chart_modifier_change_chance:Int;
+	var	allow_controller_only_modifiers:Bool;
 	var	trapAmount:Int;
 	var	bbcWeight:Int;
 	var	ghostChatWeight:Int;
@@ -298,6 +299,7 @@ class APInfo {
 			ticket_percentage: 15,
 			ticket_win_percentage: 15,
 			chart_modifier_change_chance: 15,
+			allow_controller_only_modifiers: false,
 			trapAmount: 15,
 			bbcWeight: 5,
 			ghostChatWeight: 5,

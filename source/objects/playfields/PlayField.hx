@@ -95,6 +95,7 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	public var strumNotes:Array<StrumNote> = []; // receptors
 	public var characters:Array<Character> = []; // characters that sing when field is hit
 	public var singAnimations:Array<String> = []; // default character animations to play for each column
+	public var keybinds:Array<Int> = []; // keybinds for each column. can be set to a different set of keybinds to give it a different set of controls. can be set to null to sync the keybinds w/ bf's, and 1 to sync w/ the opponent's
 
 	public var noteField:NoteField; // renderer
 	public var modManager:ModManager; // the mod manager. will be set automatically by playstate so dw bout this

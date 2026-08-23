@@ -95,6 +95,7 @@ class APEntryState extends MusicBeatState // Z11, THIS NEEDS TO STAY FOR NOW, OT
 			ticket_percentage: 15,
 			ticket_win_percentage: 15,
 			chart_modifier_change_chance: 15,
+			allow_controller_only_modifiers: false,
 			trapAmount: 15,
 			bbcWeight: 5,
 			ghostChatWeight: 5,

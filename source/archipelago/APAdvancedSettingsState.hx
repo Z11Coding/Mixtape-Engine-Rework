@@ -207,6 +207,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	var ticketPercent:Int = 25;
 	var ticketWinPercent:Int = 75;
 	var chartmodifierchance:Int = 5;
+	var allowControllerOnlyModifiers:Bool = false;
 	var trapAmount:Int = 50;
 	var songLimit:Int = 50;
 
@@ -582,6 +583,8 @@ class APAdvancedSettingsState extends MusicBeatState
 							ticketWinPercent = value;
 						case "chart_modifier_chance" | "chart_modifier_change_chance":
 							chartmodifierchance = value;
+						case "allow_controller_only_modifiers":
+							allowControllerOnlyModifiers = value == true;
 						case "trap_amount" | "trapAmount":
 							trapAmount = value;
 						case "song_limit":
@@ -884,6 +887,13 @@ class APAdvancedSettingsState extends MusicBeatState
 				callback: () -> adjustChartModifier(),
 				locked: false,
 				contextMenu: createEditContextMenu(() -> adjustChartModifier())
+			},
+			{
+				name: "Allow Controller-only Chart Modifiers",
+				description: "Allow chart modifiers that require a controller (e.g., ???)",
+				callback: () -> toggleControllerOnlyModifiers(),
+				locked: false,
+				contextMenu: createBoolContextMenu(allowControllerOnlyModifiers, (value) -> allowControllerOnlyModifiers = value)
 			},
 			{
 				name: "Ticket Percentage",
@@ -1940,6 +1950,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			case "Accuracy Requirement": accRequirement;
 			case "Trap Amount": Std.string(trapAmount);
 			case "Chart Modifier Chance": Std.string(chartmodifierchance);
+			case "Allow Controller-only Chart Modifiers": allowControllerOnlyModifiers ? "ON" : "OFF";
 			case "Ticket Percentage": ticketPercent + "%";
 			case "Ticket Win Percentage": ticketWinPercent + "%";
 			case "Song Limit": Std.string(songLimit);
@@ -2193,6 +2204,12 @@ class APAdvancedSettingsState extends MusicBeatState
 			chartmodifierchance = Std.int(value);
 			refreshCurrentPage();
 		});
+	}
+
+	function toggleControllerOnlyModifiers()
+	{
+		allowControllerOnlyModifiers = !allowControllerOnlyModifiers;
+		refreshCurrentPage();
 	}
 
 	function adjustTicketPercent()
@@ -3737,6 +3754,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			ticketPercent = settings.ticket_percentage;
 			ticketWinPercent = settings.ticket_win_percentage;
 			chartmodifierchance = settings.chart_modifier_change_chance;
+			allowControllerOnlyModifiers = Reflect.hasField(settings, "allow_controller_only_modifiers") ? settings.allow_controller_only_modifiers : false;
 			trapAmount = settings.trapAmount;
 			songLimit = settings.song_limit;
 
@@ -3806,6 +3824,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			settings.ticket_percentage = ticketPercent;
 			settings.ticket_win_percentage = ticketWinPercent;
 			settings.chart_modifier_change_chance = chartmodifierchance;
+			settings.allow_controller_only_modifiers = allowControllerOnlyModifiers;
 			settings.trapAmount = trapAmount;
 			settings.song_limit = songLimit;
 			settings.mods_enabled = allowMods;
@@ -5012,6 +5031,8 @@ class APAdvancedSettingsState extends MusicBeatState
 								ticketWinPercent = value;
 							case "chart_modifier_chance" | "chart_modifier_change_chance":
 								chartmodifierchance = value;
+							case "allow_controller_only_modifiers":
+								allowControllerOnlyModifiers = value == true;
 							case "trap_amount" | "trapAmount":
 								trapAmount = value;
 							case "song_limit":
@@ -5616,6 +5637,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			ticketPercent: ticketPercent,
 			ticketWinPercent: ticketWinPercent,
 			chartmodifierchance: chartmodifierchance,
+			allowControllerOnlyModifiers: allowControllerOnlyModifiers,
 			trapAmount: trapAmount,
 			songLimit: songLimit,
 			currentPage: currentPage,
@@ -5676,6 +5698,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			ticketPercent = data.ticketPercent;
 			ticketWinPercent = data.ticketWinPercent;
 			chartmodifierchance = data.chartmodifierchance;
+			allowControllerOnlyModifiers = Reflect.hasField(data, "allowControllerOnlyModifiers") ? data.allowControllerOnlyModifiers : false;
 			trapAmount = data.trapAmount;
 			songLimit = data.songLimit;
 			APInfo.excludedSongs = data.songEXlist;
@@ -6091,6 +6114,8 @@ class APAdvancedSettingsState extends MusicBeatState
 			state.ticketPercent = data.ticketPercent;
 			state.ticketWinPercent = data.ticketWinPercent;
 			state.chartmodifierchance = data.chartmodifierchance;
+			if (Reflect.hasField(data, "allowControllerOnlyModifiers"))
+				state.allowControllerOnlyModifiers = data.allowControllerOnlyModifiers;
 			state.trapAmount = data.trapAmount;
 			state.songLimit = data.songLimit;
 
