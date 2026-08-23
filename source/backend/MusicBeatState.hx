@@ -271,6 +271,12 @@ class MusicBeatState extends FlxState
 		// Handle state-specific GC cleanup before destruction
 		handleStateExitCleanup();
 
+		// Expire temporary function edits bound to this state instance.
+		// (Class-bound StateRefs are intentionally left alive - they belong to
+		//  the state class, not to this specific dying instance.)
+		yutautil.typeregistry.RuntimeFunctionRegistry.get()
+			.clearTemporaryEditsForState(yutautil.typeregistry.StateRef.fromState(this));
+
 		// Clean up suspended substate data
 		substateQueue = [];
 		suspendedSubstateData = [];

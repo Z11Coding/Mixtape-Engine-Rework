@@ -361,9 +361,17 @@ class TypeCollectionMacro {
     /**
      * Collect original function data (expressions, metadata) before any instrumentation.
      * This captures the original function code for the source editor.
+     *
+     * Guards against double-capture: if a function was already collected (by
+     * functionId) we skip it - otherwise a re-run of this macro on an
+     * already-instrumented field would overwrite/duplicate the entry with an
+     * originalExpression that itself contains the intercept preamble.
      */
     static function collectOriginalFunctions(fields:Array<Field>, classType:ClassType):Void {
         var classPath = classType.pack.concat([classType.name]).join(".");
+        // Natural reflection-style path for this type (handles _Impl_ classes and sub-types),
+        // used to build user-friendly aliases like "states.PlayState.create".
+        var originalTypePath = computeOriginalTypePath(classType.name, classType.pack, classType.module);
 
         for (field in fields) {
             switch (field.kind) {
@@ -371,10 +379,18 @@ class TypeCollectionMacro {
                     // Skip constructors
                     if (field.name == "new") continue;
 
+                    // Never collect from an already-instrumented field - its
+                    // body already contains the intercept preamble.
+                    if (hasMeta(field.meta, INSTRUMENTED_META)) continue;
+
                     var functionPos = Context.getPosInfos(field.pos);
                     var filePath = functionPos.file;
                     var lineNum = functionPos.min;
                     var functionId = '$filePath:${field.name}:$lineNum';
+
+                    // Skip if we've already captured this function's pristine
+                    // body on an earlier pass.
+                    if (isEditableFunctionCollected(functionId)) continue;
 
                     // Capture the ORIGINAL expression as a string BEFORE any modification
                     var originalExpr = haxe.macro.ExprTools.toString(func.expr);
@@ -404,6 +420,8 @@ class TypeCollectionMacro {
                         functionName: field.name,
                         className: classType.name,
                         classPath: classPath,
+                        // Natural reflection-style alias, e.g. "states.PlayState.create"
+                        alias: '$originalTypePath.${field.name}',
                         isStatic: isStatic,
                         isPublic: isPublic,
                         returnType: returnType,
@@ -426,7 +444,12 @@ class TypeCollectionMacro {
      * Returns the instrumented copy; original field data is preserved in compilation data.
      */
     static function copyAndInstrumentFields(fields:Array<Field>, classType:ClassType):Array<Field> {
-        // Deep copy the fields array
+        // Deep copy the fields array. Crucially, each function gets a FRESH
+        // Function object and a FRESH metadata array - the originals are never
+        // mutated. If we reused field.kind / field.meta here, instrumenting
+        // the copy would also mutate the source (shared reference), and any
+        // later build pass would then read an already-instrumented body and
+        // prepend a SECOND intercept into collectedEditableFunctions.originalExpression.
         var instrumentedFields:Array<Field> = [];
 
         for (field in fields) {
@@ -435,13 +458,13 @@ class TypeCollectionMacro {
                 kind: field.kind,
                 access: field.access.copy(),
                 pos: field.pos,
-                meta: field.meta,
+                meta: field.meta != null ? field.meta.copy() : null,
                 doc: field.doc
             };
 
             // Instrument this copy
             switch (copiedField.kind) {
-                case FFun(func):
+                case FFun(origFunc):
                     if (hasMeta(copiedField.meta, INSTRUMENTED_META)) {
                         instrumentedFields.push(copiedField);
                         continue;
@@ -452,6 +475,18 @@ class TypeCollectionMacro {
                         instrumentedFields.push(copiedField);
                         continue;
                     }
+
+                    // Build a FRESH Function so we never mutate the original
+                    // func object (which collectOriginalFunctions / the build
+                    // fields array still reference). Reusing origFunc here is
+                    // what caused originalExpression to contain the intercept.
+                    var func:Function = {
+                        args: origFunc.args,
+                        ret: origFunc.ret,
+                        expr: origFunc.expr,
+                        params: origFunc.params
+                    };
+                    copiedField.kind = FFun(func);
 
                     var functionPos = Context.getPosInfos(copiedField.pos);
                     var filePath = functionPos.file;
@@ -547,6 +582,18 @@ class TypeCollectionMacro {
         if (meta == null) return false;
         for (entry in meta) {
             if (entry.name == name) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether a function's original expression has already been captured into
+     * collectedEditableFunctions (prevents re-capture of an instrumented body
+     * on repeated build passes).
+     */
+    static function isEditableFunctionCollected(functionId:String):Bool {
+        for (fn in collectedEditableFunctions) {
+            if (fn.functionId == functionId) return true;
         }
         return false;
     }

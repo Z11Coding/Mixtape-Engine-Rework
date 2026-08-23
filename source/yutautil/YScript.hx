@@ -4832,7 +4832,17 @@ class YScriptRuntime {
                         default:
                     }
                     value;
+                } else if (scope.hasFunction(name)) {
+                    // First-class function reference: script-declared functions are values
+                    // too, so they can be assigned to variables, passed as arguments,
+                    // stored in arrays/objects, and handed to external systems.
+                    makeFunctionReference(scope.getFunction(name));
                 } else {
+                    // YScript class definitions are first-class values as well
+                    // (e.g. `var T = MyClass;`)
+                    var classDef = scope.getClass(name);
+                    if (classDef != null) return classDef;
+
                     // Try to resolve as Haxe type or global
                     resolveHaxeIdentifier(name);
                 }
@@ -5094,6 +5104,17 @@ class YScriptRuntime {
                     return callYFunction(func, args);
                 }
 
+                // Variable holding a callable value (function reference)
+                if (scope.hasVariable(name)) {
+                    var varValue = scope.getVariable(name).value;
+                    if (Std.isOfType(varValue, YFunction)) {
+                        return callYFunction(cast varValue, args);
+                    }
+                    if (Reflect.isFunction(varValue)) {
+                        return Reflect.callMethod(null, varValue, args);
+                    }
+                }
+
                 // Haxe function
                 return callHaxeFunction(name, args);
 
@@ -5102,9 +5123,45 @@ class YScriptRuntime {
                 return callMethod(objValue, method, args);
 
             default:
+                // Allow calling any expression that evaluates to a callable value
+                // (array elements, object fields, values returned from other calls, ...)
+                var calleeValue = evaluateExpression(callee);
+                if (Std.isOfType(calleeValue, YFunction)) {
+                    return callYFunction(cast calleeValue, args);
+                }
+                if (Reflect.isFunction(calleeValue)) {
+                    return Reflect.callMethod(null, calleeValue, args);
+                }
                 var context = scope.getExecutionContext();
                 throw new YScriptRuntimeError('Cannot call this expression as a function', context.location, context.scriptPath);
         }
+    }
+
+    /**
+     * Wrap a YScript function in a native Haxe closure so it can be stored in
+     * variables, passed across script boundaries (HScript blocks, Lua, Haxe
+     * code), and called with any number of arguments.
+     */
+    private function makeFunctionReference(func:YFunction):Dynamic {
+        if (func == null) return null;
+        var runtime = this;
+        return Reflect.makeVarArgs(function(args:Array<Dynamic>):Dynamic {
+            return runtime.callYFunction(func, args != null ? args : []);
+        });
+    }
+
+    /**
+     * Get a native Haxe function reference for a YScript function by name.
+     * Useful for exporting script functions to external systems such as the
+     * RuntimeFunctionRegistry:
+     *
+     * ```haxe
+     * RuntimeFunctionRegistry.get().edit("states.PlayState.create",
+     *     yscriptRuntime.getFunctionReference("myReplacement"));
+     * ```
+     */
+    public function getFunctionReference(name:String):Dynamic {
+        return makeFunctionReference(scope.getFunction(name));
     }
 
     private function callYFunction(func:YFunction, args:Array<Dynamic>):Dynamic {
@@ -6032,6 +6089,17 @@ class YScriptRuntime {
                 iris.interp.variables.set(varName, flattenedVars.get(varName));
             }
 
+            // Expose YScript functions as callable variables so haxe blocks can
+            // call script functions directly (functions normally live in a
+            // separate namespace that HScript cannot see)
+            var flattenedFuncs = scope.getFlattenedFunctions();
+            @:privateAccess
+            for (funcName in flattenedFuncs.keys()) {
+                if (!flattenedVars.exists(funcName) && iris.interp.variables.get(funcName) == null) {
+                    iris.interp.variables.set(funcName, makeFunctionReference(flattenedFuncs.get(funcName)));
+                }
+            }
+
             // trace('Executing Iris HScript code: $code');
 
             // Parse and execute the code
@@ -6041,6 +6109,9 @@ class YScriptRuntime {
             var updatedVars = new StringMap<Dynamic>();
             @:privateAccess
             for (varName in iris.interp.variables.keys()) {
+                // Don't turn injected function references into variables -
+                // functions keep living in the function namespace
+                if (!flattenedVars.exists(varName) && scope.hasFunction(varName)) continue;
                 updatedVars.set(varName, iris.interp.variables.get(varName));
             }
 
@@ -6230,6 +6301,13 @@ class YScriptRuntime {
 
         // Dynamic accepts anything
         if (targetType == YType.Dynamic || valueType == YType.Dynamic) return true;
+
+        // Function references: full signature checking is not statically tracked,
+        // so any function value is accepted wherever a function type is expected
+        switch [targetType, valueType] {
+            case [YType.YFunction(_, _), YType.YFunction(_, _)]: return true;
+            default:
+        }
 
         // Null can be assigned to any type (for now)
         if (valueType == YType.Dynamic && targetType != YType.YInt && targetType != YType.YFloat && targetType != YType.YBool) {
