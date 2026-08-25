@@ -104,7 +104,7 @@ private class FlxBaseSignal<T> implements IFlxSignal<T>
 	 */
 	public var dispatch:T;
 
-	var handlers:Array<FlxSignalHandler<T>>;
+	var handlers:Array<FlxSignalHandler<T>> = [];
 	var pendingRemove:Array<FlxSignalHandler<T>>;
 	var processingListeners:Bool = false;
 
@@ -174,15 +174,11 @@ private class FlxBaseSignal<T> implements IFlxSignal<T>
 
 		if (handler == null)
 		{
-			try {
 				handler = new FlxSignalHandler<T>(listener, dispatchOnce);
-				handlers.push(handler);
+				if (handlers == null)
+					handlers = [];
+				handlers?.push(handler);
 				return handler;
-			} catch(e) {
-				trace("FlxSignal died! Resetting game just in case!");
-				Main.flxSignalCrash = true;
-				return null;
-			}
 		}
 		else
 		{

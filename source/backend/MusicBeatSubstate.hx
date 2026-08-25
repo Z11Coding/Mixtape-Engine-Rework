@@ -7,7 +7,6 @@ import archipelago.APEntryState;
 import flixel.FlxSubState;
 
 @:autoBuild(yutautil.StatePick.addToDatabase(MusicBeatSubstate))
-@:autoBuild(yutautil.CrashTracker.instrument())
 class MusicBeatSubstate extends FlxSubState
 {
 	public static var instance:MusicBeatSubstate;

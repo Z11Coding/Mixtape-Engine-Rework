@@ -11,6 +11,8 @@ import states.MixtapeCrashSplash;
 import substates.AssetLocationChoiceSubstate;
 import yutautil.AprilFools;
 import yutautil.GenericProgressSubstate;
+import yutautil.modules.ASync.AResult;
+import yutautil.modules.ASync.ASyncHelper;
 import yutautil.modules.SyncUtils;
 
 class FirstCheckState extends MusicBeatState
@@ -135,6 +137,7 @@ class FirstCheckState extends MusicBeatState
 
 	override function create()
 	{
+		Main.flxSignalCrash = false;
 		var expectedExe = getExpectedExecutableName();
 		//backend.window.Priority.setPriority(0);
 		if (!hasRequiredResources(expectedExe)) {
@@ -160,6 +163,29 @@ class FirstCheckState extends MusicBeatState
 			MemoryUtil.init();
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
+			var registryWork:ASync<Void -> yutautil.typeregistry.RuntimeFunctionRegistry> = ASyncHelper.async0(function() {
+			yutautil.typeregistry.BuildDataLoader.initialize();
+			var r = yutautil.typeregistry.RuntimeFunctionRegistry.getFresh();
+
+			while (!r.isReady()) {
+				// Wait for the registry to be ready
+				Sys.sleep(0.13);
+			}
+					trace("RuntimeFunctionRegistry is ready: " + yutautil.typeregistry.RuntimeFunctionRegistry.get().toString());
+
+					RuntimeFunctionRegistry.get().edit("states.PlayState.create", function() {
+    				trace("PlayState.create() called");
+					});
+					return r;
+		});
+			var registry:AResult<yutautil.typeregistry.RuntimeFunctionRegistry> = registryWork();
+
+
+
+
+
+
+
 
 			if (ClientPrefs.data.playLists == null) {
 				ClientPrefs.loadPrefs();

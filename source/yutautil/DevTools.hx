@@ -37,6 +37,7 @@ class DevTools {
 
     /** True when the target can actually prove an object was collected. */
     public static var weakRefsSupported(default, null):Bool = #if cpp true #else false #end;
+    static var pulseTimer:Timer = null;
 
     // ------------------------------------------------------------------ timing
 
@@ -207,6 +208,54 @@ class DevTools {
     }
 
     public static function resetCounters():Void counters = new StringMap();
+
+    // ---------------------------------------------------------- value watchers
+
+    static var markedValues:Array<MarkedValue<Dynamic>> = [];
+
+    /**
+     * Marks a value for change detection. The getter is intentional: it lets the
+     * watched value remain a normal variable or object with methods.
+     */
+    public static function mark<T>(label:String, getter:Void->T, ?onChange:TrackedChange<T>->Void, deep:Bool = false):MarkedValue<T> {
+        var marked = new MarkedValue<T>(label, getter, onChange, deep);
+        markedValues.push(cast marked);
+        return marked;
+    }
+
+    /** Checks every marked value and emits each change at most once per poll. */
+    public static function pollMarked():Int {
+        var changed = 0;
+        for (marked in markedValues) if (marked.check()) changed++;
+        return changed;
+    }
+
+    /** Runs one watcher pulse, suitable for a state update or engine signal. */
+    public static function pulse():Int {
+        return pollMarked();
+    }
+
+    /** Starts periodic watcher pulses without requiring callers to add update code. */
+    public static function startPulse(intervalMs:Int = 16):Void {
+        stopPulse();
+        if (intervalMs < 1) intervalMs = 1;
+        pulseTimer = new Timer(intervalMs);
+        pulseTimer.run = function() pulse();
+    }
+
+    /** Stops automatic watcher pulses. */
+    public static function stopPulse():Void {
+        if (pulseTimer == null) return;
+        pulseTimer.stop();
+        pulseTimer = null;
+    }
+
+    public static inline function pulseActive():Bool return pulseTimer != null;
+
+    /** Removes a marked watcher. */
+    public static function unmark<T>(marked:MarkedValue<T>):Void {
+        markedValues.remove(cast marked);
+    }
 
     // -------------------------------------------------------------- assertions
 
@@ -389,6 +438,19 @@ class DevTools {
     }
 
     public static function isTracked(obj:Dynamic):Bool return findRef(obj) != null;
+
+    /** Returns whether a tracked object is still reachable through its weak handle. */
+    public static function weakAlive(id:Int):Bool {
+        for (ref in tracked) if (ref.id == id) return ref.isAlive();
+        return false;
+    }
+
+    /** Checks a weak handle and optionally logs when its object is no longer alive. */
+    public static function checkWeak(id:Int, log:Bool = true):Bool {
+        var alive = weakAlive(id);
+        if (log && !alive) logger('[weak] tracked object #$id is no longer alive', null);
+        return alive;
+    }
 
     public static function infoOf(obj:Dynamic):Null<TrackedInfo> {
         var ref = findRef(obj);
@@ -725,10 +787,12 @@ class DevTools {
     }
 
     public static function resetAll():Void {
+        stopPulse();
         resetTimings();
         resetCounters();
         resetAssertions();
         resetTracker();
+        markedValues = [];
         snapshots = new StringMap();
         watchedFields = new StringMap();
     }
@@ -1024,6 +1088,54 @@ typedef MemoryDelta = {
     var seconds:Float;
 }
 
+typedef TrackedChange<T> = {
+    var label:String;
+    var oldValue:T;
+    var newValue:T;
+}
+
+/** Getter-backed watcher for values that cannot conveniently be wrapped. */
+@:access(yutautil.DevTools)
+class MarkedValue<T> {
+    public var label(default, null):String;
+    public var getter(default, null):Void->T;
+    public var deep(default, null):Bool;
+    public var changed(default, null):Bool = false;
+
+    var onChange:Null<TrackedChange<T>->Void>;
+    var previous:T;
+    public function new(label:String, getter:Void->T, onChange:Null<TrackedChange<T>->Void>, deep:Bool) {
+        this.label = label;
+        this.getter = getter;
+        this.onChange = onChange;
+        this.deep = deep;
+        previous = getter();
+        DevTools.logger('[marked] created "$label" with ${DevTools.stringify(previous)}', null);
+    }
+
+    /** Polls the getter and reports whether its value changed since the last poll. */
+    public function check(?pos:PosInfos):Bool {
+        var current = getter();
+        var isDifferent = deep
+            ? !DevTools.valueEquals(previous, current)
+            : previous != current;
+        if (!isDifferent) return false;
+
+        var oldValue = previous;
+        previous = current;
+        changed = true;
+        var change:TrackedChange<T> = {label: label, oldValue: oldValue, newValue: current};
+        DevTools.logger('[marked] "$label" changed from ${DevTools.stringify(oldValue)} to ${DevTools.stringify(current)} @ ${DevTools.where(pos)}', pos);
+        if (onChange != null) onChange(change);
+        return true;
+    }
+
+    public function reset():Void {
+        previous = getter();
+        changed = false;
+    }
+}
+
 /** Weak handle to a tracked object; never keeps the object alive on targets that support it. */
 private class TrackedRef {
     public var id(default, null):Int;
@@ -1087,5 +1199,62 @@ private class TrackedRef {
             expectedDead: expectedDead,
             sightings: sightings.copy()
         };
+    }
+}
+
+private class TrackedValueData<T> {
+    public var value:T;
+
+    public function new(value:T) {
+        this.value = value;
+    }
+}
+
+/**
+ * Small typed value wrapper for observing assignments made through set().
+ * Raw values convert implicitly, and the wrapper converts back to T when read.
+ */
+@:generic
+@:access(yutautil.DevTools)
+@:forward
+abstract TrackedValue<T>(TrackedValueData<T>) {
+    public function new(value:T, ?pos:PosInfos) {
+        this = new TrackedValueData<T>(value);
+        DevTools.logger('[tracked] created with ${DevTools.stringify(value)} @ ${DevTools.where(pos)}', pos);
+    }
+
+    @:from
+    public static function fromValue<T>(value:T):TrackedValue<T> {
+        return new TrackedValue<T>(value);
+    }
+
+    @:to
+    public inline function toValue():T {
+        DevTools.logger('[tracked] read ${DevTools.stringify(this.value)}', null);
+        return this.value;
+    }
+
+    @:op(a.b)
+    public inline function get_field(field:String):Dynamic {
+        DevTools.logger('[tracked] read field ${field} = ${DevTools.stringify(Reflect.field(this.value, field))}', null);
+        return Reflect.field(this.value, field);
+    }
+
+    @:op(a.b)
+    public inline function set_field(field:String, value:Dynamic):Dynamic {
+        var oldValue = Reflect.field(this.value, field);
+        Reflect.setField(this.value, field, value);
+        DevTools.logger('[tracked] ${field} changed from ${DevTools.stringify(oldValue)} to ${DevTools.stringify(value)}', null);
+        return value;
+    }
+
+    public inline function get():T {
+        return this.value;
+    }
+
+    public function set(value:T, ?pos:PosInfos):Void {
+        var oldValue = this.value;
+        this.value = value;
+        DevTools.logger('[tracked] changed from ${DevTools.stringify(oldValue)} to ${DevTools.stringify(value)} @ ${DevTools.where(pos)}', pos);
     }
 }

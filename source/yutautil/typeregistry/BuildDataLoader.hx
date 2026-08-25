@@ -23,6 +23,7 @@ class BuildDataLoader {
     public static function resolveOriginalTypePath(typeName:String):String return typeName;
     public static function getAllTypedefs():Array<String> return [];
     public static function getAllFunctions():Array<Dynamic> return [];
+    public static function getAllEditableFunctions():Array<Dynamic> return [];
     public static function getFunctionsByClass(className:String):Array<Dynamic> return [];
     public static function searchFunctions(pattern:String):Array<Dynamic> return [];
     public static function getFunctionsWithMetadata(metadata:String):Array<Dynamic> return [];
@@ -31,6 +32,9 @@ class BuildDataLoader {
     public static function hasType(typeName:String):Bool return false;
     public static function getTypeInfo(typeName:String):Dynamic return null;
     public static function getRawData():Dynamic return null;
+    public static function isReady():Bool return false;
+    public static function isLoading():Bool return false;
+    public static function getLoadState():Dynamic return null;
     public static function reload():Bool return false;
 }
 #else
@@ -70,6 +74,10 @@ class BuildDataLoader {
     static var classByOriginalPath:Map<String, Dynamic> = null;
     static var implToAbstractMap:Map<String, String> = null;
 
+    static inline function canAccessBuildData():Bool {
+        return ClientPrefs.data != null && ClientPrefs.data.sourceAccessDebug;
+    }
+
     /**
      * Initialize the build data loader.
      * Attempts filesystem first, then embedded Haxe resources as fallback.
@@ -77,6 +85,11 @@ class BuildDataLoader {
      */
     public static function initialize():Bool {
         if (isInitialized) return true;
+
+        // Minimal hard gate: never start loading unless Runtime Source Code is enabled.
+        if (!canAccessBuildData()) {
+            return false;
+        }
 
         trace('BuildDataLoader: Starting async initialization...');
 
@@ -213,6 +226,11 @@ class BuildDataLoader {
      */
     public static function isLoaded():Bool {
         return isInitialized;
+    }
+
+    /** Whether build data has finished loading successfully and can be read. */
+    public static function isReady():Bool {
+        return loadedData != null && loadedData.isReady && loadedData.tryGet() != null;
     }
 
     /**
@@ -649,6 +667,22 @@ class BuildDataLoader {
     }
 
     /**
+     * Get editable functions, including their original source expressions.
+     * This is the source used by runtime source editing and crash diagnostics.
+     */
+    public static function getAllEditableFunctions():Array<Dynamic> {
+        if (!ensureInitialized()) return [];
+
+        try {
+            var editableFunctions:Array<Dynamic> = loadedData.get().editableFunctions;
+            return editableFunctions != null ? editableFunctions : [];
+        } catch (e:Dynamic) {
+            trace('BuildDataLoader: Error getting editable functions: $e');
+            return [];
+        }
+    }
+
+    /**
      * Get functions by class name
      */
     public static function getFunctionsByClass(className:String):Array<Dynamic> {
@@ -784,8 +818,46 @@ class BuildDataLoader {
      * Returns the AResult object which can be used with .get() to retrieve data
      */
     public static function getRawData():Dynamic {
+        // Immediate cancel path when source access is disabled.
+        if (!canAccessBuildData()) {
+            return null;
+        }
         ensureInitialized();
+        if (loadedData == null) return null;
         return loadedData.get();
+    }
+
+    /**
+     * Whether the async build-data load is currently pending.
+     */
+    public static function isLoading():Bool {
+        return loadedData != null && loadedData.isPending;
+    }
+
+    /**
+     * Current async load state from the underlying AResult.
+     */
+    public static function getLoadState():AsyncState {
+        if (loadedData == null) return null;
+        return loadedData.status;
+    }
+
+    /**
+     * Reconcile loader state after Runtime Source Code settings changed.
+     * - If source access is disabled: clear loaded build data immediately.
+     * - If source access is enabled: reload using the current resource mode.
+     */
+    public static function onSourceAccessSettingsChanged():Bool {
+        if (!canAccessBuildData()) {
+            isInitialized = false;
+            loadedData = null;
+            abstractByOriginalPath = null;
+            classByOriginalPath = null;
+            implToAbstractMap = null;
+            dataSource = "none";
+            return false;
+        }
+        return reload();
     }
 
     /**

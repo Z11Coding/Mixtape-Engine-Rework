@@ -1,11 +1,17 @@
 package options;
+import archipelago.substates.InfoPanelSubstate;
 import states.freeplay.vslice.PlayerRegistry;
 class MixtapeSettingsSubState extends BaseOptionsMenu
 {
 	public static var curBPMList:Array<Int> =  [0, 160, 160, 88, 160, 90, 105, 130, 100, 160, 180, 100, 125, 170, 140];
 	var perfOpt:Option;
+	var lastSourceAccessDebug:Bool;
+	var lastSourceAccessResourceMode:String;
 	public function new()
 	{
+		lastSourceAccessDebug = ClientPrefs.data.sourceAccessDebug;
+		lastSourceAccessResourceMode = ClientPrefs.data.sourceAccessResourceMode;
+
 		title = 'Mixtape Settings.';
 		rpcTitle = 'Mixtape Settings'; // for Discord Rich Presence
 
@@ -938,6 +944,23 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"If checked, allows viewing the source code of the engine at runtime for debugging purposes.\nWARNING: This may be resource-intensive and is intended for advanced users only.",
 			'sourceAccessDebug',
 			BOOL);
+		option.onChange = function() {
+			if (yutautil.typeregistry.BuildDataLoader.isLoading()) {
+				showSourceAccessLoadLockPrompt();
+				option.setValue(lastSourceAccessDebug);
+				reloadCheckboxes();
+				return;
+			}
+
+			lastSourceAccessDebug = ClientPrefs.data.sourceAccessDebug;
+			yutautil.typeregistry.BuildDataLoader.onSourceAccessSettingsChanged();
+		};
+		addOption(option);
+
+		var option:Option = new Option('Precise Crash Expression Search',
+			"Improves crash expression detection by using position-aware source scanning and typeregistry metadata.\nThis is more accurate but can be slower when a crash happens.",
+			'crashExpressionDeepSearch',
+			BOOL);
 		addOption(option);
 
 		var option:Option = new Option('Source Access Resource Mode',
@@ -949,6 +972,19 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 				'Compressed Only',
 				'Uncompressed Only'
 			]);
+		option.onChange = function() {
+			if (yutautil.typeregistry.BuildDataLoader.isLoading()) {
+				showSourceAccessLoadLockPrompt();
+				option.setValue(lastSourceAccessResourceMode);
+				var prevIndex = option.options.indexOf(lastSourceAccessResourceMode);
+				if (prevIndex >= 0) option.curOption = prevIndex;
+				updateTextFrom(option);
+				return;
+			}
+
+			lastSourceAccessResourceMode = ClientPrefs.data.sourceAccessResourceMode;
+			yutautil.typeregistry.BuildDataLoader.onSourceAccessSettingsChanged();
+		};
 		addOption(option);
 		option.displayFormat = '< %v >';
 
@@ -989,6 +1025,17 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 
 	var changedMusic:Bool = false;
 	var indeed:Int = 0;
+
+	function showSourceAccessLoadLockPrompt():Void
+	{
+		var state = yutautil.typeregistry.BuildDataLoader.getLoadState();
+		var stateText = state != null ? Std.string(state) : 'Unknown';
+		openSubState(new InfoPanelSubstate(
+			'Source Access Settings Locked',
+			'Build data is currently loading (' + stateText + ').\n\nPlease wait until loading is complete before changing Runtime Source Code settings.'
+		));
+	}
+
 	function onChangePauseMusic()
 	{
 		//TODO: find a better way to do this lol

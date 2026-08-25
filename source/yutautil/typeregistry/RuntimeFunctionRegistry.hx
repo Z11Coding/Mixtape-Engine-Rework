@@ -10,6 +10,10 @@ import hscript.Interp;
 import hscript.Parser;
 #end
 
+function real():Bool {
+    return true;
+}
+
 /**
  * Runtime function replacement registry for the in-game source editor.
  *
@@ -165,6 +169,15 @@ class RuntimeFunctionRegistry {
             _instance = new RuntimeFunctionRegistry();
         }
         return _instance;
+    }
+
+    public static function reset():Void {
+        _instance = null;
+    }
+
+    public static function getFresh():RuntimeFunctionRegistry {
+        reset();
+        return get();
     }
 
     private function new() {
@@ -443,22 +456,30 @@ class RuntimeFunctionRegistry {
      */
     private function loadEditableFunctionsData():Void {
         if (editableFunctionsLoaded) return;
-        editableFunctionsLoaded = true;
 
         try {
-            var buildData = yutautil.typeregistry.BuildDataLoader.getRawData();
-            if (buildData == null) {
-                trace("RuntimeFunctionRegistry: No build data available");
+            if (!yutautil.typeregistry.BuildDataLoader.initialize()) {
+                trace("RuntimeFunctionRegistry: BuildDataLoader could not be initialized");
                 return;
             }
 
-            var editableFuncs = Reflect.getProperty(buildData, "editableFunctions");
-            if (editableFuncs == null) {
-                trace("RuntimeFunctionRegistry: No editable functions in build data");
+            // BuildDataLoader has its own AResult. Do not import metadata until
+            // that result is completed; initialization alone only means that
+            // the worker was started.
+            while (yutautil.typeregistry.BuildDataLoader.isLoading()) {
+                Sys.sleep(0.001);
+            }
+
+            if (!yutautil.typeregistry.BuildDataLoader.isReady()) {
+                trace("RuntimeFunctionRegistry: BuildDataLoader finished without ready data");
                 return;
             }
 
-            var funcList:Array<Dynamic> = cast editableFuncs;
+            var funcList:Array<Dynamic> = yutautil.typeregistry.BuildDataLoader.getAllEditableFunctions();
+            if (funcList == null || funcList.length == 0) {
+                trace("RuntimeFunctionRegistry: BuildDataLoader has no editable function metadata");
+                return;
+            }
 
             // Grow the total to include metadata items so progress stays smooth.
             loadMutex.acquire();
@@ -480,6 +501,7 @@ class RuntimeFunctionRegistry {
                 loadMutex.release();
             }
 
+            editableFunctionsLoaded = true;
             trace('RuntimeFunctionRegistry: Loaded ${funcList.length} editable functions from resource');
         } catch (e:Dynamic) {
             trace("RuntimeFunctionRegistry: Error loading editable functions from resource: " + Std.string(e));
@@ -1411,6 +1433,12 @@ class RuntimeFunctionRegistry {
     private function getSavePath():String {
         // Use the engine's save directory
         return SAVE_FILE;
+    }
+        public inline function toString():String {
+        // For debugging, show the number of edits and whether the registry is ready
+        var editable = getAllEditableFunctions().length;
+        var edited = getAllEditIds().length;
+        return 'RuntimeFunctionRegistry(edits=$edited, editable=$editable, ready=${isReady()})';
     }
 }
 

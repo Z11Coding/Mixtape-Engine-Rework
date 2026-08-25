@@ -273,6 +273,7 @@ import states.TitleState;
 	public var maxInGameTraces:Int = 100; // Maximum traces to keep in memory for in-game viewer
 	public var ignoreThrows:Bool = false; // DANGEROUS: Ignores all throws in crash handler - only prevents crash escalation
 	public var yscriptDebugMode:Bool = false; // Enable YScript execution tracing for debugging
+	public var crashExpressionDeepSearch:Bool = false; // Improves crash-expression lookup by using position-aware source scanning (slower)
 	public var sourceAccessDebug:Bool = false; // Allow debug access to source files to edit the game at runtime - EXTREMELY DANGEROUS, USE WITH CAUTION
 	public var sourceAccessResourceMode:String = 'Any'; // Any, Compressed Only, Uncompressed Only
 

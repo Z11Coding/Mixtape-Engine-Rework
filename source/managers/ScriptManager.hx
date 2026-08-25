@@ -497,6 +497,13 @@ class ScriptManager {
 			if(newScript != null)
 				newScript.destroy();
 		}
+		catch(e:Dynamic)
+		{
+			trace("Error initializing HScript: " + e);
+			var newScript:HScript = cast (Iris.instances.get(file), HScript);
+			if(newScript != null)
+				newScript.destroy();
+		}
 		updateScriptFlags(); // Update flags regardless of success/failure
 	}
 	#end
