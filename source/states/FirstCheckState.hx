@@ -163,29 +163,24 @@ class FirstCheckState extends MusicBeatState
 			MemoryUtil.init();
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
+
 			var registryWork:ASync<Void -> yutautil.typeregistry.RuntimeFunctionRegistry> = ASyncHelper.async0(function() {
-			yutautil.typeregistry.BuildDataLoader.initialize();
-			var r = yutautil.typeregistry.RuntimeFunctionRegistry.getFresh();
+				yutautil.typeregistry.BuildDataLoader.initialize();
+				var r = yutautil.typeregistry.RuntimeFunctionRegistry.getFresh();
 
-			while (!r.isReady()) {
-				// Wait for the registry to be ready
-				Sys.sleep(0.13);
-			}
-					trace("RuntimeFunctionRegistry is ready: " + yutautil.typeregistry.RuntimeFunctionRegistry.get().toString());
+				while (!r.isReady()) {
+					// Wait for the registry to be ready
+					Sys.sleep(0.13);
+				}
+				trace("RuntimeFunctionRegistry is ready: " + yutautil.typeregistry.RuntimeFunctionRegistry.get().toString());
 
-					RuntimeFunctionRegistry.get().edit("states.PlayState.create", function() {
-    				trace("PlayState.create() called");
-					});
-					return r;
-		});
+				yutautil.typeregistry.RuntimeFunctionRegistry.get().edit("states.PlayState.create", function() {
+					trace("PlayState.create() called");
+				});
+				return r;
+			});
+
 			var registry:AResult<yutautil.typeregistry.RuntimeFunctionRegistry> = registryWork();
-
-
-
-
-
-
-
 
 			if (ClientPrefs.data.playLists == null) {
 				ClientPrefs.loadPrefs();
