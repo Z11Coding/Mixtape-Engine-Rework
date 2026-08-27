@@ -166,7 +166,6 @@
 	<define name="flxanimate"/>
 	<haxelib name="extension-harfbuzz" if="linux" />
 	<haxelib name="random" version="1.4.1"/>
-	<haxelib name="haxefmod"/>
 
 	<!--Psych stuff needed-->
 	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>

@@ -10,6 +10,25 @@ import llua.*;
 import llua.Lua;
 #end
 
+#if ACHIEVEMENTS_ALLOWED
+import backend.Achievements;
+#end
+
+#if sys
+import sys.*;
+import sys.io.*;
+#elseif js
+import js.html.*;
+#end
+
+#if ARCHIPELAGO_ALLOWED
+import archipelago.*;
+import archipelago.console.*;
+import archipelago.states.*;
+import archipelago.substates.*;
+import archipelago.traps.*;
+#end
+
 import animate.*;
 import backend.COD;
 import backend.ClientPrefs;
@@ -55,8 +74,6 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
-import fmod.FmodEvents;
-import haxefmod.FmodManager;
 import managers.*;
 import mechanics.*;
 import objects.Alphabet;
@@ -100,25 +117,6 @@ using yutautil.Valid;
 using yutautil.modules.ASync.AResult;
 using yutautil.modules.ASync.ASyncF;
 using yutautil.modules.ASync;
-#if ACHIEVEMENTS_ALLOWED
-import backend.Achievements;
-#end
-
-#if sys
-import sys.*;
-import sys.io.*;
-#elseif js
-import js.html.*;
-#end
-
-#if ARCHIPELAGO_ALLOWED
-import archipelago.*;
-import archipelago.console.*;
-import archipelago.states.*;
-import archipelago.substates.*;
-import archipelago.traps.*;
-#end
-
 #if USING_MOONCHART
 import moonchart.Moonchart;
 import moonchart.formats.*;
