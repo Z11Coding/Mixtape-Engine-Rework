@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{9263ec5f-4c36-46df-b518-7530896af8f3}">
+		<property name="assetPath">
+			<value>DreamWalk (PC Mix).wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>164.57142857142858</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{1bbec2e1-76fd-4249-bd85-3ed30185de65}</destination>
+		</relationship>
+	</object>
+</objects>
