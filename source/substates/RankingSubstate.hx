@@ -300,7 +300,7 @@ class RankingSubstate extends MusicBeatSubstate
 					trace("All note checks processed.");
 
 					// Only send main song location check if ranking requirements are met
-					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit >= comboRankSetLimit && accRankLimit >= accRankSetLimit) {
+					if (((!PlayState.instance.cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) || Sys.args().contains('-livereload')) && comboRankLimit <= comboRankSetLimit && accRankLimit <= accRankSetLimit) {
 						trace("Ranking requirements met! Sending main location check...");
 
 						var attempts = 0;

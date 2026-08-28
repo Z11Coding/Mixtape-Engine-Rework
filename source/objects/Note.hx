@@ -1344,10 +1344,22 @@ class Note extends NoteObject
 		var pixelFolder:String = PlayState.isPixelStage ? 'pixelUI/' : '';
 		var skinPostfix:String = Note.getNoteSkinPostfix();
 		if (Paths.fileExists('images/$pixelFolder$texture$skinPostfix.png', IMAGE)) { // If a varient of a skin exists and is selected, load it
-			skin = texture + skinPostfix;
+			skin = skinPixel = texture + skinPostfix;
 		} else if (Paths.fileExists('images/${pixelFolder}noteSkins/$texture$skinPostfix.png', IMAGE)) { // If a noteSkins folder exists and the note is in it, use that
-			skin = 'noteSkins/$texture$skinPostfix';
+			skin = skinPixel = 'noteSkins/$texture$skinPostfix';
+		} else if (Paths.fileExists('images/$pixelFolder$texture.png', IMAGE)) { // If a varient of a skin exists and is selected, load it
+			skin = skinPixel = texture;
+			skinPostfix = '';
+		} else if (Paths.fileExists('images/${pixelFolder}noteSkins/$texture.png', IMAGE)) { // If a noteSkins folder exists and the note is in it, use that
+			skin = skinPixel = 'noteSkins/$texture';
+			skinPostfix = '';
 		}
+
+		if (skinPostfix != '' && (skin == _lastValidChecked || Paths.fileExists('images/' + path + skin + '.png', IMAGE)))
+		{
+			_lastValidChecked = skin;
+		}
+		else skinPostfix = '';
 
 		defaultWidth = 157;
 		defaultHeight = 154;

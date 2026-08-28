@@ -123,7 +123,8 @@ class StrumNote extends NoteObject
 			}
 			else {
 				var customSkin:String = (PlayState.SONG != null && PlayState.SONG.arrowSkin != null ? PlayState.SONG.arrowSkin : 'NOTE_assets') + Note.getNoteSkinPostfix();
-				skin = (PlayState.isPixelStage ? customSkin : 'noteSkins/strums');
+				if(Paths.fileExists('images/${(PlayState.isPixelStage ? customSkin : 'noteSkins/strums')}.png', IMAGE)) skin = (PlayState.isPixelStage ? customSkin : 'noteSkins/strums');
+				else skin = (PlayState.isPixelStage ? customSkin : 'noteSkins/NOTE_assets');
 			}
 		}
 
@@ -268,7 +269,7 @@ class StrumNote extends NoteObject
 		"RIGHT",
 	];
 
-	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = false)
+	public function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = false)
 	{
 		var animFrames = [];
 		@:privateAccess
