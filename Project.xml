@@ -240,6 +240,12 @@
 	<!--Disable the Flixel sound management code-->
 	<!--<haxedef name="FLX_NO_SOUND_SYSTEM" />-->
 
+	<!--Set the folder for the bank-->
+	<haxedef name="haxefmod_bank_folder" value="assets/fmod/brunner" />
+
+	<!--Enable Live Updates-->
+	<haxedef name="haxefmod_live_update" value="true" />
+
 	<!--Remove if you don't want to use Moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
 	<define name="USING_MOONCHART" />
 

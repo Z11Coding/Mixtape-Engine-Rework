@@ -225,7 +225,16 @@ class SplashScreen extends MusicBeatState
             }, false),
             GenericProgressSubstate.createTask("Preloading freeplay song list...", function(results) {
                 //FreeplayManager.loadGlobalSongs(true);
+                trace("Pretend the songs preloaded");
                 return "preload_songlist_complete";
+            }, false),
+            GenericProgressSubstate.createTask("Preloading freeplay song list...", function(results) {
+                FmodManager.Initialize();
+                if (FmodManager.IsInitialized()) {
+                    FmodManager.EnableDebugMessages();
+                    FmodManager.SetAutoUpdate(true);
+                    return "fmod_initialization_complete";
+                }
             }, false),
             GenericProgressSubstate.createTask("Finalizing startup...", function(results) {
                 // Final initialization step
@@ -329,7 +338,9 @@ class SplashScreen extends MusicBeatState
             Conductor.songPosition = 0;
             showInitializationProgress();
         });
-	}    override public function onFocus():Void
+	}
+
+    override public function onFocus():Void
     {
         if (!isVideo) {
             FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if (!tmr.finished)
