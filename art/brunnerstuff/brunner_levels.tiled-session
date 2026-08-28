@@ -1,0 +1,30 @@
+{
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "#Level 1": {
+            "dynamicWrapping": true
+        },
+        "Level1.tmx#Level 1": {
+            "dynamicWrapping": false
+        }
+    },
+    "last.exportedFilePath": "C:/Users/Zane But for Work/Documents/brunner",
+    "last.imagePath": "C:/Users/Zane But for Work/Downloads",
+    "map.fixedSize": false,
+    "map.lastUsedExportFilter": "All Files (*)",
+    "map.lastUsedFormat": "tmx",
+    "map.orientation": "2",
+    "openFiles": [
+    ],
+    "project": "brunner_levels.tiled-project",
+    "recentFiles": [
+    ],
+    "tileset.embedInMap": true,
+    "tileset.type": 0
+}
