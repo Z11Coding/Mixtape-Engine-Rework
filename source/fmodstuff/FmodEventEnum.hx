@@ -1,4 +1,4 @@
-package fmod;
+package fmodstuff;
 // Generated haxefmod constants - do not edit (regenerate from FMOD Studio or via haxelib run haxefmod generate)
 
 enum FmodEventEnum {

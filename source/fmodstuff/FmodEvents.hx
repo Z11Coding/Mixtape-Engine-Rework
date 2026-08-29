@@ -1,3 +1,4 @@
+package fmodstuff;
 // Generated haxefmod constants - do not edit (regenerate from FMOD Studio or via haxelib run haxefmod generate)
 
 class FmodEvents {
@@ -10,7 +11,7 @@ class FmodEvents {
 	public static inline var SfxJump:String = "event:/sfx/Jump";
 }
 
-/*
+
 class FmodEventsGuids {
 	public static inline var MusicLevel1:String = "{86994bb3-3afd-4b68-a7e8-ad64a471943c}";
 	public static inline var MusicLevel2:String = "{a5a14ac0-7469-47b7-9682-4cb1206bb495}";
@@ -20,4 +21,3 @@ class FmodEventsGuids {
 	public static inline var SfxCoin:String = "{79a002ed-6985-45b7-9c7e-f5ed19b06592}";
 	public static inline var SfxJump:String = "{6ba339eb-58d0-4636-b96d-18f56f242172}";
 }
-*/
