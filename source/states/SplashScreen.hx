@@ -230,11 +230,15 @@ class SplashScreen extends MusicBeatState
             }, false),
             GenericProgressSubstate.createTask("Preloading freeplay song list...", function(results) {
                 FmodManager.Initialize();
+                while (!FmodManager.IsInitialized()) {
+                    trace("FmodManager: Not yet...");
+                }
                 if (FmodManager.IsInitialized()) {
+                    trace("FmodManager: ...Done!");
                     FmodManager.EnableDebugMessages();
                     FmodManager.SetAutoUpdate(true);
-                    return "fmod_initialization_complete";
                 }
+                return "fmod_initialization_complete";
             }, false),
             GenericProgressSubstate.createTask("Finalizing startup...", function(results) {
                 // Final initialization step

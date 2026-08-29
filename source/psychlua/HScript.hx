@@ -172,7 +172,8 @@ class HScript extends Iris
 		set('FlxTween', flixel.tweens.FlxTween);
 		set('FlxEase', flixel.tweens.FlxEase);
 		set('FlxSpriteContainer', flixel.group.FlxSpriteContainer);
-		set('FlxColor', CustomFlxColor);
+		//set('FlxColor', FlxColor);
+		set('CustomFlxColor', CustomFlxColor);
 		set('Countdown', stages.BaseStage.Countdown);
 		set('PlayState', PlayState);
 		set('Paths', Paths);
@@ -587,6 +588,10 @@ class HScript extends Iris
 
 		set('resumeVideo', function(tag:String) {
 			if (MusicBeatState.getVariables().exists(tag)) MusicBeatState.getVariables().get(tag).resume();
+		});
+
+		set('playVideo', function(tag:String) {
+			if (MusicBeatState.getVariables().exists(tag)) MusicBeatState.getVariables().get(tag).play();
 		});
 
 		set('makeSyncedVideoSprite', function(tag:String, videoFile:String, ?x:Float = 0, ?y:Float = 0, ?syncOffset:Float = 0, ?canSkip:Bool = false, ?shouldLoop:Bool = false, ?addBehind:String = 'none') {
