@@ -11,7 +11,6 @@ class FmodEvents {
 	public static inline var SfxJump:String = "event:/sfx/Jump";
 }
 
-
 class FmodEventsGuids {
 	public static inline var MusicLevel1:String = "{86994bb3-3afd-4b68-a7e8-ad64a471943c}";
 	public static inline var MusicLevel2:String = "{a5a14ac0-7469-47b7-9682-4cb1206bb495}";

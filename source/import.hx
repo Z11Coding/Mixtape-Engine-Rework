@@ -55,8 +55,6 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
-import fmod.FmodEvents;
-import haxefmod.FmodManager;
 import managers.*;
 import mechanics.*;
 import objects.Alphabet;
