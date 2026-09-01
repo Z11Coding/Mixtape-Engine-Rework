@@ -47,6 +47,10 @@ import states.TitleState;
 
 	// Archipelago settings
 	public var apNoteItemTextures:Bool = false; // Display item textures on AP check notes
+	public var deathlink:Bool = false;
+	public var traplink:Bool = false;
+	public var confusionLocksDifficulty:Bool = true;
+	// End of Archipelago settings
 
 	public var noteOffset:Int = 0;
 	public var arrowRGB:Array<Array<FlxColor>> = [
@@ -205,8 +209,6 @@ import states.TitleState;
 	public var volMax:String = 'VolMAX';
 	public var menuSong:String = 'TitleMania';
 	public var username:Bool = false;
-	public var deathlink:Bool = false;
-	public var traplink:Bool = false;
 	public var stageGimmick:Bool = false;
 	public var healthMode:String = 'Mixtape';
 	public var iconBounce:String = 'Mixtape';

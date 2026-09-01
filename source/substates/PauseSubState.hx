@@ -107,7 +107,7 @@ class PauseSubState extends MusicBeatSubstate
 
 		menuItems = menuItemsOG;
 
-		if (!archipelago.APItem.unknownSongs)
+		if (!archipelago.APItem.unknownSongs && !ClientPrefs.data.confusionLocksDifficulty)
 		for (i in 0...Difficulty.list.length) {
 			var diff:String = Difficulty.getString(i);
 			difficultyChoices.push(diff);

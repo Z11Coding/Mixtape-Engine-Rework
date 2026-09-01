@@ -625,7 +625,7 @@ class YScript {
 
     #if !macro
     /**
-     * ✅ PLAYSTATE INTEGRATION: Attach to PlayState for error reporting
+     *  PLAYSTATE INTEGRATION: Attach to PlayState for error reporting
      */
     public function attachToState(?state:MusicBeatState):Bool {
         #if (LUA_ALLOWED || HSCRIPT_ALLOWED)
@@ -667,7 +667,7 @@ class YScript {
 
     #if !macro
     /**
-     * ✅ PLAYSTATE INTEGRATION: Attach to PlayState for error reporting
+     *  PLAYSTATE INTEGRATION: Attach to PlayState for error reporting
      */
     public function attachToPlayState(?playState:states.PlayState):Bool {
         #if (LUA_ALLOWED || HSCRIPT_ALLOWED)
@@ -764,7 +764,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Load script from source code with enhanced error handling
+     *  INTEGRATION: Load script from source code with enhanced error handling
      */
     public function loadFromSource(source:String, ?path:String):Bool {
         try {
@@ -817,7 +817,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Load script from file
+     *  INTEGRATION: Load script from file
      */
     public function loadFromFile(filePath:String):Bool {
         #if sys
@@ -837,7 +837,7 @@ class YScript {
     }
 
     /**
-     * ✅ COMPILATION: Compile YScript source to compiled format
+     *  COMPILATION: Compile YScript source to compiled format
      */
     public function compile(source:String, ?path:String):YCompiledScript {
         try {
@@ -871,7 +871,7 @@ class YScript {
     }
 
     /**
-     * ✅ COMPILATION: Load and execute compiled YScript
+     *  COMPILATION: Load and execute compiled YScript
      */
     public function loadFromCompiled(compiled:YCompiledScript):Bool {
         try {
@@ -900,7 +900,7 @@ class YScript {
     }
 
     /**
-     * ✅ COMPILATION: Save compiled script to file
+     *  COMPILATION: Save compiled script to file
      */
     public function saveCompiled(compiled:YCompiledScript, filePath:String):Bool {
         #if sys
@@ -921,7 +921,7 @@ class YScript {
     }
 
     /**
-     * ✅ COMPILATION: Load compiled script from file
+     *  COMPILATION: Load compiled script from file
      */
     public function loadCompiledFromFile(filePath:String):Bool {
         #if sys
@@ -942,7 +942,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Call function from external system
+     *  INTEGRATION: Call function from external system
      */
     public function callFunction(name:String, ?args:Array<Dynamic>):Dynamic {
         if (!isReady) {
@@ -964,7 +964,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Check if function exists
+     *  INTEGRATION: Check if function exists
      */
     public function hasFunction(name:String):Bool {
         return isReady && scope.hasFunction(name);
@@ -975,7 +975,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Set variable from external system
+     *  INTEGRATION: Set variable from external system
      */
     public function setVariable(name:String, value:Dynamic, ?type:YTypeable):Void {
         if (!isReady) {
@@ -988,7 +988,7 @@ class YScript {
     }
 
     /**
-     * ✅ ARRAY TYPE INFERENCE: Intelligently infer array element type by scanning contents
+     *  ARRAY TYPE INFERENCE: Intelligently infer array element type by scanning contents
      */
     private function inferArrayElementType(array:Dynamic):YType {
         var arr:Array<Dynamic> = cast array;
@@ -1070,7 +1070,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Get variable from external system
+     *  INTEGRATION: Get variable from external system
      */
     public function getVariable(name:String):Dynamic {
         if (!isReady) {
@@ -1082,7 +1082,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Execute script (run main or entry point)
+     *  INTEGRATION: Execute script (run main or entry point)
      */
     public function execute():Dynamic {
         if (!isReady) {
@@ -1099,7 +1099,7 @@ class YScript {
     }
 
     /**
-     * ✅ INTEGRATION: Cleanup resources
+     *  INTEGRATION: Cleanup resources
      */
     public function destroy():Void {
         isReady = false;
@@ -1113,7 +1113,7 @@ class YScript {
     // ═══════════════════════════════════════════════════════════════════════════════════════
 
     /**
-     * ✅ HAXE INTEGRATION: Register Haxe class for use in YScript
+     *  HAXE INTEGRATION: Register Haxe class for use in YScript
      */
     public function registerHaxeClass(className:String, classType:Class<Dynamic>):Void {
         var ytype = YType.HaxeClass(classType);
@@ -1121,7 +1121,7 @@ class YScript {
     }
 
     /**
-     * ✅ HAXE INTEGRATION: Register Haxe function for use in YScript
+     *  HAXE INTEGRATION: Register Haxe function for use in YScript
      */
     public function registerHaxeFunction(name:String, func:haxe.Constraints.Function):Void {
         var yfunc = new YFunction(name, [], YType.Dynamic, YFunctionBody.Native(func));
@@ -1131,7 +1131,7 @@ class YScript {
     }
 
     /**
-     * ✅ HAXE INTEGRATION: Infer YScript type from Haxe value
+     *  HAXE INTEGRATION: Infer YScript type from Haxe value
      */
     private function inferTypeFromValue(value:Dynamic):YType {
         if (value == null) return YType.Dynamic;
@@ -1183,49 +1183,49 @@ class YScript {
     // ═══════════════════════════════════════════════════════════════════════════════════════
 
     /**
-     * ✅ API: Get all variable names in the current scope
+     *  API: Get all variable names in the current scope
      */
     public function getVariableNames():Array<String> {
         return isReady ? scope.getAllVariableNames() : [];
     }
 
     /**
-     * ✅ API: Get all function names in the current scope
+     *  API: Get all function names in the current scope
      */
     public function getFunctionNames():Array<String> {
         return isReady ? scope.getAllFunctionNames() : [];
     }
 
     /**
-     * ✅ API: Get detailed information about all variables
+     *  API: Get detailed information about all variables
      */
     public function getVariables():Array<{name:String, type:String, value:Dynamic}> {
         return isReady ? scope.getAllVariables() : [];
     }
 
     /**
-     * ✅ API: Get detailed information about all functions
+     *  API: Get detailed information about all functions
      */
     public function getFunctions():Array<{name:String, parameters:Array<String>, returnType:String}> {
         return isReady ? scope.getAllFunctions() : [];
     }
 
     /**
-     * ✅ API: Get information about a specific variable
+     *  API: Get information about a specific variable
      */
     public function getVariableInfo(name:String):{name:String, type:String, value:Dynamic} {
         return isReady ? scope.getVariableInfo(name) : null;
     }
 
     /**
-     * ✅ API: Get information about a specific function
+     *  API: Get information about a specific function
      */
     public function getFunctionInfo(name:String):{name:String, parameters:Array<String>, returnType:String} {
         return isReady ? scope.getFunctionInfo(name) : null;
     }
 
     /**
-     * ✅ API: Check if a variable exists
+     *  API: Check if a variable exists
      */
     public function hasVariable(name:String):Bool {
         return isReady ? scope.hasVariable(name) : false;
@@ -2121,7 +2121,7 @@ class YScope {
     }
 
     /**
-     * ✅ ARRAY TYPE INFERENCE: Static version for use across the codebase
+     *  ARRAY TYPE INFERENCE: Static version for use across the codebase
      */
     public static function inferArrayElementType(array:Dynamic):YType {
         var arr:Array<Dynamic> = cast array;
@@ -6072,7 +6072,7 @@ class YScriptRuntime {
     }
 
     /**
-     * ✅ HSCRIPT INTEGRATION: Execute Haxe code using HScript (Iris)
+     *  HSCRIPT INTEGRATION: Execute Haxe code using HScript (Iris)
      */
     private function executeHaxeCodeWithHScript(code:String):Dynamic {
         #if (HSCRIPT_ALLOWED && !macro)
