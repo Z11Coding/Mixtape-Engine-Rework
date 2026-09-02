@@ -45,6 +45,7 @@ class BaseChar extends FlxSprite {
   function jumpCheck() {
     if (controls.UI_UP_P && isTouching(FlxObject.FLOOR)) {
       velocity.y = -charGravity / 1.5;
+      FmodManager.PlaySoundOneShot(FmodEvents.SfxJump);
     }
   }
 

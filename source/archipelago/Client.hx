@@ -2091,7 +2091,7 @@ private function onmessage(msg:MessageType) {
 				_socketReconnectInterval = 15;
 			connectAttempts++;
 
-			_ws = new WebSocket(uri, false, new OneOrMany<String>('Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits=15'));
+			_ws = new WebSocket(uri, false);
 			_ws.onopen = onopen;
 			_ws.onclose = onclose;
 			_ws.onmessage = onmessage;

@@ -7,6 +7,7 @@ import flixel.graphics.frames.FlxFrame;
 import flixel.group.FlxGroup;
 import flixel.input.gamepad.FlxGamepad;
 import flixel.input.keyboard.FlxKey;
+import games.brun.BRunPlayState;
 import haxe.Json;
 import openfl.Assets;
 import openfl.display.Bitmap;
@@ -688,7 +689,7 @@ class TitleState extends MusicBeatState
 
 				new FlxTimer().start(1, function(tmr:FlxTimer)
 				{
-					MusicBeatState.switchState(new MainMenuState());
+					MusicBeatState.switchState(new BRunPlayState());
 					closedState = true;
 				});
 				// FlxG.sound.play(Paths.music('titleShoot'), 0.7);

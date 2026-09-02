@@ -29,15 +29,3 @@ using StringTools;
 #if ACHIEVEMENTS_ALLOWED
 import backend.Achievements;
 #end
-
-#if sys
-import sys.*;
-import sys.io.*;
-#elseif js
-import js.html.*;
-#end
-
-#if ARCHIPELAGO_ALLOWED
-import archipelago.*;
-import archipelago.console.*;
-#end

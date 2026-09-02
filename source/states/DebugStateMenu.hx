@@ -129,7 +129,8 @@ class DebugStateMenu extends MusicBeatState {
             {className: "states.MediaComboTestState", displayName: "MediaCombo Test", category: "Media"},
             {className: "states.LoadingState", displayName: "Loading State", category: "Utility"},
             {className: "states.ErrorState", displayName: "Error State", category: "Utility"},
-            {className: "flixel.FlxState", displayName: "Basic FlxState", category: "Framework"}
+            {className: "flixel.FlxState", displayName: "Basic FlxState", category: "Framework"},
+            {className: "games.brun.BRunPlayState", displayName: "Boyfriend Runner", category: "Games"},
         ];
 
         for (known in knownStates) {

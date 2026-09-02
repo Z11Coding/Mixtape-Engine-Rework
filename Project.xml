@@ -112,6 +112,10 @@
 	<assets path="assets/shared"        exclude="*.mp3" unless="web"/>
 	<assets path="assets/embed"         exclude="*.ogg" if="web" embed="true"/>
 	<assets path="assets/embed"         exclude="*.mp3" unless="web" embed="true"/>
+	<assets path="assets/brunner"       exclude="*.ogg" if="web" embed="true"/>
+	<assets path="assets/brunner"       exclude="*.mp3" unless="web" embed="true"/>
+	<assets path="assets/fmod"       		exclude="*.ogg" if="web" embed="true"/>
+	<assets path="assets/fmod"       		exclude="*.mp3" unless="web" embed="true"/>
 	<assets path="assets/videos"        if="VIDEOS_ALLOWED"/>
 	<assets path="assets/songs"         exclude="*.ogg" if="web"/>
 	<assets path="assets/songs"         exclude="*.mp3" unless="web"/>
@@ -244,7 +248,7 @@
 	<haxedef name="haxefmod_bank_folder" value="assets/fmod/brunner" />
 
 	<!--Enable Live Updates-->
-	<haxedef name="haxefmod_live_update" value="true" />
+	<haxedef name="haxefmod_live_update" value="false" />
 
 	<!--Remove if you don't want to use Moonchart, which allows usage of chart formats from other rhythm games and fnf engines-->
 	<define name="USING_MOONCHART" />
