@@ -3233,10 +3233,10 @@ class PlayState extends MusicBeatState
 			for (i in 0...Note.ammo[mania]) {
 				playerField.baseXPositions[i] = playerField.strumNotes[i].x;
 				dadField.baseXPositions[i] = dadField.strumNotes[i].x;
-				setOnScripts('defaultPlayerStrumX' + i, playerField.strumNotes[i].x);
-				setOnScripts('defaultPlayerStrumY' + i, playerField.strumNotes[i].y);
-				setOnScripts('defaultOpponentStrumX' + i, dadField.strumNotes[i].x);
-				setOnScripts('defaultOpponentStrumY' + i, dadField.strumNotes[i].y);
+				setOnScripts('defaultPlayerStrumX' + i, modManager.getBaseX(i, 0, Note.ammo[mania]);
+				setOnScripts('defaultPlayerStrumY' + i, -40);
+				setOnScripts('defaultOpponentStrumX' + i, modManager.getBaseX(i, 1, Note.ammo[mania]));
+				setOnScripts('defaultOpponentStrumY' + i, -40);
 			}
 
 			startedCountdown = true;
@@ -12982,7 +12982,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 								// strumNote.alpha = modManager.getValue('alpha${i}', field.playerId);
 							} else {
 								// Sync X position
-								var baseX = field.getBaseX(i);
+								var baseX = modManager.getBaseX(i, field.playerId, Note.ammo[mania]);
 								var offsetX = strumNote.x - baseX;
 								modManager.setValue('transform${i}X-a', offsetX, field.playerId);
 
