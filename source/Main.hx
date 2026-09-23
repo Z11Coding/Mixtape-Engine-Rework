@@ -531,6 +531,13 @@ class Main extends Sprite
 		}
 		#end
 
+		// Dispose of cached audio and textures.
+		backend.FunkinSound.stopAllAudio(true, true);
+		backend.FunkinMemory.purgeCache(true);
+
+		// Dispose of any assets still in the OpenFL cache, just incase.
+		openfl.Assets.cache.clear();
+
 		// if (Main.commandPrompt != null)
 		// 	commandPrompt.remove();
 

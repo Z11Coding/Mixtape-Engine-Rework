@@ -1512,7 +1512,7 @@ class PlayState extends MusicBeatState
 		//noteGroup.add(strumLineNotes);
 
 		// Generate playfields so you can actually, well, play the game
-		trace("Setting Up Playfields!");
+		//trace("Setting Up Playfields!");
 		#if ALLOW_DEPRECATION
 		callOnScripts("prePlayfieldCreation"); // backwards compat
 		// TODO: add deprecation messages to function callbacks somehow
@@ -1577,7 +1577,7 @@ class PlayState extends MusicBeatState
 		add(PlayField.extraStuff);
 		//trace("Playfields Created!");
 
-		trace("Playfields Loaded!");
+		//trace("Playfields Loaded!");
 		////
 
 		if(ClientPrefs.data.timeBarType == 'Song Name')
@@ -1586,7 +1586,7 @@ class PlayState extends MusicBeatState
 			timeTxt.y += 3;
 		}
 
-		trace("Generating Chart");
+		//trace("Generating Chart");
 		var prevTime = Sys.time();
 		playfield.loadChart(Paths.formatToSongPath(_cachedSongName)+Difficulty.getFilePath(), Mods.currentModDirectory);
 		loadSongAudio();
@@ -1885,7 +1885,7 @@ class PlayState extends MusicBeatState
 
 		startingSong = true;
 
-		trace("Setting Up NoteType Scripts");
+		//trace("Setting Up NoteType Scripts");
 		#if LUA_ALLOWED
 		for (notetype in playfield.noteTypes)
 			startLuasNamed('custom_notetypes/' + notetype + '.lua');
@@ -1904,7 +1904,7 @@ class PlayState extends MusicBeatState
 			startYScriptsNamed('custom_notetypes/' + notetype + '.ys');
 		for (event in playfield.eventsPushed)
 			startYScriptsNamed('custom_events/' + event + '.ys');
-		trace("NoteType Scripts Loaded");
+		//trace("NoteType Scripts Loaded");
 
 		// SONG SPECIFIC SCRIPTS
 		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
@@ -1928,14 +1928,14 @@ class PlayState extends MusicBeatState
 			}
 		#end
 
-		trace("Triggering Early Events");
+		//trace("Triggering Early Events");
 		playfield.triggerEarlyEvents();
 
 		// Register dynamic song scripting functions after all scripts are loaded
 		//registerDynamicSongScripting();
 		comboManager.RecalculateRating(false, false);
 
-		trace("Adding input to state");
+		//trace("Adding input to state");
 		playfield.addInput();
 
 		if (ClientPrefs.data.showRenderText)
@@ -1962,11 +1962,11 @@ class PlayState extends MusicBeatState
 
 		super.create();
 
-		trace("Running Start Callback");
+		//trace("Running Start Callback");
 		startCallback();
-		trace("Callback Complete");
+		//trace("Callback Complete");
 
-		trace("Adding Event Overlays/Underlays/Effects");
+		//trace("Adding Event Overlays/Underlays/Effects");
 		add(blackOverlay);
 
 		daStatic = new FlxSprite(0, 0);
@@ -3229,10 +3229,10 @@ class PlayState extends MusicBeatState
 			if (skipCountdown || startOnTime > 0)
 				playfield.skipArrowStartTween = true;
 
-			trace("Generating Strums");
+			//trace("Generating Strums");
 			try {
 				playfield.generateStrums();
-				trace("Strums Loaded!");
+				//trace("Strums Loaded!");
 			}
 			catch(e){
 				trace("Strums are NULL!");
@@ -9097,7 +9097,7 @@ class PlayState extends MusicBeatState
 		instance = null;
 		variables = null;
 		endingSong = true;
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
 
 		super.destroy();
 
@@ -9717,7 +9717,7 @@ class PlayState extends MusicBeatState
 		}
 		FlxG.sound.list.add(inst);
 
-		trace('PlayState: Song audio loaded successfully');
+		//trace('PlayState: Song audio loaded successfully');
 	}
 } //
 typedef MechanicResults =

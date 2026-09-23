@@ -97,8 +97,9 @@ class UnoTestState extends MusicBeatState {
     override function create() {
         super.create();
 
-        Paths.clearStoredMemory();
-        Paths.clearUnusedMemory();
+        /*Paths.clearStoredMemory();
+        Paths.clearUnusedMemory();*/
+        FunkinMemory.purgeCache(true);
 
         #if DISCORD_ALLOWED
         DiscordClient.changePresence("Testing UNO", "In UNO Test State");
@@ -451,8 +452,9 @@ class UnoTestState extends MusicBeatState {
         //try {
             if (unoGame.players.length > 0) {
                 FlxG.camera.visible = false;
-                Paths.clearStoredMemory();
-                Paths.clearUnusedMemory();
+                /*Paths.clearStoredMemory();
+                Paths.clearUnusedMemory();*/
+                FunkinMemory.purgeCache();
                 //toggleHideScreen(true);
                 bgSprite.makeGraphic(FlxG.width, FlxG.height, FlxColor.fromRGB(34, 139, 34)); // Forest Green
                 unoGame.startNewRound();
@@ -515,7 +517,8 @@ class UnoTestState extends MusicBeatState {
             return;
         }
 
-        Paths.clearUnusedMemory();
+        //Paths.clearUnusedMemory();
+        FunkinMemory.purgeTextureCache();
 
         try {
             // Update game status

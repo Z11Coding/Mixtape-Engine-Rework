@@ -189,6 +189,9 @@
 	<haxelib name="deflatex" version="1.0.0"/>
 	<ndll name="systools" haxelib="systools" />
 
+	<!--Base Game Stuff-->
+	<haxelib name="json2object" />
+
 	<!-- Disable Discord IO Thread -->
 	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="hxdiscord_rpc" />
 	<haxedef name="NO_PRECOMPILED_HEADERS" if="linux" />
@@ -290,6 +293,16 @@
 
 	<!--Allow working memory greater than 1 Gig-->
 	<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>
+
+	<!-- Boosts the HXCPP garbage collector block size for large builds -->
+	<setenv name="HXCPP_GC_BIG_BLOCK_FACTOR" value="2.0" />
+
+	<!-- Optional: Sets a hard limit on maximum memory allowed (in bytes) -->
+	<!-- Example: 4000000000 is roughly 4GB -->
+	<setenv name="HXCPP_MAX_MEMORY" value="1000000000" />
+
+	<!-- Enables smarter GC allocation during compilation -->
+	<haxedef name="hxcpp_smart_gc" />
 
 	<!--Disable deprecated warnings-->
 	<haxedef name='no-deprecation-warnings' unless="debug" />

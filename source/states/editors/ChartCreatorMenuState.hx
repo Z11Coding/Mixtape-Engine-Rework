@@ -8,7 +8,6 @@ import backend.Song;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.ui.FlxInputText;
-import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxUICheckBox;
 import flixel.addons.ui.FlxUIDropDownMenu;

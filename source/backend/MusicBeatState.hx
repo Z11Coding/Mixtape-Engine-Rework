@@ -284,8 +284,8 @@ class MusicBeatState extends FlxState
 
 		scripts.destroyCurrentScripts();
 
-		if (allowNuke)
-			Paths.nukeMemory(useLite);
+		// Lets try this out for a bit
+		FunkinMemory.purgeCache();
 		super.destroy();
 	}
 

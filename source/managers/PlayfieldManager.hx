@@ -323,7 +323,7 @@ class PlayfieldManager {
 
   public function generateStrums():Void
 	{
-		trace('GENERATING STRUMS!');
+		//trace('GENERATING STRUMS!');
 		if (MusicBeatState.getState() == PlayState.instance) {
       #if ALLOW_DEPRECATION PlayState.instance?.callOnScripts('preReceptorGeneration'); #end // backwards compat, deprecated
 		  PlayState.instance?.callOnScripts('onReceptorGeneration');
@@ -332,7 +332,7 @@ class PlayfieldManager {
 		for(field in playfields.members) {
       if (field != null) {
         field.strumNotes = [];
-        trace('Generating Strums for field ${field.modNumber}');
+        //trace('Generating Strums for field ${field.modNumber}');
         field.keyCount = Note.ammo[3];
         field.generateStrums();
 
@@ -360,7 +360,7 @@ class PlayfieldManager {
       #end
       PlayState.instance?.callOnScripts('onReceptorGenerationPost');
     }
-    trace("Finished Note Generation!");
+    //trace("Finished Note Generation!");
 	}
 
   private function generatePlayerStrums(player:Int):Void
@@ -585,7 +585,7 @@ class PlayfieldManager {
   public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = false) {
     if (fromChartState) songName+=" (temp)";
     var tempSongObj:String = new SongObjectType(songName, folder).toString();
-    trace('Song Info: $tempSongObj\nCache: $chartCache\nDoes it exist?: ${chartCache.exists(tempSongObj)}');
+    //trace('Song Info: $tempSongObj\nCache: $chartCache\nDoes it exist?: ${chartCache.exists(tempSongObj)}');
     this.songName = Paths.formatToSongPath(SONG.song).toLowerCase();
     songSpeed = SONG?.speed;
 		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');

@@ -1018,10 +1018,11 @@ class LoadingState extends MusicBeatState
 			}
 		}
 		mutex.acquire();
-		Paths.localTrackedAssets.push(file);
+		FunkinMemory.cacheSound(file);
 		mutex.release();
 
-		return Paths.currentTrackedSounds.get(file);
+		@:privateAccess
+		return FunkinMemory.currentCachedSounds.get(file);
 	}
 
 	// thread safe sound loader
@@ -1032,7 +1033,7 @@ class LoadingState extends MusicBeatState
 			#if TRANSLATIONS_ALLOWED requestKey = Language.getFileTranslation(requestKey); #end
 			if(requestKey.lastIndexOf('.') < 0) requestKey += '.png';
 
-			if (!Paths.currentTrackedAssets.exists(requestKey))
+			if (!FunkinMemory.isTextureCached(requestKey))
 			{
 				var file:String = Paths.getPath(requestKey, IMAGE);
 				if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, IMAGE))
@@ -1053,7 +1054,7 @@ class LoadingState extends MusicBeatState
 				else trace('no such image $key exists');
 			}
 			loaded++;
-			return Paths.currentTrackedAssets.get(requestKey).bitmap;
+			return FunkinMemory.getCachedGraphic(requestKey).bitmap;
 		}
 		catch(e:haxe.Exception)
 		{

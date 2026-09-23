@@ -1,7 +1,7 @@
 package states.editors;
 
-import substates.StickerSubState;
 import states.editors.MasterEditorMenu;
+import substates.StickerSubState;
 
 class StickerTest extends MusicBeatState {
     private var stickerSet:String;
@@ -23,15 +23,15 @@ class StickerTest extends MusicBeatState {
     override function create() {
         FlxG.sound.music.pause();
         FlxG.mouse.visible = true;
-        Paths.clearUnusedMemory();
+        FunkinMemory.purgeCache();
+        //Paths.clearUnusedMemory();
         if (stickerSubState != null)
         {
-            Paths.clearStoredWithoutStickers();
+            //Paths.clearStoredWithoutStickers();
             openSubState(stickerSubState);
             stickerSubState.degenStickers();
         }
-		else Paths.clearStoredMemory();
-        
+
 
         var BG = new FlxSprite(0,0,Paths.image(ClientPrefs.getBGImage()));
         BG.setGraphicSize(FlxG.width,FlxG.height);
@@ -52,7 +52,7 @@ class StickerTest extends MusicBeatState {
 
         stickerSetInput = new PsychUIInputText(20,50,100,stickerSet);
         stickerPackInput = new PsychUIInputText(20,100,100,stickerPack);
-		
+
 		UI_box.selectedName = 'Sticker';
         var tab = UI_box.getTab('Sticker').menu;
 		add(UI_box);
@@ -78,13 +78,13 @@ class StickerTest extends MusicBeatState {
             {
                 ClientPrefs.toggleVolumeKeys(true);
                 var b_tapped = false;
-                
+
                 #if TOUCH_CONTROLS_ALLOWED
                 b_tapped = touchPad.buttonB.justPressed;
                 #end
 
                 if(controls.BACK || b_tapped){
-                    
+
                     MusicManager.playMenuMusic(1);
                     FlxG.mouse.visible = false;
                     MusicBeatState.startTransition(new MasterEditorMenu());

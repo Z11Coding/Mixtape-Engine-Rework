@@ -8,8 +8,6 @@ echo Makking the main haxelib and setuping folder in same time..
 mkdir ~/haxelib && haxelib setup ~/haxelib
 echo Installing dependencies...
 echo This might take a few moments depending on your internet speed.
-haxelib --global update haxelib
-haxelib fixrepo
 haxelib install lime 8.2.2
 haxelib install openfl 9.4.1
 haxelib install flixel 5.6.2
@@ -55,4 +53,5 @@ haxelib git moonchart https://github.com/MaybeMaru/moonchart
 haxelib git tentools https://github.com/TentaRJ/tentools.git
 haxelib git systools https://github.com/haya3218/systools
 haxelib run lime rebuild systools linux
+haxelib run lime rebuild extension-harfbuzz linux
 echo Finished!

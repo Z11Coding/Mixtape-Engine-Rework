@@ -1,9 +1,9 @@
 package cache;
 
-import flixel.math.FlxMath.minInt;
 import flixel.graphics.FlxGraphic;
-import openfl.media.Sound;
+import flixel.math.FlxMath.minInt;
 import openfl.display.BitmapData;
+import openfl.media.Sound;
 
 #if MULTICORE_LOADING
 import sys.thread.Thread;
@@ -41,7 +41,7 @@ class Cache
 
 		#if MULTICORE_LOADING
 		final threadLimit:Int = minInt(processorCores, shitToLoad.length);
-		
+
 		if (ClientPrefs.data.multicoreLoading && threadLimit > 1){
 			//// clear duplicates
 			var uniqueMap:Map<String, AssetPreload> = [
@@ -52,22 +52,22 @@ class Cache
 			//
 			var shitToLoad = new List<AssetPreload>(); // idk what advantages this brings over just using arrays but yolo lol
 			for (k => v in uniqueMap){
-				/*trace(k);*/ 
+				/*trace(k);*/
 				shitToLoad.push(v);
 			}
-			
+
 			////
 			final mainThread = Thread.current();
 			final makeThread = Thread.create.bind(_loadingThreadFunc.bind(mainThread));
 
 			trace('Loading ${shitToLoad.length} items with $threadLimit threads.');
-			
-			var threadArray:Array<Thread> = [for (_ in 0...threadLimit){				
+
+			var threadArray:Array<Thread> = [for (_ in 0...threadLimit){
 				var thread = makeThread();
 				thread.sendMessage(Load(shitToLoad.pop()));
 				thread;
 			}];
-			
+
 			while (true)
 			{
 				var msg:SlaveMessage = Thread.readMessage(true);
@@ -87,24 +87,22 @@ class Cache
 					case Finished(thread, loadedGraphics, loadedSounds):
 						if (loadedGraphics != null)
 							for (key => value in loadedGraphics){
-								Paths.localTrackedAssets.push(key);
-								Paths.currentTrackedAssets.set(key, value);
-	
+								FunkinMemory.permanentCacheTexture(key);
+
 								#if traceLoading
 								trace('loaded:$key',value);
 								#end
 							}
-						
+
 						if (loadedSounds != null)
 							for (key => value in loadedSounds){
-								Paths.localTrackedAssets.push(key);
-								Paths.currentTrackedSounds.set(key, value);
-	
+								FunkinMemory.permanentCacheSound(key);
+
 								#if traceLoading
 								trace('loaded:$key',value);
 								#end
 							}
-						
+
 						threadArray.remove(thread);
 						//trace('thread terminated, ${threadArray.length} left.');
 						if (threadArray.length < 1)
@@ -117,7 +115,7 @@ class Cache
 		#end
 		if (!multicoreOnly){
 			trace('Loading ${shitToLoad.length} items.');
-			for (shit in shitToLoad) 
+			for (shit in shitToLoad)
 				load(shit);
 		}
 
@@ -172,9 +170,9 @@ class Cache
 	{
 		var path:String = Paths.getPath('images/$key.$IMAGE_EXT');
 
-		if (Paths.currentTrackedAssets.exists(path))
+		if (FunkinMemory.isTextureCached(path))
 			return null;
-		
+
 		var newGraphic = Paths.getGraphic(path, false, false);
 		return (newGraphic==null) ? null : {path: path, graphic: newGraphic};
 	}
@@ -188,7 +186,7 @@ class Cache
 
 		if (Paths.currentTrackedSounds.exists(path))
 			return null;
-		
+
 		var newSnd = Paths.getSound(path);
 		return (newSnd==null) ? null : {path: path, sound: newSnd};
 	}
@@ -198,42 +196,42 @@ class Cache
 			default:
 				Paths.image(toLoad.path, toLoad.library);
 			case SOUND:
-				Paths.returnSoundCache("sounds", toLoad.path);
+				FunkinMemory.currentCachedSounds.get(toLoad.path);
 			case MUSIC:
-				Paths.returnSoundCache("music", toLoad.path);
+				FunkinMemory.currentCachedSounds.get(toLoad.path);
 			case SONG:
-				Paths.returnSoundCache("songs", toLoad.path);
+				FunkinMemory.currentCachedSounds.get(toLoad.path);
 		}
-		
+
 		#if traceLoading
 		trace("loaded " + toLoad.path);
 		#end
 	}
 
-	public static final processorCores:Int = {	
+	public static final processorCores:Int = {
 		var result:Null<String> = null;
 
 		#if !MULTICORE_LOADING
 
 		#elseif windows
 		result = Sys.getEnv("NUMBER_OF_PROCESSORS");
-			
+
 		#elseif linux
 		result = Main.runProcess("nproc", []);
-		
+
 		if (result == null) {
 			var cpuinfo = Main.runProcess("cat", [ "/proc/cpuinfo" ]);
-			
+
 			if (cpuinfo != null) {
 				var split = cpuinfo.split("processor");
 				result = Std.string(split.length - 1);
 			}
 		}
-			
+
 		#elseif mac
 		var cores = ~/Total Number of Cores: (\d+)/;
 		var output = Main.runProcess("/usr/sbin/system_profiler", ["-detailLevel", "full", "SPHardwareDataType"]);
-		
+
 		if (cores.match(output))
 			result = cores.matched(1);
 		#end

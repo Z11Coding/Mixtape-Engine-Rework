@@ -1805,9 +1805,10 @@ class APItem {
                     ClientPrefs.data.ultratrashMode = true;
                     // Clear all cached graphics when trash mode is toggled
                     // This ensures that the compression setting takes effect immediately
-                    Paths.clearStoredMemory();
+                    /*Paths.clearStoredMemory();
                     Paths.clearUnusedMemory();
-                    Paths.freeGraphicsFromMemory();
+                    Paths.freeGraphicsFromMemory();*/
+                    FunkinMemory.purgeCache();
                     trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
                     if (ClientPrefs.data.preloadSong) {
                         LoadingState.prepareToSong();
@@ -1821,9 +1822,10 @@ class APItem {
                         ClientPrefs.data.ultratrashMode = false;
                         // Clear all cached graphics when trash mode is toggled
                         // This ensures that the compression setting takes effect immediately
-                        Paths.clearStoredMemory();
+                        /*Paths.clearStoredMemory();
                         Paths.clearUnusedMemory();
-                        Paths.freeGraphicsFromMemory();
+                        Paths.freeGraphicsFromMemory();*/
+                        FunkinMemory.purgeCache();
                         trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
                         if (ClientPrefs.data.preloadSong) {
                             LoadingState.prepareToSong();

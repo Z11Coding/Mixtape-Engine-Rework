@@ -3828,6 +3828,36 @@ class CollectionUtils
 	{
 		DisplayFormatter.configure(indent, lineWidth, depth);
 	}
+
+	/**
+   * Constrain an integer between a minimum and maximum value.
+   *
+   * @param value The value to clamp.
+   * @param min The minimum value.
+   * @param max The maximum value.
+   * @return The clamped value.
+   */
+  public static inline function clamp(value:Int, min:Int, max:Int):Int
+  {
+    // Don't use Math.min because it returns a Float.
+    return value < min ? min : value > max ? max : value;
+  }
+
+	public static inline function array<T>(iterator:Iterator<T>):Array<T>
+  {
+    return[for (i in iterator) i];
+  }
+
+	/**
+   * Create a new array with all elements of the given array, to prevent modifying the original.
+   *
+   * @param array The array to clone.
+   * @return A new array with the same elements as the original.
+   */
+  public static inline function clone<T>(array:Array<T>):Array<T>
+  {
+    return[for (element in array) element];
+  }
 }
 
 // class CollectionMacro {

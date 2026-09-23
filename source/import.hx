@@ -40,6 +40,7 @@ import backend.CoolUtil;
 import backend.Cursor;
 import backend.CustomFadeTransition;
 import backend.Difficulty;
+import backend.FunkinMemory;
 import backend.FunkinSound;
 import backend.Highscore;
 import backend.Language;

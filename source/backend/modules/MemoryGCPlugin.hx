@@ -30,7 +30,8 @@ class MemoryGCPlugin extends FlxBasic
       trace('Memory GC took: ${TimerUtil.seconds(perfStart)}');
     } else if (FlxG.keys.justPressed.DELETE) {
       var perfStart:Float = TimerUtil.start();
-      Paths.nukeMemory();
+      //Paths.nukeMemory();
+      FunkinMemory.purgeCache();
       trace('Memory GC took: ${TimerUtil.seconds(perfStart)}');
       FlxG.resetState();
     }

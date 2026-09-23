@@ -103,7 +103,7 @@ class PlayFieldFunctions
 
 		Lua_helper.add_callback(lua, "queueFuncLB",
 			function(beat:Float, length:Float, callback:(CallbackEvent, Float) -> Void)
-				MegaManager.playfield.modManager.queueFuncB(beat, length, callback)
+				MegaManager.playfield.modManager.queueFuncLB(beat, length, callback)
 		);
 
 		Lua_helper.add_callback(lua, "queueFuncOnce",

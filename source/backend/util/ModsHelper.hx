@@ -1,10 +1,10 @@
 package backend.util;
 
-import openfl.filters.BitmapFilter;
-import flixel.util.FlxSort;
 import flixel.graphics.FlxGraphic;
-import openfl.display.BitmapData;
+import flixel.util.FlxSort;
 import haxe.io.Path;
+import openfl.display.BitmapData;
+import openfl.filters.BitmapFilter;
 
 using backend.util.ArrayTools;
 
@@ -17,10 +17,10 @@ class ModsHelper {
 		#end
 	}
 	public inline static function loadabsoluteGraphic(path:String):FlxGraphic {
-		if(!Paths.currentTrackedAssets.exists(path)) {
-			Paths.cacheBitmap(path,null,BitmapData.fromFile(path));
+		if(!FunkinMemory.isTextureCached(path)) {
+			FunkinMemory.cacheTexture(path);
 		}
-		return Paths.currentTrackedAssets.get(path);
+		return FunkinMemory.getCachedGraphic(path);
 	}
 	public inline static function getSoundChannel(sound:FlxSound){
 		@:privateAccess
@@ -39,7 +39,7 @@ class ModsHelper {
 		var modsToSearch = Mods.getGlobalMods();
 		modsToSearch.pushUnique(Mods.currentModDirectory);
 		modsToSearch = modsToSearch.filter(s -> Paths.exists('mods/$s/videos/commercials')).map(s -> 'mods/$s/videos/commercials');
-		
+
 		dirsToList = dirsToList.concat(modsToSearch);
 		var commercialsToSelect = new Array<String>();
 		for(potencialComercials in dirsToList){

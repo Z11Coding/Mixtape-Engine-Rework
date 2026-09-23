@@ -41,7 +41,8 @@ class StoryMenuState extends MusicBeatState
 
 	override function create()
 	{
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		persistentUpdate = persistentDraw = true;
 		PlayState.isStoryMode = true;
@@ -356,7 +357,8 @@ class StoryMenuState extends MusicBeatState
 			if(PlayState._lastLoadedModDirectory != Mods.currentModDirectory)
 			{
 				trace('CHANGED MOD DIRECTORY, RELOADING STUFF');
-				Paths.freeGraphicsFromMemory();
+				//Paths.freeGraphicsFromMemory();
+				FunkinMemory.purgeCache();
 			}
 			LoadingState.prepareToSong();
 			new FlxTimer().start(1, function(tmr:FlxTimer)

@@ -301,8 +301,6 @@ class Character extends FunkinSprite
 				isAnimateAtlas = true;
 			}
 
-			trace('isAnimateAtlas: $isAnimateAtlas');
-
 			scale.set(1, 1);
 			updateHitbox();
 

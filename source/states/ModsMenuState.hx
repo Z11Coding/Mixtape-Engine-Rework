@@ -53,8 +53,9 @@ class ModsMenuState extends MusicBeatState
 
 	override function create()
 	{
-		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
+		/*Paths.clearStoredMemory();
+		Paths.clearUnusedMemory();*/
+		FunkinMemory.purgeCache(true);
 		persistentUpdate = false;
 
 		modsList = Mods.parseList();

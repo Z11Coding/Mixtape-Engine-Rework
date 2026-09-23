@@ -116,7 +116,7 @@ class Paths
 	];
 
 	// haya I love you for the base cache dump I took to the max
-	public static function clearUnusedMemory()
+	/*public static function clearUnusedMemory()
 	{
 		// clear non local assets in the tracked assets list
 		for (key in currentTrackedAssets.keys())
@@ -138,12 +138,9 @@ class Paths
 
 		// run the garbage collector for good measure lmfao
 		System.gc();
-	}
+	}*/
 
-	// define the locally tracked assets
-	public static var localTrackedAssets:Array<String> = [];
-
-	@:access(flixel.system.frontEnds.BitmapFrontEnd._cache)
+	/*@:access(flixel.system.frontEnds.BitmapFrontEnd._cache)
 	public static function clearStoredMemory()
 	{
 		// clear anything not in the tracked assets list
@@ -308,10 +305,10 @@ class Paths
 
 			} catch(e) {
 				trace('ERROR: Couldn\'t' );
-			}*/
+			}
 		}
 		FlxG.bitmap.dumpCache();
-	}
+	}*/
 
 	/** returns a FlxRuntimeShader but with file names lol **/
 	public static function getShader(fragFile:String = null, vertFile:String = null, version:Int = 120):FlxRuntimeShader
@@ -730,7 +727,7 @@ class Paths
 
 	public static function getGraphic(path:String, cache:Bool = true, gpu:Bool = false):Null<FlxGraphic>
 	{
-		var newGraphic:FlxGraphic = cache ? currentTrackedAssets.get(path) : null;
+		var newGraphic:FlxGraphic = cache ? FunkinMemory.getCachedGraphic(path) : null;
 		if (newGraphic == null) {
 			var bitmap:BitmapData = getBitmapData(path);
 			if (bitmap == null) return null;
@@ -747,19 +744,22 @@ class Paths
 			newGraphic.persist = true;
 			newGraphic.destroyOnNoUse = false;
 
-			if (cache) {
-				localTrackedAssets.push(path);
-				currentTrackedAssets.set(path, newGraphic);
-			}
+			if (cache)
+				FunkinMemory.cacheTexture(path);
 		}
 
 		return newGraphic;
 	}
 
+
+	// THESE HAVE BEEN REPLACED BY "FunkinMemory.hx"!
+	// I'll keep em around just in case, but we shouldn't need these anymore. At all.
+	/*
+	public static var localTrackedAssets:Array<String> = [];
 	public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
 	public static var currentTrackedFrames:Map<String, FlxFramesCollection> = [];
 	public static var currentTrackedAnims:Map<String, FlxAnimationController> = [];
-	public static var currentTrackedBitmaps:Map<String, BitmapData> = [];
+	public static var currentTrackedBitmaps:Map<String, BitmapData> = [];*/
 	inline public static function cacheGraphic(path:String):Null<FlxGraphic>
 		return getGraphic(path, true);
 
@@ -804,15 +804,15 @@ class Paths
 
 		var type = switch (pathType) {
 			case IMAGES: IMAGE;
-			case SOUNDS: SOUND;
-			case MUSIC: SOUND;
+			case SOUNDS: AssetType.SOUND;
+			case MUSIC: AssetType.SOUND;
 			case VIDEOS: BINARY;
 			case SHADERS: AssetType.TEXT;
 			case DATA: AssetType.TEXT;
 			case TEXT: AssetType.TEXT;
 			case LUA: AssetType.TEXT;
 			case HSCRIPT: AssetType.TEXT;
-			case SONGS: SOUND;
+			case SONGS: AssetType.SOUND;
 			case JSON: AssetType.TEXT;
 			case REGISTRY: AssetType.TEXT;
 			default: IMAGE;
@@ -996,15 +996,15 @@ class Paths
 
 		var type = switch (pathType) {
 			case IMAGES: IMAGE;
-			case SOUNDS: SOUND;
-			case MUSIC: SOUND;
+			case SOUNDS: AssetType.SOUND;
+			case MUSIC: AssetType.SOUND;
 			case VIDEOS: BINARY;
 			case SHADERS: AssetType.TEXT;
 			case DATA: AssetType.TEXT;
 			case TEXT: AssetType.TEXT;
 			case LUA: AssetType.TEXT;
 			case HSCRIPT: AssetType.TEXT;
-			case SONGS: SOUND;
+			case SONGS: AssetType.SOUND;
 			case JSON: AssetType.TEXT;
 			case REGISTRY: AssetType.TEXT;
 			default: IMAGE;
@@ -1088,11 +1088,9 @@ class Paths
 	{
 		key = Language.getFileTranslation('images/$key') + '.png';
 		var bitmap:BitmapData = null;
-		if (currentTrackedAssets.exists(key))
-		{
-			localTrackedAssets.push(key);
-			return currentTrackedAssets.get(key);
-		}
+		if (FunkinMemory.isTextureCached(key))
+			return FunkinMemory.getCachedGraphic(key);
+
 		return cacheBitmap(key, parentFolder, bitmap, allowGPU);
 	}
 
@@ -1149,8 +1147,7 @@ class Paths
 		graph.persist = true;
 		graph.destroyOnNoUse = false;
 
-		currentTrackedAssets.set(key, graph);
-		localTrackedAssets.push(key);
+		FunkinMemory.cacheTexture(key);
 		return graph;
 	}
 
@@ -1158,11 +1155,8 @@ class Paths
 	{
 		var path:String = imagePath(key);
 
-		if (currentTrackedAssets.exists(path)) {
-			if (!localTrackedAssets.contains(path))
-				localTrackedAssets.push(path);
-
-			return currentTrackedAssets.get(path);
+		if (FunkinMemory.isTextureCached(path)) {
+			return FunkinMemory.getCachedGraphic(path);
 		}
 
 		var graphic = getGraphic(path);
@@ -1382,10 +1376,10 @@ class Paths
 		{
 			#if sys
 			if(FileSystem.exists(file))
-				currentTrackedSounds.set(file, Sound.fromFile(file));
+				FunkinMemory.cacheSound(file);
 			#else
 			if(OpenFlAssets.exists(file, SOUND))
-				currentTrackedSounds.set(file, OpenFlAssets.getSound(file));
+				FunkinMemory.cacheSound(file);
 			#end
 			else if(beepOnNull)
 			{
@@ -1394,8 +1388,9 @@ class Paths
 				return FlxAssets.getSound('flixel/sounds/beep');
 			}
 		}
-		localTrackedAssets.push(file);
-		return currentTrackedSounds.get(file);
+
+		@:privateAccess
+		return FunkinMemory.currentCachedSounds.get(file);
 	}
 
 	inline public static function soundPath(path:String, ?key:String, ?library:String)
@@ -1411,32 +1406,6 @@ class Paths
 	inline public static function soundP(key:String)
 	{
 		return getPath('sounds/$key.$SOUND_EXT', SOUND);
-	}
-
-	public static function returnSoundCache(path:String, key:String, ?library:String)
-	{
-		var gottenPath:String = soundPath(path, key, library);
-
-		if (currentTrackedSounds.exists(gottenPath)) {
-			if (!localTrackedAssets.contains(gottenPath))
-				localTrackedAssets.push(gottenPath);
-
-			return currentTrackedSounds.get(gottenPath);
-		}
-
-		var sound = getSound(gottenPath);
-		if (sound != null) {
-			currentTrackedSounds.set(gottenPath, sound);
-
-			if (!localTrackedAssets.contains(gottenPath))
-				localTrackedAssets.push(gottenPath);
-
-			return sound;
-		}
-
-		trace('sound $path, $key => $gottenPath returned null');
-
-		return null;
 	}
 
 	#if MODS_ALLOWED
@@ -1698,7 +1667,7 @@ class Paths
 	}
 
 	public inline static function loadabsoluteGraphic(path:String):FlxGraphic {
-		if(!Paths.currentTrackedAssets.exists(path)) {
+		if(!FunkinMemory.isTextureCached(path)) {
 			var bitmap:BitmapData = BitmapData.fromFile(path);
 
 			// Apply trash mode compression if enabled and in PlayState
@@ -1712,7 +1681,7 @@ class Paths
 
 			Paths.cacheBitmap(path, null, bitmap);
 		}
-		return Paths.currentTrackedAssets.get(path);
+		return FunkinMemory.getCachedGraphic(path);
 	}
 
 	public inline static function getSoundChannel(sound:FlxSound){
@@ -1726,4 +1695,13 @@ class Paths
 		if (parts.length < 2) return path;
 		return parts[1];
 	}
+}
+
+enum abstract PathsFunction(String)
+{
+  public var MUSIC;
+  public var INST;
+  public var VOICES;
+  public var SOUND;
+	public var BASE;
 }
