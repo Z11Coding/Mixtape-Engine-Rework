@@ -83,7 +83,9 @@ class FunkinMemory
     permanentCacheSound(Paths.soundP('soundtray/Voldown'));
     permanentCacheSound(Paths.soundP('soundtray/VolMAX'));
     permanentCacheSound(Paths.soundP('soundtray/Volup'));
-    permanentCacheSound(Paths.musicPath('freakyMenu/freakyMenu'));
+    permanentCacheSound(Paths.musicPath('menuMusic/freakyMenu'));
+    permanentCacheSound(Paths.musicPath('menuMusic/titlemania'));
+    permanentCacheSound(Paths.musicPath('menuMusic/titlemania-(night-mix)'));
     permanentCacheSound(Paths.musicPath('offsetsLoop/offsetsLoop'));
     permanentCacheSound(Paths.musicPath('offsetsLoop/drumsLoop'));
     permanentCacheSound(Paths.soundP('missnote1'));
@@ -219,7 +221,6 @@ class FunkinMemory
       var graphic:Null<FlxFramesCollection> = currentCachedFrames.get(frame);
       if (graphic != null)
       {
-        graphic.parent?.destroy();
         graphic.destroy();
         currentCachedFrames.remove(frame);
         Assets.cache.clear(frame);
@@ -307,7 +308,12 @@ class FunkinMemory
       return;
     }
 
-    var sound:Null<Sound> = Assets.getSound(key, true);
+    var sound:Null<Sound> = null;
+    #if sys
+    sound = Sound.fromFile(key);
+    #else
+    sound = OpenFlAssets.getSound(key);
+    #end
     if (sound == null)
     {
       return;
