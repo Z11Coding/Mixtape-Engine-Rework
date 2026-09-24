@@ -285,7 +285,8 @@ class MusicBeatState extends FlxState
 		scripts.destroyCurrentScripts();
 
 		// Lets try this out for a bit
-		FunkinMemory.purgeCache();
+		// NOPE
+		//FunkinMemory.purgeCache();
 		super.destroy();
 	}
 

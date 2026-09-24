@@ -650,6 +650,21 @@ class Paths
 		return returnSound(songKey, 'songs', modsAllowed, false);
 	}
 
+	inline static public function instPath(song:String, ?modsAllowed:Bool = true):String
+		return getPath('${formatToSongPath(song)}/Inst', 'songs', modsAllowed);
+
+	inline static public function voicesPath(song:String, postfix:String = null, ?modsAllowed:Bool = true):String
+	{
+		var songKey:String = '${formatToSongPath(song)}/Voices';
+		if(postfix != null) songKey += '-' + postfix;
+
+		// if (!Paths.exists(getPath(songKey, SOUND, 'songs', modsAllowed))) {
+		// 	return null;
+		// }
+		//trace('songKey test: $songKey');
+		return getPath(songKey, 'songs', modsAllowed, false);
+	}
+
 	inline static public function soundRandom(key:String, min:Int, max:Int, ?modsAllowed:Bool = true)
 		return sound(key + FlxG.random.int(min, max), modsAllowed);
 
@@ -1367,12 +1382,13 @@ class Paths
 		return hideChars.replace(invalidChars.replace(path, '-'), '').trim().toLowerCase();
 	}
 
-	public static var currentTrackedSounds:Map<String, Sound> = [];
+	//public static var currentTrackedSounds:Map<String, Sound> = [];
 	public static function returnSound(key:String, ?path:String, ?modsAllowed:Bool = true, ?beepOnNull:Bool = true)
 	{
 		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
 		//trace('precaching sound: $file');
-		if(!currentTrackedSounds.exists(file))
+		@:privateAccess
+		if(!FunkinMemory.currentCachedSounds.exists(file))
 		{
 			#if sys
 			if(FileSystem.exists(file))

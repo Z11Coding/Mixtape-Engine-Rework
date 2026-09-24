@@ -5925,6 +5925,7 @@ class PlayState extends MusicBeatState
 		return pressed;
 	}
 
+	var miniMania:Int = 3;
 	private function generateSong(preload:Bool = false):Void
 	{
 		// If this is a preload call, just note it
@@ -5955,7 +5956,7 @@ class PlayState extends MusicBeatState
 
 		notes = new FlxTypedGroup<Note>();
 		if (!preload && noteGroup != null) noteGroup.add(notes);
-		playfield.curChart = [];
+		PlayfieldManager.curChart = [];
 
 		try
 		{
@@ -5971,11 +5972,16 @@ class PlayState extends MusicBeatState
 		var AIPlayMap:Array<Array<Float>> = AIPlayer.active ? AIPlayer.GeneratePlayMap(SONG, AIPlayer.diff) : null;
 
 		var oldNote:Note = null;
-		var sectionsData:Array<SwagSection> = PlayState.SONG.notes;
+		var sectionsData:Array<SwagSection> = SONG.notes;
 		var daBpm:Float = Conductor.bpm;
 
 		var sectionLoopCount:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
-
+		var totalColumns:Int = Note.ammo[SONG?.mania != null ? SONG?.mania : 3];
+		var prevNoteData:Int = -1;
+		var initialNoteData:Int = -1;
+		var caseExecutionCount:Int = FlxG.random.int(-50, 50);
+		var currentModifier:Int = -1;
+		var stair:Int = 0;
 
 		if (chartingMode)
 			chartModifier = "Normal";
@@ -5984,25 +5990,25 @@ class PlayState extends MusicBeatState
 
 		if (preload) {
 			var convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
-			if (mania > Note.maxMania)
-				mania = Note.defaultMania;
+			if (miniMania > Note.maxMania)
+				miniMania = Note.defaultMania;
 			else if (chartModifier == "4K Only")
-				mania = 3;
+				miniMania = 3;
 			else if (chartModifier == "ManiaConverter")
-				mania = convertMania;
+				miniMania = convertMania;
 			else if (SONG.mania != null)
 				if (SONG.mania >= 3) //Make sure it's even there
-					mania = SONG.mania;
+					miniMania = SONG.mania;
 				else {
-					mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
+					miniMania = switch (SONG.mania) { //Convert it to make sure the older versions still work
 						case 0: 3;
 						case 1: 4;
 						default: SONG.mania;
 					}
 				}
-			else mania = 3;
+			else miniMania = 3;
 
-			trace("Mania set: " + mania);
+			trace("Mania set: " + miniMania);
 
 		}
 
@@ -6056,14 +6062,14 @@ class PlayState extends MusicBeatState
 				switch (chartModifier)
 				{
 					case "Random":
-						noteColumn = FlxG.random.int(0, mania);
+						noteColumn = FlxG.random.int(0, miniMania);
 					case "RandomBasic":
 						var randomDirection:Int;
 						do
 						{
-							randomDirection = FlxG.random.int(0, mania);
+							randomDirection = FlxG.random.int(0, miniMania);
 						}
-						while (randomDirection == prevNoteData && mania > 1);
+						while (randomDirection == prevNoteData && miniMania > 1);
 						prevNoteData = randomDirection;
 						noteColumn = randomDirection;
 					case "RandomComplex":
@@ -6071,16 +6077,16 @@ class PlayState extends MusicBeatState
 						if (initialNoteData == -1)
 						{
 							initialNoteData = noteColumn;
-							noteColumn = FlxG.random.int(0, mania);
+							noteColumn = FlxG.random.int(0, miniMania);
 						}
 						else
 						{
 							var newNoteData:Int;
 							do
 							{
-								newNoteData = FlxG.random.int(0, mania);
+								newNoteData = FlxG.random.int(0, miniMania);
 							}
-							while (newNoteData == prevNoteData && mania > 1);
+							while (newNoteData == prevNoteData && miniMania > 1);
 							if (thisNoteData == initialNoteData)
 							{
 								noteColumn = prevNoteData;
@@ -6097,15 +6103,15 @@ class PlayState extends MusicBeatState
 					// 	if (prevNoteData == 0) {
 					// 		noteColumn = 1;
 					// 		direction = 1;
-					// 	} else if (prevNoteData == mania - 1) {
-					// 		noteColumn = mania - 2;
+					// 	} else if (prevNoteData == miniMania - 1) {
+					// 		noteColumn = miniMania - 2;
 					// 		direction = -1;
 					// 	} else {
 					// 		noteColumn = prevNoteData + direction;
 					// 	}
 					// 	break;
 					case "Mirror": // Broken
-						var length = mania;
+						var length = miniMania;
 						var mirroredIndex:Int;
 						var middle = Math.floor(length / 2);
 						if (noteColumn < middle)
@@ -6122,7 +6128,7 @@ class PlayState extends MusicBeatState
 						}
 						noteColumn = mirroredIndex;
 					case "ReverseMirror":
-						var median:Float = (mania + 1) / 2;
+						var median:Float = (miniMania + 1) / 2;
 						if (noteColumn <= median)
 						{
 							// For values below the median, mirror downwards
@@ -6133,34 +6139,34 @@ class PlayState extends MusicBeatState
 							// For values above the median, mirror upwards
 							noteColumn = Std.int(median + (noteColumn - median) + 1);
 						}
-						noteColumn = Std.int(Math.max(0, Math.min(noteColumn, mania - 1)));
+						noteColumn = Std.int(Math.max(0, Math.min(noteColumn, miniMania - 1)));
 
 					case "Skip":
 						var skipStep = 2; // Define the step size for skipping notes.
-						var randomLane = Math.random() < 0.5 ? prevNoteData : (prevNoteData + skipStep) % mania;
+						var randomLane = Math.random() < 0.5 ? prevNoteData : (prevNoteData + skipStep) % miniMania;
 						var randomDuration = Math.random() * 30; // Randomize the duration before switching lanes (in notes).
 						noteColumn = randomLane;
 					case "Flip":
 						if (gottaHitNote)
 						{
-							noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
+							noteColumn = miniMania - Std.int(songNotes[1] % Note.ammo[miniMania]);
 						}
 					case "Pain":
-						noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
+						noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[miniMania]);
 					case "4K Only":
 						//trace("4K Only: " + noteColumn);
-						noteColumn = getNumberFromAnimsSmall(noteColumn, 3);
-						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
+						noteColumn = PlayfieldManager.getNumberFromAnimsSmall(noteColumn, 3);
+						//trace("Note: " + noteColumn + " miniMania: " + miniMania + " GottaHit: " + gottaHitNote);
 					case "ManiaConverter":
 						//trace("ManiaConverter: " + noteColumn);
-						noteColumn = getNumberFromAnims(noteColumn, mania);
-						//trace("Note: " + noteColumn + " Mania: " + mania + " GottaHit: " + gottaHitNote);
+						noteColumn = PlayfieldManager.getNumberFromAnims(noteColumn, miniMania);
+						//trace("Note: " + noteColumn + " miniMania: " + miniMania + " GottaHit: " + gottaHitNote);
 					case "Stairs":
-						noteColumn = stair % Note.ammo[mania];
+						noteColumn = stair % Note.ammo[miniMania];
 						stair++;
 					case "Wave":
 						// Sketchie... WHY?!
-						var ammoFromFortnite:Int = Note.ammo[mania];
+						var ammoFromFortnite:Int = Note.ammo[miniMania];
 						var luigiSex:Int = (ammoFromFortnite * 2 - 2);
 						var marioSex:Int = stair++ % luigiSex;
 						if (marioSex < ammoFromFortnite)
@@ -6172,7 +6178,7 @@ class PlayState extends MusicBeatState
 							noteColumn = luigiSex - marioSex;
 						}
 					case "Trills":
-						var ammoFromFortnite:Int = Note.ammo[mania];
+						var ammoFromFortnite:Int = Note.ammo[miniMania];
 						var luigiSex:Int = (ammoFromFortnite * 2 - 2);
 						var marioSex:Int;
 						do
@@ -6187,11 +6193,11 @@ class PlayState extends MusicBeatState
 								noteColumn = luigiSex - marioSex;
 							}
 						}
-						while (noteColumn == prevNoteData && mania > 1);
+						while (noteColumn == prevNoteData && miniMania > 1);
 						prevNoteData = noteColumn;
 					case "Ew":
 						// I hate that I used Sketchie's variables as a base for this... ;-;
-						var ammoFromFortnite:Int = Note.ammo[mania];
+						var ammoFromFortnite:Int = Note.ammo[miniMania];
 						var luigiSex:Int = (ammoFromFortnite * 2 - 2);
 						var marioSex:Int = stair++ % luigiSex;
 						var noteIndex:Int = Std.int(marioSex / 2);
@@ -6207,7 +6213,7 @@ class PlayState extends MusicBeatState
 							noteColumn = ammoFromFortnite - 2;
 						}
 					case "Death":
-						var ammoFromFortnite:Int = Note.ammo[mania];
+						var ammoFromFortnite:Int = Note.ammo[miniMania];
 						var luigiSex:Int = (ammoFromFortnite * 4 - 4);
 						var marioSex:Int = stair++ % luigiSex;
 						var step:Int = Std.int(luigiSex / 3);
@@ -6229,16 +6235,16 @@ class PlayState extends MusicBeatState
 							noteColumn = (marioSex - ammoFromFortnite * 3) % step + step * 3;
 						}
 					case "What":
-						switch (stair % (2 * Note.ammo[mania]))
+						switch (stair % (2 * Note.ammo[miniMania]))
 						{
 							case 0:
 							case 1:
 							case 2:
 							case 3:
 							case 4:
-								noteColumn = stair % Note.ammo[mania];
+								noteColumn = stair % Note.ammo[miniMania];
 							default:
-								noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
+								noteColumn = Note.ammo[miniMania] - 1 - (stair % Note.ammo[miniMania]);
 						}
 						stair++;
 					case "Amalgam":
@@ -6270,14 +6276,14 @@ class PlayState extends MusicBeatState
 							switch (currentModifier)
 							{
 								case 0: // "Random"
-									noteColumn = FlxG.random.int(0, mania);
+									noteColumn = FlxG.random.int(0, miniMania);
 								case 1: // "RandomBasic"
 									var randomDirection:Int;
 									do
 									{
-										randomDirection = FlxG.random.int(0, mania);
+										randomDirection = FlxG.random.int(0, miniMania);
 									}
-									while (randomDirection == prevNoteData && mania > 1);
+									while (randomDirection == prevNoteData && miniMania > 1);
 									prevNoteData = randomDirection;
 									noteColumn = randomDirection;
 								case 2: // "RandomComplex"
@@ -6285,16 +6291,16 @@ class PlayState extends MusicBeatState
 									if (initialNoteData == -1)
 									{
 										initialNoteData = noteColumn;
-										noteColumn = FlxG.random.int(0, mania);
+										noteColumn = FlxG.random.int(0, miniMania);
 									}
 									else
 									{
 										var newNoteData:Int;
 										do
 										{
-											newNoteData = FlxG.random.int(0, mania);
+											newNoteData = FlxG.random.int(0, miniMania);
 										}
-										while (newNoteData == prevNoteData && mania > 1);
+										while (newNoteData == prevNoteData && miniMania > 1);
 										if (thisNoteData == initialNoteData)
 										{
 											noteColumn = prevNoteData;
@@ -6309,16 +6315,16 @@ class PlayState extends MusicBeatState
 								case 3: // "Flip"
 									if (gottaHitNote)
 									{
-										noteColumn = mania - Std.int(songNotes[1] % Note.ammo[mania]);
+										noteColumn = miniMania - Std.int(songNotes[1] % Note.ammo[miniMania]);
 									}
 								case 4: // "Pain"
-									noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[mania]);
+									noteColumn = noteColumn - Std.int(songNotes[1] % Note.ammo[miniMania]);
 								case 5: // "Stairs"
-									noteColumn = stair % Note.ammo[mania];
+									noteColumn = stair % Note.ammo[miniMania];
 									stair++;
 								case 6: // "Wave"
 									// Sketchie... WHY?!
-									var ammoFromFortnite:Int = Note.ammo[mania];
+									var ammoFromFortnite:Int = Note.ammo[miniMania];
 									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
 									var marioSex:Int = stair++ % luigiSex;
 									if (marioSex < ammoFromFortnite)
@@ -6330,7 +6336,7 @@ class PlayState extends MusicBeatState
 										noteColumn = luigiSex - marioSex;
 									}
 								case 7: // "Huh"
-									var ammoFromFortnite:Int = Note.ammo[mania];
+									var ammoFromFortnite:Int = Note.ammo[miniMania];
 									var luigiSex:Int = (ammoFromFortnite * 4 - 4);
 									var marioSex:Int = stair++ % luigiSex;
 									var step:Int = Std.int(luigiSex / 3);
@@ -6356,7 +6362,7 @@ class PlayState extends MusicBeatState
 									}
 								case 8: // "Ew"
 									// I hate that I used Sketchie's variables as a base for this... ;-;
-									var ammoFromFortnite:Int = Note.ammo[mania];
+									var ammoFromFortnite:Int = Note.ammo[miniMania];
 									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
 									var marioSex:Int = stair++ % luigiSex;
 									var noteIndex:Int = Std.int(marioSex / 2);
@@ -6372,20 +6378,20 @@ class PlayState extends MusicBeatState
 										noteColumn = ammoFromFortnite - 2;
 									}
 								case 9: // "What"
-									switch (stair % (2 * Note.ammo[mania]))
+									switch (stair % (2 * Note.ammo[miniMania]))
 									{
 										case 0:
 										case 1:
 										case 2:
 										case 3:
 										case 4:
-											noteColumn = stair % Note.ammo[mania];
+											noteColumn = stair % Note.ammo[miniMania];
 										default:
-											noteColumn = Note.ammo[mania] - 1 - (stair % Note.ammo[mania]);
+											noteColumn = Note.ammo[miniMania] - 1 - (stair % Note.ammo[miniMania]);
 									}
 									stair++;
 								case 10: // Jack Wave
-									var ammoFromFortnite:Int = Note.ammo[mania];
+									var ammoFromFortnite:Int = Note.ammo[miniMania];
 									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
 									var marioSex:Int = Std.int((stair++ % (luigiSex * 4)) / 4);
 									if (marioSex < ammoFromFortnite)
@@ -6399,7 +6405,7 @@ class PlayState extends MusicBeatState
 								case 11: // SpeedRando
 									// Handled by SpeedRando Code below!
 								case 12: // Trills
-									var ammoFromFortnite:Int = Note.ammo[mania];
+									var ammoFromFortnite:Int = Note.ammo[miniMania];
 									var luigiSex:Int = (ammoFromFortnite * 2 - 2);
 									var marioSex:Int;
 									do
@@ -6414,7 +6420,7 @@ class PlayState extends MusicBeatState
 											noteColumn = luigiSex - marioSex;
 										}
 									}
-									while (noteColumn == prevNoteData && mania > 1);
+									while (noteColumn == prevNoteData && miniMania > 1);
 									prevNoteData = noteColumn;
 								default:
 									// Default case (optional)
@@ -6429,10 +6435,7 @@ class PlayState extends MusicBeatState
 				else
 					oldNote = null;
 
-				var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
-				(ClientPrefs.data.useExperimentalNotePool ?
-				NotePoolManager.createNote(spawnTime, noteColumn, oldNote, false, false, this) :
-				noteManager.getNote(spawnTime, noteColumn, oldNote, false));
+				var swagNote:Note = new Note(spawnTime, noteColumn, oldNote);
 
 				swagNote.noteIndex = Std.int(allNotes.length);
 				swagNote.formerPress = swagNote.mustPress = gottaHitNote;
@@ -6442,11 +6445,11 @@ class PlayState extends MusicBeatState
 					if (playfield.unoMechanic == null) {
 						playfield.unoMechanic = new UnoMechanic();
 					}
-					playfield.unoMechanic.processNote(swagNote, mania, spawnTime, gottaHitNote);
+					playfield.unoMechanic.processNote(swagNote, miniMania, spawnTime, gottaHitNote);
 				}
 
 				swagNote.row = Conductor.secsToRow(spawnTime);
-				var rowArray = noteRows[gottaHitNote?0:1];
+				var rowArray = playfield.noteRows[gottaHitNote?0:1];
 				if(rowArray[swagNote.row]==null)
 					rowArray[swagNote.row]=[];
 				rowArray[swagNote.row].push(swagNote);
@@ -6490,23 +6493,23 @@ class PlayState extends MusicBeatState
 
 				callOnScripts("onGeneratedNote", [swagNote, section]);
 
-				var playfield:PlayField = swagNote.field;
+				var curPlayfield:PlayField = swagNote.field;
 
-				if (playfield == null && playfields.length > 0) {
+				if (curPlayfield == null && playfields.length > 0) {
 					if (swagNote.fieldIndex == -1)
 						swagNote.fieldIndex = swagNote.mustPress ? 0 : 1;
 
 					if (playfields.members[swagNote.fieldIndex] != null) {
-						playfield = playfields.members[swagNote.fieldIndex];
-						swagNote.field = playfield;
+						curPlayfield = playfields.members[swagNote.fieldIndex];
+						swagNote.field = curPlayfield;
 					}
 				}
 				//notes.insert(swagNote.ID, swagNote); // just for the sake of convenience
 
-				if (playfield != null)
+				if (curPlayfield != null)
 				{
-					if (!preload && playfield != null) {
-						playfield.queue(swagNote); // queues the note to be spawned
+					if (!preload && curPlayfield != null) {
+						curPlayfield.queue(swagNote); // queues the note to be spawned
 					}
 					allNotes.push(swagNote); // just for the sake of convenience
 				}
@@ -6518,13 +6521,13 @@ class PlayState extends MusicBeatState
 
 				// Generate special UNO notes (skip, wrong, +2, +4)
 				if (chartModifier == "UNO" && playfield.unoMechanic != null) {
-					var specialNotes = playfield.unoMechanic.generateSpecialNotes(swagNote, mania, allNotes);
+					var specialNotes = playfield.unoMechanic.generateSpecialNotes(swagNote, miniMania, allNotes);
 					for (specialNote in specialNotes) {
-						if (playfield != null) {
-							specialNote.field = playfield;
+						if (curPlayfield != null) {
+							specialNote.field = curPlayfield;
 							specialNote.fieldIndex = swagNote.fieldIndex;
 							if (!preload) {
-								playfield.queue(specialNote);
+								curPlayfield.queue(specialNote);
 							}
 							allNotes.push(specialNote);
 						}
@@ -6582,8 +6585,8 @@ class PlayState extends MusicBeatState
 						sustainNote.field = parentField;
 						swagNote.tail.push(sustainNote);
 						swagNote.unhitTail.push(sustainNote);
-						if (!preload && playfield != null) {
-							playfield.queue(sustainNote);
+						if (!preload && curPlayfield != null) {
+							curPlayfield.queue(sustainNote);
 						}
 						allNotes.push(sustainNote);
 						var setPos:Bool = true;
@@ -6610,8 +6613,8 @@ class PlayState extends MusicBeatState
 					}
 				}
 
-				if(!noteTypes.contains(swagNote.noteType))
-					noteTypes.push(swagNote.noteType);
+				if(!playfield.noteTypes.contains(swagNote.noteType))
+					playfield.noteTypes.push(swagNote.noteType);
 
 				if (mechanicsMod != null) {
 					var sectionLength = (section.sectionBeats*4);
@@ -6706,7 +6709,7 @@ class PlayState extends MusicBeatState
 									chance *= hitSectionMulti;
 								else if (generatedTypes[jj][0] == 'restore_note' && (!j && !bothMode))
 									break;
-								var placeNote:Note = placeNote(chance, generatedTypes[jj][1], [
+								var placeNote:Note = playfield.placeNote(chance, generatedTypes[jj][1], [
 									sectionStartTime + (Conductor.stepCrochet * i),
 									FlxG.random.int(0, 3),
 									j,
@@ -6766,7 +6769,7 @@ class PlayState extends MusicBeatState
 
 							for (i in 0...16)
 							{
-								var throatNote:Note = placeNote(50, "Throat Note", [
+								var throatNote:Note = playfield.placeNote(50, "Throat Note", [
 									sectionStartTime + (Conductor.stepCrochet * i),
 									FlxG.random.int(0, 3),
 									j,
@@ -6823,16 +6826,16 @@ class PlayState extends MusicBeatState
 		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCaught');
 		for (event in songData.events) //Event Notes
 			for (i in 0...event[1].length)
-				makeEventPreload(event, i, preload);
+				playfield.makeEventPreload(event, i, preload);
 
-		allNotes.sort(sortByTime);
+		allNotes.sort(PlayfieldManager.sortByTime);
 
-		if (curChart == null || curChart.isNotEmpty())
-			curChart = new Array<Note>();
+		if (PlayfieldManager.curChart == null || PlayfieldManager.curChart.isNotEmpty())
+			PlayfieldManager.curChart = new Array<Note>();
 
 		for (fuck in allNotes) {
 			unspawnNotes.push(fuck);
-			curChart.push(fuck);
+			PlayfieldManager.curChart.push(fuck);
 		}
 
 		// curChart = cast (curChart:objects.NotePool.NoteArray);
@@ -10568,31 +10571,45 @@ class PlayState extends MusicBeatState
 						var generalVocals = Paths.voices(songData.song);
 						if (generalVocals != null && generalVocals.length > 0)
 						{
+							FunkinMemory.cacheSound(Paths.voicesPath(songData.song));
 							vocals.loadEmbedded(generalVocals);
 
 							// Check for the other vocals as well
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
 							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+							if (oppVocals != null && oppVocals.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile));
+								opponentVocals.loadEmbedded(oppVocals);
+							}
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
 							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+							if (gfVocal != null && gfVocal.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile));
+								gfVocals.loadEmbedded(gfVocal);
+							}
 						}
 						else
 						{
 							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
 							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song, 'Player');
 							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song);
+							FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile));
 							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
 
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
 							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+							if (oppVocals != null && oppVocals.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile));
+								opponentVocals.loadEmbedded(oppVocals);
+							}
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
 							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+							if (gfVocal != null && gfVocal.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile));
+								gfVocals.loadEmbedded(gfVocal);
+							}
 						}
 					}
 					else
@@ -10600,31 +10617,45 @@ class PlayState extends MusicBeatState
 						var generalVocals = Paths.voices(songData.song);
 						if (generalVocals != null && generalVocals.length > 0)
 						{
+							FunkinMemory.cacheSound(Paths.voicesPath(songData.song));
 							vocals.loadEmbedded(generalVocals);
 
 							// Check for the other vocals as well
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
 							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+							if (oppVocals != null && oppVocals.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile));
+								opponentVocals.loadEmbedded(oppVocals);
+							}
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
 							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+							if (gfVocal != null && gfVocal.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile));
+								gfVocals.loadEmbedded(gfVocal);
+							}
 						}
 						else
 						{
 							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
 							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song, 'Player');
 							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song);
+							FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile));
 							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
 
 							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
 							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
+							if (oppVocals != null && oppVocals.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile));
+								opponentVocals.loadEmbedded(oppVocals);
+							}
 
 							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
 							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
+							if (gfVocal != null && gfVocal.length > 0) {
+								FunkinMemory.cacheSound(Paths.voicesPath(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile));
+								gfVocals.loadEmbedded(gfVocal);
+							}
 						}
 					}
 				}
@@ -10656,6 +10687,7 @@ class PlayState extends MusicBeatState
 				// Fallback to standard inst loading
 				try
 				{
+					FunkinMemory.cacheSound(Paths.instPath(altInstrumentals ?? songData.song));
 					inst.loadEmbedded(Paths.inst(altInstrumentals ?? songData.song));
 				}
 				catch (e:Dynamic) {}

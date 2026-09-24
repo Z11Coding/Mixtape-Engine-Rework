@@ -1001,13 +1001,14 @@ class LoadingState extends MusicBeatState
 		var file:String = Paths.getPath(Language.getFileTranslation(key) + '.${Paths.SOUND_EXT}', SOUND, path, modsAllowed);
 
 		//trace('precaching sound: $file');
-		if(!Paths.currentTrackedSounds.exists(file))
+		@:privateAccess
+		if(!FunkinMemory.currentCachedSounds.exists(file))
 		{
 			if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, SOUND))
 			{
 				var sound:Sound = #if sys Sound.fromFile(file) #else OpenFlAssets.getSound(file, false) #end;
 				mutex.acquire();
-				Paths.currentTrackedSounds.set(file, sound);
+				FunkinMemory.cacheSound(file);
 				mutex.release();
 			}
 			else if (beepOnNull)

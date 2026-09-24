@@ -1750,7 +1750,7 @@ class PlayfieldManager {
     trace('Finished Generating Notes for ${songData.song}!');
   }
 
-  private function placeNote(chance:Float, noteType:String, attributes:Array<Dynamic>):Note
+  public function placeNote(chance:Float, noteType:String, attributes:Array<Dynamic>):Note
 	{
 		if (FlxG.random.bool(chance))
 		{

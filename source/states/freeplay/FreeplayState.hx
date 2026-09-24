@@ -146,6 +146,7 @@ class FreeplayState extends MusicBeatState
 
 		Highscore.reloadModifiers();
 		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;

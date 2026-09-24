@@ -185,7 +185,8 @@ class Cache
 	{
 		var path:String = Paths.getPath('$key.$SOUND_EXT');
 
-		if (Paths.currentTrackedSounds.exists(path))
+		@:privateAccess
+		if (FunkinMemory.currentCachedSounds.exists(path))
 			return null;
 
 		var newSnd = Paths.getSound(path);
