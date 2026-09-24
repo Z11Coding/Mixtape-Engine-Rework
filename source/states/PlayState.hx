@@ -1588,10 +1588,10 @@ class PlayState extends MusicBeatState
 
 		//trace("Generating Chart");
 		var prevTime = Sys.time();
-		generateSong();
+		//generateSong();
 		//playfield.loadChart(Paths.formatToSongPath(_cachedSongName)+Difficulty.getFilePath(), Mods.currentModDirectory);
-		//loadSongAudio();
-		postGen();
+		loadSongAudio();
+		//postGen();
 		generatedMusic = true;
 		trace('Chart Generation took ${Sys.time() - prevTime} seconds');
 
@@ -10660,7 +10660,7 @@ class PlayState extends MusicBeatState
 					}
 				}
 			}
-			catch (e:Dynamic) {trace("Vocals Broke.");}
+			catch (e:Dynamic) {trace("Vocals Broke: "+e);}
 		}
 
 		#if FLX_PITCH

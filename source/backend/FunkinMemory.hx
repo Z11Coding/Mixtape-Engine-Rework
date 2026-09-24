@@ -321,6 +321,7 @@ class FunkinMemory
     }
     else
     {
+      log('Cached sound $key');
       currentCachedSounds.set(key, sound);
     }
   }
@@ -408,7 +409,7 @@ class FunkinMemory
     @:privateAccess
     for (key in FlxG.bitmap._cache.keys())
     {
-      if (!key.contains('freeplay')) continue;
+      if (!key.contains('icons')) continue;
       if (permanentCachedTextures.exists(key) || key.contains('fonts')) continue;
 
       keysToRemove.push(key);

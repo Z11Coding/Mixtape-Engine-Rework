@@ -14,6 +14,7 @@ class MusicPlayer extends FlxGroup
 {
 	public var instance:Dynamic;
 	public var controls:Controls;
+	final playfield:PlayfieldManager = MegaManager.playfield;
 
 	public var playing(get, never):Bool;
 
@@ -78,6 +79,8 @@ class MusicPlayer extends FlxGroup
 		playbackTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE);
 		add(playbackTxt);
 
+		playfield.setModMan(cast this.instance);
+
 		switchPlayMusic();
 	}
 
@@ -89,6 +92,8 @@ class MusicPlayer extends FlxGroup
 		{
 			return;
 		}
+
+		playfield.update(elapsed);
 
 		var songName:String = FreeplayManager.instance?.songList[instance.curSelected+1]?.songName;
 		if (playing && !wasPlaying)
@@ -279,6 +284,7 @@ class MusicPlayer extends FlxGroup
 			progressBar.numDivisions = 1600;
 
 			updateTimeTxt();
+			setupPlayfield();
 		}
 		else
 		{
@@ -288,8 +294,64 @@ class MusicPlayer extends FlxGroup
 
 			instance.bottomText.text = instance.bottomString;
 			instance.positionHighscore();
+			playfield.removeInput();
+			playfield.resetFields();
 		}
 		progressBar.updateBar();
+	}
+
+	function setupPlayfield() {
+		playfield.fixMania();
+		var modMan = playfield.modManager;
+
+		modMan.playerAmount = 2;
+		for (i in 0...modMan.playerAmount)
+			playfield.newPlayfield();
+
+		playfield.playerField = playfield.playfields.members[0];
+		if (playfield.playerField != null) {
+			playfield.playerField.isPlayer = true;
+			playfield.playerField.autoPlayed = true;
+			playfield.playerField.noteHitCallback.add(noteHit);
+		}
+
+		playfield.dadField = playfield.playfields.members[1];
+		if (playfield.dadField != null) {
+			playfield.dadField.noteField.isEditor = false;
+			playfield.dadField.isPlayer = false;
+			playfield.dadField.autoPlayed = true;
+			playfield.dadField.noteHitCallback.add(noteHit);
+		}
+
+		PlayField.initExtras();
+
+		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
+			trace("HOW DID YOU MISS?????");
+		}, playfield.playerField);
+
+		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
+			trace("HOW DID YOU MISS?????");
+		}, playfield.dadField);
+
+		add(playfield.playfields);
+		add(playfield.notefields);
+		add(PlayField.extraStuff);
+
+		playfield.loadChart(Paths.formatToSongPath(PlayfieldManager.SONG?.song?.toLowerCase())+Difficulty.getFilePath(), Mods.currentModDirectory);
+
+		for (playfield in playfield.playfields.members)
+		{
+			if (playfield.isPlayer)
+				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || (archipelago.APItem.hasActiveItemNamed('Tutorial Trap') && _cachedSongName != 'tutorial');
+
+			playfield.noteField.songSpeed = songSpeed;
+		}
+
+		playfield.addInput();
+
+		playfield.skipArrowStartTween = true;
+
+		playfield.generateStrums();
 	}
 
 	function updatePlaybackTxt()
@@ -379,5 +441,30 @@ class MusicPlayer extends FlxGroup
 		if (value > 3) value = 3;
 		else if (value <= 0.25) value = 0.25;
 		return playbackRate = value;
+	}
+
+	function noteHit(note:Note, field:PlayField) {
+		//if I think of somehthing worth putting here i'll do it
+		//Otherwise, this is just here to keep the game from crashing
+	}
+
+	public function KillNotes()
+	{
+		playfield.notes.clear();
+		playfield.allNotes = [];
+		playfield.unspawnNotes = [];
+		playfield.noteManager.clearAllNotes();
+		for (field in playfield.playfields)
+		{
+			field.clearDeadNotes();
+			field.spawnedNotes = [];
+			field.noteQueue = [[], [], [], []];
+		}
+	}
+
+	override public function destroy() {
+		playfield.removeInput();
+		playfield.resetFields();
+		super.destroy();
 	}
 }

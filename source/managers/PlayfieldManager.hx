@@ -778,7 +778,7 @@ class PlayfieldManager {
       fromChartState = false;
     } else {
       trace("Generate chart normally");
-      //generateChart(SONG, preload);
+      generateChart(SONG, preload);
     }
     trace("Chart Generated");
   }
