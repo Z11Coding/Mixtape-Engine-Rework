@@ -218,7 +218,9 @@ class APInfo {
 		"<comma>" => ",",
 		"<hash>" => "#",
 		// "<question>" => "?",
-		"<backtick>" => "`"
+		"<backtick>" => "`",
+		"<listdash>" => "-",
+		"<colon>" => ":"
 	];
 
 	// Escape map for characters that only affect strings at the beginning.
