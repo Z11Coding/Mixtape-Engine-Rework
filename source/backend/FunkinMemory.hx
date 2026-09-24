@@ -221,7 +221,8 @@ class FunkinMemory
       var graphic:Null<FlxFramesCollection> = currentCachedFrames.get(frame);
       if (graphic != null)
       {
-        graphic.destroy();
+        // TODO: figure out why they cant be destroyed
+        //graphic.destroy();
         currentCachedFrames.remove(frame);
         Assets.cache.clear(frame);
       }
