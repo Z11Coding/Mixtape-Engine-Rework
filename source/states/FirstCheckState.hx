@@ -160,7 +160,6 @@ class FirstCheckState extends MusicBeatState
 		if (!relaunch) {
 			ClientPrefs.loadPrefs();
 			COD.initCOD();
-			MemoryUtil.init();
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
 

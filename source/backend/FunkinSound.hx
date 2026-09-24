@@ -70,7 +70,7 @@ class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
   override function set_volume(value:Float):Float
   {
     // Uncap the volume.
-    _volume = clamp(value, 0.0, MAX_VOLUME);
+    _volume = CollectionUtils.clamp(Std.int(value), 0, Std.int(MAX_VOLUME));
     updateTransform();
     return _volume;
   }
@@ -294,6 +294,7 @@ class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
 				#if MODS_ALLOWED
 				var modsInstPath = Paths.modFolders('songs/${Paths.formatToSongPath(key)}/Inst.${Paths.SOUND_EXT}');
 				//trace('Modded Song Path: $modsInstPath');
+        @:nullSafety(Off)
 				var real_modSngPath = NativeFileSystem.getPathLike(modsInstPath);
 				//trace('Real Modded Song Path: $real_modSngPath');
 				#if mac
@@ -305,6 +306,7 @@ class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
 
 				//trace('Using Song Path: $instPath');
 
+        @:nullSafety(Off)
 				var future = FlxPartialSound.partialLoadFromFile(instPath,params.partialParams.start,params.partialParams.end);
 				if(future == null){
 					trace('Internal failure loading instrumentals for ${key} "${instPath}"');
@@ -316,10 +318,12 @@ class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
 					FlxG.sound.playMusic(sound, 0, params.loop);
 					if (params.onComplete != null)
 						FlxG.sound.music.onComplete = params.onComplete;
+          @:nullSafety(Off)
 					if (params.restartTrack) {
 						FlxG.sound.music.time = 0;
 						FlxG.sound.music.play();
 					}
+          @:nullSafety(Off)
 					params.onLoad();
 				});
 				return true;
@@ -501,8 +505,8 @@ class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
     if (_sound == null) return;
 
     // Create a channel manually if the sound is considered important.
-    var pan:Float = clamp(SoundMixer.__soundTransform.pan + _transform.pan, -1, 1);
-    var volume:Float = clamp(SoundMixer.__soundTransform.volume * _transform.volume, 0, MAX_VOLUME);
+    var pan:Float = CollectionUtils.clamp(Std.int(SoundMixer.__soundTransform.pan + _transform.pan), -1, 1);
+    var volume:Float = CollectionUtils.clamp(Std.int(SoundMixer.__soundTransform.volume * _transform.volume), 0, Std.int(MAX_VOLUME));
 
     var audioSource:AudioSource = new AudioSource(_sound.__buffer);
     audioSource.offset = Std.int(startTime);

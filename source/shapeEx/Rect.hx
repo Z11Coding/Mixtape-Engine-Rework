@@ -10,9 +10,10 @@ class Rect extends FlxSprite
 
 		this.mainRound = roundWidth;
 
-		@:privateAccess
-		if (FunkinMemory.currentCachedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight)) == null) addCache(width, height, roundWidth, roundHeight, lineStyle, lineColor);
-		frames = FunkinMemory.currentCachedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight));
+		@:privateAccess {
+			if (FunkinMemory.currentCachedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight)) == null) addCache(width, height, roundWidth, roundHeight, lineStyle, lineColor);
+			frames = FunkinMemory.currentCachedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight));
+		}
 		antialiasing = ClientPrefs.data.antialiasing;
 		color = Color;
 		alpha = Alpha;

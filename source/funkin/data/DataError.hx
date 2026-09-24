@@ -12,27 +12,27 @@ class DataError
     switch (error)
     {
       case IncorrectType(vari, expected, pos):
-        trace(' ERROR '.error() + 'Expected field "$vari" to be of type "$expected".');
+        trace(' ERROR: Expected field "$vari" to be of type "$expected".');
         printPos(pos);
       case IncorrectEnumValue(value, expected, pos):
-        trace(' ERROR '.error() + 'Invalid enum value (expected "$expected", got "$value")');
+        trace(' ERROR: Invalid enum value (expected "$expected", got "$value")');
         printPos(pos);
       case InvalidEnumConstructor(value, expected, pos):
-        trace(' ERROR '.error() + 'Invalid enum constructor (epxected "$expected", got "$value")');
+        trace(' ERROR: Invalid enum constructor (epxected "$expected", got "$value")');
         printPos(pos);
       case UninitializedVariable(vari, pos):
-        trace(' ERROR '.error() + 'Uninitialized variable "$vari"');
+        trace(' ERROR: Uninitialized variable "$vari"');
         printPos(pos);
       case UnknownVariable(vari, pos):
-        trace(' ERROR '.error() + 'Unknown variable "$vari"');
+        trace(' ERROR: Unknown variable "$vari"');
         printPos(pos);
       case ParserError(message, pos):
-        trace(' ERROR '.error() + 'Parsing error: ${message}');
+        trace(' ERROR: Parsing error: ${message}');
         printPos(pos);
       case CustomFunctionException(e, pos):
         if (Std.isOfType(e, String))
         {
-          trace(' ERROR '.error() + '${e}');
+          trace(' ERROR: ${e}');
         }
         else
         {
@@ -49,11 +49,11 @@ class DataError
     switch (Type.typeof(e))
     {
       case TClass(c):
-        trace(' ERROR '.error() + '(${Type.getClassName(c)}) ${e.toString()}');
+        trace(' ERROR: (${Type.getClassName(c)}) ${e.toString()}');
       case TEnum(c):
-        trace(' ERROR '.error() + '(${Type.getEnumName(c)}) ${e.toString()}');
+        trace(' ERROR: (${Type.getEnumName(c)}) ${e.toString()}');
       default:
-        trace(' ERROR '.error() + '(${Type.typeof(e)}) ${Std.string(e)}');
+        trace(' ERROR: (${Type.typeof(e)}) ${Std.string(e)}');
     }
   }
 

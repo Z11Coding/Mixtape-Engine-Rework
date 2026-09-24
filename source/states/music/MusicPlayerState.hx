@@ -44,7 +44,8 @@ class MusicPlayerState extends MusicBeatState
 
 	override function create()
 	{
-		MemoryUtil.clearMajor();
+		//MemoryUtil.clearMajor();
+		FunkinMemory.purgeCache(true);
 
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("In Music Player", null);

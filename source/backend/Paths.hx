@@ -900,15 +900,15 @@ class Paths
 
 		var type = switch (pathType) {
 			case IMAGES: IMAGE;
-			case SOUNDS: SOUND;
-			case MUSIC: SOUND;
+			case SOUNDS: AssetType.SOUND;
+			case MUSIC: AssetType.SOUND;
 			case VIDEOS: BINARY;
 			case SHADERS: AssetType.TEXT;
 			case DATA: AssetType.TEXT;
 			case TEXT: AssetType.TEXT;
 			case LUA: AssetType.TEXT;
 			case HSCRIPT: AssetType.TEXT;
-			case SONGS: SOUND;
+			case SONGS: AssetType.SOUND;
 			case JSON: AssetType.TEXT;
 			case REGISTRY: AssetType.TEXT;
 			default: IMAGE;

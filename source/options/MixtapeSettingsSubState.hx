@@ -543,7 +543,7 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 			"If checked, Your memory usage will be normalized, but you'll have lag spikes.\nBut, unchecked, little to no lag spikes, but higher average memory usage.",
 			'garbageCollection',
 			BOOL);
-		option.onChange = function() {MemoryUtil.init();};
+		//option.onChange = function() {MemoryUtil.init();};
 		addOption(option);
 
 		#if windows

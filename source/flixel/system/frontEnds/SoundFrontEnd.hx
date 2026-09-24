@@ -9,9 +9,12 @@ import flixel.sound.FlxSound;
 import flixel.sound.FlxSoundGroup;
 import flixel.system.FlxAssets;
 import flixel.system.ui.FlxSoundTray;
-import flixel.text.FlxInputText;
 import flixel.util.FlxSignal;
+import openfl.Assets;
 import openfl.media.Sound;
+#if (openfl >= "8.0.0")
+import openfl.utils.AssetType;
+#end
 
 /**
  * Accessed via `FlxG.sound`.
@@ -222,7 +225,6 @@ class SoundFrontEnd
         afs.addEffect(badqualitymic);
 
         afs.applyFilter(sound);
-        group.add(afs);
       }
     }
 
@@ -230,17 +232,17 @@ class SoundFrontEnd
 	}
 
 	/**
-	 * Method for sound caching (especially useful on mobile targets). The game may freeze
-	 * for some time the first time you try to play a sound if you don't use this method.
-	 *
-	 * @param   embeddedSound  Name of sound assets specified in your .xml project file
-	 * @return  Cached Sound object
-	 */
+ * Method for sound caching (especially useful on mobile targets). The game may freeze
+ * for some time the first time you try to play a sound if you don't use this method.
+ *
+ * @param   embeddedSound  Name of sound assets specified in your .xml project file
+ * @return  Cached Sound object
+ */
 	public inline function cache(embeddedSound:String):Sound
 	{
 		// load the sound into the OpenFL assets cache
-		if (FlxG.assets.exists(embeddedSound, SOUND))
-			return FlxG.assets.getSoundUnsafe(embeddedSound, true);
+		if (Assets.exists(embeddedSound, AssetType.SOUND) || Assets.exists(embeddedSound, AssetType.MUSIC))
+			return Assets.getSound(embeddedSound, true);
 		FlxG.log.error('Could not find a Sound asset with an ID of \'$embeddedSound\'.');
 		return null;
 	}
@@ -251,7 +253,7 @@ class SoundFrontEnd
 	 */
 	public function cacheAll():Void
 	{
-		for (id in FlxG.assets.list(SOUND))
+		for (id in Assets.list(AssetType.SOUND))
 		{
 			cache(id);
 		}
@@ -416,10 +418,7 @@ class SoundFrontEnd
 		#if FLX_SOUND_TRAY
 		if (FlxG.game.soundTray != null && soundTrayEnabled)
 		{
-			if (up)
-				FlxG.game.soundTray.showIncrement();
-			else
-				FlxG.game.soundTray.showDecrement();
+			FlxG.game.soundTray.show(up);
 		}
 		#end
 	}
@@ -443,17 +442,12 @@ class SoundFrontEnd
 		if (list != null && list.active)
 			list.update(elapsed);
 
-		#if FLX_KEYBOARD
-		if (!FlxInputText.globalManager.isTyping)
-		{
-			if (FlxG.keys.anyJustReleased(muteKeys))
-				toggleMuted();
-			else if (FlxG.keys.anyJustReleased(volumeUpKeys))
-				changeVolume(0.1);
-			else if (FlxG.keys.anyJustReleased(volumeDownKeys))
-				changeVolume(-0.1);
-		}
-		#end
+		if (FlxG.keys.anyJustReleased(muteKeys))
+			toggleMuted();
+		else if (FlxG.keys.anyJustReleased(volumeUpKeys))
+			changeVolume(0.1);
+		else if (FlxG.keys.anyJustReleased(volumeDownKeys))
+			changeVolume(-0.1);
 	}
 
 	@:allow(flixel.FlxGame)

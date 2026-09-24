@@ -87,6 +87,7 @@ class Cache
 					case Finished(thread, loadedGraphics, loadedSounds):
 						if (loadedGraphics != null)
 							for (key => value in loadedGraphics){
+								@:privateAccess
 								FunkinMemory.permanentCacheTexture(key);
 
 								#if traceLoading
@@ -196,10 +197,13 @@ class Cache
 			default:
 				Paths.image(toLoad.path, toLoad.library);
 			case SOUND:
+				@:privateAccess
 				FunkinMemory.currentCachedSounds.get(toLoad.path);
 			case MUSIC:
+				@:privateAccess
 				FunkinMemory.currentCachedSounds.get(toLoad.path);
 			case SONG:
+				@:privateAccess
 				FunkinMemory.currentCachedSounds.get(toLoad.path);
 		}
 

@@ -155,7 +155,8 @@ class CategoryState extends MusicBeatState
 
 	override function create()
 	{
-		MemoryUtil.clearMajor();
+		//MemoryUtil.clearMajor();
+		FunkinMemory.purgeCache(true);
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence

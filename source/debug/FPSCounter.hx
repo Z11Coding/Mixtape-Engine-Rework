@@ -225,7 +225,7 @@ class FPSCounter extends TextField
 
 		if (ClientPrefs.data.performanceCounter.contains('mem'))
 		{
-			curMemory = _updateMemTimer >= 100.0 ? curMemory : MemoryUtil.currentMemUsage();
+			curMemory = _updateMemTimer >= 100.0 ? curMemory : MemoryUtil.getTaskMemory();
 			if (curMemory >= maxMemory)
 				maxMemory = curMemory;
 			text += 'MEM: ${CoolUtil.formatMemory(Std.int(curMemory))}';
