@@ -76,7 +76,7 @@ class PlayfieldManager {
 	public var localFreezeNotes:Bool = false;
 
   // UNO mechanic instance for chart modifier
-	var unoMechanic:UnoMechanic;
+	public var unoMechanic:UnoMechanic;
 
   // Gameplay Modifiers
   public var chartModifier:String = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
@@ -778,7 +778,7 @@ class PlayfieldManager {
       fromChartState = false;
     } else {
       trace("Generate chart normally");
-      generateChart(SONG, preload);
+      //generateChart(SONG, preload);
     }
     trace("Chart Generated");
   }
