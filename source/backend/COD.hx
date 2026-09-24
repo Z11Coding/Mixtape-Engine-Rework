@@ -45,6 +45,8 @@ class COD
 	public static function setCOD(?o:Dynamic, ?reason:String) // Backwards Compat
 	{
 		COD = reason == null ? ukTxt : reason;
+		if (o is String && reason == null)
+			COD = o;
 	}
 
 	public static function getCOD():String
