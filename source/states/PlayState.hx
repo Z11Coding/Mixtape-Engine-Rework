@@ -3251,6 +3251,8 @@ class PlayState extends MusicBeatState
 			else if (chartModifier == "ManiaConverter") {
 				trace("Setting the mania");
 				changeMania(convertMania, isStoryMode || skipArrowStartTween);
+			} else {
+				changeMania(mania, false);
 			}
 
 			// Initialize any Funkin Modchart modcharts after all scripts and strums are loaded
@@ -12985,8 +12987,9 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 							} else {
 								// Sync X position
 								var baseX = modManager.getBaseX(i, field.playerId, Note.ammo[mania]);
-								var offsetX = strumNote.x - baseX;
-								modManager.setValue('transform${i}X-a', offsetX, field.playerId);
+								var fieldX = field.getBaseX(i);
+								var offsetX = strumNote.x - fieldX;
+								modManager.setValue('transform${i}X', offsetX, field.playerId);
 
 								// Sync Y position
 								var baseY = field.getBaseY(i);
