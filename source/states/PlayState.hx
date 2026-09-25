@@ -2075,6 +2075,7 @@ class PlayState extends MusicBeatState
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
 		// Paths.nukeMemory(true); // LIGHTLY nuke everything
+		FunkinMemory.purgeCache(true);
 	}
 
 	// Some small stuff from PlusEngine
@@ -3233,7 +3234,7 @@ class PlayState extends MusicBeatState
 			for (i in 0...Note.ammo[mania]) {
 				playerField.baseXPositions[i] = playerField.strumNotes[i].x;
 				dadField.baseXPositions[i] = dadField.strumNotes[i].x;
-				setOnScripts('defaultPlayerStrumX' + i, modManager.getBaseX(i, 0, Note.ammo[mania]);
+				setOnScripts('defaultPlayerStrumX' + i, modManager.getBaseX(i, 0, Note.ammo[mania]));
 				setOnScripts('defaultPlayerStrumY' + i, -40);
 				setOnScripts('defaultOpponentStrumX' + i, modManager.getBaseX(i, 1, Note.ammo[mania]));
 				setOnScripts('defaultOpponentStrumY' + i, -40);
@@ -12204,7 +12205,8 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		variables = null;
 		keysArray = null;
 		endingSong = true;
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache(true);
 
 		super.destroy();
 

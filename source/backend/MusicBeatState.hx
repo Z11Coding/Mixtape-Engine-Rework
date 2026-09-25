@@ -285,7 +285,7 @@ class MusicBeatState extends yutautil.SafeManagedState
 		substateQueue = [];
 		suspendedSubstateData = [];
 
-		Paths.nukeMemory(!allowNuke);
+		//Paths.nukeMemory(!allowNuke);
 		super.destroy();
 	}
 

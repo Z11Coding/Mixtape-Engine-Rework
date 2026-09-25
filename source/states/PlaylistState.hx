@@ -72,7 +72,8 @@ class PlaylistState extends MusicBeatState {
 		#end
 		Cursor.cursorMode = Default;
     Highscore.reloadModifiers();
-    Paths.clearStoredWithoutStickers();
+    //Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
     persistentUpdate = true;
 		PlayState.isStoryMode = false;

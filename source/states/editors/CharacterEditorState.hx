@@ -67,7 +67,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 	{
 		Cursor.show();
 		Cursor.cursorMode = Default;
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		FlxG.sound.music.stop();
 		MusicManager.playEditorMusic(ClientPrefs.data.editorMusVol);
@@ -168,7 +169,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		outputTxt.alpha = 0;
 		add(outputTxt);
 
-		if(ClientPrefs.data.cacheOnGPU) Paths.clearUnusedMemory();
+		if(ClientPrefs.data.cacheOnGPU)
+			FunkinMemory.purgeCache();
 
 		super.create();
 	}

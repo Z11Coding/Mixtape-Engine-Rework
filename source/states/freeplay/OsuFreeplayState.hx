@@ -83,7 +83,8 @@ class OsuFreeplayState extends MusicBeatState
 		}
 
 		Highscore.reloadModifiers();
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		Cursor.cursorMode = Default;
 

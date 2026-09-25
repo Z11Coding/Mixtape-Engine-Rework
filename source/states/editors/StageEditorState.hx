@@ -59,7 +59,8 @@ class StageEditorState extends MusicBeatState implements PsychUIEventHandler.Psy
 	var selectionSprites:FlxSpriteGroup = new FlxSpriteGroup();
 	override function create()
 	{
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		camGame = initPsychCamera();
 		camHUD = new FlxCamera();

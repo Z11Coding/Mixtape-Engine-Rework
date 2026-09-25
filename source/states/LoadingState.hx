@@ -1037,13 +1037,13 @@ class LoadingState extends MusicBeatState
 		var file:String = Paths.getPath(Language.getFileTranslation(key) + '.${Paths.SOUND_EXT}', SOUND, path, modsAllowed);
 
 		//trace('precaching sound: $file');
-		if(!Paths.currentTrackedSounds.exists(file))
+		if(!FunkinMemory.isSoundCached(file))
 		{
 			if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, SOUND))
 			{
 				var sound:Sound = #if sys Sound.fromFile(file) #else OpenFlAssets.getSound(file, false) #end;
 				mutex.acquire();
-				Paths.currentTrackedSounds.set(file, sound);
+				FunkinMemory.cacheSound(file);
 				mutex.release();
 			}
 			else if (beepOnNull)
@@ -1054,10 +1054,10 @@ class LoadingState extends MusicBeatState
 			}
 		}
 		mutex.acquire();
-		Paths.localTrackedAssets.push(file);
+		FunkinMemory.cacheSound(file);
 		mutex.release();
 
-		return Paths.currentTrackedSounds.get(file);
+		return FunkinMemory.getCachedSound(file);
 	}
 
 	// thread safe sound loader
@@ -1068,7 +1068,7 @@ class LoadingState extends MusicBeatState
 			#if TRANSLATIONS_ALLOWED requestKey = Language.getFileTranslation(requestKey); #end
 			if(requestKey.lastIndexOf('.') < 0) requestKey += '.png';
 
-			if (!Paths.currentTrackedAssets.exists(requestKey))
+			if (!FunkinMemory.isTextureCached(requestKey))
 			{
 				var file:String = Paths.getPath(requestKey, IMAGE);
 				if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, IMAGE))
@@ -1089,7 +1089,7 @@ class LoadingState extends MusicBeatState
 				else trace('no such image $key exists');
 			}
 			loaded++;
-			return Paths.currentTrackedAssets.get(requestKey).bitmap;
+			return FunkinMemory.getCachedGraphic(requestKey).bitmap;
 		}
 		catch(e:haxe.Exception)
 		{

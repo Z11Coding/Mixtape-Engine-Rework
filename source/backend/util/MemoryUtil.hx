@@ -63,6 +63,20 @@ class MemoryUtil {
 		#end
 	}
 
+	 /**
+   * Manually perform garbage collection once.
+   * Should only be called from the main thread.
+   * @param major `true` to perform major collection, whatever that means.
+   */
+	 public static function collect(major:Bool = false):Void
+	{
+		#if cpp
+		cpp.vm.Gc.run(major);
+		#else
+		throw 'Not implemented!';
+		#end
+	}
+
 	public static function enable() {
 		#if (cpp || hl)
 		Gc.enable(true);

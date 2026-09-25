@@ -89,7 +89,8 @@ class TitleState extends MusicBeatState
 		MusicBeatState.allowNuke = true; // COMMENCE THE MEMORY CLEARAGE
 		// ticker.update(0);
 		trace(ticker.metadata());
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 		super.create();
 		trace(this.metadata());
 		for (classthing in this.metadata().super_tree.toIterable())

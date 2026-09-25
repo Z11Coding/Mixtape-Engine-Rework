@@ -223,7 +223,7 @@ class FunkinSprite extends FlxAnimate
       return this;
     }
 
-    if (!Paths.currentTrackedAssets.exists(graphicKey) && !Paths.localTrackedAssets.contains(graphicKey))
+    if (!FunkinMemory.isTextureCached(graphicKey) && !FunkinMemory.isTextureCached(graphicKey))
     {
       FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
     }
@@ -340,7 +340,7 @@ class FunkinSprite extends FlxAnimate
   public function loadSparrow(key:String):FunkinSprite
   {
     var graphicKey:String = Paths.imagePath(key);
-    if (!Paths.currentTrackedAssets.exists(graphicKey) && !Paths.localTrackedAssets.contains(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
+    if (!FunkinMemory.isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
 
     @:nullSafety(Off)
     this.frames = Paths.getSparrowAtlas(key);
@@ -356,7 +356,7 @@ class FunkinSprite extends FlxAnimate
   public function loadPacker(key:String):FunkinSprite
   {
     var graphicKey:String = Paths.imagePath(key);
-    if (!Paths.currentTrackedAssets.exists(graphicKey) && !Paths.localTrackedAssets.contains(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
+    if (!FunkinMemory.isTextureCached(graphicKey) && !FunkinMemory.isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
 
     @:nullSafety(Off)
     this.frames = Paths.getPackerAtlas(key);

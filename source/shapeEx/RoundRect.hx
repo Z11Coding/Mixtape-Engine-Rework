@@ -1,7 +1,5 @@
 package shapeEx;
 
-package shapeEx;
-
 enum OriginType
 {
 	LEFT_UP;
@@ -337,8 +335,8 @@ class RoundRect extends FlxSpriteGroup
 	function drawRoundRect(x:Float, y:Float, width:Float = 0, height:Float = 0, round:Float = 0, type:Int):BaseSprite
 	{
 		var sprite:BaseSprite = new BaseSprite(x, y);
-		if (Cache.currentTrackedFrames.get('roundRect-round' +type+'-w'+width+'-h:'+height) == null) addRoundCache(width, height, round, type);
-		sprite.frames = Cache.currentTrackedFrames.get('roundRect-round' +type+'-w'+width+'-h:'+height);
+		if (FunkinMemory.currentTrackedFrames.get('roundRect-round' +type+'-w'+width+'-h:'+height) == null) addRoundCache(width, height, round, type);
+		sprite.frames = FunkinMemory.currentTrackedFrames.get('roundRect-round' +type+'-w'+width+'-h:'+height);
 		return sprite;
 	}
 
@@ -357,14 +355,14 @@ class RoundRect extends FlxSpriteGroup
 		var newGraphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap);
 		newGraphic.persist = true;
 		newGraphic.destroyOnNoUse = false;
-		Cache.currentTrackedFrames.set('roundRect-round' +type+'-w'+width+'-h:'+height, newGraphic.imageFrame);
+		FunkinMemory.currentTrackedFrames.set('roundRect-round' +type+'-w'+width+'-h:'+height, newGraphic.imageFrame);
 	}
 
 	function drawRect(x:Float, y:Float, width:Float = 0, height:Float = 0):BaseSprite
 	{
 		var sprite:BaseSprite = new BaseSprite(x, y);
-		if (Cache.currentTrackedFrames.get('roundRect-rect-w'+width+'-h:'+height) == null) addRectCache(width, height);
-		sprite.frames = Cache.currentTrackedFrames.get('roundRect-rect-w'+width+'-h:'+height);
+		if (FunkinMemory.currentTrackedFrames.get('roundRect-rect-w'+width+'-h:'+height) == null) addRectCache(width, height);
+		sprite.frames = FunkinMemory.currentTrackedFrames.get('roundRect-rect-w'+width+'-h:'+height);
 		return sprite;
 	}
 
@@ -380,7 +378,7 @@ class RoundRect extends FlxSpriteGroup
 		var newGraphic:FlxGraphic = FlxGraphic.fromBitmapData(bitmap);
 		newGraphic.persist = true;
 		newGraphic.destroyOnNoUse = false;
-		Cache.currentTrackedFrames.set('roundRect-rect-w'+width+'-h:'+height, newGraphic.imageFrame);
+		FunkinMemory.currentTrackedFrames.set('roundRect-rect-w'+width+'-h:'+height, newGraphic.imageFrame);
 	}
 
 	public static function getTweenEaseByString(?ease:String = '')

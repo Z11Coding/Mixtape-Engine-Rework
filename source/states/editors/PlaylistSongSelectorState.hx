@@ -100,7 +100,8 @@ class PlaylistSongSelectorState extends MusicBeatState
 		fpManager = FreeplayManager.loadFPManager();
 
 		Highscore.reloadModifiers();
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		persistentUpdate = true;
 		WeekData.reloadWeekFiles(false);

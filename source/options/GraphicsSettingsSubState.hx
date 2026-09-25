@@ -283,7 +283,8 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 				effect.destroy();
 			}
 		}
-		Paths.nukeMemory();
+		//Paths.nukeMemory();
+		FunkinMemory.purgeCache(true);
 		trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
 		MusicBeatState.resetState();
 	}

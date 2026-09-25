@@ -166,8 +166,9 @@ class PongGameState extends MusicBeatState {
 
         super.create();
 
-        Paths.clearStoredMemory();
-        Paths.clearUnusedMemory();
+        /*Paths.clearStoredMemory();
+        Paths.clearUnusedMemory();*/
+        FunkinMemory.purgeCache();
 
         #if DISCORD_ALLOWED
         DiscordClient.changePresence("Playing Pong", "In Pong Game");

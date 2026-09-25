@@ -388,7 +388,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		#end
 
     Highscore.reloadModifiers();
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		albumRoll = new AlbumRoll();
 		fp = new FreeplayScore(FlxG.width - (MobileScaleMode.gameNotchSize.x + 353), 60, 7, 100, styleData);

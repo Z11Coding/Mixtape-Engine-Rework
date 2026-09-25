@@ -146,7 +146,8 @@ class DynamicFreeplayState extends MusicBeatState
 		}
 
 		Highscore.reloadModifiers();
-		Paths.clearStoredWithoutStickers();
+		//Paths.clearStoredWithoutStickers();
+		FunkinMemory.purgeCache();
 
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;
