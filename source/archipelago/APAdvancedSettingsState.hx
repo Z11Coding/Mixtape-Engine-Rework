@@ -295,7 +295,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			// Show a brief notification about the navigation return
 			if (navContext != null)
 			{
-				trace('Returned from navigation: $navContext');
+				trace(' INFO '.info()+' : Returned from navigation: $navContext');
 			}
 		}
 
@@ -626,7 +626,7 @@ class APAdvancedSettingsState extends MusicBeatState
 							if (["on_getting", "on_playing", "on_beating"].indexOf(completionType) != -1) {
 								sanity_completion_type = completionType;
 							} else {
-								trace('Invalid sanity_completion_type: $completionType, using default: on_getting');
+								trace(' WARNING '.warning()+' : Invalid sanity_completion_type: $completionType, using default: on_getting');
 								sanity_completion_type = "on_getting";
 							}
 						case "stagesanity":
@@ -2245,7 +2245,7 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		if (maxSongs != count)
 		{
-			trace("Discrepancy in song count! Counted: " + count + ", Length: " + maxSongs);
+			trace(' WARNING '.warning()+" : Discrepancy in song count! Counted: " + count + ", Length: " + maxSongs);
 			maxSongs = count;
 		}
 
@@ -2504,7 +2504,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				sanity_completion_type = Std.string(value);
 				enforceSanityCompatibility(false);
 			default:
-				trace('Unknown option: $optionName');
+				trace(' WARNING '.warning()+' : Unknown option: $optionName');
 		}
 	}
 
@@ -2661,7 +2661,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 		else
 		{
-			trace("Warning: Could not initialize default songs - FreeplayManager or song list is null");
+			trace(' WARNING '.warning()+" : Could not initialize default songs - FreeplayManager or song list is null");
 		}
 	}
 
@@ -2681,7 +2681,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			if (!refreshQueued)
 			{
 				refreshQueued = true;
-				trace('Refresh queued - waiting for ${activeTweens.length} active tweens to complete');
+				trace(' INFO '.info()+' : Refresh queued - waiting for ${activeTweens.length} active tweens to complete');
 			}
 			return;
 		}
@@ -2816,7 +2816,7 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		if (fpManager != null && fpManager.songList != null)
 		{
-			trace('Scanning ${fpManager.songList.length} songs for stage data...');
+			trace(' INFO '.info()+' : Scanning ${fpManager.songList.length} songs for stage data...');
 
 			for (songData in fpManager.songList)
 			{
@@ -2863,7 +2863,7 @@ class APAdvancedSettingsState extends MusicBeatState
 										}
 										stageToDirectDifficulties.get(stageName).push(difficulty);
 									} else if (stageName == null) {
-										trace('No stage defined for $songName ($difficulty)');
+										trace(' WARNING '.warning()+' : No stage defined for $songName ($difficulty)');
 										stageName = StageData.vanillaSongStage(songName);
 										if (stageName != null && stageName.trim().length > 0)
 										{
@@ -2944,13 +2944,13 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 		else
 		{
-			trace("Stage scanning failed - FreeplayManager or song list is null");
+			trace(' WARNING '.warning()+" : Stage scanning failed - FreeplayManager or song list is null");
 		}
 
 		// Scan secret songs if includeSecrets is enabled
 		if (includeSecrets)
 		{
-			trace("Scanning secret songs for stage data...");
+			trace(' INFO '.info()+" : Scanning secret songs for stage data...");
 
 			for (secretSong in APInfo.secrets)
 			{
@@ -3059,7 +3059,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				}
 				catch (e:Dynamic)
 				{
-					trace('Error scanning secret song ${secretSong}: ${e}');
+					trace(' ERROR '.error()+' : Error scanning secret song ${secretSong}: ${e}');
 				}
 			}
 		}
@@ -3092,7 +3092,7 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		if (fpManager != null && fpManager.songList != null)
 		{
-			trace('Scanning ${fpManager.songList.length} songs for character data...');
+			trace(' INFO '.info()+' : Scanning ${fpManager.songList.length} songs for character data...');
 
 			for (songData in fpManager.songList)
 			{
@@ -3226,13 +3226,13 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 		else
 		{
-			trace("Character scanning failed - FreeplayManager or song list is null");
+			trace(' WARNING '.warning()+" : Character scanning failed - FreeplayManager or song list is null");
 		}
 
 		// Scan secret songs if includeSecrets is enabled
 		if (includeSecrets)
 		{
-			trace("Scanning secret songs for character data...");
+			trace(' INFO '.info()+" : Scanning secret songs for character data...");
 
 			for (secretSong in APInfo.secrets)
 			{
@@ -3376,7 +3376,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				}
 				catch (e:Dynamic)
 				{
-					trace('Error scanning secret song ${secretSong}: ${e}');
+					trace(' ERROR '.error()+' : Error scanning secret song ${secretSong}: ${e}');
 				}
 			}
 		}
@@ -3392,11 +3392,11 @@ class APAdvancedSettingsState extends MusicBeatState
 	 */
 	function validateSongJSONFiles():Void
 	{
-		trace('Validating song JSON files...');
+		trace(' INFO '.info()+' : Validating song JSON files...');
 
 		if (APInfo.gameSettings.FNF.songList.length == 0)
 		{
-			trace('Song list is empty, nothing to validate');
+			trace(' WARNING '.warning()+' : Song list is empty, nothing to validate');
 			return;
 		}
 
@@ -3445,7 +3445,7 @@ class APAdvancedSettingsState extends MusicBeatState
 		}
 
 		// Validate each song by converting YAML-safe format back to real names
-		trace('Validating chart files for ${APInfo.gameSettings.FNF.songList.length} songs...');
+		trace(' INFO '.info()+' : Validating chart files for ${APInfo.gameSettings.FNF.songList.length} songs...');
 
 		for (yamlSongInList in APInfo.gameSettings.FNF.songList)
 		{
@@ -3458,7 +3458,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			var songData = songDataMap.get(realSongInList);
 			if (songData == null)
 			{
-				trace('Could not find metadata for song: ${realSongInList}');
+				trace(' ERROR '.error()+' : Could not find metadata for song: ${realSongInList}');
 				continue;
 			}
 
@@ -3500,7 +3500,7 @@ class APAdvancedSettingsState extends MusicBeatState
 						}
 						catch (e:Dynamic)
 						{
-							trace('Error checking chart for ${songName} / ${difficulty}: ${e}');
+							trace(' ERROR '.error()+' : Error checking chart for ${songName} / ${difficulty}: ${e}');
 							missingDifficulties.push(difficulty);
 						}
 					}
@@ -3511,7 +3511,7 @@ class APAdvancedSettingsState extends MusicBeatState
 						// Log warning if not all difficulties have charts
 						if (missingDifficulties.length > 0)
 						{
-							var warningMsg = 'WARNING: Missing difficulties for ${realSongInList}: ${missingDifficulties.join(", ")}';
+							var warningMsg = ' WARNING '.warning()+' : Missing difficulties for ${realSongInList}: ${missingDifficulties.join(", ")}';
 							songDifficultyWarnings.push(warningMsg);
 							trace(warningMsg);
 						}
@@ -3520,7 +3520,7 @@ class APAdvancedSettingsState extends MusicBeatState
 					{
 						// No valid charts found for this song - mark for removal
 						yamlSongsToRemove.push(yamlSongInList);
-						trace('Marked for removal: ${realSongInList} - no valid chart files found');
+						trace(' INFO '.info()+' : Marked for removal: ${realSongInList} - no valid chart files found');
 					}
 				}
 			}
@@ -3561,7 +3561,7 @@ class APAdvancedSettingsState extends MusicBeatState
 						timestamp: Date.now().toString()
 					};
 					songValidationErrors.push(error);
-					trace('Removed ${realName} - no valid chart files found');
+					trace(' INFO '.info()+' : Removed ${realName} - no valid chart files found');
 				}
 				else
 				{
@@ -3570,11 +3570,11 @@ class APAdvancedSettingsState extends MusicBeatState
 			}
 
 			APInfo.gameSettings.FNF.songList = filteredList;
-			trace('Song validation complete - removed ${originalLength - filteredList.length} songs with no valid charts');
+			trace(' INFO '.info()+' : Song validation complete - removed ${originalLength - filteredList.length} songs with no valid charts');
 		}
 		else
 		{
-			trace('Song validation complete - all songs have valid chart files');
+			trace(' INFO '.info()+' : Song validation complete - all songs have valid chart files');
 		}
 	}
 
@@ -4341,14 +4341,14 @@ class APAdvancedSettingsState extends MusicBeatState
 		validateSongJSONFiles();
 
 		// Process CustomAPLogic scripts before generating YAML (only if allowMods is true)
-		trace('Processing CustomAPLogic scripts...');
+		trace(' INFO '.info()+' : Processing CustomAPLogic scripts...');
 		if (allowMods)
 		{
 			CustomAPLogic.APHScriptProcessor.processAllMods();
 		}
 		else
 		{
-			trace('Skipping CustomAPLogic processing - allowMods is false');
+			trace(' INFO '.info()+' : Skipping CustomAPLogic processing - allowMods is false');
 		}
 
 		// Build base YAML object from game settings
@@ -4412,7 +4412,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			|| CustomAPLogic.APDataStore.customWeeks.length > 0
 			|| Lambda.count(CustomAPLogic.APDataStore.customData) > 0))
 		{
-			trace('Generating Python script for CustomAPLogic...');
+			trace(' INFO '.info()+' : Generating Python script for CustomAPLogic...');
 
 			// Generate the Python script content
 			var pythonContent = CustomAPLogic.APPythonGenerator.generatePythonScript();
@@ -4424,16 +4424,16 @@ class APAdvancedSettingsState extends MusicBeatState
 
 				// Embed as modData in the YAML
 				Reflect.setField(yamlThing, "modData", compressedPythonScript);
-				trace('Python script compressed and embedded as modData (${pythonContent.length} chars -> ${compressedPythonScript.length} chars Base64)');
+				trace(' INFO '.info()+' : Python script compressed and embedded as modData (${pythonContent.length} chars -> ${compressedPythonScript.length} chars Base64)');
 			}
 			else
 			{
-				trace('Warning: Python script generation returned empty content');
+				trace(' WARNING '.warning()+' : Python script generation returned empty content');
 			}
 		}
 		else if (!allowMods)
 		{
-			trace('Skipping Python script generation - allowMods is false');
+			trace(' INFO '.info()+' : Skipping Python script generation - allowMods is false');
 		}
 
 		// Add sanity data if any sanity options are enabled
@@ -4448,7 +4448,7 @@ class APAdvancedSettingsState extends MusicBeatState
 
 				// Embed as sanity in the YAML
 				Reflect.setField(yamlThing, "sanity", compressedSanityData);
-				trace('Sanity data compressed and embedded (${sanityJson.length} chars -> ${compressedSanityData.length} chars Base64)');
+				trace(' INFO '.info()+' : Sanity data compressed and embedded (${sanityJson.length} chars -> ${compressedSanityData.length} chars Base64)');
 			}
 		}
 
@@ -4471,39 +4471,39 @@ class APAdvancedSettingsState extends MusicBeatState
 		var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
 
 		// Safely reconstruct the name field with proper escaping
-		trace('Fixing name field in YAML document...');
+		trace(' INFO '.info()+' : Fixing name field in YAML document...');
 		var nameLineRegex = ~/name:\s*"[^"]*"/;
 		var nameLineMatch = nameLineRegex.match(document);
 
 		if (nameLineMatch)
 		{
 			var originalNameLine = nameLineRegex.matched(0);
-			trace('  Found original name line: $originalNameLine');
+			trace(' INFO '.info()+' : Found original name line: $originalNameLine');
 
 			// Extract the name value from the regex match
 			var nameValueRegex = ~/name:\s*"([^"]*)"/;
 			nameValueRegex.match(originalNameLine);
 			var extractedName = nameValueRegex.matched(1);
-			trace('  Extracted name value: $extractedName');
+			trace(' WARNING '.warning()+' : Extracted name value: $extractedName');
 
 			// Verify it matches the actual player name
 			if (extractedName != playerName)
 			{
-				trace('  WARNING: Extracted name "$extractedName" does not match playerName "$playerName"');
-				trace('  Correcting name field to proper value...');
+				trace(' WARNING '.warning()+' : WARNING: Extracted name "$extractedName" does not match playerName "$playerName"');
+				trace(' INFO '.info()+' : Correcting name field to proper value...');
 			}
 
 			// Reconstruct the name line with the correct player name (properly escaped)
 			var correctedNameLine = 'name: ${playerName}';
-			trace('  Reconstructed name line: $correctedNameLine');
+			trace(' INFO '.info()+' :  Reconstructed name line: $correctedNameLine');
 
 			// Replace the original line with the corrected one
 			document = document.replace(originalNameLine, correctedNameLine);
-			trace('  Name field successfully fixed in YAML document');
+			trace(' INFO '.info()+' :  Name field successfully fixed in YAML document');
 		}
 		else
 		{
-			trace('  WARNING: Could not find name field in YAML document');
+			trace(' WARNING '.warning()+' : WARNING: Could not find name field in YAML document');
 		}
 
 		// Create enhanced comment with stats
@@ -4587,8 +4587,8 @@ class APAdvancedSettingsState extends MusicBeatState
 					exportDialog.text = "EXPORT COMPLETED!\nSaved to: PlayerSettings/" + playerName + ".yaml";
 					exportDialog.color = FlxColor.GREEN;
 
-					trace('YAML export generated for player: ' + playerName);
-					trace('YAML export content:\n' + yamlDocument);
+					trace(' INFO '.info()+' : YAML export generated for player: ' + playerName);
+					trace(' INFO '.info()+' : YAML export content:\n' + yamlDocument);
 
 					new FlxTimer().start(2, function(_)
 					{
@@ -4606,7 +4606,7 @@ class APAdvancedSettingsState extends MusicBeatState
 				{
 					exportDialog.text = "EXPORT FAILED!";
 					exportDialog.color = FlxColor.RED;
-					trace('Export error: $e');
+					trace(' ERROR '.error()+' : Export error: $e');
 
 					new FlxTimer().start(2, function(_)
 					{
@@ -4651,8 +4651,8 @@ class APAdvancedSettingsState extends MusicBeatState
 					exportDialog.text = "EXPORT COMPLETED!";
 					exportDialog.color = FlxColor.GREEN;
 
-					trace('YAML export generated for player: ' + playerName);
-					trace('YAML export content:\n' + yamlDocument);
+					trace(' INFO '.info()+' : YAML export generated for player: ' + playerName);
+					trace(' INFO '.info()+' : YAML export content:\n' + yamlDocument);
 
 					new FlxTimer().start(1.5, function(_)
 					{
@@ -4671,7 +4671,7 @@ class APAdvancedSettingsState extends MusicBeatState
 					var errorMessage = Std.string(e);
 					exportDialog.text = "EXPORT FAILED!\n" + errorMessage;
 					exportDialog.color = FlxColor.RED;
-					trace('Export error: $e');
+					trace(' ERROR '.error()+' : Export error: $e');
 
 					new FlxTimer().start(2, function(_)
 					{
@@ -4716,8 +4716,8 @@ class APAdvancedSettingsState extends MusicBeatState
 					exportDialog.text = "YAML REFRESHED!\nSaved to: " + forcePath;
 					exportDialog.color = FlxColor.GREEN;
 
-					trace('YAML refresh export generated for player: ' + playerName);
-					trace('YAML refresh export content:\n' + yamlDocument);
+					trace(' INFO '.info()+' : YAML refresh export generated for player: ' + playerName);
+					trace(' INFO '.info()+' : YAML refresh export content:\n' + yamlDocument);
 
 					new FlxTimer().start(2, function(_)
 					{
@@ -4736,7 +4736,7 @@ class APAdvancedSettingsState extends MusicBeatState
 					var errorMessage = Std.string(e);
 					exportDialog.text = "REFRESH FAILED!\n" + errorMessage;
 					exportDialog.color = FlxColor.RED;
-					trace('Refresh export error: $e');
+					trace(' ERROR '.error()+' : Refresh export error: $e');
 
 					new FlxTimer().start(2, function(_)
 					{
@@ -5068,7 +5068,7 @@ class APAdvancedSettingsState extends MusicBeatState
 								exLifeWeight = value;
 							// Handle any other potential fields that might exist
 							default:
-								trace('Unknown YAML field during import: $field = $value');
+								trace(' WARNING '.warning()+' : Unknown YAML field during import: $field = $value');
 						}
 					}
 				}
@@ -5188,7 +5188,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			// If refresh is queued and no active tweens, execute refresh
 			if (refreshQueued && activeTweens.length == 0)
 			{
-				trace('All tweens completed - executing queued refresh');
+				trace(' INFO '.info()+' : All tweens completed - executing queued refresh');
 				refreshCurrentPage();
 			}
 		}
@@ -5989,7 +5989,7 @@ class APAdvancedSettingsState extends MusicBeatState
 	 */
 	public static function testSongFiltering():Void
 	{
-		trace("=== TESTING SONG FILTERING ===");
+		trace(' INFO '.info()+" : === TESTING SONG FILTERING ===");
 
 		// Store original settings
 		var originalSettings = null;
@@ -6006,58 +6006,58 @@ class APAdvancedSettingsState extends MusicBeatState
 
 		// Initialize settings if they don't exist
 		if (APInfo.gameSettings == null) {
-			trace("Warning: APInfo.gameSettings is null - cannot test filtering");
+			trace(' WARNING '.warning()+" : APInfo.gameSettings is null - cannot test filtering");
 			return;
 		}
 		if (APInfo.gameSettings.FNF == null) {
-			trace("Warning: APInfo.gameSettings.FNF is null - cannot test filtering");
+			trace(' WARNING '.warning()+" : APInfo.gameSettings.FNF is null - cannot test filtering");
 			return;
 		}
 
 		var settings = APInfo.gameSettings.FNF;
 
 		// Test 1: Only Vanilla songs
-		trace("Test 1: Only Vanilla songs");
+		trace(' INFO '.info()+" : Test 1: Only Vanilla songs");
 		settings.include_vanilla = true;
 		settings.include_erect = false;
 		settings.include_pico = false;
 		settings.include_secrets = false;
 		settings.mods_enabled = false;
 		APSettingsSubState.generateSongList();
-		trace("Expected: " + APInfo.baseGame.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+		trace(' INFO '.info()+" :  Expected: " + APInfo.baseGame.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
 
 		// Test 2: Only Erect songs
-		trace("Test 2: Only Erect songs");
+		trace(' INFO '.info()+" : Test 2: Only Erect songs");
 		settings.include_vanilla = false;
 		settings.include_erect = true;
 		settings.include_pico = false;
 		settings.include_secrets = false;
 		settings.mods_enabled = false;
 		APSettingsSubState.generateSongList();
-		trace("Expected: " + APInfo.baseErect.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+		trace(' INFO '.info()+" : Expected: " + APInfo.baseErect.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
 
 		// Test 3: Only Pico songs
-		trace("Test 3: Only Pico songs");
+		trace(' INFO '.info()+" : Test 3: Only Pico songs");
 		settings.include_vanilla = false;
 		settings.include_erect = false;
 		settings.include_pico = true;
 		settings.include_secrets = false;
 		settings.mods_enabled = false;
 		APSettingsSubState.generateSongList();
-		trace("Expected: " + APInfo.basePico.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+		trace(' INFO '.info()+" : Expected: " + APInfo.basePico.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
 
 		// Test 4: Only Secrets
-		trace("Test 4: Only Secrets");
+		trace(' INFO '.info()+" : Test 4: Only Secrets");
 		settings.include_vanilla = false;
 		settings.include_erect = false;
 		settings.include_pico = false;
 		settings.include_secrets = true;
 		settings.mods_enabled = false;
 		APSettingsSubState.generateSongList();
-		trace("Expected: " + APInfo.secrets.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+		trace(' INFO '.info()+" : Expected: " + APInfo.secrets.length + " songs, Generated: " + APSettingsSubState.globalSongList.length);
 
 		// Test 5: All base content
-		trace("Test 5: All base content");
+		trace(' INFO '.info()+" : Test 5: All base content");
 		settings.include_vanilla = true;
 		settings.include_erect = true;
 		settings.include_pico = true;
@@ -6065,21 +6065,21 @@ class APAdvancedSettingsState extends MusicBeatState
 		settings.mods_enabled = false;
 		APSettingsSubState.generateSongList();
 		var expectedTotal = APInfo.baseGame.length + APInfo.baseErect.length + APInfo.basePico.length + APInfo.secrets.length;
-		trace("Expected: " + expectedTotal + " songs, Generated: " + APSettingsSubState.globalSongList.length);
+		trace(' INFO '.info()+" : Expected: " + expectedTotal + " songs, Generated: " + APSettingsSubState.globalSongList.length);
 
 		// Test 6: Nothing included (should have 0 base songs, but might have mods)
-		trace("Test 6: Nothing included");
+		trace(' INFO '.info()+" : Test 6: Nothing included");
 		settings.include_vanilla = false;
 		settings.include_erect = false;
 		settings.include_pico = false;
 		settings.include_secrets = false;
 		settings.mods_enabled = false;
 		APSettingsSubState.generateSongList();
-		trace("Expected: 0 base songs, Generated: " + APSettingsSubState.globalSongList.length);
+		trace(' INFO '.info()+" : Expected: 0 base songs, Generated: " + APSettingsSubState.globalSongList.length);
 
 		// Restore original settings
 		if (originalSettings != null) {
-			trace("Restoring original settings...");
+			trace(' INFO '.info()+" : Restoring original settings...");
 			settings.include_vanilla = originalSettings.include_vanilla;
 			settings.include_erect = originalSettings.include_erect;
 			settings.include_pico = originalSettings.include_pico;
@@ -6088,7 +6088,7 @@ class APAdvancedSettingsState extends MusicBeatState
 			APSettingsSubState.generateSongList();
 		}
 
-		trace("=== SONG FILTERING TEST COMPLETE ===");
+		trace(' INFO '.info()+" : === SONG FILTERING TEST COMPLETE ===");
 	}
 
 	public static function restoreFromTemp():APAdvancedSettingsState

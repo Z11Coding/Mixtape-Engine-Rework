@@ -201,7 +201,7 @@ class StrumNote extends NoteObject
 				}
 			}
 
-			trace("Skin: " + skin);
+			trace(' INFO '.info()+" : Skin: " + skin);
 
 			frames = Paths.getSparrowAtlas(skin);
 			antialiasing = ClientPrefs.data.antialiasing;

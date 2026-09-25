@@ -49,7 +49,7 @@ function onCreate() {
     effectGroup.add(darknessOverlay);
     effectGroup.add(glowSprite);
 
-    trace("Character Glow Effect initialized!");
+    trace(' INFO '.info()+" : Character Glow Effect initialized!");
 }
 
 function createGlowSprite() {
@@ -186,7 +186,7 @@ function enableGlowEffect(?target:FlxObject) {
     FlxTween.tween(glowSprite, {alpha: glowIntensity}, 0.5, {ease: FlxEase.quadOut});
 
     isActive = true;
-    trace("Character glow effect enabled!");
+    trace(' INFO '.info()+" : Character glow effect enabled!");
 }
 
 function disableGlowEffect() {
@@ -202,7 +202,7 @@ function disableGlowEffect() {
     FlxTween.tween(glowSprite, {alpha: 0}, 0.5, {ease: FlxEase.quadIn});
 
     isActive = false;
-    trace("Character glow effect disabled!");
+    trace(' INFO '.info()+" : Character glow effect disabled!");
 }
 
 function setGlowTarget(character:FlxObject) {
@@ -217,7 +217,7 @@ function setGlowTarget(character:FlxObject) {
             glowSprite.y = currentGlowY;
         }
 
-        trace("Glow target set to character");
+        trace(' INFO '.info()+" : Glow target set to character");
     }
 }
 

@@ -1,25 +1,25 @@
 package animateatlas;
-import flixel.util.FlxDestroyUtil;
-import openfl.geom.Rectangle;
-import flixel.math.FlxPoint;
-import flixel.math.FlxRect;
-import openfl.Assets;
-import tjson.TJSON as Json;
-import openfl.display.BitmapData;
-import animateatlas.JSONData.AtlasData;
 import animateatlas.JSONData.AnimationData;
+import animateatlas.JSONData.AtlasData;
 import animateatlas.displayobject.SpriteAnimationLibrary;
 import animateatlas.displayobject.SpriteMovieClip;
 import flixel.graphics.FlxGraphic;
-import flixel.graphics.frames.FlxFramesCollection;
 import flixel.graphics.frames.FlxFrame;
+import flixel.graphics.frames.FlxFramesCollection;
+import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
+import flixel.util.FlxDestroyUtil;
+import openfl.Assets;
+import openfl.display.BitmapData;
+import openfl.geom.Rectangle;
+import tjson.TJSON as Json;
 
 #if desktop
 import sys.FileSystem;
 import sys.io.File;
 #else
-import js.html.FileSystem;
 import js.html.File;
+import js.html.FileSystem;
 #end
 
 class AtlasFrameMaker extends FlxFramesCollection
@@ -28,7 +28,7 @@ class AtlasFrameMaker extends FlxFramesCollection
 	//public static var heightoffset:Int = 0;
 	//public static var excludeArray:Array<String>;
 	/**
-	
+
 	* Creates Frames from TextureAtlas(very early and broken ok) Originally made for FNF HD by Smokey and Rozebud
 	*
 	* @param   key                 The file path.
@@ -47,7 +47,7 @@ class AtlasFrameMaker extends FlxFramesCollection
 		if (Paths.fileExists('images/$key/spritemap1.json', TEXT))
 		{
 			PlayState.instance.addTextToDebug("Only Spritemaps made with Adobe Animate 2018 are supported", FlxColor.RED);
-			trace("Only Spritemaps made with Adobe Animate 2018 are supported");
+			trace(' ERROR '.error()+" : Only Spritemaps made with Adobe Animate 2018 are supported");
 			return null;
 		}
 
@@ -64,7 +64,7 @@ class AtlasFrameMaker extends FlxFramesCollection
 			_excludeArray = t.getFrameLabels();
 			//trace('creating all anims');
 		}
-		trace('Creating: ' + _excludeArray);
+		trace(' INFO '.info()+' : Creating: ' + _excludeArray);
 
 		frameCollection = new FlxFramesCollection(graphic, FlxFrameCollectionType.IMAGE);
 		for(x in _excludeArray)
@@ -144,7 +144,7 @@ class AtlasFrameMaker extends FlxFramesCollection
 			}
 			else break;
 		}
-		
+
 		for (i in 0...bitMapArray.length)
 		{
 			var b = FlxGraphic.fromBitmapData(bitMapArray[i]);

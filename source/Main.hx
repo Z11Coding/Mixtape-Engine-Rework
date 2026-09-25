@@ -112,7 +112,7 @@ class Main extends Sprite
 	{
 
 		flxSignalCrash = false;
-		try
+		/*try
 		{
 			trace(3.forceCast(Type.ValueType.TFloat));
 		}
@@ -156,7 +156,7 @@ class Main extends Sprite
 			trace("YSComp Test - Error: " + e);
 			trace("YSComp Test - This is expected if YSComp macro is not enabled or YScript files are not processed");
 		}
-		#end
+		#end*/
 
 		// Initialize BuildDataLoader asynchronously (non-blocking)
 		// This starts the async loading process in the background without freezing startup
@@ -223,39 +223,7 @@ class Main extends Sprite
 		}
 
 		// Override trace function to support enhanced tracing system with frame limiting and threading
-			"Overriding haxe.Log.trace to support Console/Game/Both modes with frame-based limiting and threading.".NativeComment();
-		var originalTrace = haxe.Log.trace;
-		TraceManager.setOriginalTrace(originalTrace);
-		haxe.Log.trace = function(v:Dynamic, ?infos:haxe.PosInfos) {
-			if (backend.ClientPrefs.data.disableHaxeTraces) {
-				return; // Traces disabled completely
-			}
-
-			if (TraceManager.traceClassesAsObjects) {
-				// Check if v is a class instance
-				var className = Type.getClassName(Type.getClass(v));
-				if (className != null) {
-					v = yutautil.save.ObjectSerializer.serialize(v);
-				}
-			}
-
-			var traceMode = backend.ClientPrefs.data.traceMode;
-			switch (traceMode) {
-				case "CONSOLE":
-					// Use enhanced TraceManager for console output with frame limiting
-					TraceManager.addTrace(Std.string(v), infos);
-					// Don't call originalTrace directly - let TraceManager handle it
-				case "GAME":
-					// Only send to in-game viewer
-					TraceManager.addTrace(Std.string(v), infos);
-				case "BOTH":
-					// Send to both console and in-game viewer via TraceManager
-					TraceManager.addTrace(Std.string(v), infos);
-				default:
-					// Fallback to original trace for unknown modes
-					originalTrace(v, infos);
-			}
-		};
+		"Overriding haxe.Log.trace to support Console/Game/Both modes with frame-based limiting and threading.".NativeComment();
 		"Trace will now respect the 'Disable Haxe Traces' setting in the options menu, except for when using 'HxTrace.log()' via Yutautil.".log();
 		"Warning: Putting a class instance in a trace may serialize a LOT of data, which can impact performance, even in threading mode.".log();
 	}
@@ -271,6 +239,14 @@ class Main extends Sprite
 		#end
 
 		super();
+
+		// Initialize custom logging.
+    haxe.Log.trace = funkin.util.logging.AnsiTrace.trace;
+    funkin.util.logging.AnsiTrace.traceBF();
+
+    // Get OpenFL to stop complaining so much.
+    // You can remove this line if you want to read debug messages.
+    openfl.utils._internal.Log.level = openfl.utils._internal.Log.LogLevel.INFO;
 
 
 		#if (cpp && windows)
@@ -298,7 +274,7 @@ class Main extends Sprite
 
 		WindowUtils.init();
 
-		trace("PC System Memory: " + backend.util.NativeAPI.getPhysicallyInstalledSystemMemory() + " GB");
+		//trace("PC System Memory: " + backend.util.NativeAPI.getPhysicallyInstalledSystemMemory() + " GB");
 
 		#if windows
 		backend.window.CppAPI.setWindowOpacity(1);
@@ -366,7 +342,7 @@ class Main extends Sprite
 		Controls.instance = new Controls();
 		ClientPrefs.loadDefaultKeys();
 
-		trace(Math.E());
+		//trace(Math.E());
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 		var game:FlxGame = new FlxGame(game.width, game.height, game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate, game.skipSplash, game.startFullscreen);
@@ -504,7 +480,7 @@ class Main extends Sprite
 	public static function onClosing(e:Event):Void
 	{
 		e.preventDefault();
-		trace("Closing...");
+		trace(' INFO '.info()+" : Closing...");
 	}
 
 	private static var gameClosing:Bool = false;
@@ -527,7 +503,7 @@ class Main extends Sprite
 		try {
 			yutautil.CrashReporter.logActivity("Main", "closeGame", "Game is closing...");
 		} catch (trackError:Dynamic) {
-			trace("Failed to track game exit: " + trackError);
+			trace(' ERROR '.error()+" : Failed to track game exit: " + trackError);
 		}
 		#end
 
@@ -698,7 +674,7 @@ class Main extends Sprite
 		}
 		catch (e:Dynamic)
 		{
-			trace('Error extracting crash expression: ' + e);
+			trace(' ERROR '.error()+' : Error extracting crash expression: ' + e);
 			return null;
 		}
 	}
@@ -728,7 +704,7 @@ class Main extends Sprite
 
 		// DANGEROUS DEBUG OPTION: If ignoreThrows is enabled, just prevent crash escalation and return
 		if (ClientPrefs.data.ignoreThrows) {
-			trace('Crash ignored due to ignoreThrows debug setting: ${e.error}');
+			trace(' INFO '.info()+' : Crash ignored due to ignoreThrows debug setting: ${e.error}');
 			return;
 		}
 
@@ -749,13 +725,13 @@ class Main extends Sprite
 						if (file.contains("FlxTween.hx"))
 						{
 							FlxTween.globalManager.clear();
-							trace("Tween Error occurred. Clearing all tweens.");
+							trace(' ERROR '.error()+" : Tween Error occurred. Clearing all tweens.");
 							if (ClientPrefs.data.ignoreTweenErrors)
 								return;
 						}
 						if (file.contains("hscript/Interp.hx"))
 						{
-							var interpErrorMsg = "(Internal Critical Error) " + e.error;
+							var interpErrorMsg = ' ERROR '.error()+" : (Internal Critical Error) " + e.error;
 							trace(interpErrorMsg);
 							if (Std.isOfType(FlxG.state, states.PlayState))
 							{
@@ -764,7 +740,7 @@ class Main extends Sprite
 							return;
 						}
 					default:
-						trace("Unhandled stack item: " + stackItem);
+						trace(' ERROR '.error()+" : Unhandled stack item: " + stackItem);
 						dummy();
 				}
 				}
@@ -790,7 +766,7 @@ class Main extends Sprite
 				}
 			}
 		} catch (extractError:Dynamic) {
-			trace("Could not extract unexpected crash data: " + extractError);
+			trace(' ERROR '.error()+" : Could not extract unexpected crash data: " + extractError);
 		}
 		#end
 
@@ -954,7 +930,7 @@ class Main extends Sprite
 		if (flxSignalCrash) FlxG.resetGame(); // Don't even bother to try and fix it just restart
 
 		backend.MusicBeatState.playErrorSound = true;
-		trace("Crash caused in: " + Type.getClassName(Type.getClass(FlxG.state)));
+		trace(' ERROR '.error()+" : Crash caused in: " + Type.getClassName(Type.getClass(FlxG.state)));
 		// Handle different states
 
 				// Handle different states
@@ -963,17 +939,17 @@ class Main extends Sprite
 				var handled = false;
 
 				if (stateClass == null) {
-					trace("State class is null. Either signals broke, or the game is bricked.");
+					trace(' ERROR '.error()+" : State class is null. Either signals broke, or the game is bricked.");
 					try {
 						var exitStuff:Array<Dynamic> = [];
 						exitStuff = exitStuff.concat(states.ExitState.cleanupFunctions).concat(states.ExitState.returnFunctions);
 						for (callbacks in exitStuff)
-						{ try { callbacks(); } catch (e:Dynamic) { trace("Error in exit callback: " + e); } }
+						{ try { callbacks(); } catch (e:Dynamic) { trace(' ERROR '.error()+" : Error in exit callback: " + e); } }
 						// do restart process
 						var restartProcess = new Process("Mixtape.exe", ["GameBricked", "restart"]);
 						Main.closeGame();
 					} catch (e:Dynamic) {
-						trace("Error occurred while executing exit callbacks: " + e);
+						trace(' ERROR '.error()+" : Error occurred while executing exit callbacks: " + e);
 						// do restart process
 						var restartProcess = new Process("Mixtape.exe", ["GameBricked", "restart"]);
 						Main.closeGame();
@@ -1013,7 +989,7 @@ class Main extends Sprite
 						case "TitleState":
 							Application.current.window.alert("Something went extremely wrong... You may want to check some things in the files!\nFailed to load TitleState!",
 								"Fatal Error");
-							trace("Unable to recover...");
+							trace(' ERROR '.error()+" : Unable to recover...");
 							FlxG.switchState(new states.ExitState());
 							handled = true;
 
@@ -1023,7 +999,7 @@ class Main extends Sprite
 							handled = true;
 
 						case "What":
-							trace("Restarting Game...");
+							trace(' WARNING '.warning()+" : Restarting Game...");
 							FlxG.switchState(new states.TitleState());
 							handled = true;
 
@@ -1034,18 +1010,18 @@ class Main extends Sprite
 								Application.current.window.alert("Unable to restart due to running a Compiled build.", "Error");
 							} else {
 								Application.current.window.alert("The game encountered a critical error and will now restart.", "Game Bricked");
-								trace("The game was bricked. Restarting...");
+								trace(' ERROR '.error()+" : The game was bricked. Restarting...");
 								var mainGame = Main.game;
 								var initialState = Type.getClass(mainGame.initialState);
 								var restartProcess = new Process("Mixtape.exe", ["GameJoltBug", "restart"]);
 								FlxG.switchState(new states.ExitState());
 							}
-							trace("Recommended to recompile the game to fix the issue.");
+							trace(' ERROR '.error()+" : Recommended to recompile the game to fix the issue.");
 							handled = true;
 
 						case "APDisconnectSubstate":
 							Application.current.window.alert("The game encountered a critical error and will now restart.", "AP Disconnect Error");
-							trace("AP Disconnect Error. Restarting...");
+							trace(' ERROR '.error()+" : AP Disconnect Error. Restarting...");
 							var mainGame = Main.game;
 							var initialState = Type.getClass(mainGame.initialState);
 							var restartProcess = new Process("Mixtape.exe", ["APDisconnectError", "restart"]);
@@ -1054,7 +1030,7 @@ class Main extends Sprite
 							handled = true;
 						case "ExitState":
 							Application.current.window.alert("Somehow, a crash occurred during the exiting process. Forcing exit.", "???");
-							trace("Performing Emergency Exit.");
+							trace(' INFO '.info()+" : Performing Emergency Exit.");
 							Main.closeGame();
 							handled = true;
 
@@ -1074,8 +1050,8 @@ class Main extends Sprite
 				if (!handled) {
 					var mainGame = Main.game;
 					FlxG.switchState(Type.createInstance(states.TitleState, []));
-					trace("Unhandled state: " + (Type.getClassName(Type.getClass(FlxG.state))));
-					trace("Restarting Game...");
+					trace(' ERROR '.error()+" : Unhandled state: " + (Type.getClassName(Type.getClass(FlxG.state))));
+					trace(' ERROR '.error()+" : Restarting Game...");
 				}
 
 		// Additional error handling or recovery mechanisms can be added here
@@ -1088,11 +1064,11 @@ class Main extends Sprite
 					if (file.contains("FlxSound.hx"))
 					{
 						FlxG.sound.music != null ? FlxG.sound.music.stop() : null;
-						trace("Music Error occurred. Stopping music.");
+						trace(' ERROR '.error()+" : Music Error occurred. Stopping music.");
 					}
 					if (file.contains("flixel/FlxG.hx"))
 					{
-						trace("Critical FLXG Error occurred. Restarting game...");
+						trace(' ERROR '.error()+" : Critical FlxG Error occurred. Restarting game...");
 						new Process("Mixtape.exe", ["CriticalError", "restart"]);
 						Main.closeGame();
 					}
@@ -1195,7 +1171,7 @@ class CommandPrompt
 				}
 			}
 		} catch (e:Dynamic) {
-			trace('Error getting state classes: ${e}');
+			trace(' ERROR '.error()+' : Error getting state classes: ${e}');
 		}
 
 		return stateClasses;
@@ -1216,7 +1192,7 @@ class CommandPrompt
 				}
 			}
 		} catch (e:Dynamic) {
-			trace('Error getting static properties for ${Type.getClassName(stateClass)}: ${e}');
+			trace(' ERROR '.error()+' : Error getting static properties for ${Type.getClassName(stateClass)}: ${e}');
 		}
 
 		return properties;
@@ -1229,7 +1205,7 @@ class CommandPrompt
 		try {
 			return Reflect.field(stateClass, propertyName);
 		} catch (e:Dynamic) {
-			trace('Error getting static property ${propertyName}: ${e}');
+			trace(' ERROR '.error()+' : Error getting static property ${propertyName}: ${e}');
 			return null;
 		}
 	}
@@ -1242,7 +1218,7 @@ class CommandPrompt
 			Reflect.setField(stateClass, propertyName, value);
 			return true;
 		} catch (e:Dynamic) {
-			trace('Error setting static property ${propertyName}: ${e}');
+			trace(' ERROR '.error()+' : Error setting static property ${propertyName}: ${e}');
 			return false;
 		}
 	}
@@ -2170,7 +2146,7 @@ class CommandPrompt
 							}
 							print("Sending " + count + " trace burst...");
 							for (i in 0...count) {
-								trace("Stress test trace #" + (i + 1) + " - Frame limiting should handle this!");
+								trace(' INFO '.info()+" : Stress test trace #" + (i + 1) + " - Frame limiting should handle this!");
 							}
 							print("Burst complete. Check trace info for queue status.");
 						case "spam":
@@ -2183,7 +2159,7 @@ class CommandPrompt
 							var startTime = haxe.Timer.stamp();
 							var counter = 0;
 							while ((haxe.Timer.stamp() - startTime) < duration) {
-								trace("Spam trace #" + (++counter) + " at " + (haxe.Timer.stamp() - startTime));
+								trace(' INFO '.info()+" : Spam trace #" + (++counter) + " at " + (haxe.Timer.stamp() - startTime));
 								Sys.sleep(0.001); // Small delay to prevent total system lock
 							}
 							print("Spam complete. Sent " + counter + " traces in " + duration + " seconds.");
@@ -2194,7 +2170,7 @@ class CommandPrompt
 							Sys.sleep(3);
 							var counter = 0;
 							while (true) {
-								trace("FLOOD TRACE #" + (++counter) + " - FRAME LIMITING TEST");
+								trace(' INFO '.info()+" : FLOOD TRACE #" + (++counter) + " - FRAME LIMITING TEST");
 								if (counter % 100 == 0) {
 									print("Flood status: " + counter + " traces sent");
 								}
@@ -2805,9 +2781,9 @@ class CommandPrompt
 			var errStr = Std.string(e);
 			if (errStr == "Custom([file_write,stdout])") {
 				this.active = false;
-				trace("No command interface detected. Disabling command prompt.");
+				trace(' WARNING '.warning()+" : No command interface detected. Disabling command prompt.");
 			} else {
-				trace("Error writing to stdout: " + errStr);
+				trace(' ERROR '.error()+" : Error writing to stdout: " + errStr);
 			}
 		}
 	}

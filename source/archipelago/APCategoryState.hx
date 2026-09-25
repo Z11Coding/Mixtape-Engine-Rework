@@ -20,13 +20,13 @@ class APCategoryState extends states.CategoryState {
             try {
                 this.AP = gameState.info();
                 if (this.AP != null) {
-                    trace('Successfully connected to Archipelago server on attempt: ' + (attempts + 1));
+                    trace(' INFO '.info()+' : Successfully connected to Archipelago server on attempt: ' + (attempts + 1));
                     break;
                 }
             } catch (e) {
-                trace('Failed to connect to Archipelago server, retrying... Attempt: ' + (++attempts) + ' Error: ' + e);
+                trace(' WARNING '.warning()+' : Failed to connect to Archipelago server, retrying... Attempt: ' + (++attempts) + ' Error: ' + e);
                 if (attempts >= 20) {
-                    trace('All connection attempts failed. Falling back to passed AP client.');
+                    trace(' ERROR '.error()+' : All connection attempts failed. Falling back to passed AP client.');
                     this.AP = AP; // Use the passed AP client as fallback
                     break;
                 }
@@ -36,7 +36,7 @@ class APCategoryState extends states.CategoryState {
 
         // Final check - if we still don't have a connection, something is very wrong
         if (this.AP == null) {
-            trace('CRITICAL: No AP connection available. This will cause issues.');
+            trace(' CRITICAL ERROR '.error()+' : No AP connection available. This will cause issues.');
             // Don't switch to ExitState immediately - let the parent class handle it
         }
         // Static menu with "Items" option moved after "Unplayed" and before "Options"3
@@ -57,7 +57,7 @@ class APCategoryState extends states.CategoryState {
         };
 
         var quitFunc = function() {
-            trace('QUIT FUNCTION CALLED - User selected quit or automatic quit triggered');
+            trace(' INFO '.info()+' : QUIT FUNCTION CALLED - User selected quit or automatic quit triggered');
 
             // Create progress tasks for graceful shutdown
             var tasks = [

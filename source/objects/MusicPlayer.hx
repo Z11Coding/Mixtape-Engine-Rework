@@ -95,7 +95,7 @@ class MusicPlayer extends FlxGroup
 
 		playfield.update(elapsed);
 
-		var songName:String = FreeplayManager.instance?.songList[instance.curSelected+1]?.songName;
+		var songName:String = PlayfieldManager.SONG?.song;
 		if (playing && !wasPlaying)
 			songTxt.text = Language.getPhrase('musicplayer_playing', 'PLAYING: {1}', [songName]);
 		else
@@ -302,10 +302,9 @@ class MusicPlayer extends FlxGroup
 
 	function setupPlayfield() {
 		playfield.fixMania();
-		var modMan = playfield.modManager;
 
-		modMan.playerAmount = 2;
-		for (i in 0...modMan.playerAmount)
+		playfield.modManager.playerAmount = 2;
+		for (i in 0...playfield.modManager.playerAmount)
 			playfield.newPlayfield();
 
 		playfield.playerField = playfield.playfields.members[0];
@@ -326,11 +325,11 @@ class MusicPlayer extends FlxGroup
 		PlayField.initExtras();
 
 		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
-			trace("HOW DID YOU MISS?????");
+			trace(' ??? '.info()+" : HOW DID YOU MISS?????".bold().underline().red());
 		}, playfield.playerField);
 
 		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
-			trace("HOW DID YOU MISS?????");
+			trace(' ??? '.info()+" : HOW DID YOU MISS?????".bold().underline().red());
 		}, playfield.dadField);
 
 		add(playfield.playfields);
@@ -342,9 +341,9 @@ class MusicPlayer extends FlxGroup
 		for (playfield in playfield.playfields.members)
 		{
 			if (playfield.isPlayer)
-				playfield.autoPlayed = cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || (archipelago.APItem.hasActiveItemNamed('Tutorial Trap') && _cachedSongName != 'tutorial');
+				playfield.autoPlayed = true;
 
-			playfield.noteField.songSpeed = songSpeed;
+			playfield.noteField.songSpeed = PlayfieldManager.SONG?.speed;
 		}
 
 		playfield.addInput();
