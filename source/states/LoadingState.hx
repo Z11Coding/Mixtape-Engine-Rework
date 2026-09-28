@@ -214,6 +214,8 @@ class LoadingState extends MusicBeatState
 
 		super.create();
 
+		FunkinMemory.purgeCache(true);
+
 		if (ClientPrefs.data.loadingState == 'Everything' || ClientPrefs.data.loadingState == 'Song Only') {
 			if (stateChangeDelay <= 0 && checkLoaded())
 			{

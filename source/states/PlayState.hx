@@ -2075,7 +2075,7 @@ class PlayState extends MusicBeatState
 		// trace size with verbose settings.
 		// trace(this.realSizeOf());
 		// Paths.nukeMemory(true); // LIGHTLY nuke everything
-		FunkinMemory.purgeCache(true);
+		//FunkinMemory.purgeCache(true);
 	}
 
 	// Some small stuff from PlusEngine

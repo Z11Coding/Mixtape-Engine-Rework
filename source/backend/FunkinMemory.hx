@@ -52,8 +52,15 @@ class FunkinMemory
       permanentCacheTexture(file);
     }
 
+    permanentCacheTexture(Paths.imagePath('rankings/NA'));
+    permanentCacheTexture(Paths.imagePath('albums/NoCover'));
+    permanentCacheTexture(Paths.imagePath('freeplay/difficultyStar'));
+    permanentCacheTexture(Paths.imagePath('freeplay/freeplayFlame'));
+    permanentCacheTexture(Paths.imagePath('alphabet'));
+    permanentCacheTexture(Paths.imagePath('alphabet_dark'));
     permanentCacheTexture(Paths.imagePath('healthBar'));
     permanentCacheTexture(Paths.imagePath('menuDesat'));
+    permanentCacheTexture(Paths.imagePath('menuDark'));
     permanentCacheTexture(Paths.imagePath('noteSkins/NOTE_assets', 'shared'));
     permanentCacheTexture(Paths.imagePath('noteSkins/strums', 'shared'));
     // dude
@@ -482,6 +489,37 @@ class FunkinMemory
       Assets.cache.clear(key);
     }
   }
+
+  /**
+   * Clears everything except sticker assets from memory.
+   */
+   public static inline function clearEverythingButStickers():Void
+    {
+      var keysToRemove:Array<String> = [];
+
+      @:privateAccess
+      for (key in FlxG.bitmap._cache.keys())
+      {
+        if (key.contains('stickers')) continue;
+        if (permanentCachedTextures.exists(key)) continue;
+
+        keysToRemove.push(key);
+      }
+
+      @:privateAccess
+      for (key in keysToRemove)
+      {
+        log('Cleaning asset $key');
+        var obj:Null<FlxGraphic> = FlxG.bitmap.get(key);
+        if (obj != null)
+        {
+          obj.destroy();
+        }
+        FlxG.bitmap.removeKey(key);
+        if (currentCachedTextures.exists(key)) currentCachedTextures.remove(key);
+        Assets.cache.clear(key);
+      }
+    }
 
   /**
    * Sends a trace with fancy ANSI colors.
