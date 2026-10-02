@@ -90,7 +90,7 @@ class TitleState extends MusicBeatState
 		// ticker.update(0);
 		trace(ticker.metadata());
 		//Paths.clearStoredWithoutStickers();
-		FunkinMemory.purgeCache();
+		//FunkinMemory.purgeCache();
 		super.create();
 		trace(this.metadata());
 		for (classthing in this.metadata().super_tree.toIterable())
