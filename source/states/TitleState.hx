@@ -359,7 +359,6 @@ class TitleState extends MusicBeatState
 
 	function startIntro()
 	{
-		FunkinMemory.initialCache();
 		persistentUpdate = true;
 		if (!initialized && FlxG.sound.music == null)
 			MusicManager.setMenuMusic(ClientPrefs.data.menuSong, null, 0, true);
