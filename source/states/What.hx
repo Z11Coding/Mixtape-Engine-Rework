@@ -28,7 +28,6 @@ class What extends MusicBeatState
 
     override public function create()
     {
-        FunkinMemory.initialCache();
         states.FirstCheckState.gameInitialized = true;
         // var titleStateCheckFunc = EventFunc.createEventFunc(
         //     "CheckForTitleState", // eventName

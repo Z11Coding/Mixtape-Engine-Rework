@@ -38,7 +38,6 @@ class SplashScreen extends MusicBeatState
     var isVideo:Bool = false;
     override public function create()
     {
-        FunkinMemory.initialCache();
         #if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Splash Screen", null);
