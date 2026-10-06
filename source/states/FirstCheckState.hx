@@ -190,6 +190,8 @@ class FirstCheckState extends MusicBeatState
 
 		super.create();
 
+		FunkinMemory.initialCache();
+
 		NativeFileSystem.openFlAssets = Assets.list();
 		openfl.utils.Assets.cache.enabled = false;
 
