@@ -10,6 +10,7 @@ import backend.modchart.Modifier;
 import backend.pslice.Scoring.ScoringRank;
 import backend.pslice.Scoring;
 import cutscenes.DialogueBoxPsych;
+import flash.media.Sound;
 import flixel.FlxBasic;
 import flixel.FlxObject;
 import flixel.FlxSubState;
@@ -13419,80 +13420,21 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 		else
 		{
 			// Standard audio loading logic
-			try
+			@:privateAccess vocals.cleanup(true);
+			@:privateAccess opponentVocals.cleanup(true);
+			if (songData.needsVoices)
 			{
-				if (songData.needsVoices)
+				try
 				{
-					var currentMod = "";
-					if (backend.WeekData.getCurrentWeek() != null)
-						currentMod = backend.WeekData.getCurrentWeek().folder; //istg this is somehow the root cause to all my problems ong
-					if (currentMod != null && currentMod != "")
-					{
-						var generalVocals = Paths.voices(songData.song);
-						if (generalVocals != null && generalVocals.length > 0)
-						{
-							vocals.loadEmbedded(generalVocals);
+					var playerVocals:Sound = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
+					vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(songData.song));
 
-							// Check for the other vocals as well
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-						else
-						{
-							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song, 'Player');
-							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song);
-							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-					}
-					else
-					{
-						var generalVocals = Paths.voices(songData.song);
-						if (generalVocals != null && generalVocals.length > 0)
-						{
-							vocals.loadEmbedded(generalVocals);
-
-							// Check for the other vocals as well
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-						else
-						{
-							var playerVocals = Paths.voices(songData.song, (boyfriend.vocalsFile == null || boyfriend.vocalsFile.length < 1) ? 'Player' : boyfriend.vocalsFile);
-							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song, 'Player');
-							if (playerVocals == null || playerVocals.length < 1) playerVocals = Paths.voices(songData.song);
-							vocals.loadEmbedded(playerVocals != null && playerVocals.length > 0 ? playerVocals : Paths.voices(songData.song));
-
-							var oppVocals = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
-							if (oppVocals == null || oppVocals.length < 1) oppVocals = Paths.voices(songData.song, 'Opponent');
-							if (oppVocals != null && oppVocals.length > 0) opponentVocals.loadEmbedded(oppVocals);
-
-							var gfVocal = Paths.voices(songData.song, (gf.vocalsFile == null || gf.vocalsFile.length < 1) ? 'GF' : gf.vocalsFile);
-							if (gfVocal == null || gfVocal.length < 1) gfVocal = Paths.voices(songData.song, 'GF');
-							if (gfVocal != null && gfVocal.length > 0) gfVocals.loadEmbedded(gfVocal);
-						}
-					}
+					var oppVocals:Sound = Paths.voices(songData.song, (dad.vocalsFile == null || dad.vocalsFile.length < 1) ? 'Opponent' : dad.vocalsFile);
+					if(oppVocals != null && oppVocals.length > 0)
+						opponentVocals.loadEmbedded(oppVocals);
 				}
+				catch (e:Dynamic) {trace("Vocals Broke.");}
 			}
-			catch (e:Dynamic) {trace("Vocals Broke.");}
 		}
 
 		#if FLX_PITCH
