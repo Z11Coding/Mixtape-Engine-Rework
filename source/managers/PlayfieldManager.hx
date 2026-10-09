@@ -16,16 +16,15 @@ import yutautil.modules.ASync;
 class PlayfieldManager {
   public static var instance:PlayfieldManager;
   public static var SONG:SwagSong = null;
-  public static var mania:Array<Int> = [3, 3];
-  public static var maniaCount:Int = 7;
 
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
   public static var curChart:Array<Note> = [];
-  public static var chartCache:Map<String, SongObject> = new Map<String, SongObject>();
 
   public var notes:FlxTypedGroup<Note>;
-	public var unspawnNotes:Array<Note> = [];
+	public var sustainNotes:FlxTypedGroup<Note>;
+	public var killNotes:Array<Note> = [];
+	public var unspawnNotes:Array<PreloadedChartNote> = [];
   public var eventNotes:Array<EventNote> = [];
 	public var curEvents:Array<EventNote> = [];
 
@@ -134,32 +133,27 @@ class PlayfieldManager {
   /// Mania
   public function fixMania() {
     convertMania = ClientPrefs.getGameplaySetting('convertMania', 3);
-    for (fMania in mania) {
-      if (fMania > Note.maxMania || fMania < Note.minMania)
-        fMania = Note.defaultMania;
-      else if (chartModifier == "4K Only")
-        fMania = 3;
-      else if (chartModifier == "ManiaConverter")
-        fMania = convertMania;
-      else if (SONG.mania != null)
-        if (SONG.startMania != null) // If its a mixtape chart, use this instead
-          fMania = SONG.startMania;
-        else if (SONG.mania >= 3) //Make sure it's even there
-          fMania = SONG.mania;
-        else {
-          fMania = switch (SONG.mania) { //Convert it to make sure the older versions still work
-            case 0: 3;
-            case 1: 4;
-            default: SONG.mania;
-          }
+    if (mania > Note.maxMania || mania < Note.minMania)
+      mania = Note.defaultMania;
+    else if (chartModifier == "4K Only")
+      mania = 3;
+    else if (chartModifier == "ManiaConverter")
+      mania = convertMania;
+    else if (SONG.mania != null)
+      if (SONG.startMania != null) // If its a mixtape chart, use this instead
+        mania = SONG.startMania;
+      else if (SONG.mania >= 3) //Make sure it's even there
+        mania = SONG.mania;
+      else {
+        mania = switch (SONG.mania) { //Convert it to make sure the older versions still work
+          case 0: 3;
+          case 1: 4;
+          default: SONG.mania;
         }
-      else fMania = 3;
-
-      maniaCount +=  fMania;
-
-      trace("Mania set: " + fMania);
-    }
-    maniaCount += 1;
+      }
+    else mania = 3;
+    maniaCount +=  mania;
+    trace("Mania set: " + mania);
   }
 
   public function changeMania(newValue:Int, field:PlayField = null, skipStrumFadeOut:Bool = false)
@@ -581,205 +575,281 @@ class PlayfieldManager {
 	}
 	//No im not kidding
 
+  public function addNotes() {
+    sustainNotes = new FlxTypedGroup<Note>();
+		PlayState.instance?.add(sustainNotes);
+
+		strumLineNotes = new FlxTypedGroup<StrumNote>();
+		PlayState.instance?.add(strumLineNotes);
+
+		notes = new FlxTypedGroup<Note>();
+		PlayState.instance?.add(notes);
+
+    strumLineNotes.cameras = [PlayState.instance?.camHUD];
+		sustainNotes.cameras = [PlayState.instance?.camHUD];
+		notes.cameras = [PlayState.instance?.camHUD];
+    grpNoteSplashes.cameras = [PlayState.instance?.camHUD];
+		grpHoldSplashes.cameras = [PlayState.instance?.camHUD];
+  }
+
+  public function setStrumAlpha() {
+    for (group in [notes, sustainNotes]) group.forEachAlive(function(note:Note) {
+      if(ClientPrefs.data.opponentStrums || !ClientPrefs.data.opponentStrums || ClientPrefs.data.middleScroll || !note.mustPress)
+      {
+        note.alpha *= 0.35;
+      }
+      if(ClientPrefs.data.opponentStrums || !ClientPrefs.data.opponentStrums || note.mustPress)
+      {
+        note.copyAlpha = false;
+        note.alpha = note.multAlpha;
+        if(ClientPrefs.data.middleScroll && !note.mustPress) {
+          note.alpha *= 0.35;
+        }
+      }
+    });
+  }
+
   // Chart Loading
   public function loadChart(songName:String, folder:String, ?preload:Bool = false, ?loadDirectly:Bool = false) {
-    if (fromChartState) songName+=" (temp)";
-    var tempSongObj:String = new SongObjectType(songName, folder).toString();
-    trace('Song Info: $tempSongObj\nCache: $chartCache\nDoes it exist?: ${chartCache.exists(tempSongObj)}');
-    this.songName = Paths.formatToSongPath(SONG.song).toLowerCase();
-    songSpeed = SONG?.speed;
-		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
-		switch(songSpeedType)
-		{
-			case "multiplicative":
-				songSpeed = SONG?.speed * ClientPrefs.getGameplaySetting('scrollspeed');
-			case "constant":
-				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
-		}
-    if (chartCache.exists(tempSongObj) && !loadDirectly) {
-      trace("USING CACHED CHART FOR: "+songName+"\nFROM MOD: "+folder);
-      allNotes = chartCache.get(tempSongObj).chart.copy();
-      for (i in 0...allNotes.length)
-      {
-        var note = Note.quickMakeNote(allNotes[i]);
-        if (allNotes[i-1] != null)
-          note.prevNote = Note.quickMakeNote(allNotes[i-1]);
+    final noteData:Array<SwagSection> = SONG.notes;
 
-        if (note.sustainLength > 0 && note.isParent)
-          note.holdType = HEAD;
-        else if (note.isSustainNote && note.istail)
-          note.holdType = END;
-        else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
-          note.holdType = PART;
-
-        if (playerField != null) {
-          if (note.mustPress) {
-            note.field = playerField;
-            updateNote(note);
-            for (tail in note.tail) {
-              tail.field = playerField;
-            }
-            playerField.noteQueue[note.noteData].push(note);
-          }
-        }
-
-        if (dadField != null) {
-          if (!note.mustPress) {
-            note.field = dadField;
-            updateNote(note);
-            for (tail in note.tail) {
-              tail.field = dadField;
-            }
-            dadField.noteQueue[note.noteData].push(note);
-          }
-        }
-
-        allNotes[i] = note;
-
-        var rowArray = noteRows[note.mustPress?0:1];
-        if(rowArray[note.row]==null)
-          rowArray[note.row]=[];
-        rowArray[note.row].push(note);
-      }
-
-      @:privateAccess
-      for (column in playerField.noteQueue) {
-        for (note in column)
-        {
-          // Sustain Fix
-          if (note.sustainLength > 0 && note.isParent)
-            note.holdType = HEAD;
-          else if (note.isSustainNote && note.istail)
-            note.holdType = END;
-          else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
-            note.holdType = PART;
-
-          for (tail in note.tail) {
-            switch (tail.holdType) {
-              case HEAD | TAP:
-                var animToPlay:String = '';
-                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData];
-                if (tail.hasAnimation(animToPlay))
-                  tail.animation.play(animToPlay);
-                else
-                {
-                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]];
-                  tail.animation.play(animToPlay + 'Scroll');
-                }
-              case END:
-                var animToPlay:String = '';
-                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' tail';
-                if (!tail.hasAnimation(animToPlay))
-                {
-                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'holdend';
-                }
-                tail.animation.play(animToPlay, true);
-              case PART:
-                var animToPlay2:String = '';
-                animToPlay2 = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' hold';
-                if (!tail.hasAnimation(animToPlay2))
-                {
-                  animToPlay2 = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'hold';
-                }
-                tail.animation.play(animToPlay2);
-
-            }
-          }
-        }
-        column.sort(PlayField.sortNotesAscend);
-      }
-
-      @:privateAccess
-      for (column in dadField.noteQueue) {
-        for (note in column)
-        {
-          // Sustain Fix
-          if (note.sustainLength > 0 && note.isParent)
-            note.holdType = HEAD;
-          else if (note.isSustainNote && note.istail)
-            note.holdType = END;
-          else if (note.isSustainNote && note.sustainLength > 0 && !note.isParent)
-            note.holdType = PART;
-
-          for (tail in note.tail) {
-            switch (tail.holdType) {
-              case HEAD | TAP:
-                var animToPlay:String = '';
-                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData];
-                if (tail.hasAnimation(animToPlay))
-                  tail.animation.play(animToPlay, true);
-                else
-                {
-                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]];
-                  tail.animation.play(animToPlay + 'Scroll', true);
-                }
-              case END:
-                var animToPlay:String = '';
-                animToPlay = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' tail';
-                if (!tail.hasAnimation(animToPlay))
-                {
-                  animToPlay = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'holdend';
-                }
-                tail.animation.play(animToPlay, true);
-              case PART:
-                var animToPlay2:String = '';
-                animToPlay2 = Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('letters')[tail.noteData] + ' hold';
-                if (!tail.hasAnimation(animToPlay2))
-                {
-                  animToPlay2 = Note.colArray[Note.keysShit.get(PlayfieldManager.mania[tail.field.modNumber]).get('colArray')[tail.noteData]] + 'hold';
-                }
-                tail.animation.play(animToPlay2, true);
-
-            }
-          }
-        }
-        column.sort(PlayField.sortNotesAscend);
-      }
-
-      unspawnNotes = curChart = allNotes;
-      noteTypes = chartCache.get(tempSongObj).noteTypes.copy();
-
-      try
-      {
-        var eventsChart:SwagSong = Song.getChart('events-${Difficulty.getString().toLowerCase()}', this.songName);
-        if(eventsChart != null)
-          for (event in eventsChart.events) //Event Notes
-            for (i in 0...event[1].length) {
-              makeEvent(event, i);
-            }
-      }
-      catch(e:Dynamic) {
-        trace('events-${Difficulty.getString().toLowerCase()} DOESN\'T EXSIST FOR SONG ${this.songName}!');
-      }
-
-      try
-      {
-        var eventsChart:SwagSong = Song.getChart('events', this.songName);
-        if(eventsChart != null)
-          for (event in eventsChart.events) //Event Notes
-            for (i in 0...event[1].length) {
-              makeEvent(event, i);
-            }
-      }
-      catch(e:Dynamic) {
-        trace('events DOESN\'T EXSIST FOR SONG ${this.songName}!');
-      }
-
-      try
-      {
-        for (event in SONG.events) //Event Notes
+    try
+    {
+      var eventsChart:SwagSong = Song.getChart('events-${Difficulty.getString().toLowerCase()}', this.songName);
+      if(eventsChart != null)
+        for (event in eventsChart.events) //Event Notes
           for (i in 0...event[1].length) {
             makeEvent(event, i);
           }
-      }
-      catch(e:Dynamic) {
-        trace('in-chart events DOESN\'T EXSIST FOR SONG ${this.songName}!');
-      }
-      fromChartState = false;
-    } else {
-      trace("Generate chart normally");
-      generateChart(SONG, preload);
     }
+    catch(e:Dynamic) {
+      trace('events-${Difficulty.getString().toLowerCase()} DOESN\'T EXSIST FOR SONG ${this.songName}!');
+    }
+
+    try
+    {
+      var eventsChart:SwagSong = Song.getChart('events', this.songName);
+      if(eventsChart != null)
+        for (event in eventsChart.events) //Event Notes
+          for (i in 0...event[1].length) {
+            makeEvent(event, i);
+          }
+    }
+    catch(e:Dynamic) {
+      trace('events DOESN\'T EXSIST FOR SONG ${this.songName}!');
+    }
+
+    try
+    {
+      for (event in SONG.events) //Event Notes
+        for (i in 0...event[1].length) {
+          makeEvent(event, i);
+        }
+    }
+    catch(e:Dynamic) {
+      trace('in-chart events DOESN\'T EXSIST FOR SONG ${this.songName}!');
+    }
+
+    final songName:String = Paths.formatToSongPath(SONG.song);
+    var currentBPMLol:Float = Conductor.bpm;
+		var stepCrochet:Float = 15000 / currentBPMLol;
+		var currentMultiplier:Float = 1;
+		var gottaHitNote:Bool = false;
+		var swagNote:PreloadedChartNote;
+		var ghostNotesCleared:Int = 0;
+		// TODO: Optimize and clean up this mess, maybe split into functions
+		// this is absolute spaghetti code
+		for (section in noteData) {
+			if (section.changeBPM) {
+				currentBPMLol = section.bpm;
+				stepCrochet = 15000 / currentBPMLol;
+			}
+
+			for (i in 0...section.sectionNotes.length)
+			{
+				final songNotes:Array<Dynamic> = section.sectionNotes[i];
+
+				if (songNotes[1] == -1)
+					continue;
+
+				if (songNotes[0] >= startingPoint + offsetStart) {
+					final daStrumTime:Float = songNotes[0];
+					var daNoteData:Int = 0;
+					if (!assignedFirstData && oneK)
+					{
+						firstNoteData = Std.int(songNotes[1] % (ExtraKeys.mania+1));
+						assignedFirstData = true;
+					}
+
+          if (!randomMode && !flip && !stairs && !waves)
+            daNoteData = Std.int(songNotes[1] % ExtraKeys.mania+1);
+
+					gottaHitNote = (songNotes[1] < ExtraKeys.mania+1) ? section.mustHitSection : !section.mustHitSection;
+
+					if (gottaHitNote && songNotes[3] != 'Hurt Note') {
+						totalNotes += 1;
+					}
+					if (!gottaHitNote) {
+						opponentNoteTotal += 1;
+					}
+
+					if (daStrumTime >= charChangeTimes[0])
+					{
+						switch (charChangeTypes[0])
+						{
+							case 0:
+								var boyfriendToGrab:Boyfriend = boyfriendMap.get(charChangeNames[0]);
+								if (boyfriendToGrab != null) bfNoteskin = boyfriendToGrab.noteskin;
+							case 1:
+								var dadToGrab:Character = dadMap.get(charChangeNames[0]);
+								if (dadToGrab != null) dadNoteskin = dadToGrab.noteskin;
+						}
+						charChangeTimes.shift();
+						charChangeNames.shift();
+						charChangeTypes.shift();
+					}
+
+					if (multiChangeEvents[0].length > 0 && daStrumTime >= multiChangeEvents[0][0])
+					{
+						currentMultiplier = multiChangeEvents[1][0];
+						multiChangeEvents[0].shift();
+						multiChangeEvents[1].shift();
+					}
+
+					swagNote = {
+						strumTime: daStrumTime,
+						noteData: daNoteData,
+						mustPress: gottaHitNote,
+						oppNote: !gottaHitNote,
+						noteType: songNotes[3],
+						animSuffix: (songNotes[3] == 'Alt Animation' || section.altAnim ? '-alt' : ''),
+						noteskin: (gottaHitNote ? bfNoteskin : dadNoteskin),
+						gfNote: songNotes[3] == 'GF Sing' || (section.gfSection && songNotes[1] < ExtraKeys.mania+1),
+						noAnimation: songNotes[3] == 'No Animation',
+						noMissAnimation: songNotes[3] == 'No Animation',
+						sustainLength: songNotes[2],
+						hitHealth: 0.023,
+						missHealth: songNotes[3] != 'Hurt Note' ? 0.0475 : 0.3,
+						wasHit: false,
+						hitCausesMiss: songNotes[3] == 'Hurt Note',
+						multSpeed: 1,
+						multAlpha: 1,
+						noteDensity: currentMultiplier,
+						ignoreNote: songNotes[3] == 'Hurt Note' && gottaHitNote
+					};
+
+          var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
+					if(!Std.isOfType(songNotes[3], String))
+            swagNote.noteType = noteType; //Backward compatibility + compatibility with Week 7 charts
+
+					if(Std.isOfType(songNotes[3], Bool))
+            swagNote.animSuffix = (songNotes[3] || section.altAnim ? '-alt' : ''); //Compatibility with charts made by SNIFF
+
+					if (!noteTypeMap.exists(swagNote.noteType)) {
+						noteTypeMap.set(swagNote.noteType, true);
+					}
+
+					unspawnNotes.push(swagNote);
+
+					if (jackingtime > 0) {
+						for (j in 0...Std.int(jackingtime)) {
+							final jackNote:PreloadedChartNote = {
+								strumTime: swagNote.strumTime + (15000 / SONG.bpm) * (j + 1),
+								noteData: swagNote.noteData,
+								mustPress: swagNote.mustPress,
+								oppNote: swagNote.oppNote,
+								noteType: swagNote.noteType,
+								animSuffix: (songNotes[3] == 'Alt Animation' || section.altAnim ? '-alt' : ''),
+								noteskin: (gottaHitNote ? bfNoteskin : dadNoteskin),
+								gfNote: swagNote.gfNote,
+								isSustainNote: false,
+								isSustainEnd: false,
+								parentST: 0,
+								hitHealth: swagNote.hitHealth,
+								missHealth: swagNote.missHealth,
+								wasHit: false,
+								multSpeed: 1,
+								multAlpha: 1,
+								noteDensity: currentMultiplier,
+								hitCausesMiss: swagNote.hitCausesMiss,
+								ignoreNote: swagNote.ignoreNote
+							};
+							unspawnNotes.push(jackNote);
+						}
+					}
+
+					if (swagNote.sustainLength < 1) continue;
+
+					final roundSus:Int = Math.round(swagNote.sustainLength / stepCrochet);
+					if (roundSus > 0) {
+						for (susNote in 0...roundSus + 1) {
+							final sustainNote:PreloadedChartNote = {
+								strumTime: daStrumTime + (stepCrochet * susNote),
+								noteData: daNoteData,
+								mustPress: gottaHitNote,
+								oppNote: !gottaHitNote,
+								noteType: songNotes[3],
+								animSuffix: (songNotes[3] == 'Alt Animation' || section.altAnim ? '-alt' : ''),
+								noteskin: (gottaHitNote ? bfNoteskin : dadNoteskin),
+								gfNote: songNotes[3] == 'GF Sing' || (section.gfSection && songNotes[1] < ExtraKeys.mania+1),
+								noAnimation: songNotes[3] == 'No Animation',
+								isSustainNote: true,
+								isSustainEnd: susNote == roundSus,
+								parentST: swagNote.strumTime,
+								parentSL: swagNote.sustainLength,
+								hitHealth: 0.023,
+								missHealth: songNotes[3] != 'Hurt Note' ? 0.0475 : 0.1,
+								wasHit: false,
+								multSpeed: 1,
+								multAlpha: 1,
+								noteDensity: currentMultiplier,
+								hitCausesMiss: songNotes[3] == 'Hurt Note',
+								ignoreNote: songNotes[3] == 'Hurt Note' && swagNote.mustPress
+							};
+							unspawnNotes.push(sustainNote);
+						}
+					}
+				} else {
+					final gottaHitNote:Bool = ((songNotes[1] < ExtraKeys.mania+1)
+						|| (songNotes[1] > 3 && opponentChart) ? section.mustHitSection : !section.mustHitSection);
+					if (gottaHitNote && songNotes[3] != 'Hurt Note') {
+						totalNotes += 1;
+						combo += 1;
+						totalNotesPlayed += 1;
+					}
+					if (!gottaHitNote) {
+						opponentNoteTotal += 1;
+						enemyHits += 1;
+					}
+				}
+			}
+			sectionsLoaded += 1;
+			notesLoadedRN += section.sectionNotes.length;
+		}
+
+		if (ClientPrefs.noteColorStyle == 'Char-Based')
+		{
+			for (group in [notes, sustainNotes])
+				for (note in group){
+					if (note == null || !note.alive)
+						continue;
+					if (ClientPrefs.data.enableColorShader) note.updateRGBColors();
+				}
+		}
+		// trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCleared');
+		unspawnNotes.sort(sortByTime);
+		eventNotes.sort(sortByTime);
+		generatedMusic = true;
+
+		sectionsLoaded = 0;
+
+		final endTime = haxe.Timer.stamp();
+
+		System.gc();
+
+		final elapsedTime = endTime - startTime;
+
+		notesLoadedRN = 0;
     trace("Chart Generated");
   }
 
@@ -817,9 +887,6 @@ class PlayfieldManager {
 
     Conductor.bpm = songData.bpm;
 		curSong = songData.song;
-		notes = new FlxTypedGroup<Note>();
-		if (!preload && MusicBeatState.getState() == PlayState.instance)
-      PlayState.instance?.noteGroup.add(notes);
 		curChart = [];
 
     try
