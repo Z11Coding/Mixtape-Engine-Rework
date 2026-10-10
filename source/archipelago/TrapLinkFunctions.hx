@@ -3,8 +3,8 @@ package archipelago;
 import archipelago.HighQualityTrapManager;
 import archipelago.substates.UnownSubState;
 import flixel.input.keyboard.FlxKey;
-import objects.Note;
 import objects.charting.ChartingStrumNote as StrumNote;
+import objects.notes.Note;
 import openfl.events.KeyboardEvent;
 
 class TrapLinkFunctions {

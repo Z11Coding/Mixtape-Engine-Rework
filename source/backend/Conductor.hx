@@ -3,7 +3,7 @@ package backend;
 // Mostly not used anymore. Kept for chart generation
 
 import backend.Song;
-import objects.Note;
+import objects.notes.Note;
 
 typedef BPMChangeEvent =
 {

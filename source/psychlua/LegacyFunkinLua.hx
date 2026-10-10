@@ -28,8 +28,6 @@ import flixel.util.FlxColor;
 import flixel.util.FlxSave;
 import flixel.util.FlxTimer;
 import objects.Character;
-import objects.Note;
-import objects.StrumNote;
 import openfl.Lib;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;

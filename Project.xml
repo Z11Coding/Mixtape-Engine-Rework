@@ -342,18 +342,6 @@
 	<!-- Force C99 standard for macOS/iOS to fix zlib compilation with Xcode 16.4 -->
 	<haxedef name="HXCPP_CFLAGS" value="-std=c99 -Wno-error=deprecated-non-prototype -Wno-deprecated-declarations -Wno-unused-command-line-argument -Wno-macro-redefined" if="macos || ios" />
 
-	<!-- ____________________________ PlusEngine/FunkinModchart Stuff _______________________________ -->
-
-    <section if="MODCHARTS_NOTITG_ALLOWED">
-		<haxedef name="FM_ENGINE" value="PSYCH"/>
-    <haxedef name="FM_ENGINE_VERSION" value="1.0"/>
-    <haxeflag name="--macro" value="backend.funkinmodchart.backend.macros.Macro.includeFiles()"/>
-		<haxeflag name="source/extraParams.hxml" unless="ios"/>
-		<haxeflag name="--macro" value="addMetadata('@:build(backend.funkinmodchart.backend.macros.Macro.buildFlxCamera())', 'flixel.FlxCamera')" if="ios"/>
-		<haxeflag name="--macro" value="addMetadata('@:build(backend.funkinmodchart.backend.macros.Macro.buildFlxDrawTrianglesItem())', 'flixel.graphics.tile.FlxDrawTrianglesItem')" if="ios"/>
-		<haxeflag name="--macro" value="addMetadata('@:build(backend.funkinmodchart.backend.macros.Macro.addModchartStorage())', 'flixel.FlxBasic')" if="ios"/>
-	</section>
-
 	<!-- _________________________________ Custom _______________________________ -->
 
 	<!-- Build-time type collection system using global metadata -->

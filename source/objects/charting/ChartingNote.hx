@@ -3,9 +3,9 @@ package objects.charting;
 import backend.NoteTypesConfig;
 import backend.animation.PsychAnimationController;
 import flixel.math.FlxRect;
-import objects.Note.EventNote;
-import objects.Note.NoteSplashData;
-import objects.StrumNote;
+import objects.notes.EventNote;
+import objects.notes.Note.NoteSplashData;
+import objects.notes.StrumNote;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;
 

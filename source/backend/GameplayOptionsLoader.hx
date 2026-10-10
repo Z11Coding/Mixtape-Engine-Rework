@@ -13,7 +13,6 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import objects.AttachedSprite;
 import objects.CheckboxThingie;
-import objects.Note;
 import options.GameplayChangersSubstate.GameplayOption;
 import options.Option.OptionType;
 import psychlua.LegacyFunkinLua;

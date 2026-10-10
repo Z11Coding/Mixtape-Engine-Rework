@@ -11,7 +11,6 @@ import openfl.utils.Assets;
 import stages.objects.TankmenBG;
 
 #if LUA_ALLOWED
-import backend.funkinmodchart.Manager;
 import psychlua.*;
 
 using psychlua.IntegratedScript;

@@ -5,7 +5,7 @@ import flixel.FlxG;
 import haxe.Json;
 import lime.utils.Assets;
 import managers.DynamicSongManager;
-import objects.Note;
+import objects.notes.Note;
 #if ARCHIPELAGO_ALLOWED
 import archipelago.HighQualityTrapManager;
 #end

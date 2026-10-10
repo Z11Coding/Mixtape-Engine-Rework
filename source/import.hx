@@ -53,8 +53,6 @@ import backend.Rating;
 import backend.Song;
 import backend.TransitionState;
 import backend.WeekData;
-import backend.modchart.ModManager;
-import backend.modchart.Modifier;
 import backend.pslice.FreeplayThings;
 import backend.pslice.ScaleMode as MobileScaleMode; // too lazy + its 3 in the morning lol
 import backend.pslice.Scoring.ScoringRank;
@@ -82,6 +80,7 @@ import flixel.group.FlxSpriteGroup;
 import flixel.input.keyboard.FlxKey;
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
 import flixel.sound.FlxSound;
 import flixel.sound.filters.*;
 import flixel.sound.filters.effects.*;
@@ -102,7 +101,6 @@ import lime.utils.Assets;
 import managers.*;
 import managers.DynamicSongManager;
 import managers.DynamicSongScripting;
-import managers.NotePoolManager;
 import mechanics.*;
 import metadata.STMetaFile.MetadataFile;
 import objects.*;
@@ -110,12 +108,12 @@ import objects.Alphabet;
 import objects.AudioDisplay;
 import objects.BGSprite;
 import objects.FunkinSprite;
-import objects.Note.EventNote;
-import objects.Note.SustainPart;
-import objects.NoteObject;
 import objects.SyncedVideoSprite;
 import objects.VideoSprite;
-import objects.playfields.*;
+import objects.notes.EventNote;
+import objects.notes.Note;
+import objects.notes.PreloadNotes;
+import objects.notes.StrumNote;
 import openfl.display.StageQuality;
 import openfl.events.KeyboardEvent;
 import openfl.events.MouseEvent;
@@ -185,7 +183,6 @@ import sys.thread.Mutex;
 #end
 
 #if LUA_ALLOWED
-import backend.funkinmodchart.Manager;
 import psychlua.*;
 
 using psychlua.IntegratedScript;

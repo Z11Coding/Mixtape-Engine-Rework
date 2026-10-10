@@ -30,3 +30,4 @@ build.txt
 source/yutautil/typeregistry/TypeCollectionAccessor.hx
 build.txt
 source/yutautil/typeregistry/TypeCollectionAccessor.hx
+*.asd

@@ -6,7 +6,6 @@ import archipelago.APEntryState;
 import backend.GameplayOptionsLoader;
 import objects.AttachedText;
 import objects.CheckboxThingie;
-import objects.Note;
 import options.Option.OptionType;
 
 class GameplayChangersSubstate extends MusicBeatSubstate

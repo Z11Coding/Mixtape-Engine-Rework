@@ -1,6 +1,6 @@
 package objects.notes;
 
-@:structInit class PreloadNotes =
+@:structInit class PreloadNotes
 {
   public var strumTime:Float = 0;
   public var noteData:Int = 0;
@@ -28,6 +28,7 @@ package objects.notes;
 	public var ignoreNote:Bool = false;
 	public var blockHit:Bool = false;
 	public var lowPriority:Bool = false;
+	public var row:Int = 0;
 	@:optional public var rgbShader:RGBData;
 
 	public function dispose() {

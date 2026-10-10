@@ -1,12 +1,12 @@
 package yutautil;
 
-import games.uno.backend.UnoCard;
-import games.uno.backend.UnoDeck;
-import games.uno.backend.UnoCard.UnoColor;
-import games.uno.backend.UnoCard.UnoCardType;
-import objects.Note;
 import flixel.FlxG;
 import flixel.math.FlxMath;
+import games.uno.backend.UnoCard.UnoCardType;
+import games.uno.backend.UnoCard.UnoColor;
+import games.uno.backend.UnoCard;
+import games.uno.backend.UnoDeck;
+import objects.notes.Note;
 
 /**
  * Handles UNO mechanics for individual notes in chart generation
@@ -20,7 +20,7 @@ class UnoMechanic {
     public var wildIndex:Int = 0;
     public var currentColor:UnoColor; // Track current color for display
     public var colorChangeCallback:Int->Void; // Callback to update UI
-    
+
     public function new() {
         deck = new UnoDeck();
         currentCard = null;
@@ -30,7 +30,7 @@ class UnoMechanic {
         colorChangeCallback = null;
         generateWildColors();
     }
-    
+
     /**
      * Pre-calculate wild card colors to maintain note compatibility
      */
@@ -40,7 +40,7 @@ class UnoMechanic {
             preCalculatedWildColors.push(colors[FlxG.random.int(0, colors.length - 1)]);
         }
     }
-    
+
     /**
      * Process a note and assign UNO card properties
      * @param note The note to process
@@ -52,10 +52,10 @@ class UnoMechanic {
         if (note.extraData == null) {
             note.extraData = new Map<String, Dynamic>();
         }
-        
+
         // Generate a card for this note (both player and opponent)
         var card = generateCardForNote(strumTime, mania);
-        
+
         // Store card data in note's extra data
         note.extraData.set("unoColor", getColorName(card.color));
         note.extraData.set("unoType", getTypeName(card.type));
@@ -65,27 +65,27 @@ class UnoMechanic {
         note.extraData.set("isSkipCard", false);
         note.extraData.set("isPlusCard", false);
         note.extraData.set("plusCardCount", 0);
-        
+
         // Update visual appearance
         updateNoteAppearance(note, card);
-        
+
         // Update current color and notify UI
         updateCurrentColor(card.color);
-        
+
         lastPlayedCard = card;
     }
-    
+
     /**
      * Generate additional notes for special UNO mechanics
      */
     public function generateSpecialNotes(baseNote:Note, mania:Int, allNotes:Array<Note>):Array<Note> {
         var specialNotes:Array<Note> = [];
-        
+
         if (baseNote.extraData == null) return specialNotes;
-        
+
         var card:UnoCard = cast baseNote.extraData.get("unoCard");
         if (card == null) return specialNotes;
-        
+
         // Only generate bad notes (skip, wrong) for player notes
         if (baseNote.mustPress) {
             // Generate skip notes (bad notes to avoid)
@@ -93,14 +93,14 @@ class UnoMechanic {
                 var skipNote = createSpecialNote(baseNote, mania, "skip");
                 if (skipNote != null) specialNotes.push(skipNote);
             }
-            
+
             // Generate wrong color notes (bad notes)
             if (FlxG.random.float(0, 1) < 0.1) { // 10% chance
                 var wrongNote = createWrongColorNote(baseNote, mania);
                 if (wrongNote != null) specialNotes.push(wrongNote);
             }
         }
-        
+
         // Handle +2 and Wild +4 cards (for both player and opponent)
         switch (card.type) {
             case DRAW_TWO:
@@ -112,16 +112,16 @@ class UnoMechanic {
             default:
                 // Regular cards don't generate extra notes
         }
-        
+
         return specialNotes;
     }
-    
+
     /**
      * Update the current color and notify the UI
      */
     private function updateCurrentColor(newColor:UnoColor):Void {
         currentColor = newColor;
-        
+
         if (colorChangeCallback != null) {
             var colorInt = switch(newColor) {
                 case RED: 0xFFFF0000;
@@ -134,24 +134,24 @@ class UnoMechanic {
             colorChangeCallback(colorInt);
         }
     }
-    
+
     /**
      * Set the callback for when color changes
      */
     public function setColorChangeCallback(callback:Int->Void):Void {
         colorChangeCallback = callback;
     }
-    
+
     /**
      * Generate a UNO card for a specific note
      */
     private function generateCardForNote(strumTime:Float, mania:Int):UnoCard {
         var colors = [UnoColor.RED, UnoColor.BLUE, UnoColor.GREEN, UnoColor.YELLOW];
         var currentColor = lastPlayedCard != null ? lastPlayedCard.color : colors[FlxG.random.int(0, colors.length - 1)];
-        
+
         // Determine card type weights (numbered cards more likely)
         var typeRoll = FlxG.random.float(0, 1);
-        
+
         if (typeRoll < 0.7) { // 70% chance for number cards
             var value = FlxG.random.int(0, 9);
             return new UnoCard(currentColor, NUMBER, value);
@@ -169,20 +169,20 @@ class UnoMechanic {
             return new UnoCard(wildColor, wildType);
         }
     }
-    
+
     /**
      * Create a special note (skip, wrong, etc.)
      */
     private function createSpecialNote(baseNote:Note, mania:Int, type:String):Note {
-        var specialNote = new Note(baseNote.strumTime + FlxG.random.float(50, 200), 
-                                  getAlternateColumn(baseNote.noteData, mania), 
+        var specialNote = new Note(baseNote.strumTime + FlxG.random.float(50, 200),
+                                  getAlternateColumn(baseNote.noteData, mania),
                                   null, false);
         specialNote.mustPress = true;
-        
+
         if (specialNote.extraData == null) {
             specialNote.extraData = new Map<String, Dynamic>();
         }
-        
+
         switch (type) {
             case "skip":
                 specialNote.extraData.set("unoType", "Skip");
@@ -194,58 +194,58 @@ class UnoMechanic {
             default:
                 // Handle other special types
         }
-        
+
         return specialNote;
     }
-    
+
     /**
      * Create a wrong color note
      */
     private function createWrongColorNote(baseNote:Note, mania:Int):Note {
-        var wrongNote = new Note(baseNote.strumTime + FlxG.random.float(25, 150), 
-                                getAlternateColumn(baseNote.noteData, mania), 
+        var wrongNote = new Note(baseNote.strumTime + FlxG.random.float(25, 150),
+                                getAlternateColumn(baseNote.noteData, mania),
                                 null, false);
         wrongNote.mustPress = true;
-        
+
         if (wrongNote.extraData == null) {
             wrongNote.extraData = new Map<String, Dynamic>();
         }
-        
+
         // Generate incompatible card
         var wrongColors = [UnoColor.RED, UnoColor.BLUE, UnoColor.GREEN, UnoColor.YELLOW];
         if (lastPlayedCard != null && lastPlayedCard.color != WILD) {
             wrongColors.remove(lastPlayedCard.color);
         }
-        
+
         var wrongColor = wrongColors[FlxG.random.int(0, wrongColors.length - 1)];
         var wrongCard = new UnoCard(wrongColor, NUMBER, FlxG.random.int(0, 9));
-        
+
         wrongNote.extraData.set("unoColor", getColorName(wrongCard.color));
         wrongNote.extraData.set("unoType", getTypeName(wrongCard.type));
         wrongNote.extraData.set("unoValue", wrongCard.value);
         wrongNote.extraData.set("unoCard", wrongCard);
         wrongNote.extraData.set("isWrongCard", true);
         wrongNote.ignoreNote = true;
-        
+
         updateNoteAppearance(wrongNote, wrongCard);
-        
+
         return wrongNote;
     }
-    
+
     /**
      * Create +2 or +4 additional notes
      */
     private function createPlusNotes(baseNote:Note, mania:Int, count:Int):Array<Note> {
         var plusNotes:Array<Note> = [];
         var usedColumns:Array<Int> = [baseNote.noteData];
-        
+
         // Mark original note as plus card
         baseNote.extraData.set("isPlusCard", true);
         baseNote.extraData.set("plusCardCount", count);
-        
+
         var card:UnoCard = cast baseNote.extraData.get("unoCard");
         var newColor = (card.type == WILD_DRAW_FOUR) ? getNextWildColor() : card.color;
-        
+
         for (i in 0...count-1) { // -1 because original note is one of them
             var availableColumns:Array<Int> = [];
             for (col in 0...mania) {
@@ -253,40 +253,40 @@ class UnoMechanic {
                     availableColumns.push(col);
                 }
             }
-            
+
             if (availableColumns.length == 0) break;
-            
+
             var newColumn = availableColumns[FlxG.random.int(0, availableColumns.length - 1)];
             usedColumns.push(newColumn);
-            
+
             var plusNote = new Note(baseNote.strumTime, newColumn, null, false);
             plusNote.mustPress = baseNote.mustPress; // Use same mustPress as base note
-            
+
             if (plusNote.extraData == null) {
                 plusNote.extraData = new Map<String, Dynamic>();
             }
-            
+
             // Create compatible card for plus note
             var compatibleCard = new UnoCard(newColor, NUMBER, FlxG.random.int(0, 9));
-            
+
             plusNote.extraData.set("unoColor", getColorName(compatibleCard.color));
             plusNote.extraData.set("unoType", getTypeName(compatibleCard.type));
             plusNote.extraData.set("unoValue", compatibleCard.value);
             plusNote.extraData.set("unoCard", compatibleCard);
             plusNote.extraData.set("isPlusCard", true);
             plusNote.extraData.set("isSecondaryPlusCard", true);
-            
+
             // Add tween data for visual effect
             plusNote.extraData.set("originalX", baseNote.x);
             plusNote.extraData.set("targetColumn", newColumn);
-            
+
             updateNoteAppearance(plusNote, compatibleCard);
             plusNotes.push(plusNote);
         }
-        
+
         return plusNotes;
     }
-    
+
     /**
      * Get an alternate column for special notes
      */
@@ -297,7 +297,7 @@ class UnoMechanic {
         } while (newColumn == originalColumn && mania > 1);
         return newColumn;
     }
-    
+
     /**
      * Get the next pre-calculated wild color
      */
@@ -308,7 +308,7 @@ class UnoMechanic {
         }
         return preCalculatedWildColors[wildIndex++];
     }
-    
+
     /**
      * Update note's visual appearance based on UNO card
      */
@@ -316,26 +316,26 @@ class UnoMechanic {
         // Store visual info for rendering
         note.extraData.set("unoDisplayText", getCardDisplayText(card));
         note.extraData.set("unoColorHex", card.getFlxColor());
-        
+
         // Set the note's RGB red channel to match the card color
         if (note.rgbShader != null) {
             note.rgbShader.r = card.getFlxColor();
         }
     }
-    
+
     /**
      * Update note appearance specifically for skip cards
      */
     private function updateNoteAppearanceForSkip(note:Note):Void {
         note.extraData.set("unoDisplayText", "SKIP"); // Text fallback, but will be drawn as icon
         note.extraData.set("unoColorHex", 0xFF888888);
-        
+
         // Set note's RGB to gray for skip cards
         if (note.rgbShader != null) {
             note.rgbShader.r = 0xFF888888;
         }
     }
-    
+
     /**
      * Get display text for a card
      */
@@ -350,7 +350,7 @@ class UnoMechanic {
             default: "?";
         }
     }
-    
+
     /**
      * Get color name as string
      */
@@ -364,7 +364,7 @@ class UnoMechanic {
             case CUSTOM(_, name): name != null ? name : "Custom";
         }
     }
-    
+
     /**
      * Get type name as string
      */
@@ -379,7 +379,7 @@ class UnoMechanic {
             case CUSTOM(name, _, _, _): name;
         }
     }
-    
+
     /**
      * Check if two cards are compatible
      */
@@ -387,7 +387,7 @@ class UnoMechanic {
         if (card1 == null || card2 == null) return false;
         return card2.canPlayOn(card1);
     }
-    
+
     /**
      * Validate if a played card is correct
      */

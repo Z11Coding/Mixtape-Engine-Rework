@@ -2,11 +2,6 @@ package objects.notes;
 
 class ExtraKeys {
   // Start of Extra Keys
-	public static final gfxLetter:Array<String> = [
-		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
-		'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'
-	];
-
 	//EK Data
 	public static final ammo:Array<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 	public static final scales:Array<Float> = [0.9, 0.85, 0.8, 0.7, 0.66, 0.6, 0.55, 0.50, 0.46, 0.39, 0.36, 0.32, 0.31, 0.31, 0.3, 0.26, 0.26, 0.22];

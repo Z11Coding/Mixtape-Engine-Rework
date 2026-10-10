@@ -10,9 +10,8 @@ import flixel.util.FlxDestroyUtil;
 import managers.FreeplayManager;
 import objects.*;
 import objects.Character;
-import objects.Note;
 import objects.VideoSprite;
-import objects.playfields.PlayField;
+import objects.notes.Note;
 import openfl.filters.BitmapFilter;
 import openfl.filters.BlurFilter;
 import openfl.filters.ColorMatrixFilter;
@@ -2641,8 +2640,8 @@ class APPlayState extends PlayState {
         super.update(elapsed);
     }
 
-    override function opponentNoteHit(note:Note, field:PlayField):Void {
-        super.opponentNoteHit(note, field);
+    override function opponentNoteHit(note:Note):Void {
+        super.opponentNoteHit(note);
 
         if (releasethebeast) {
             if (FlxG.sound.music.time > (FlxG.sound.music.length/2))

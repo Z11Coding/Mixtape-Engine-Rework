@@ -1,16 +1,16 @@
 package archipelago;
 
-import objects.Note;
+import objects.notes.Note;
 
 /**
  * Simple marker class for Archipelago check notes.
  * Texture loading and animations are handled in the replaceNotes function.
  */
-class APNote extends objects.Note {
+class APNote extends Note {
     public var APItemLocation:Null<Int> = null;
 
-    public function new(note:objects.Note, location:Int) {
-        super(note.strumTime, note.noteData, note.prevNote, note.isSustainNote);
+    public function new(note:Note, location:Int) {
+        super(note.strumTime, note.noteData);
         this.ignoreNote = note.ignoreNote;
         this.noteType = note.noteType;
         this.isCheck = true;
@@ -19,7 +19,7 @@ class APNote extends objects.Note {
     }
 
     // Replace notes with a certain amount of locations.
-    public static function replaceNotes(notes:Array<objects.Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) { // This needs to stay, since this will be useful for regular engines.
+    public static function replaceNotes(notes:Array<Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) { // This needs to stay, since this will be useful for regular engines.
         var newNotes:Array<APNote> = [];
         var randomIndices:Array<Int> = [];
         var isAprilFools:Bool = yutautil.AprilFools.allowAF;
@@ -44,7 +44,7 @@ class APNote extends objects.Note {
         }
 
         for (i in 0...randomIndices.length) {
-            var note:objects.Note = notes[randomIndices[i]];
+            var note:Note = notes[randomIndices[i]];
             var location:Int = locations[i % locations.length];
             var apNote = new APNote(note, location); // Create a new APNote with the location
             // apNote.noteIndex = note.noteIndex;
@@ -63,9 +63,9 @@ class APNote extends objects.Note {
         return newNotes; // Return the new notes
     }
 
-    public static function replaceInQueue(notes:Array<Array<objects.Note>>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
+    public static function replaceInQueue(notes:Array<Array<Note>>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
         var newNotes:Array<APNote> = [];
-        var flatNotes:Array<{lane:Int, index:Int, note:objects.Note}> = [];
+        var flatNotes:Array<{lane:Int, index:Int, note:Note}> = [];
         var isAprilFools:Bool = yutautil.AprilFools.allowAF;
 
         // Flatten the notes array into a single array with lane and index information
@@ -271,7 +271,7 @@ class APNote extends objects.Note {
     /**
      * Setup animations for default AP notes
      */
-    private static function setupAPNoteAnimations(note:objects.Note):Void
+    private static function setupAPNoteAnimations(note:Note):Void
     {
         try
         {
@@ -322,7 +322,7 @@ class APNote extends objects.Note {
     /**
      * Setup item texture display (item sprites are static, no XML animations)
      */
-    private static function setupItemTextureAnimations(note:objects.Note):Void
+    private static function setupItemTextureAnimations(note:Note):Void
     {
         // Item sprites don't have XML animation definitions, so we just display them statically
         // The sprite will show as-is without animation

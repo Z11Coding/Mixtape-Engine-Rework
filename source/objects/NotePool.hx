@@ -4,9 +4,8 @@ import backend.ClientPrefs;
 import flixel.FlxBasic;
 import flixel.group.FlxGroup;
 import flixel.util.FlxDestroyUtil;
-import objects.Note;
-import objects.StrumNote;
-import objects.playfields.PlayField;
+import objects.notes.Note;
+import objects.notes.StrumNote;
 import shaders.RGBPalette.RGBShaderReference;
 
 /**

@@ -1,8 +1,8 @@
 package states.editors.content;
 
 import flixel.util.FlxDestroyUtil;
-import objects.Note;
 import objects.charting.ChartingNote;
+import objects.notes.Note;
 import shaders.RGBPalette;
 
 class MetaNote extends ChartingNote

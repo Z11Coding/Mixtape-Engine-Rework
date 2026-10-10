@@ -197,6 +197,7 @@ class PlayState extends MusicBeatState
 	public var SONG(get, never):SwagSong;
 	public var mania(get, never):Array<Int>;
 	public var notes(get, set):FlxTypedGroup<Note>;
+	public var sustainNotes(get, set):FlxTypedGroup<Note>;
 	public var unspawnNotes(get, set):Array<Note>;
 	public var eventNotes(get, set):Array<EventNote>;
 	public var curEvents(get, set):Array<EventNote>;
@@ -205,15 +206,6 @@ class PlayState extends MusicBeatState
 	public var opponentStrums(get, set):FlxTypedGroup<StrumNote>;
 	public var playerStrums(get, set):FlxTypedGroup<StrumNote>;
 	public var grpNoteSplashes(get, set):FlxTypedGroup<NoteSplash>;
-
-	public var modManager(get, never):ModManager;
-	public var notefields(get, never):NotefieldRenderer;
-	public var playfields(get, never):FlxTypedGroup<PlayField>;
-	public var allNotes(get, default):Array<Note>; // all notes
-	public var playerField(get, set):PlayField;
-	public var dadField(get, set):PlayField;
-
-	public var fmManager(get, set):Manager;
 
 	public var cpuControlled(get, set):Bool;
 	public var curSong(get, set):String;
@@ -240,6 +232,13 @@ class PlayState extends MusicBeatState
 	private function set_notes(value:FlxTypedGroup<Note>):FlxTypedGroup<Note> {
 		playfield.notes = value;
 		return playfield.notes;
+	}
+	private function get_sustainNotes():FlxTypedGroup<Note> {
+		return playfield.sustainNotes;
+	}
+	private function set_sustainNotes(value:FlxTypedGroup<Note>):FlxTypedGroup<Note> {
+		playfield.sustainNotes = value;
+		return playfield.sustainNotes;
 	}
 	private function get_unspawnNotes():Array<Note> {
 		return playfield.unspawnNotes;
@@ -350,41 +349,6 @@ class PlayState extends MusicBeatState
 	}
 	private function set_RandomSpeedChangeWild(value:Bool):Bool {
 		return playfield.RandomSpeedChangeWild = value;
-	}
-
-	private function get_modManager():ModManager {
-		return playfield.modManager;
-	}
-	private function get_notefields():NotefieldRenderer {
-		return playfield.notefields;
-	}
-	private function get_playfields():FlxTypedGroup<PlayField> {
-		return playfield.playfields;
-	}
-	private function get_allNotes():Array<Note> {
-		return playfield.allNotes;
-	}
-	private function get_playerField():PlayField {
-		return playfield.playerField;
-	}
-	private function set_playerField(value:PlayField):PlayField {
-		playfield.playerField = value;
-		return value;
-	}
-	private function get_dadField():PlayField {
-		return playfield.dadField;
-	}
-	private function set_dadField(value:PlayField):PlayField {
-		playfield.dadField = value;
-		return value;
-	}
-
-	private function get_fmManager():Manager {
-		return playfield.fmManager;
-	}
-	private function set_fmManager(value:Manager):Manager {
-		playfield.fmManager = value;
-		return value;
 	}
 
 	//Script Stuff
@@ -1509,7 +1473,7 @@ class PlayState extends MusicBeatState
 		uiGroup.add(timeBar);
 		uiGroup.add(timeTxt);
 
-		//noteGroup.add(strumLineNotes);
+		noteGroup.add(strumLineNotes);
 
 		// Generate playfields so you can actually, well, play the game
 		trace("Setting Up Playfields!");
@@ -1518,64 +1482,13 @@ class PlayState extends MusicBeatState
 		// TODO: add deprecation messages to function callbacks somehow
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
-		playfields.cameras = [camHUD];
-
-		//trace("Making New Playfields!");
-		modManager.playerAmount = 2;
-		for (i in 0...modManager.playerAmount)
-			playfield.newPlayfield();
-
-		//trace("Making PlayerField!");
-		playerField = playfields.members[0];
-		if (playerField != null) {
-			playerField.noteField.isEditor = false;
-			playerField.isPlayer = !opponentmode && !playAsGF || bothMode;
-			playerField.autoPlayed = !playerField.isPlayer || opponentmode || cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || playAsGF;
-			playerField.noteHitCallback.add(goodNoteHit);
-			playerField.owner = boyfriend;
-			playerField.owners = [];
-		}
-
-		//trace("Making DadField!");
-		dadField = playfields.members[1];
-		if (dadField != null) {
-			dadField.noteField.isEditor = false;
-			dadField.isPlayer = opponentmode && !playAsGF || bothMode;
-			dadField.autoPlayed = !dadField.isPlayer || (!opponentmode || (opponentmode && cpuControlled) || (opponentmode && ClientPrefs.getGameplaySetting('showcase', false)) || playAsGF) || (bothMode && cpuControlled) || (bothMode && ClientPrefs.getGameplaySetting('showcase', false));
-			dadField.AIPlayer = mixupMode;
-			dadField.noteHitCallback.add(opponentNoteHit);
-			dadField.owner = dad;
-			dadField.owners = [];
-		}
-
-		PlayField.initExtras();
-
-		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
-			if (MusicBeatState.getState() == PlayState.instance) {
-        if (!field.autoPlayed && !daNote.ignoreNote && !PlayState.instance?.endingSong && (daNote.tooLate || !daNote.wasGoodHit))
-          PlayState.instance?.noteMiss(daNote, field);
-      }
-		}, playerField);
-
-		playfield.addNoteMissCalbackToField((daNote:Note, field:PlayField) -> {
-			if (MusicBeatState.getState() == PlayState.instance) {
-        if (!field.autoPlayed && !daNote.ignoreNote && !PlayState.instance?.endingSong && (daNote.tooLate || !daNote.wasGoodHit))
-          PlayState.instance?.noteMiss(daNote, field);
-      }
-		}, dadField);
-
+		playfield.addNotes();
 		playfield.manualInputChecks = true;
 
 		#if ALLOW_DEPRECATION
 		callOnScripts("postPlayfieldCreation"); // backwards compat
 		#end
 		callOnScripts("onPlayfieldCreationPost");
-
-		//trace("Adding Playfields!");
-		add(playfields);
-		add(notefields);
-		add(PlayField.extraStuff);
-		//trace("Playfields Created!");
 
 		trace("Playfields Loaded!");
 		////
@@ -3221,8 +3134,6 @@ class PlayState extends MusicBeatState
 			seenCutscene = true;
 			inCutscene = false;
 
-			if (skipCountdown || startOnTime > 0) playfield.skipArrowStartTween = true;
-
 			//trace("Starting Countdown!");
 			canPause = true;
 
@@ -3244,27 +3155,7 @@ class PlayState extends MusicBeatState
 			#end
 
 			if (callOnScripts('onModifierRegister') != LuaUtils.Function_Stop) {
-				modManager.registerDefaultModifiers();
-
-				if (ClientPrefs.data.middleScroll || isStepManiaChart) {
-					var opp:Int = opponentmode ? 0 : 1;
-					for (field in playfields.members) {
-						var off:Float = Math.min(FlxG.width, 1280) / Note.ammo[mania[field.modNumber]];
-						if (field.modNumber == opp) {
-							var halfKeys:Int = Math.floor(Note.ammo[mania[field.modNumber]] / 2);
-							if (Note.ammo[mania[field.modNumber]] % 2 != 0) // middle receptor dissappears, if there is one
-								modManager.setValue('alpha${halfKeys + 1}', 1.0, opp);
-
-							for (i in 0...halfKeys)
-								modManager.setValue('transform${i}X', -off, opp);
-							for (i in Note.ammo[mania[field.modNumber]]-halfKeys...Note.ammo[mania[field.modNumber]])
-								modManager.setValue('transform${i}X', off, opp);
-
-							modManager.setValue("alpha", isStepManiaChart ? 1 : 0.6, opp);
-						}
-					}
-					modManager.setValue("opponentSwap", 0.5);
-				}
+				playfield.setStrumAlpha();
 			}
 
 			#if ARCHIPELAGO_ALLOWED
@@ -8253,7 +8144,7 @@ class PlayState extends MusicBeatState
 		return FlxSort.byValues(FlxSort.ASCENDING, a.strumTime, b.strumTime);
 	}
 
-	function noteMiss(daNote:Note, field:PlayField):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
+	function noteMiss(daNote:Note):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		//Dupe note remove
 		var result:Dynamic = callOnLuas('preNoteMiss', [notes.members.indexOf(daNote), daNote.noteData, daNote.noteType, daNote.isSustainNote]);
 		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) result = callOnHScript('preNoteMiss', [daNote]);
@@ -8270,7 +8161,7 @@ class PlayState extends MusicBeatState
 		if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('noteMiss', [daNote]);
 	}
 
-	function noteMissPress(direction:Int = 1, field:PlayField):Void //You pressed a key when there was no notes to press for this key
+	function noteMissPress(direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
 	{
 		if(ClientPrefs.data.ghostTapping) return; //fuck it
 
@@ -8566,7 +8457,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	public function opponentNoteHit(note:Note, field:PlayField):Void
+	public function opponentNoteHit(note:Note):Void
 	{
 		var result:Dynamic;
 		if (opponentmode)
@@ -8690,7 +8581,7 @@ class PlayState extends MusicBeatState
 		if (!note.isSustainNote) invalidateNote(note);
 	}
 
-	public function goodNoteHit(note:Note, field:PlayField):Void
+	public function goodNoteHit(note:Note):Void
 	{
 		if(note.wasGoodHit) return;
 		if ((cpuControlled || ClientPrefs.getGameplaySetting('showcase', false)) && (note.ignoreNote || note.hitCausesMiss)) return;
@@ -9182,7 +9073,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function strumPlayAnim(field:PlayField, id:Int, time:Float, ?note:Note) {
+	function strumPlayAnim(id:Int, time:Float, ?note:Note) {
 		var spr:StrumNote = field.strumNotes[id];
 
 		if(spr != null) {

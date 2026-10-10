@@ -6,7 +6,7 @@ import flixel.FlxSubState;
 import flixel.group.FlxGroup;
 import managers.ComboManager;
 import objects.Character;
-import objects.Note;
+import objects.notes.Note;
 
 enum Countdown
 {

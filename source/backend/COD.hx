@@ -1,5 +1,7 @@
 package backend;
-import objects.Note;
+
+import objects.notes.Note;
+
 class COD
 {
 	public static var deathVar:String = "Cause of death: ";

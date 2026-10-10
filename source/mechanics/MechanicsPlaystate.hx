@@ -5,8 +5,8 @@ import flixel.util.FlxArrayUtil;
 import flixel.util.FlxStringUtil;
 import objects.AttachedSprite;
 import objects.Bar;
-import objects.Note;
-import objects.StrumNote;
+import objects.notes.Note;
+import objects.notes.StrumNote;
 
 class MechanicsPlaystate {
 

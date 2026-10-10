@@ -1,7 +1,7 @@
 package objects.notes;
 
 import backend.NoteTypesConfig;
-import play.objects.SustainSplash;
+import objects.SustainSplash;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;
 
@@ -138,7 +138,7 @@ class Note extends FlxSprite
 			if (frames != @:privateAccess Paths.noteSkinFramesMap.get(value)) frames = @:privateAccess Paths.noteSkinFramesMap.get(value);
 			if (animation != @:privateAccess Paths.noteSkinAnimsMap.get(value)) animation.copyFrom(@:privateAccess Paths.noteSkinAnimsMap.get(value));
 
-			antialiasing = ClientPrefs.globalAntialiasing;
+			antialiasing = ClientPrefs.data.antialiasing;
 
 			if (!changeSize)
 			{
@@ -217,13 +217,15 @@ class Note extends FlxSprite
 	{
 		super();
 
+		animation = new PsychAnimationController(this);
+
 		pixelNote = PlayState.isPixelStage;
 
 		if (!Math.isNaN(newNoteData) && pixelNote) noteData = newNoteData;
 		if (!Math.isNaN(newStrumTime)) strumTime = newStrumTime;
 
 		y -= 2000;
-		antialiasing = ClientPrefs.data.globalAntialiasing && !pixelNote;
+		antialiasing = ClientPrefs.data.antialiasing && !pixelNote;
 
 		if(noteData > -1) {
 			texture = '';
@@ -401,7 +403,7 @@ class Note extends FlxSprite
             centerOffsets();
             centerOrigin();
           }
-          antialiasing = ClientPrefs.data.globalAntialiasing;
+          antialiasing = ClientPrefs.data.antialiasing;
       }
 		}
 		if(isSustainNote) {
@@ -699,7 +701,7 @@ class Note extends FlxSprite
 	// or was before I removed the option, now it's just kept for reasons
 	var firstOffX = false;
 	var shouldCenterOffsets:Bool = true;
-	public function setupNoteData(chartNoteData:PreloadedChartNote):Void
+	public function setupNoteData(chartNoteData:PreloadNotes):Void
 	{
 		var ns = chartNoteData.noteskin ?? "";
 		var tx = chartNoteData.texture ?? "";

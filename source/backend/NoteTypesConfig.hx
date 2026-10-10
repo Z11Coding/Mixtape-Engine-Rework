@@ -1,6 +1,6 @@
 package backend;
 
-import objects.Note;
+import objects.notes.Note;
 
 typedef NoteTypeProperty = {
 	property:Array<String>,
@@ -49,8 +49,8 @@ class NoteTypesConfig
 	{
 		var data:Array<NoteTypeProperty> = loadNoteTypeData(name);
 		if(data == null || data.length < 1) return;
-		
-		for (line in data) 
+
+		for (line in data)
 		{
 			var obj:Dynamic = note;
 			var split:Array<String> = line.property;
@@ -64,10 +64,10 @@ class NoteTypesConfig
 
 				switch(split[0]) // special cases
 				{
-					case 'extraData': 
+					case 'extraData':
 						note.extraData.set(split[1], line.value);
 						continue;
-					
+
 					case 'noteType':
 						continue;
 				}
@@ -113,7 +113,7 @@ class NoteTypesConfig
 			//is a string
 			return value.substring(1, value.length-1);
 		}
-		
+
 		switch(value)
 		{
 			case "true":
