@@ -37,6 +37,9 @@ class PlayfieldManager {
   public var cpuControlled:Bool = false;
   public var curSong:String = "";
 
+  public static var sectionsLoaded:Int = 0;
+	public var notesLoadedRN:Int = 0;
+
   // So that the chart is used instead of the file (will be labled differently in cache)
   public static var fromChartState:Bool = false;
 
@@ -650,17 +653,34 @@ class PlayfieldManager {
       trace('in-chart events DOESN\'T EXSIST FOR SONG ${this.songName}!');
     }
 
-    final songName:String = Paths.formatToSongPath(SONG.song);
-    var currentBPMLol:Float = Conductor.bpm;
+    songName = Paths.formatToSongPath(SONG.song).toLowerCase();
+    var currentBPMLol:Float = Conductor.bpm = songData.bpm;
 		var stepCrochet:Float = 15000 / currentBPMLol;
 		var currentMultiplier:Float = 1;
 		var gottaHitNote:Bool = false;
 		var swagNote:PreloadedChartNote;
 		var ghostNotesCleared:Int = 0;
+    var sectionLoopCount:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
+
+    curSong = songData.song;
+    songSpeed = songData.speed;
+		songSpeedType = ClientPrefs.getGameplaySetting('scrolltype');
+		switch(songSpeedType)
+		{
+			case "multiplicative":
+				songSpeed = songData.speed * ClientPrefs.getGameplaySetting('scrollspeed');
+			case "constant":
+				songSpeed = ClientPrefs.getGameplaySetting('scrollspeed');
+		}
+
+    if (PlayState.chartingMode || preload)
+      chartModifier = "Normal";
+    else if (!preload)
+      chartModifier = ClientPrefs.getGameplaySetting('chartModifier', 'Normal');
 		// TODO: Optimize and clean up this mess, maybe split into functions
 		// this is absolute spaghetti code
 		for (section in noteData) {
-			if (section.changeBPM) {
+			if (section.changeBPM != null && section.changeBPM && section.bpm != null && daBpm != section.bpm) {
 				currentBPMLol = section.bpm;
 				stepCrochet = 15000 / currentBPMLol;
 			}
@@ -675,38 +695,15 @@ class PlayfieldManager {
 				if (songNotes[0] >= startingPoint + offsetStart) {
 					final daStrumTime:Float = songNotes[0];
 					var daNoteData:Int = 0;
-					if (!assignedFirstData && oneK)
-					{
-						firstNoteData = Std.int(songNotes[1] % (ExtraKeys.mania+1));
-						assignedFirstData = true;
-					}
 
-          if (!randomMode && !flip && !stairs && !waves)
-            daNoteData = Std.int(songNotes[1] % ExtraKeys.mania+1);
-
-					gottaHitNote = (songNotes[1] < ExtraKeys.mania+1) ? section.mustHitSection : !section.mustHitSection;
+          daNoteData = Std.int(songNotes[1] % Note.ammo[songData.mania != null ? songData.mania : 3]);
+					gottaHitNote = (songNotes[1] < (songData.mania != null ? totalColumns : Note.ammo[songData.mania != null ? songData.mania : 3]));
 
 					if (gottaHitNote && songNotes[3] != 'Hurt Note') {
 						totalNotes += 1;
 					}
 					if (!gottaHitNote) {
 						opponentNoteTotal += 1;
-					}
-
-					if (daStrumTime >= charChangeTimes[0])
-					{
-						switch (charChangeTypes[0])
-						{
-							case 0:
-								var boyfriendToGrab:Boyfriend = boyfriendMap.get(charChangeNames[0]);
-								if (boyfriendToGrab != null) bfNoteskin = boyfriendToGrab.noteskin;
-							case 1:
-								var dadToGrab:Character = dadMap.get(charChangeNames[0]);
-								if (dadToGrab != null) dadNoteskin = dadToGrab.noteskin;
-						}
-						charChangeTimes.shift();
-						charChangeNames.shift();
-						charChangeTypes.shift();
 					}
 
 					if (multiChangeEvents[0].length > 0 && daStrumTime >= multiChangeEvents[0][0])
@@ -739,8 +736,7 @@ class PlayfieldManager {
 					};
 
           var noteType:String = !Std.isOfType(songNotes[3], String) ? Note.defaultNoteTypes[songNotes[3]] : songNotes[3];
-					if(!Std.isOfType(songNotes[3], String))
-            swagNote.noteType = noteType; //Backward compatibility + compatibility with Week 7 charts
+					swagNote.noteType = noteType; //Backward compatibility + compatibility with Week 7 charts
 
 					if(Std.isOfType(songNotes[3], Bool))
             swagNote.animSuffix = (songNotes[3] || section.altAnim ? '-alt' : ''); //Compatibility with charts made by SNIFF
