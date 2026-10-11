@@ -12,7 +12,6 @@ class MegaManager {
   public static var conductor:RConductor;
   public static var charaManager:CharacterManager;
   public static var comboManger:ComboManager;
-  public static var notePoolManager:NotePoolManager;
   public static var playfield:PlayfieldManager;
   public static var scriptManager:ScriptManager;
 
@@ -41,7 +40,6 @@ class MegaManager {
     omegaFreeplay = FreeplayManager.loadFPManager(true);
     apFreeplay = new APFreeplayManager(true);
     regFreeplay = new FreeplayManager(true);
-    notePoolManager = NotePoolManager.getInstance();
     playfield = PlayfieldManager.instance;
     scriptManager = ScriptManager.instance;
 

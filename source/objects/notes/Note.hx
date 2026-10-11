@@ -1,7 +1,7 @@
 package objects.notes;
 
 import backend.NoteTypesConfig;
-import objects.SustainSplash;
+import objects.notes.SustainSplash;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;
 
@@ -74,7 +74,7 @@ class Note extends FlxSprite
 		texture: null,
 		antialiasing: !PlayState.isPixelStage,
 		useGlobalShader: false,
-		useRGBShader: (PlayState.SONG != null) ? (!PlayState.SONG.disableNoteRGB) : true,
+		useRGBShader: (PlayfieldManager.SONG != null) ? (!PlayfieldManager.SONG.disableNoteRGB) : true,
 		r: -1,
 		g: -1,
 		b: -1,
@@ -183,7 +183,7 @@ class Note extends FlxSprite
 	}
 
 	private function set_noteType(value:String):String {
-		noteSplashData.texture = PlayState.SONG != null ? PlayState.SONG.splashSkin : 'noteSplashes';
+		noteSplashData.texture = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.splashSkin : 'noteSplashes';
 		if (ClientPrefs.noteColorStyle == 'Normal' && rgbShader != null && useRGBShader) defaultRGB();
 
 		if(noteData > -1 && noteType != value) {
@@ -213,6 +213,28 @@ class Note extends FlxSprite
 		});
 	}
 
+	// Mixtape Stuff
+	public var row:Int = 0;
+	public var prevNote:Note;
+	public var nextNote:Note;
+
+	// Archipelago Stuff
+	private var isCheck:Bool = false;
+	private var checkInfo:{note:Note, loc:Int};
+	public var isMine:Bool = false;
+	public var isAlert:Bool = false;
+	public var isHeal:Bool = false;
+	public var isFreeze:Bool = false;
+	public var isFakeHeal:Bool = false;
+	var justMixedUp:Bool = false;
+	public var trueNoteData:Int = 0;
+	public var specialNote:Bool = false;
+	public var ignoreMiss:Bool = false;
+	public var spinAmount:Float = 0;
+	public var rootNote:Note;
+	var posTween:FlxTween;
+	public var formerPress:Bool = false;
+
 	public function new(?newStrumTime:Float, ?newNoteData:Int)
 	{
 		super();
@@ -224,6 +246,12 @@ class Note extends FlxSprite
 		if (!Math.isNaN(newNoteData) && pixelNote) noteData = newNoteData;
 		if (!Math.isNaN(newStrumTime)) strumTime = newStrumTime;
 
+		if(prevNote != null)
+			prevNote.nextNote = this;
+
+		if (prevNote == null)
+			prevNote = this;
+
 		y -= 2000;
 		antialiasing = ClientPrefs.data.antialiasing && !pixelNote;
 
@@ -232,7 +260,7 @@ class Note extends FlxSprite
 
       try{ rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this)); }
       catch(e) {};
-      if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
+      if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) useRGBShader = false;
 
       if (PlayState.isPixelStage || getNoteSkinPostfix().toLowerCase() == '-retribution')
 				rgbShader.enabled = false;
@@ -495,10 +523,10 @@ class Note extends FlxSprite
 
 		if (mustPress)
 		{
-			canBeHit = (strumTime > Conductor.songPosition - (Conductor.safeZoneOffset * lateHitMult) &&
-						strumTime < Conductor.songPosition + (Conductor.safeZoneOffset * earlyHitMult));
+			canBeHit = (strumTime > MegaManager.conductor.musicPosition - (RConductor.safeZoneOffset * lateHitMult) &&
+						strumTime < MegaManager.conductor.musicPosition + (RConductor.safeZoneOffset * earlyHitMult));
 
-			if (strumTime < Conductor.songPosition - Conductor.safeZoneOffset && !wasGoodHit && !ignoreNote)
+			if (strumTime < MegaManager.conductor.musicPosition - RConductor.safeZoneOffset && !wasGoodHit && !ignoreNote)
 				tooLate = true;
 			else tooLate = false;
 		}
@@ -506,9 +534,9 @@ class Note extends FlxSprite
 		{
 			canBeHit = false;
 
-			if (strumTime < Conductor.songPosition + (Conductor.safeZoneOffset * earlyHitMult))
+			if (strumTime < MegaManager.conductor.musicPosition + (RConductor.safeZoneOffset * earlyHitMult))
 			{
-				if(strumTime <= Conductor.songPosition)
+				if(strumTime <= MegaManager.conductor.musicPosition)
 					wasGoodHit = true;
 			}
 		}
@@ -535,8 +563,8 @@ class Note extends FlxSprite
 			updateHitbox();
 		}
 
-		distance = (0.45 * (Conductor.songPosition - strumTime) * songSpeed * multSpeed);
-		if (!ClientPrefs.downScroll) distance *= -1;
+		distance = (0.45 * (MegaManager.conductor.musicPosition - strumTime) * songSpeed * multSpeed);
+		if (!ClientPrefs.data.downScroll) distance *= -1;
 
 		if (copyAngle)
 			angle = strum.direction - 90 + strum.angle + offsetAngle;
@@ -720,7 +748,7 @@ class Note extends FlxSprite
 
 		if (ns.length < 1 && tx.length < 1 && texture != Paths.defaultSkin) {
 			texture = Paths.defaultSkin;
-			useRGBShader = (ClientPrefs.enableColorShader && PlayState.SONG != null && !PlayState.SONG.disableNoteRGB);
+			useRGBShader = (ClientPrefs.data.enableColorShader && PlayfieldManager.SONG != null && !PlayfieldManager.SONG.disableNoteRGB);
 			shouldCenterOffsets = useRGBShader;
 		}
 
@@ -749,7 +777,7 @@ class Note extends FlxSprite
 		multSpeed = chartNoteData.multSpeed;
 		noteDensity = chartNoteData.noteDensity;
 
-		if (ClientPrefs.enableColorShader && useRGBShader)
+		if (ClientPrefs.data.enableColorShader && useRGBShader)
 		{
 			if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this));
 			updateRGBColors(
@@ -759,9 +787,9 @@ class Note extends FlxSprite
 			);
 		}
 
-		if(!inEditor) strumTime += ClientPrefs.noteOffset;
+		if(!inEditor) strumTime += ClientPrefs.data.noteOffset;
 
-		if (noteType == 'Hurt Note' && !ClientPrefs.enableColorShader)
+		if (noteType == 'Hurt Note' && !ClientPrefs.data.enableColorShader)
 		{
 			texture = 'HURTNOTE_assets';
 			noteSplashData.texture = 'noteSplashes/HURTnoteSplashes';
@@ -811,8 +839,8 @@ class Note extends FlxSprite
 		clipRect = null;
 		if (!mustPress)
 		{
-			visible = ClientPrefs.opponentStrums;
-			alpha = ClientPrefs.middleScroll ? ClientPrefs.oppNoteAlpha : 1;
+			visible = ClientPrefs.data.opponentStrums;
+			alpha = ClientPrefs.data.middleScroll ? ClientPrefs.data.oppNoteAlpha : 1;
 		}
 		else
 		{

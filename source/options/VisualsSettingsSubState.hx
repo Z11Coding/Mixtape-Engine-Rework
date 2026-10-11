@@ -81,6 +81,12 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = playNoteSplashes;
 
+		var option:Option = new Option('Enable Color Shader',
+			'If unchecked, globally disables the RGB Shader on the notes.',
+			'enableColorShader',
+			BOOL);
+		addOption(option);
+
 		var option:Option = new Option('Hide HUD',
 			'If checked, hides most HUD elements.',
 			'hideHud',

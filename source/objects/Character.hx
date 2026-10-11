@@ -480,7 +480,7 @@ class Character extends FunkinSprite
 							{
 								var noteData:Int = -1;
 								noteData = Std.int(animationNotes[0][1] % 4);
-								var animToPlay:String = Note.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
+								var animToPlay:String = ExtraKeys.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
 								playAnim(animToPlay, true);
 								holdTimer = -Math.max(Conductor.stepCrochet * 1.25, (FlxG.sound.music.time - animationNotes[0][0])) / 1000 / PlayState.instance?.playbackRate;
 								animationNotes.shift();
@@ -492,7 +492,7 @@ class Character extends FunkinSprite
 							{
 								var noteData:Int = 1;
 								noteData = Std.int(animationNotes[0][1] % 4);
-								var animToPlay:String = Note.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
+								var animToPlay:String = ExtraKeys.keysShit.get(3).get('singAnims')[Std.int(Math.abs(noteData))];
 								playAnim(animToPlay, true);
 								holdTimer = -Math.max(Conductor.stepCrochet * 1.25, (FlxG.sound.music.time - animationNotes[0][0])) / 1000 / PlayState.instance?.playbackRate;
 								animationNotes.shift();

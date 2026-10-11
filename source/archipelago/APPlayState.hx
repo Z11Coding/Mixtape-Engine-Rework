@@ -447,12 +447,12 @@ class APPlayState extends PlayState {
             'spin' => function() {
                 var ttl:Float = 15;
                 var onEnd:(Void->Void) = function() {
-                    modManager.setValue('orient', 0);
+                    //modManager.setValue('orient', 0);
                 };
                 var playSound:String = "spin";
                 var playSoundVol:Float = 1;
                 var noIcon:Bool = false;
-                modManager.setValue('confusion', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
+                //modManager.setValue('confusion', (FlxG.random.bool() ? 1 : -1) * FlxG.random.float(333 * 0.8, 333 * 1.15));
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'spin');
             },
             'songslower' => function() {
@@ -800,13 +800,13 @@ class APPlayState extends PlayState {
             'ghost' => function() {
                 var ttl:Float = 15;
                 var onEnd:(Void->Void) = function() {
-                    modManager.setValue('sudden', 0);
+                    //modManager.setValue('sudden', 0);
                 };
                 var playSound:String = "ghost";
                 var playSoundVol:Float = 0.5;
                 var noIcon:Bool = false;
 
-                modManager.setValue('sudden', 1);
+                //modManager.setValue('sudden', 1);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
             },
@@ -845,15 +845,15 @@ class APPlayState extends PlayState {
             'nostrum' => function() {
                 var ttl:Float = 13;
                 var onEnd:(Void->Void) = function() {
-                    for (i in 0...playerField.strumNotes.length)
-                        playerField.strumNotes[i].visible = true;
+                    //for (i in 0...playerField.strumNotes.length)
+                        //playerField.strumNotes[i].visible = true;
                 };
                 var playSound:String = "nostrum";
                 var playSoundVol:Float = 1;
                 var noIcon:Bool = false;
 
-                for (i in 0...playerField.strumNotes.length)
-                    playerField.strumNotes[i].visible = false;
+                //for (i in 0...playerField.strumNotes.length)
+                    //playerField.strumNotes[i].visible = false;
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon);
             },
@@ -861,7 +861,7 @@ class APPlayState extends PlayState {
                 var noIcon:Bool = true;
                 var startingPoint = FlxG.random.int(5, 9);
                 var endingPoint = FlxG.random.int(startingPoint + 6, startingPoint + 12);
-                var dataPicked = FlxG.random.int(0, PlayfieldManager.mania[0]);
+                var dataPicked = FlxG.random.int(0, ExtraKeys.mania);
                 for (i in startingPoint...endingPoint) {
                     addNoteSvCLegacy(0, i, i, dataPicked);
                 }
@@ -885,7 +885,7 @@ class APPlayState extends PlayState {
             'sever' => function() {
                 var ttl:Float = 6;
                 var onEnd:(Void->Void) = function() {
-                    playerField.strumNotes[picked].alpha = 1;
+                    //playerField.strumNotes[picked].alpha = 1;
                     severInputs[picked] = false;
                 };
                 var playSound:String = "sever";
@@ -902,7 +902,7 @@ class APPlayState extends PlayState {
                     picked = FlxG.random.int(0, 3);
                 else
                     picked = chooseFrom[FlxG.random.int(0, chooseFrom.length - 1)];
-                playerField.strumNotes[picked].alpha = 0;
+                //playerField.strumNotes[picked].alpha = 0;
                 severInputs[picked] = true;
 
                 var okayden:Array<Int> = [];
@@ -917,8 +917,8 @@ class APPlayState extends PlayState {
                     explosion.kill();
                 };
                 explosion.cameras = [camHUD];
-                explosion.x = playerField.baseXPositions[picked] + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
-                explosion.y = playerField.strumNotes[picked].y + playerField.strumNotes[picked].height / 2 - explosion.height / 2;
+                //explosion.x = playerField.baseXPositions[picked] + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
+                //explosion.y = playerField.strumNotes[picked].y + playerField.strumNotes[picked].height / 2 - explosion.height / 2;
                 explosion.animation.play("boom", true);
                 add(explosion);
 
@@ -943,7 +943,7 @@ class APPlayState extends PlayState {
                     picked = FlxG.random.int(0, 3);
                 else
                     picked = chooseFrom[FlxG.random.int(0, chooseFrom.length - 1)];
-                playerField.strumNotes[picked].alpha = 0;
+                //playerField.strumNotes[picked].alpha = 0;
                 severInputs[picked] = true;
 
                 var okayden:Array<Int> = [];
@@ -959,8 +959,8 @@ class APPlayState extends PlayState {
                     explosion.kill();
                 };
                 explosion.cameras = [camHUD];
-                explosion.x = (playerField.baseXPositions[picked] - playerField.baseXPositions[picked]) + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
-                explosion.y = (playerField.strumNotes[picked].y - baseY) + playerField.strumNotes[picked].height / 2 - explosion.height / 2;
+                //explosion.x = (playerField.baseXPositions[picked] - playerField.baseXPositions[picked]) + playerField.strumNotes[picked].width / 2 - explosion.width / 2;
+                //explosion.y = (playerField.strumNotes[picked].y - baseY) + playerField.strumNotes[picked].height / 2 - explosion.height / 2;
                 explosion.animation.play("boom", true);
                 add(explosion);
 
@@ -1196,14 +1196,14 @@ class APPlayState extends PlayState {
                         availableS = "flip";
                 }
                 var onEnd:(Void->Void) = function() {
-                    modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, 0, "sineInOut");
+                    //modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, 0, "sineInOut");
                 };
                 var playSound:String = "randomize";
                 var playSoundVol:Float = 0.7;
                 var noIcon:Bool = false;
 
 
-                modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, .96, "sineInOut");
+                //modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, .96, "sineInOut");
                 trace(availableS);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomize');
@@ -1216,7 +1216,7 @@ class APPlayState extends PlayState {
                     for (daNote in notes) {
                         if (daNote == null) continue;
                         else {
-                            daNote.noteData = daNote.trueNoteData;
+                            //daNote.noteData = daNote.trueNoteData;
                         }
                     }
                     /*for (data => column in playerField.noteQueue) {
@@ -1233,7 +1233,7 @@ class APPlayState extends PlayState {
                 var noIcon:Bool = false;
                 doRandomize = true;
                 available = [];
-                for (i in 0...PlayfieldManager.mania[0]+1) {
+                for (i in 0...ExtraKeys.mania+1) {
                     available.push(i);
                     trace("available: " + available);
                 }
@@ -1264,14 +1264,14 @@ class APPlayState extends PlayState {
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
                     opponentmode =  false;
-                    playerField.isPlayer = !opponentmode || bothMode;
-                    playerField.autoPlayed = opponentmode || cpuControlled;
-                    playerField.noteHitCallback.remove(opponentmode ? goodNoteHit : opponentNoteHit);
-                    playerField.noteHitCallback.add(opponentmode ? opponentNoteHit : goodNoteHit);
-                    dadField.isPlayer = opponentmode || bothMode;
-                    dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled)) || bothMode && cpuControlled;
-                    dadField.noteHitCallback.remove(opponentmode ? opponentNoteHit : goodNoteHit);
-                    dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
+                    //playerField.isPlayer = !opponentmode || bothMode;
+                    //playerField.autoPlayed = opponentmode || cpuControlled;
+                    //playerField.noteHitCallback.remove(opponentmode ? goodNoteHit : opponentNoteHit);
+                    //playerField.noteHitCallback.add(opponentmode ? opponentNoteHit : goodNoteHit);
+                    //dadField.isPlayer = opponentmode || bothMode;
+                    //dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled)) || bothMode && cpuControlled;
+                    //dadField.noteHitCallback.remove(opponentmode ? opponentNoteHit : goodNoteHit);
+                    //dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
                     health = MaxHP + health;
                 };
                 var playSound:String = "randomize";
@@ -1279,14 +1279,14 @@ class APPlayState extends PlayState {
                 var noIcon:Bool = true;
 
                 opponentmode = true;
-                playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
-                playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
-                playerField.noteHitCallback.remove(!opponentmode ? goodNoteHit : opponentNoteHit);
-                playerField.noteHitCallback.add(!opponentmode ? opponentNoteHit : goodNoteHit);
-                dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
-                dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
-                dadField.noteHitCallback.remove(opponentmode ? opponentNoteHit : goodNoteHit);
-                dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
+                //playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
+                //playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
+                //playerField.noteHitCallback.remove(!opponentmode ? goodNoteHit : opponentNoteHit);
+                //playerField.noteHitCallback.add(!opponentmode ? opponentNoteHit : goodNoteHit);
+                //dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
+                //dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
+                //dadField.noteHitCallback.remove(opponentmode ? opponentNoteHit : goodNoteHit);
+                //dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
                 health = MaxHP - health;
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'opponentPlay');
@@ -1295,24 +1295,24 @@ class APPlayState extends PlayState {
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
                     bothMode = false;
-                    playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
-                    playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
-                    playerField.noteHitCallback.add(opponentmode ? opponentNoteHit : goodNoteHit);
-                    dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
-                    dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
-                    dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
+                    //playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
+                    //playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
+                    //playerField.noteHitCallback.add(opponentmode ? opponentNoteHit : goodNoteHit);
+                    //dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
+                    //dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
+                    //dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
                 };
                 var playSound:String = "randomize";
                 var playSoundVol:Float = 0.7;
                 var noIcon:Bool = true;
 
                 bothMode = true;
-                playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
-                playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
-                playerField.noteHitCallback.add(opponentmode ? opponentNoteHit : goodNoteHit);
-                dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
-                dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
-                dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
+                //playerField.isPlayer = !opponentmode && !PlayState.playAsGF || bothMode;
+                //playerField.autoPlayed = opponentmode || cpuControlled || PlayState.playAsGF;
+                //playerField.noteHitCallback.add(opponentmode ? opponentNoteHit : goodNoteHit);
+                //dadField.isPlayer = opponentmode && !PlayState.playAsGF || bothMode;
+                //dadField.autoPlayed = (!opponentmode || (opponentmode && cpuControlled) || PlayState.playAsGF) || bothMode && cpuControlled;
+                //dadField.noteHitCallback.add(opponentmode ? goodNoteHit : opponentNoteHit);
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'bothplay');
             },
@@ -1592,7 +1592,7 @@ class APPlayState extends PlayState {
         aliveVideos.cameras = [camOther];
         add(errorMessages);
 
-        for (i in 0...PlayfieldManager.mania[0] + 1) {
+        for (i in 0...ExtraKeys.mania + 1) {
 			severInputs.push(false);
 		}
 
@@ -1952,14 +1952,11 @@ class APPlayState extends PlayState {
         super.postGen();
         if (PlayfieldManager.SONG == null || archipelago.APItem.hasActiveItemNamed("Tutorial Trap")) return;
         try {
-            apNotes = archipelago.APNote.replaceInQueue(playerField.noteQueue, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
+            apNotes = archipelago.APNote.replaceInQueue(notes, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
         } catch (e:Dynamic) {
             trace('Error replacing notes with APNotes: ' + e);
             apNotes = null;
         }
-
-        for (field in playfields.members)
-            field.clearStackedNotes();
     }
 
 	// override public function generateNotes(song:SwagSong, AI:Array<Array<Float>>):Void
@@ -2088,12 +2085,12 @@ class APPlayState extends PlayState {
 		{
 			if (PlayfieldManager.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
 			{
-				pickData = FlxG.random.int(0, PlayfieldManager.mania[1]);
+				pickData = FlxG.random.int(0, ExtraKeys.mania);
 			}
 			else
 			{
 				// pickData = FlxG.random.int(4, 7);
-				pickData = FlxG.random.int(0, PlayfieldManager.mania[1]);
+				pickData = FlxG.random.int(0, ExtraKeys.mania);
 			}
 		}
 		else if (specificData == -1)
@@ -2106,7 +2103,7 @@ class APPlayState extends PlayState {
 			}
 
 			if (chooseFrom.length <= 0)
-				pickData = FlxG.random.int(0, PlayfieldManager.mania[1]);
+				pickData = FlxG.random.int(0, ExtraKeys.mania);
 			else
 				pickData = chooseFrom[FlxG.random.int(0, chooseFrom.length - 1)];
 		}
@@ -2114,12 +2111,12 @@ class APPlayState extends PlayState {
 		{
 			if (PlayfieldManager.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
 			{
-				pickData = specificData % Note.ammo[PlayfieldManager.mania[1]];
+				pickData = specificData % Note.ammo[ExtraKeys.mania];
 			}
 			else
 			{
 				// pickData = specificData % 4 + 4;
-				pickData = specificData % Note.ammo[PlayfieldManager.mania[1]];
+				pickData = specificData % Note.ammo[ExtraKeys.mania];
 			}
 		}
 		var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
@@ -2746,9 +2743,7 @@ class APPlayState extends PlayState {
             PlayfieldManager.SONG = FlxG.save.data.SONG;
             PlayState.storyDifficulty = FlxG.save.data.storyDifficulty;
             FlxG.save.data.manualOverride = false;
-            APPlayState.instance.playfields.forEach(function(pf) {
-                pf.autoPlayed = false;
-            });
+            cpuControlled = false;
 			StageData.loadDirectory(PlayfieldManager.SONG);
             FlxG.save.flush();
             FlxG.resetState();
@@ -2827,7 +2822,7 @@ class APPlayState extends PlayState {
 		{
 			var bindsTable:Array<String> = newBinds.split("");
 			midSwitched = true;
-			changeMania(PlayfieldManager.mania[0]);
+			changeMania(ExtraKeys.mania);
 
 			keysArray = [];
 			ClientPrefs.keyBinds = createKeybinds(newBinds);
@@ -2875,7 +2870,7 @@ class APPlayState extends PlayState {
         }
     }
 
-    override function noteMiss(daNote:Note, field:PlayField)
+    override function noteMiss(daNote:Note)
     {
         var char:Character = boyfriend;
 		/*if (opponentmode || field == dadField)
@@ -2945,7 +2940,7 @@ class APPlayState extends PlayState {
             });
         }
 
-        super.noteMiss(daNote, field);
+        super.noteMiss(daNote);
 
         if (releasethebeast) {
             if (daNote.noteType == '')
@@ -2955,7 +2950,7 @@ class APPlayState extends PlayState {
     }
 
     public var check:Int = 0;
-    override function goodNoteHit(note:Note, field:PlayField):Void
+    override function goodNoteHit(note:Note):Void
     {
         if (note.specialNote)
 		{
@@ -2981,7 +2976,7 @@ class APPlayState extends PlayState {
             if (note.noteType == 'Anti-Horny Note') resistanceAmount -= 0.03;
             if (note.noteType == 'Bat Note') resistanceAmount -= 0.5;
 
-            var animToPlay:String = Note.keysShit.get(PlayfieldManager.mania[0]).get('singAnims')[note.noteData] + "-alt";
+            var animToPlay:String = Note.keysShit.get(ExtraKeys.mania).get('singAnims')[note.noteData] + "-alt";
             if(note.isSustainNote)
             {
                 var holdAnim:String = animToPlay + '-hold';
@@ -2994,7 +2989,7 @@ class APPlayState extends PlayState {
         }
     }
 
-    function specialNoteHit(note:Note, field:PlayField):Void
+    function specialNoteHit(note:Note):Void
 	{
 		if (!note.wasGoodHit)
 		{
@@ -3187,7 +3182,7 @@ class APPlayState extends PlayState {
         super.closeSubState();
     }
 
-    override public function noteMissPress(direction:Int = 1, field:PlayField)
+    override public function noteMissPress(direction:Int = 1)
     {
         super.noteMissPress(direction, field);
         setBoyfriendInvuln(4 / 60);

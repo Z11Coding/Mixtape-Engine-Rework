@@ -260,6 +260,9 @@ class Main extends Sprite
 		"Warning: Putting a class instance in a trace may serialize a LOT of data, which can impact performance, even in threading mode.".log();
 	}
 
+	public static function isPlayState():Bool
+    return Type.getClassName(Type.getClass(FlxG.state)) == 'PlayState';
+
 	@:dox(hide)
 	public static var audioDisconnected:Bool = false;
 	public static var changeID:Int = 0;
@@ -271,7 +274,13 @@ class Main extends Sprite
 		#end
 
 		super();
-
+		#if (cpp && windows)
+    untyped __cpp__("
+			SetProcessDPIAware(); // allows for more crisp visuals
+			SetConsoleOutputCP(CP_UTF8);
+			DisableProcessWindowsGhosting(); // lets you move the window and such if it's not responding
+		");
+    #end
 
 		#if (cpp && windows)
 		backend.window.Native.fixScaling();

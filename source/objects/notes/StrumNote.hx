@@ -52,6 +52,7 @@ class StrumNote extends FlxSprite
 	public var direction:Float = 90;//plan on doing scroll directions soon -bb
 	public var downScroll:Bool = false;//plan on doing scroll directions soon -bb
 	public var sustainReduce:Bool = true;
+	public var multAlpha:Float = 1;
 
 	public var player:Int;
 	public var ogNoteskin:String = null;
@@ -125,7 +126,7 @@ class StrumNote extends FlxSprite
 	}
 
   override function toString()
-		return '(column: $column | texture $texture | visible: $visible)';
+		return '(column: $noteData | texture $texture | visible: $visible)';
 
 	public function reloadNote()
 	{
@@ -316,7 +317,7 @@ class StrumNote extends FlxSprite
 	{
 		if (rgbShader != null && animation.curAnim != null && animation.curAnim.name == 'static')
 		{
-			switch (ClientPrefs.noteColorStyle)
+			switch (ClientPrefs.data.noteColorStyle)
 			{
 				case 'Quant-Based', 'Rainbow', 'Char-Based':
 				rgbShader.r = 0xFFF9393F;

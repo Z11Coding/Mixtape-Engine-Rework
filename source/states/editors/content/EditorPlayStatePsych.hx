@@ -6,10 +6,10 @@ import flixel.animation.FlxAnimationController;
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;
-import objects.NoteSplash;
 import objects.charting.ChartingNote;
 import objects.charting.ChartingStrumNote;
 import objects.notes.Note;
+import objects.notes.NoteSplash;
 import openfl.events.KeyboardEvent;
 
 class EditorPlayStatePsych extends MusicBeatSubstate

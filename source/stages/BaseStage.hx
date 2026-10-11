@@ -57,8 +57,8 @@ class BaseStage extends FlxBasic
 	public var dadGroup(get, never):FlxSpriteGroup;
 	public var gfGroup(get, never):FlxSpriteGroup;
 
-	public var unspawnNotes(get, never):Array<Note>;
-	public var allNotes(get, never):Array<Note>;
+	public var unspawnNotes(get, never):Array<PreloadNotes>;
+	public var notes(get, never):Array<Note>;
 
 	public var camGame(get, never):FlxCamera;
 	public var camHUD(get, never):FlxCamera;
@@ -191,14 +191,15 @@ class BaseStage extends FlxBasic
 	inline private function get_dadGroup():FlxSpriteGroup return game.dadGroup;
 	inline private function get_gfGroup():FlxSpriteGroup return game.gfGroup;
 
-	inline private function get_unspawnNotes():Array<Note>
+	inline private function get_unspawnNotes():Array<PreloadNotes>
 	{
 		return PlayfieldManager.instance.unspawnNotes;
 	}
 
-	inline private function get_allNotes():Array<Note>
+
+	inline private function get_notes():FlxTypedGroup<Note>
 	{
-		return PlayfieldManager.instance.allNotes;
+		return PlayfieldManager.instance.notes;
 	}
 
 	inline private function get_camGame():FlxCamera return game.camGame;

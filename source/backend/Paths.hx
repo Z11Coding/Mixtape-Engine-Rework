@@ -13,6 +13,7 @@ import flixel.system.FlxAssets;
 import haxe.Json;
 import haxe.io.Path;
 import lime.utils.Assets;
+import objects.notes.NoteSplash;
 import openfl.display.BitmapData;
 import openfl.display3D.textures.RectangleTexture;
 import openfl.geom.Matrix;
@@ -67,6 +68,158 @@ class Paths
 	public static final SCRIPT_EXTENSIONS:Array<String> = ["lua", "hscript", "hxs", "hx", "ys", "yscript"];
 
 	public static var pathType:String = 'Mixtape';
+
+	public static var defaultNoteSprite:FlxSprite;
+
+  public static var noteSkinFramesMap:Map<String, FlxFramesCollection> = new Map();
+  public static var noteSkinAnimsMap:Map<String, FlxAnimationController> = new Map();
+
+  private static var splashFrames:FlxFramesCollection;
+  private static var splashAnimation:FlxAnimationController;
+
+  public static var splashSkinFramesMap:Map<String, FlxFramesCollection> = new Map();
+  public static var splashSkinAnimsMap:Map<String, FlxAnimationController> = new Map();
+
+  public static var splashConfigs:Map<String, objects.notes.NoteSplash.NoteSplashConfig> = new Map();
+  public static var splashAnimCountMap:Map<String, Int> = new Map();
+
+  public static var defaultSkin = 'noteskins/NOTE_assets' + Note.getNoteSkinPostfix();
+
+  // Function that initializes the first note. This way, we can recycle the notes
+  public static function initDefaultSkin(?noteSkin:String, ?inEditor:Bool = false)
+  {
+    if (noteSkin.length > 0) defaultSkin = noteSkin;
+    else if (!PlayState.isPixelStage) defaultSkin = 'noteskins/NOTE_assets' + Note.getNoteSkinPostfix();
+    else
+      defaultSkin = 'noteskins/NOTE_assets';
+    trace(defaultSkin);
+  }
+
+  public static function initNote(?noteSkin:String)
+  {
+    // Do this to be able to just copy over the note animations and not reallocate it
+    if (noteSkin.length < 1) noteSkin = defaultSkin;
+    var spr:FlxSprite = new FlxSprite();
+    spr.frames = getSparrowAtlas(noteSkin.length > 1 ? noteSkin : defaultSkin);
+
+    // Use a for loop for adding all of the animations in the note spritesheet, otherwise it won't find the animations for the next recycle
+    for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters').length)
+		{
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
+
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+		}
+    noteSkinFramesMap.set(noteSkin, spr.frames);
+    noteSkinAnimsMap.set(noteSkin, spr.animation);
+  }
+
+	function attemptToAddAnimationByPrefix(obj:FlxSprite, name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
+	{
+		try {
+			var animFrames = [];
+			@:privateAccess
+			obj.animation.findByPrefix(animFrames, prefix); // adds valid frames to animFrames
+			if(animFrames.length < 1) return;
+
+			obj.animation.addByPrefix(name, prefix, framerate, doLoop);
+		}
+		catch(e){
+			//trace("Anim was null!: " + prefix);
+		}
+	}
+
+  // Note Splash initialization
+  public static function initSplash(?splashSkin:String)
+  {
+    var skin:String = (splashSkin != null && splashSkin.length > 0) ? splashSkin : 'noteSplashes/noteSplashes' + NoteSplash.getSplashSkinPostfix();
+    splashFrames = getSparrowAtlas(skin);
+    if (splashFrames == null) splashFrames = getSparrowAtlas('noteSplashes/noteSplashes' + NoteSplash.getSplashSkinPostfix());
+
+    // Do this to be able to just copy over the splash animations and not reallocate it
+
+    var spr:FlxSprite = new FlxSprite();
+    spr.frames = splashFrames;
+    splashAnimation = new FlxAnimationController(spr);
+
+    // Use a for loop for adding all of the animations in the splash spritesheet, otherwise it won't find the animations for the next recycle
+
+    var config = splashConfigs.get(skin);
+    if (config == null) config = initSplashConfig(skin);
+    var maxAnims:Int = 0;
+    var animName:String = (config != null && config.anim != null && config.anim.length > 0) ? config.anim : "note splash";
+
+    var shouldBreakLoop = false;
+    while (!shouldBreakLoop)
+    {
+      var animID:Int = maxAnims + 1;
+      for (i in 0...Note.colArray.length)
+      {
+        if (!addAnimAndCheck('note$i-$animID', '$animName ${Note.colArray[i]} $animID', 24, false))
+        {
+          // Reached the maximum amount of anims, break the loop
+          shouldBreakLoop = true;
+          break;
+        }
+      }
+      if (!shouldBreakLoop) maxAnims++;
+      else
+        break;
+      // trace('currently: $maxAnims');
+    }
+    splashSkinFramesMap.set(splashSkin, splashFrames);
+    splashSkinAnimsMap.set(splashSkin, splashAnimation);
+    splashAnimCountMap.set(splashSkin, maxAnims);
+  }
+
+	public static function initSplashConfig(skin:String)
+	{
+		var path:String = Paths.getSharedPath('images/' + skin + '.txt');
+		if (!FileSystem.exists(path)) path = Paths.modsTxt(skin);
+		if (!FileSystem.exists(path)) path = Paths.getSharedPath('images/noteSplashes/noteSplashes' + NoteSplash.getSplashSkinPostfix() + '.txt');
+
+		var configFile:Array<String> = CoolUtil.coolTextFile(path);
+
+		if (configFile.length < 1) return null;
+
+		var framerates:Array<String> = configFile[1].split(' ');
+		var offs:Array<Array<Float>> = [];
+		for (i in 2...configFile.length)
+		{
+			var animOffs:Array<String> = configFile[i].split(' ');
+			offs.push([Std.parseFloat(animOffs[0]), Std.parseFloat(animOffs[1])]);
+		}
+		var config:NoteSplash.NoteSplashConfig =
+			{
+				anim: configFile[0],
+				minFps: Std.parseInt(framerates[0]),
+				maxFps: Std.parseInt(framerates[1]),
+				offsets: offs
+			};
+		splashConfigs.set(skin, config);
+		return config;
+	}
+
+	public static function addAnimAndCheck(name:String, anim:String, ?framerate:Int = 24, ?loop:Bool = false)
+	{
+		var animFrames = [];
+		@:privateAccess
+		splashAnimation.findByPrefix(animFrames, anim); // adds valid frames to animFrames
+
+		if (animFrames.length < 1) return false;
+
+		splashAnimation.addByPrefix(name, anim, framerate, loop);
+		return true;
+	}
 
 	// Troll Engine Things
 	public static function getFileWithExtensions(scriptPath:String, extensions:Array<String>) {

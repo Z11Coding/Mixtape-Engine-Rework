@@ -9,6 +9,22 @@ typedef NoteTypeProperty = {
 
 class NoteTypesConfig
 {
+	//This is needed for the hardcoded note types to appear on the Chart Editor,
+	//It's also used for backwards compatibility with 0.1 - 0.3.2 charts.
+	public static final defaultNoteTypes:Array<String> = [
+		'', //Always leave this one empty pls
+		'Alt Animation',
+		'Hey!',
+		'Hurt Note',
+		'GF Sing',
+		'EX Note',
+		'No Animation',
+		'Botplay Note',
+		'sakura-joint',
+		'sakura-bf1',
+		'sakura-bf2'
+	];
+
 	private static var noteTypesData:Map<String, Array<NoteTypeProperty>> = new Map<String, Array<NoteTypeProperty>>();
 	public static function clearNoteTypesData()
 		noteTypesData.clear();

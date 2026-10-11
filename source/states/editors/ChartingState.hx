@@ -132,7 +132,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	public static var keysArray:Array<FlxKey> = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT]; //Used for Vortex Editor
 	public static var SHOW_EVENT_COLUMN = true;
-	public static var GRID_COLUMNS_PER_PLAYER = Note.ammo[PlayfieldManager.mania[0]];
+	public static var GRID_COLUMNS_PER_PLAYER = ExtraKeys.ammo[ExtraKeys.mania];
 	public static var GRID_PLAYERS = 2;
 	public static var GRID_SIZE = 40;
 	final BACKUP_EXT = '.bkp';
@@ -1288,7 +1288,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 		maniaStepper.value = PlayfieldManager.SONG.mania;
 		startManiaStepper.value = PlayfieldManager.SONG.startMania;
-		GRID_COLUMNS_PER_PLAYER = Note.ammo[PlayfieldManager.SONG.mania];
+		GRID_COLUMNS_PER_PLAYER = ExtraKeys.ammo[PlayfieldManager.SONG.mania];
 		GRID_SIZE = Note.gridSizes[PlayfieldManager.SONG.mania];
 		changeMania();
 
@@ -2251,7 +2251,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		var canPlayHitSound:Bool = (FlxG.sound.music != null && FlxG.sound.music.playing);
 		var hitSoundPlayer:Bool = (hitsoundPlayerStepper.value > 0);
 		var hitSoundOpp:Bool = (hitsoundOpponentStepper.value > 0);
-		var data:Int = note.noteData % Note.ammo[PlayfieldManager.mania[0]]; // this isn't used but keep it just incase (lilBuddies)
+		var data:Int = note.noteData % ExtraKeys.ammo[ExtraKeys.mania]; // this isn't used but keep it just incase (lilBuddies)
 		var gfShouldSing:Bool = false; // this will only define if gf has to sing, if you want to avoid the other characters singing you should make another variable replicating this one
 		var playerShouldSing:Bool = false;
 		var player2ShouldSing:Bool = false;
@@ -2343,30 +2343,30 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		data = note.noteData; // this isn't used but keep it incase
 		if(lilBuddiesSing)
 		{
-			data += Note.ammo[PlayfieldManager.mania[0]];
+			data += ExtraKeys.ammo[ExtraKeys.mania];
 			if (!note.noAnimation) {
 				if (note.mustPress)
 				{
 					if (note.exNote) {
-						lilBf2.animation.play("" + (note.noteData % Note.ammo[PlayfieldManager.mania[0]]), true);
+						lilBf2.animation.play("" + (note.noteData % ExtraKeys.ammo[ExtraKeys.mania]), true);
 						lilBf2.color = note.rgbShader.r;
-						lilBf2ResetAnim = ((Conductor.stepCrochet * PlayfieldManager.mania[0]) + note.sustainLength) / 1000 / playbackRate; // for lil buddies to reset after hitting notes. It doesn't stop at sections anymore.
+						lilBf2ResetAnim = ((Conductor.stepCrochet * ExtraKeys.mania) + note.sustainLength) / 1000 / playbackRate; // for lil buddies to reset after hitting notes. It doesn't stop at sections anymore.
 					} else {
-						lilBf.animation.play("" + (note.noteData % Note.ammo[PlayfieldManager.mania[0]]), true);
+						lilBf.animation.play("" + (note.noteData % ExtraKeys.ammo[ExtraKeys.mania]), true);
 						lilBf.color = note.rgbShader.r;
-						lilBfResetAnim = ((Conductor.stepCrochet * PlayfieldManager.mania[0]) + note.sustainLength) / 1000 / playbackRate; // for lil buddies to reset after hitting notes. It doesn't stop at sections anymore.
+						lilBfResetAnim = ((Conductor.stepCrochet * ExtraKeys.mania) + note.sustainLength) / 1000 / playbackRate; // for lil buddies to reset after hitting notes. It doesn't stop at sections anymore.
 					}
 				}
 				else
 				{
 					if (note.exNote) {
-						lilOpp2.animation.play("" + (note.noteData % Note.ammo[PlayfieldManager.mania[0]]), true);
+						lilOpp2.animation.play("" + (note.noteData % ExtraKeys.ammo[ExtraKeys.mania]), true);
 						lilOpp2.color = note.rgbShader.r;
-						lilOpp2ResetAnim = ((Conductor.stepCrochet * PlayfieldManager.mania[0]) + note.sustainLength) / 1000 / playbackRate;
+						lilOpp2ResetAnim = ((Conductor.stepCrochet * ExtraKeys.mania) + note.sustainLength) / 1000 / playbackRate;
 					} else {
-						lilOpp.animation.play("" + (note.noteData % Note.ammo[PlayfieldManager.mania[0]]), true);
+						lilOpp.animation.play("" + (note.noteData % ExtraKeys.ammo[ExtraKeys.mania]), true);
 						lilOpp.color = note.rgbShader.r;
-						lilOppResetAnim = ((Conductor.stepCrochet * PlayfieldManager.mania[0]) + note.sustainLength) / 1000 / playbackRate;
+						lilOppResetAnim = ((Conductor.stepCrochet * ExtraKeys.mania) + note.sustainLength) / 1000 / playbackRate;
 					}
 				}
 			}
@@ -2509,7 +2509,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			diffY = Math.abs(diffY);
 			selectionBox.y -= diffY;
 		}
-		selectionBox.scale.set(diffX/Note.ammo[PlayfieldManager.SONG.mania], diffY/Note.ammo[PlayfieldManager.SONG.mania]);
+		selectionBox.scale.set(diffX/ExtraKeys.ammo[PlayfieldManager.SONG.mania], diffY/ExtraKeys.ammo[PlayfieldManager.SONG.mania]);
 		selectionBox.updateHitbox();
 	}
 
@@ -4527,9 +4527,9 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		maniaStepper.onValueChange = function()
 		{
 			PlayfieldManager.SONG.mania = Std.int(maniaStepper.value);
-			PlayfieldManager.mania[0] = Std.int(maniaStepper.value);
-			GRID_COLUMNS_PER_PLAYER = Note.ammo[PlayfieldManager.mania[0]];
-			GRID_SIZE = Note.gridSizes[PlayfieldManager.mania[0]];
+			ExtraKeys.mania = Std.int(maniaStepper.value);
+			GRID_COLUMNS_PER_PLAYER = ExtraKeys.ammo[ExtraKeys.mania];
+			GRID_SIZE = Note.gridSizes[ExtraKeys.mania];
 			changeMania();
 		};
 

@@ -2625,8 +2625,8 @@ class PlayState extends MusicBeatState
 		}
 		playbackRate = value;
 		FlxG.animationTimeScale = value;
-		Conductor.offset = Reflect.hasField(PlayfieldManager.SONG, 'offset') ? (PlayfieldManager.SONG.offset / value) : 0;
-		Conductor.safeZoneOffset = (ClientPrefs.data.safeFrames / 60) * 1000 * value;
+		RConductor.musicPositionOffset = (Reflect.hasField(PlayfieldManager.SONG, 'offset') ? (PlayfieldManager.SONG.offset / value) : 0) + ClientPrefs.data.noteOffset;
+		RConductor.safeZoneOffset = (ClientPrefs.data.safeFrames / 60) * 1000 * value;
 		#if VIDEOS_ALLOWED
 		if(videoCutscene != null && videoCutscene.videoSprite != null) videoCutscene.videoSprite.bitmap.rate = value;
 		#end
@@ -3409,9 +3409,9 @@ class PlayState extends MusicBeatState
 
 	public function addNoteToField(note:Note, ?field:Int = 0)
 	{
-		if (field < 0 || field >= playfields.members.length)
+		/*if (field < 0 || field >= playfields.members.length)
 			field = if (note.mustPress) 0 else 1;
-		playfields.members[field].queue(note);
+		playfields.members[field].queue(note);*/
 	}
 
 	public function clearNotesBefore(time:Float)
@@ -4470,6 +4470,10 @@ class PlayState extends MusicBeatState
 		}
 		doDeathCheck();
 
+		skippedCount = 0;
+
+		spawnNotes();
+
 		if (generatedMusic)
 		{
 			if(!inCutscene)
@@ -4962,6 +4966,54 @@ class PlayState extends MusicBeatState
 				omegaFormat += '${DateTools.hours(seconds)}:';
 			omegaFormat += FlxStringUtil.formatTime(seconds, showMS);
 			return omegaFormat;
+		}
+	}
+
+	//This function handles note spawning.
+	var NOTE_SPAWN_TIME:Float = 0;
+	var targetNote:PreloadNotes = null;
+	var spawnedNote:Note;
+	function spawnNotes()
+	{
+		if (unspawnNotes[notesAddedCount] != null)
+		{
+			//notesAddedCount = 0;
+			NOTE_SPAWN_TIME = (ClientPrefs.data.dynamicSpawnTime ? (1600 / songSpeed) : 1600 * ClientPrefs.data.noteSpawnTime);
+			targetNote = unspawnNotes[notesAddedCount];
+			limitNC = (notes.countLiving() + sustainNotes.countLiving());
+
+			if (targetNote != null && !targetNote.wasHit)
+			{
+				while (targetNote.strumTime <= conductor.musicPosition - ClientPrefs.data.noteOffset) {
+					targetNote.wasHit = true;
+					targetNote.mustPress ? goodNoteHit(null, targetNote) : opponentNoteHit(null, targetNote);
+					notesAddedCount++;
+					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
+					else break;
+					skippedCount++;
+					if (skippedCount > maxSkipped) maxSkipped = skippedCount;
+				}
+			}
+			if (ClientPrefs.data.showNotes || !ClientPrefs.data.showNotes && !cpuControlled)
+			{
+				while (limitNC < noteLimit && targetNote.strumTime - conductor.musicPosition < (NOTE_SPAWN_TIME / targetNote.multSpeed)) {
+					spawnedNote = (targetNote.isSustainNote ? sustainNotes : notes).recycle(Note);
+					spawnedNote.setupNoteData(targetNote);
+
+					var rowArray = playfield.noteRows[spawnedNote.mustPress?0:1];
+          if(rowArray[swagNote.row]==null)
+            rowArray[swagNote.row]=[];
+          rowArray[swagNote.row].push(spawnedNote);
+
+					spawnedNote.prevNote = (targetNote.isSustainNote ? sustainNotes : notes)[notesAddedCount-1];
+					spawnedNote.nextNote = unspawnNotes[notesAddedCount+1];
+
+					if (!ClientPrefs.data.noSpawnFunc) callOnLuas('onSpawnNote', [(!spawnedNote.isSustainNote ? notes.members.indexOf(spawnedNote) : sustainNotes.members.indexOf(spawnedNote)), targetNote.noteData, targetNote.noteType, targetNote.isSustainNote]);
+					notesAddedCount++; limitNC++;
+					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
+					else break;
+				}
+			}
 		}
 	}
 
@@ -8890,7 +8942,7 @@ class PlayState extends MusicBeatState
 				// potentially have jump anims?
 				var chord = playfield.noteRows[note.mustPress ? 0 : 1][note.row];
 				var animNote = chord[0];
-				var realAnim = note.field.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
+				var realAnim = playfield.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
 				if (char.mostRecentRow != note.row)
 					char.playAnim(realAnim, true);
 

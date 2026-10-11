@@ -59,20 +59,20 @@ class SustainSplash extends FlxSprite
 		final susLength:Float = (!daNote.isSustainNote ? daNote.sustainLength : daNote.parentSL);
 		final lengthToGet:Int = Math.floor(susLength / Conductor.stepCrochet);
 		final timeToGet:Float = !daNote.isSustainNote ? daNote.strumTime : daNote.parentST;
-		final timeThingy:Float = (startCrochet * lengthToGet + (timeToGet - Conductor.songPosition + ClientPrefs.ratingOffset)) / playbackRate * .001;
+		final timeThingy:Float = (startCrochet * lengthToGet + (timeToGet - Conductor.songPosition + ClientPrefs.data.ratingOffset)) / playbackRate * .001;
 
 		animation.play('hold', true, false, 0);
 		animation.curAnim.frameRate = frameRate;
 		animation.curAnim.looped = true;
 
-		shader = (ClientPrefs.enableColorShader ? rgbShader.shader : null);
+		shader = (ClientPrefs.data.enableColorShader ? rgbShader.shader : null);
 
 		clipRect = new flixel.math.FlxRect(0, !PlayState.isPixelStage ? 0 : -210, frameWidth, frameHeight);
 
 		if (daNote != null && daNote.rgbShader != null)
 		{
 			var tempShader:RGBPalette = null;
-			if ((daNote == null || daNote.noteSplashData.useRGBShader) && (PlayState.SONG == null || !PlayState.SONG.disableNoteRGB))
+			if ((daNote == null || daNote.noteSplashData.useRGBShader) && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB))
 			{
 				// If Note RGB is enabled:
 				if (daNote != null && !daNote.noteSplashData.useGlobalShader)
@@ -102,7 +102,7 @@ class SustainSplash extends FlxSprite
 
 		timer = new FlxTimer().start(timeThingy, (idk:FlxTimer) ->
 		{
-			if (daNote.isSustainEnd && daNote.mustPress && !daNote.noteSplashData.disabled && ClientPrefs.noteSplashes)
+			if (daNote.isSustainEnd && daNote.mustPress && !daNote.noteSplashData.disabled && ClientPrefs.data.noteSplashes)
 			{
 				alpha = 1;
 				animation.play('end', true, false, 0);
@@ -122,8 +122,8 @@ class SustainSplash extends FlxSprite
 	public static function getSplashSkinPostfix()
 	{
 		var skin:String = '';
-		if (ClientPrefs.splashType != 'Default')
-			skin = '-' + ClientPrefs.splashType.trim().toLowerCase().replace(' ', '_');
+		if (ClientPrefs.data.splashType != 'Default')
+			skin = '-' + ClientPrefs.data.splashType.trim().toLowerCase().replace(' ', '_');
 		return skin;
 	}
 }

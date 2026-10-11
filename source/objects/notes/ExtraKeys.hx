@@ -2,6 +2,7 @@ package objects.notes;
 
 class ExtraKeys {
   // Start of Extra Keys
+
 	//EK Data
 	public static final ammo:Array<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 	public static final scales:Array<Float> = [0.9, 0.85, 0.8, 0.7, 0.66, 0.6, 0.55, 0.50, 0.46, 0.39, 0.36, 0.32, 0.31, 0.31, 0.3, 0.26, 0.26, 0.22];
@@ -16,6 +17,7 @@ class ExtraKeys {
 	public static final offsets:Array<Dynamic> = [[20, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10], [10, 20], [10, 10], [10, 10], [10, 10], [10, 10], [10, 10],[10, 10],[10, 10], [10, 10]];
 	public static final noteSplashScales:Array<Float> = [1.3, 1.2, 1.1, 1, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3, 0.2, 0.18, 0.18, 0.15];
 	public static final noteSplashOffsets:Map<Int, Array<Int>> = [0 => [20, 10], 9 => [10, 20]];
+	public static final colArray:Array<String> = ['purple', 'blue', 'green', 'red', 'white', 'yellow', 'violet', 'black', 'dark'];
 
 	public static final minMania:Int = 0;
 	public static final maxMania:Int = 17;
