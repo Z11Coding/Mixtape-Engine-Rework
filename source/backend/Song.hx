@@ -6,6 +6,7 @@ import haxe.Json;
 import lime.utils.Assets;
 import managers.DynamicSongManager;
 import objects.notes.Note;
+import objects.notes.NoteTypesConfig;
 #if ARCHIPELAGO_ALLOWED
 import archipelago.HighQualityTrapManager;
 #end

@@ -58,7 +58,7 @@ class BaseStage extends FlxBasic
 	public var gfGroup(get, never):FlxSpriteGroup;
 
 	public var unspawnNotes(get, never):Array<PreloadNotes>;
-	public var notes(get, never):Array<Note>;
+	public var notes(get, never):FlxTypedGroup<Note>;
 
 	public var camGame(get, never):FlxCamera;
 	public var camHUD(get, never):FlxCamera;

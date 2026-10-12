@@ -1,131 +1,626 @@
 package objects.notes;
 
-import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
-import shaders.FlxFixedShader;
-import shaders.RGBPalette.RGBShaderReference;
+import backend.animation.PsychAnimationController;
+import flixel.FlxSprite;
+import flixel.animation.FlxBaseAnimation;
+import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.system.FlxAssets.FlxShader;
+import flixel.util.FlxColor;
+import objects.notes.Note;
+import objects.notes.StrumNote;
+import shaders.ColorSwap.ColorSwap;
 import shaders.RGBPalette;
 
+typedef RGB = {
+	r:Null<Int>,
+	g:Null<Int>,
+	b:Null<Int>
+}
+
+typedef NoteSplashAnim = {
+	name:String,
+	noteData:Int,
+	prefix:String,
+	indices:Array<Int>,
+	offsets:Array<Float>,
+	fps:Array<Int>
+}
+
 typedef NoteSplashConfig = {
-	anim:String,
-	minFps:Int,
-	maxFps:Int,
-	offsets:Array<Array<Float>>
+	animations:Map<String, NoteSplashAnim>,
+	scale:Float,
+	allowRGB:Bool,
+	allowPixel:Bool,
+	rgb:Array<Null<RGB>>
 }
 
 class NoteSplash extends FlxSprite
 {
 	public var rgbShader:PixelSplashShaderRef;
-	private var idleAnim:String;
-	private var textureLoaded:String = null;
-	var texture:String = null;
+	public var texture:String;
+	public var config(default, set):NoteSplashConfig;
+	public var babyArrow:StrumNote;
 
-	public static var defaultNoteSplash(default, never):String = 'noteSplashes/noteSplashes';
+	public var copyX:Bool = true;
+	public var copyY:Bool = true;
+	public var inEditor:Bool = false;
 
-	public function new(x:Float = 0, y:Float = 0, ?note:Int = 0) {
+	var spawned:Bool = false;
+	var noteDataMap:Map<Int, String> = new Map();
+
+	public var noteData:Int = 0;
+
+	public static var defaultNoteSplash(default, never):String = "noteSplashes/noteSplashes";
+	public static var configs:Map<String, NoteSplashConfig> = new Map();
+
+	public function new(?x:Float = 0, ?y:Float = 0, ?strum:Int = 0, ?splash:String)
+	{
 		super(x, y);
 
-		if(PlayfieldManager.SONG.splashSkin.length > 0 && Paths.fileExists('images/' + PlayfieldManager.SONG.splashSkin + '.png', IMAGE)) texture = PlayfieldManager.SONG.splashSkin;
-		else texture = defaultNoteSplash + getSplashSkinPostfix();
-
+		animation = new PsychAnimationController(this);
+		noteData = strum;
 		rgbShader = new PixelSplashShaderRef();
 		shader = rgbShader.shader;
-
-		if (!Paths.splashConfigs.exists(texture)) config = Paths.initSplashConfig(texture);
-		config = Paths.splashConfigs.get(texture);
-
-		setupNoteSplash(x, y, note);
-		antialiasing = ClientPrefs.data.antialiasing;
+		setupNoteSplash(x, y, strum, splash);
+		visible = false;
 	}
 
-	var maxAnims:Int = 2;
-	var config:NoteSplashConfig = null;
-	public function setupNoteSplash(x:Float, y:Float, direction:Int = 0, ?note:Note = null) {
-		setPosition(x - Note.swagWidth * 0.95, y - Note.swagWidth);
+	public var animationAmount:Int = 2;
+	public function setupNoteSplash(x:Float, y:Float, ?noteData:Int = 0, ?texture:String = null)
+	{
+		visible = true;
+		/*var doR:Bool = false;
+		if (note != null && note.genScript != null){
+			var ret:Dynamic = note.genScript.call("preSetupNoteSplash", [x, y, column, texture, hueColor, satColor, brtColor, note], ["this" => this, "noteData" => noteData, "column" => column]);
+			if(ret == Globals.Function_Stop) doR = true;
+		}
+
+		if (callOnHScripts("preSetupNoteSplash", [x, y, noteData, texture, hueColor, satColor, brtColor, note], ["this" => this, "noteData" => noteData, "column" => column]) == Globals.Function_Stop)
+			return;
+
+		if (doR)return;*/ //TODO: Psych-ify this later
+
+		loadSplash(texture);
+		setPosition(x, y);
+		animationAmount = 2;
 		alpha = 0.6;
-		shader = (ClientPrefs.data.enableColorShader ? rgbShader.shader : null);
+		scale.set(0.8, 0.8);
+		updateHitbox();
 
-		if(note != null && note.noteSplashData.texture.length > 0 && Paths.fileExists('images/' + note.noteSplashData.texture + '.png', IMAGE)) texture = note.noteSplashData.texture;
+		this.noteData = noteData;
 
-		if(textureLoaded != texture) {
-			loadAnims(texture);
-		}
+	}
 
-		if (note != null && note.rgbShader != null)
+	public var maxAnims(default, set):Int = 0;
+	public function loadSplash(?splash:String)
+	{
+		config = null;
+		maxAnims = 0;
+
+		if(splash == null)
 		{
-			var tempShader:RGBPalette = null;
-			if((note == null || note.noteSplashData.useRGBShader) && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB))
-			{
-				// If Note RGB is enabled:
-				if(note != null && !note.noteSplashData.useGlobalShader)
-				{
-					if(note.noteSplashData.r != -1) note.rgbShader.r = note.noteSplashData.r;
-					if(note.noteSplashData.g != -1) note.rgbShader.g = note.noteSplashData.g;
-					if(note.noteSplashData.b != -1) note.rgbShader.b = note.noteSplashData.b;
-					tempShader = note.rgbShader.parent;
-				}
-				else tempShader = Note.globalRgbShaders[direction];
-			}
-			rgbShader.copyValues(tempShader);
+			splash = defaultNoteSplash + getSplashSkinPostfix();
+			if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) splash = PlayfieldManager.SONG.splashSkin;
 		}
-		textureLoaded = texture;
-		offset.set(10, 10);
 
-		var animNum:Int = FlxG.random.int(1, Paths.splashAnimCountMap.get(texture));
+		texture = splash;
+		frames = Paths.getSparrowAtlas(texture);
+		if (frames == null)
+		{
+			texture = defaultNoteSplash + getSplashSkinPostfix();
+			frames = Paths.getSparrowAtlas(texture);
+			if (frames == null)
+			{
+				texture = defaultNoteSplash;
+				frames = Paths.getSparrowAtlas(texture);
+			}
+		}
+
+		var path:String = 'images/$texture';
+		if (configs.exists(path))
+		{
+			this.config = configs.get(path);
+			for (anim in this.config.animations)
+			{
+				if (anim.noteData % 4 == 0)
+					maxAnims++;
+			}
+			return;
+		}
+		else if (Paths.fileExists('$path.json', TEXT))
+		{
+			var config:Dynamic = haxe.Json.parse(Paths.getTextFromFile('$path.json'));
+			if (config != null)
+			{
+				var tempConfig:NoteSplashConfig = {
+					animations: new Map(),
+					scale: config.scale,
+					allowRGB: config.allowRGB,
+					allowPixel: config.allowPixel,
+					rgb: config.rgb
+				}
+
+				for (i in Reflect.fields(config.animations))
+				{
+					var anim:NoteSplashAnim = Reflect.field(config.animations, i);
+					tempConfig.animations.set(i, anim);
+				}
+
+				// Calculate maxAnims properly for JSON configs
+				// Count how many different animation variants we have per key
+				var animsPerKey:Map<Int, Int> = new Map();
+				for (anim in tempConfig.animations) {
+					var baseKey = anim.noteData % 4; // Get base key (0-3)
+					var variant = Math.floor(anim.noteData / 4) + 1; // Get variant number (1, 2, 3...)
+					if (!animsPerKey.exists(baseKey) || animsPerKey.get(baseKey) < variant) {
+						animsPerKey.set(baseKey, variant);
+					}
+				}
+
+				// maxAnims should be the highest variant number
+				maxAnims = 0;
+				for (key => variants in animsPerKey) {
+					if (variants > maxAnims) maxAnims = variants;
+				}
+
+				this.config = tempConfig;
+				configs.set(path, this.config);
+				return;
+			}
+		}
+
+		// Splashes with no json
+		var tempConfig:NoteSplashConfig = createConfig();
+		var anim:String = 'note splash';
+		var fps:Array<Null<Int>> = [22, 26];
+		var offsets:Array<Array<Float>> = [[0, 0]];
+		if (Paths.fileExists('$path.txt', TEXT)) // Backwards compatibility with 0.7 splash txts
+		{
+			var configFile:Array<String> = CoolUtil.listFromString(Paths.getTextFromFile('$path.txt'));
+			if (configFile.length > 0)
+			{
+				anim = configFile[0];
+				if (configFile.length > 1)
+				{
+					var framerates:Array<String> = configFile[1].split(' ');
+					fps = [Std.parseInt(framerates[0]), Std.parseInt(framerates[1])];
+					if (fps[0] == null) fps[0] = 22;
+					if (fps[1] == null) fps[1] = 26;
+
+					if (configFile.length > 2)
+					{
+						offsets = [];
+						for (i in 2...configFile.length)
+						{
+							if (configFile[i].trim() != '')
+							{
+								var animOffs:Array<String> = configFile[i].split(' ');
+								var x:Float = Std.parseFloat(animOffs[0]);
+								var y:Float = Std.parseFloat(animOffs[1]);
+								if (Math.isNaN(x)) x = 0;
+								if (Math.isNaN(y)) y = 0;
+								offsets.push([x, y]);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Get current key count from PlayState or default to 4
+		var keyCount:Int = 4; // Default fallback
+		if (PlayState.instance != null && PlayState.instance.playfields != null && PlayState.instance.playfields.members.length > 0) {
+			keyCount = PlayState.instance.playfields.members[0].keyCount;
+		} else if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length) {
+			keyCount = ExtraKeys.ammo[ExtraKeys.mania];
+		}
+
+		// Get the appropriate color array for the current key count
+		var colArray:Array<String> = [];
+		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length && ExtraKeys.keysShit.exists(ExtraKeys.mania)) {
+			var keyData = ExtraKeys.keysShit.get(ExtraKeys.mania);
+			if (keyData.exists("letters") && keyData.get("letters") is Array) {
+				var letters:Array<String> = cast keyData.get("letters");
+				colArray = letters.map(letter -> letter.toLowerCase()); // Convert to lowercase for consistency
+			}
+		}
+
+		// Fallback to default if no proper key data found
+		if (colArray.length == 0) {
+			colArray = ExtraKeys.colArray.copy();
+			// Extend if we need more keys
+			while (colArray.length < keyCount) {
+				colArray.push('key${colArray.length}');
+			}
+		}
+
+		var failedToFind:Bool = false;
+		while (true)
+		{
+			for (v in colArray)
+			{
+				if (!checkForAnim('$anim $v ${maxAnims+1}'))
+				{
+					failedToFind = true;
+					break;
+				}
+			}
+			if (failedToFind) break;
+			maxAnims++;
+		}
+
+		for (animNum in 0...maxAnims)
+		{
+			for (i => col in colArray)
+			{
+				var data:Int = i % colArray.length + (animNum * colArray.length);
+				var name:String = animNum > 0 ? '$col' + (animNum + 1) : col;
+				var offset:Array<Float> = offsets[FlxMath.wrap(data, 0, Std.int(offsets.length-1))];
+				addAnimationToConfig(tempConfig, 1, name, '$anim $col ${animNum + 1}', fps, offset, [], data);
+			}
+		}
+
+		this.config = tempConfig;
+		configs.set(path, this.config);
+	}
+
+	public function spawnSplashNote(?x:Float = 0, ?y:Float = 0, ?noteData:Int = 0, ?note:Note, ?randomize:Bool = true)
+	{
+		if (note != null && note.noteSplashData.disabled)
+			return;
+
+		aliveTime = 0;
+
+		if (!inEditor)
+		{
+			var loadedTexture:String = defaultNoteSplash + getSplashSkinPostfix();
+			if (note != null && note.noteSplashData.texture != null) loadedTexture = note.noteSplashData.texture;
+			else if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) loadedTexture = PlayfieldManager.SONG.splashSkin;
+
+			if (texture != loadedTexture) loadSplash(loadedTexture);
+		}
+
+		setPosition(x, y);
+
+		#if debug
+		trace('NoteSplash: Initial position set to ($x, $y)');
+		#end
+
+		// Only use babyArrow positioning if we're in editor mode or no position was provided
+		if (babyArrow != null && (inEditor || (x == 0 && y == 0))) {
+			setPosition(babyArrow.x - Note.swagWidth * 0.95, babyArrow.y - Note.swagWidth);
+			#if debug
+			trace('NoteSplash: Using babyArrow position: (${babyArrow.x - Note.swagWidth * 0.95}, ${babyArrow.y - Note.swagWidth})');
+			#end
+		}
+
+		if (babyArrowCharting != null && (inEditor || (x == 0 && y == 0))) {
+			setPosition(babyArrowCharting.x - Note.swagWidth * 0.95, babyArrowCharting.y - Note.swagWidth);
+			#if debug
+			trace('NoteSplash: Using babyArrowCharting position');
+			#end
+		}
+
+		if (note != null)
+			noteData = note.noteData;
+
+		// Get current key count for proper noteData calculation
+		var keyCount:Int = 4; // Default fallback
+		var colArray:Array<String> = ExtraKeys.colArray.copy();
+
+		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length) {
+			keyCount = ExtraKeys.ammo[ExtraKeys.mania];
+		}
+
+		// Get the appropriate color array for the current key count
+		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length && ExtraKeys.keysShit.exists(ExtraKeys.mania)) {
+			var keyData = ExtraKeys.keysShit.get(ExtraKeys.mania);
+			if (keyData.exists("letters") && keyData.get("letters") is Array) {
+				var letters:Array<String> = cast keyData.get("letters");
+				colArray = letters.map(letter -> letter.toLowerCase());
+			}
+		}
+
+		// Extend color array if needed
+		while (colArray.length < keyCount) {
+			colArray.push('key${colArray.length}');
+		}
+
+		if (randomize && maxAnims > 1)
+			noteData = noteData % colArray.length + (FlxG.random.int(0, maxAnims - 1) * colArray.length);
+
+		this.noteData = noteData;
+
+		// Make sure the splash is visible and properly positioned
+		alpha = 0;
+		visible = true;
+
+		var anim:String = playDefaultAnim();
+
+		// Apply config-based offset if animation was found
+		if (anim != null && config != null && config.animations.exists(anim)) {
+			var animData = config.animations.get(anim);
+			if (animData.offsets != null && animData.offsets.length >= 2) {
+				offset.set(animData.offsets[0], animData.offsets[1]);
+				#if debug
+				trace('NoteSplash: Applied animation offset (${animData.offsets[0]}, ${animData.offsets[1]}) for anim: $anim');
+				#end
+			} else {
+				offset.set(0, 0);
+				#if debug
+				trace('NoteSplash: No offset data for anim: $anim');
+				#end
+			}
+		} else {
+			#if debug
+			trace('NoteSplash: No animation or config found for offset application');
+			#end
+		}
+
+		#if debug
+		trace('NoteSplash: Final position after spawn: (${this.x}, ${this.y}) with offset (${offset.x}, ${offset.y})');
+		#end
+
+		var tempShader:RGBPalette = null;
+		if (config.allowRGB)
+		{
+			Note.initializeGlobalRGBShader(noteData % colArray.length);
+			if (inEditor || (note == null || note.noteSplashData.useRGBShader) && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB))
+			{
+				tempShader = new RGBPalette();
+				// If Note RGB is enabled:
+				if ((note == null || !note.noteSplashData.useGlobalShader) || inEditor)
+				{
+					var colors = config.rgb;
+					if (colors != null)
+					{
+						for (i in 0...colors.length)
+						{
+							if (i > 2) break;
+
+							var rgbIndex = noteData % colArray.length;
+							var arr:Array<FlxColor> = null;
+							// Ensure we don't go out of bounds for RGB arrays
+							if (rgbIndex < ClientPrefs.data.arrowRGB.length) {
+								arr = ClientPrefs.data.arrowRGB[rgbIndex];
+								if (PlayState.isPixelStage && rgbIndex < ClientPrefs.data.arrowRGBPixel.length)
+									arr = ClientPrefs.data.arrowRGBPixel[rgbIndex];
+							} else {
+								// Fallback to default RGB values for extended keys
+								arr = [FlxColor.WHITE, FlxColor.WHITE, FlxColor.WHITE];
+							}
+
+							var rgb = colors[i];
+							if (rgb == null)
+							{
+								if (i == 0) tempShader.r = arr[0];
+								else if (i == 1) tempShader.g = arr[1];
+								else if (i == 2) tempShader.b = arr[2];
+								continue;
+							}
+
+							var r:Null<Int> = rgb.r;
+							var g:Null<Int> = rgb.g;
+							var b:Null<Int> = rgb.b;
+
+							if (r == null || Math.isNaN(r) || r < 0) r = arr[0];
+							if (g == null || Math.isNaN(g) || g < 0) g = arr[1];
+							if (b == null || Math.isNaN(b) || b < 0) b = arr[2];
+
+							var color:FlxColor = FlxColor.fromRGB(r, g, b);
+							if (i == 0) tempShader.r = color;
+							else if (i == 1) tempShader.g = color;
+							else if (i == 2) tempShader.b = color;
+						}
+					}
+					else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
+
+					if (note != null)
+					{
+						if (note.noteSplashData.r != -1) tempShader.r = note.noteSplashData.r;
+						if (note.noteSplashData.g != -1) tempShader.g = note.noteSplashData.g;
+						if (note.noteSplashData.b != -1) tempShader.b = note.noteSplashData.b;
+					}
+				}
+				else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
+			}
+		}
+		rgbShader.copyValues(tempShader);
+		if (!config.allowPixel) rgbShader.pixelAmount = 1;
+		else if (PlayState.isPixelStage) rgbShader.pixelAmount = 6;
+
+		offset.set(10, 10);
+		var conf:NoteSplashAnim = config.animations.get(anim);
+		var offsets:Array<Float> = [0, 0];
+		if (conf != null) offsets = conf.offsets;
+		if (offsets != null)
+		{
+			offset.x += offsets[0];
+			offset.y += offsets[1];
+		}
+
+		animation.finishCallback = function(name:String) {
+			kill();
+			spawned = false;
+		}
+
+		alpha = ClientPrefs.data.splashAlpha;
+		if (note != null) alpha = note.noteSplashData.a;
+
+		antialiasing = ClientPrefs.data.antialiasing;
+		if (note != null) antialiasing = note.noteSplashData.antialiasing;
+		if (PlayState.isPixelStage && config.allowPixel) antialiasing = false;
+
 		var minFps:Int = 22;
 		var maxFps:Int = 26;
-		if(config != null)
+		if (conf != null)
 		{
-			var animID:Int = direction + ((animNum - 1) * Note.colArray.length);
-			var offs:Array<Float> = config.offsets[FlxMath.wrap(animID, 0, config.offsets.length-1)];
-			offset.x += offs[0];
-			offset.y += offs[1];
-			minFps = config.minFps;
-			maxFps = config.maxFps;
+			minFps = conf.fps[0];
+			if (minFps < 0) minFps = 0;
+
+			maxFps = conf.fps[1];
+			if (maxFps < 0) maxFps = 0;
 		}
 
-		var splashToPlay:Int = direction;
+		if (animation.curAnim != null)
+			animation.curAnim.frameRate = FlxG.random.int(minFps, maxFps);
 
-		animation.play('note' + splashToPlay + '-' + (animNum), true);
+		spawned = true;
+	}
 
-		if(animation.curAnim != null)animation.curAnim.frameRate = FlxG.random.int(config.minFps, config.maxFps);
+	public function playDefaultAnim()
+	{
+		var anim:String = noteDataMap.get(noteData);
+		#if debug
+		trace('NoteSplash: Trying to play animation for noteData $noteData, found: $anim');
+		trace('NoteSplash: Available animations in noteDataMap: ${[for (k => v in noteDataMap) '$k=>$v']}');
+		#end
+
+		if (anim != null && animation.exists(anim)) {
+			animation.play(anim, true);
+			alpha = ClientPrefs.data.splashAlpha;
+			spawned = true;
+
+			#if debug
+			trace('NoteSplash: Successfully playing animation: $anim');
+			#end
+		} else {
+			#if debug
+			trace('NoteSplash: Failed to play animation - anim: $anim, exists: ${anim != null ? animation.exists(anim) : false}');
+			trace('NoteSplash: Available animations: ${animation.getNameList()}');
+			#end
+		}
+
+		return anim;
+	}
+
+	function checkForAnim(anim:String)
+	{
+		var animFrames = [];
+		@:privateAccess
+		animation.findByPrefix(animFrames, anim); // adds valid frames to animFrames
+
+		return animFrames.length > 0;
+	}
+
+	var aliveTime:Float = 0;
+	static var buggedKillTime:Float = 0.5; //automatically kills note splashes if they break to prevent it from flooding your HUD
+	override function update(elapsed:Float)
+	{
+		if (spawned)
+		{
+			aliveTime += elapsed;
+
+			// Check if animation finished or if it's taking too long
+			if (animation.curAnim != null && animation.curAnim.finished) {
+				kill();
+				spawned = false;
+			} else if (animation.curAnim == null && aliveTime >= buggedKillTime) {
+				kill();
+				spawned = false;
+			}
+		}
+
+		if (babyArrow != null)
+		{
+			if (copyX)
+				x = babyArrow.x - Note.swagWidth * 0.95;
+
+			if (copyY)
+				y = babyArrow.y - Note.swagWidth;
+		}
+		super.update(elapsed);
 	}
 
 	public static function getSplashSkinPostfix()
 	{
 		var skin:String = '';
-		if(ClientPrefs.data.splashType != 'Default')
-			skin = '-' + ClientPrefs.data.splashType.trim().toLowerCase().replace(' ', '_');
+		if (ClientPrefs.data.splashSkin != ClientPrefs.defaultData.splashSkin)
+			skin = '-' + ClientPrefs.data.splashSkin.trim().toLowerCase().replace(' ', '-');
 		return skin;
 	}
 
-	function loadAnims(skin:String) {
-		maxAnims = 0;
-		if (!Paths.splashSkinFramesMap.exists(skin)) Paths.initSplash(skin);
-		frames = Paths.splashSkinFramesMap.get(skin);
-		animation.copyFrom(Paths.splashSkinAnimsMap.get(skin));
+	public static function createConfig():NoteSplashConfig
+	{
+		return {
+			animations: new Map(),
+			scale: 1,
+			allowRGB: true,
+			allowPixel: true,
+			rgb: null
+		}
 	}
 
-	static var aliveTime:Float = 0;
-	static var buggedKillTime:Float = 0.5; //automatically kills note splashes if they break to prevent it from flooding your HUD
-	override function update(elapsed:Float) {
-		aliveTime += elapsed;
-		if((animation.curAnim != null && animation.curAnim.finished) ||
-			(animation.curAnim == null && aliveTime >= buggedKillTime)) kill();
+	public static function addAnimationToConfig(config:NoteSplashConfig, scale:Float, name:String, prefix:String, fps:Array<Int>, offsets:Array<Float>, indices:Array<Int>, noteData:Int):NoteSplashConfig
+	{
+		if (config == null) config = createConfig();
 
-		super.update(elapsed);
+		config.animations.set(name, {name: name, noteData: noteData, prefix: prefix, indices: indices, offsets: offsets, fps: fps});
+		config.scale = scale;
+		return config;
+	}
+
+	function set_config(value:NoteSplashConfig):NoteSplashConfig
+	{
+		if (value == null) value = createConfig();
+
+		@:privateAccess
+		animation.clearAnimations();
+		noteDataMap.clear();
+
+		for (i in value.animations)
+		{
+			var key:String = i.name;
+			if (i.prefix.length > 0 && key != null && key.length > 0)
+			{
+				// Use the appropriate FPS - either the single value or the first value from array
+				var animFPS:Int = 24; // Default FPS
+				if (i.fps != null && i.fps.length > 0) {
+					animFPS = i.fps[0]; // Use first FPS value for consistent animation speed
+					if (i.fps.length > 1) {
+						// If there are two FPS values, use a random value between them
+						animFPS = FlxG.random.int(i.fps[0], i.fps[1]);
+					}
+				}
+
+				if (i.indices != null && i.indices.length > 0)
+					animation.addByIndices(key, i.prefix, i.indices, "", animFPS, false);
+				else
+					animation.addByPrefix(key, i.prefix, animFPS, false);
+
+				noteDataMap.set(i.noteData, key);
+
+				// Debug output to verify animations are being loaded
+				#if debug
+				trace('NoteSplash: Added animation "$key" with prefix "${i.prefix}" for noteData ${i.noteData} at ${animFPS}fps');
+				#end
+			}
+		}
+
+		scale.set(value.scale, value.scale);
+		return config = value;
+	}
+
+	function set_maxAnims(value:Int)
+	{
+		if (value > 0)
+			noteData = Std.int(FlxMath.wrap(noteData, 0, (value * ExtraKeys.colArray.length) - 1));
+		else
+			noteData = 0;
+
+		return maxAnims = value;
 	}
 }
 
-class PixelSplashShaderRef {
+class PixelSplashShaderRef
+{
 	public var shader:PixelSplashShader = new PixelSplashShader();
+	public var enabled(default, set):Bool = true;
+	public var pixelAmount(default, set):Float = 1;
 
 	public function copyValues(tempShader:RGBPalette)
 	{
-		var enabled:Bool = false;
-		if(tempShader != null)
-			enabled = true;
-
-		if(enabled)
+		if (tempShader != null)
 		{
 			for (i in 0...3)
 			{
@@ -135,24 +630,42 @@ class PixelSplashShaderRef {
 			}
 			shader.mult.value[0] = tempShader.shader.mult.value[0];
 		}
-		else shader.mult.value[0] = 0.0;
+		else enabled = false;
 	}
 
-	public function new()
+	public function set_enabled(value:Bool)
+	{
+		enabled = value;
+		shader.mult.value = [value ? 1 : 0];
+		return value;
+	}
+
+	public function set_pixelAmount(value:Float)
+	{
+		pixelAmount = value;
+		shader.uBlocksize.value = [value, value];
+		return value;
+	}
+
+	public function reset()
 	{
 		shader.r.value = [0, 0, 0];
 		shader.g.value = [0, 0, 0];
 		shader.b.value = [0, 0, 0];
-		shader.mult.value = [1];
+	}
 
-		var pixel:Float = 1;
-		if(PlayState.isPixelStage) pixel = PlayState.daPixelZoom;
-		shader.uBlocksize.value = [pixel, pixel];
+	public function new()
+	{
+		reset();
+		enabled = true;
+
+		if (!PlayState.isPixelStage) pixelAmount = 1;
+		else pixelAmount = PlayState.daPixelZoom;
 		//trace('Created shader ' + Conductor.songPosition);
 	}
 }
 
-class PixelSplashShader extends FlxFixedShader
+class PixelSplashShader extends FlxShader
 {
 	@:glFragmentHeader('
 		#pragma header
@@ -170,7 +683,7 @@ class PixelSplashShader extends FlxFixedShader
 				return color;
 			}
 
-			if(color.a == 0.0 || mult == 0.0) {
+			if (color.a == 0.0 || mult == 0.0) {
 				return color * openfl_Alphav;
 			}
 
@@ -180,7 +693,7 @@ class PixelSplashShader extends FlxFixedShader
 
 			color = mix(color, newColor, mult);
 
-			if(color.a > 0.0) {
+			if (color.a > 0.0) {
 				return vec4(color.rgb, color.a);
 			}
 			return vec4(0.0, 0.0, 0.0, 0.0);

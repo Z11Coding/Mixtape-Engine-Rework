@@ -13,6 +13,7 @@ package objects.notes;
 	public var noAnimation:Bool = false;
 	public var noMissAnimation:Bool = false;
 	public var gfNote:Bool = false;
+	public var exNote:Bool = false;
 	public var isSustainNote:Bool = false;
 	public var isSustainEnd:Bool = false;
 	public var sustainLength:Float = 0;

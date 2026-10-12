@@ -290,7 +290,7 @@ class UnoTestState extends MusicBeatState {
         try {
             var customColoroftheRainbow:Array<UnoColor> = [];
             for (color in 0...ClientPrefs.data.arrowRGBExtra.length) {
-                customColoroftheRainbow.push(UnoColor.CUSTOM(ClientPrefs.data.arrowRGBExtra[color][0], objects.Note.keysShit.get(17).get('letters')[color]));
+                customColoroftheRainbow.push(UnoColor.CUSTOM(ClientPrefs.data.arrowRGBExtra[color][0], ExtraKeys.keysShit.get(17).get('letters')[color]));
             }
 
             // Create custom Pong-UNO cards (10% chance to include them)

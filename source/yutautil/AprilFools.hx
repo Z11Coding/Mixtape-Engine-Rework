@@ -15,7 +15,7 @@ class AprilFools {
     }
 
     public static function randomModchartEffect(){
-        switch(FlxG.random.int(0, 54, [23, 24])) {
+        /*switch(FlxG.random.int(0, 54, [23, 24])) {
             case 0:
                 PlayState.instance.modManager.setValue('boost', 1);
             case 1:
@@ -127,7 +127,7 @@ class AprilFools {
                 PlayState.instance.modManager.setValue('flip', 1);
             case 54:
                 PlayState.instance.modManager.setValue('invert', 1);
-        }
+        }*/
     }
 
     public static function showFakeCrashMessage(targetState:flixel.FlxState):Void {

@@ -205,7 +205,7 @@ class EditorPlayStatePsych extends MusicBeatSubstate
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		FlxG.mouse.visible = true;
-		NoteSplash.configs.clear();
+		//NoteSplash.configs.clear();
 		FlxG.sound.list.remove(inst);
 		flixel.util.FlxDestroyUtil.destroy(inst);
 		super.destroy();

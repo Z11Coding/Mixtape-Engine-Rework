@@ -606,7 +606,7 @@ class LoadingState extends MusicBeatState
 			else noteSplash += NoteSplash.getSplashSkinPostfix();
 			imagesToPrepare.push(noteSplash);
 
-			var eventsToLoad:Array<objects.Note.EventNote> = [];
+			var eventsToLoad:Array<objects.notes.EventNote> = [];
 			try
 			{
 				var eventsChart:SwagSong = Song.getChart('events', song.song);
@@ -814,14 +814,6 @@ class LoadingState extends MusicBeatState
 				startThreads();
 				initialThreadCompleted = true;
 			}
-			return true;
-		}, isIntrusive))
-		.then((_) -> new Future<Bool>(() -> {
-			var song:SwagSong = PlayfieldManager.SONG;
-			var songName = Paths.formatToSongPath('${song.song.toLowerCase()}${PlayfieldManager.fromChartState ? " (temp)" : ""}${Difficulty.getFilePath()}');
-			var tempSongObj:String = new PlayfieldManager.SongObjectType(songName, Mods.currentModDirectory).toString();
-			if (!PlayfieldManager.chartCache.exists(tempSongObj))
-				MegaManager.playfield.loadChart(songName, Mods.currentModDirectory, true);
 			return true;
 		}, isIntrusive))
 		.onError((err:Dynamic) -> {

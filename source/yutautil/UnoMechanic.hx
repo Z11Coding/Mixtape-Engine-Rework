@@ -164,9 +164,9 @@ class UnoMechanic {
             }
             return new UnoCard(currentColor, actionType);
         } else { // 15% chance for wild cards
-            var wildType = FlxG.random.bool(30) ? WILD_DRAW_FOUR : WILD;
-            var wildColor = getNextWildColor();
-            return new UnoCard(wildColor, wildType);
+            //var wildType = FlxG.random.bool(30) ? WILD_DRAW_FOUR : WILD;
+            //var wildColor = getNextWildColor();
+            return null;
         }
     }
 
@@ -174,9 +174,7 @@ class UnoMechanic {
      * Create a special note (skip, wrong, etc.)
      */
     private function createSpecialNote(baseNote:Note, mania:Int, type:String):Note {
-        var specialNote = new Note(baseNote.strumTime + FlxG.random.float(50, 200),
-                                  getAlternateColumn(baseNote.noteData, mania),
-                                  null, false);
+        var specialNote = new Note(baseNote.strumTime + FlxG.random.float(50, 200), getAlternateColumn(baseNote.noteData, mania));
         specialNote.mustPress = true;
 
         if (specialNote.extraData == null) {
@@ -202,9 +200,7 @@ class UnoMechanic {
      * Create a wrong color note
      */
     private function createWrongColorNote(baseNote:Note, mania:Int):Note {
-        var wrongNote = new Note(baseNote.strumTime + FlxG.random.float(25, 150),
-                                getAlternateColumn(baseNote.noteData, mania),
-                                null, false);
+        var wrongNote = new Note(baseNote.strumTime + FlxG.random.float(25, 150), getAlternateColumn(baseNote.noteData, mania));
         wrongNote.mustPress = true;
 
         if (wrongNote.extraData == null) {
@@ -259,7 +255,7 @@ class UnoMechanic {
             var newColumn = availableColumns[FlxG.random.int(0, availableColumns.length - 1)];
             usedColumns.push(newColumn);
 
-            var plusNote = new Note(baseNote.strumTime, newColumn, null, false);
+            var plusNote = new Note(baseNote.strumTime, newColumn);
             plusNote.mustPress = baseNote.mustPress; // Use same mustPress as base note
 
             if (plusNote.extraData == null) {

@@ -1,10 +1,10 @@
 package objects.charting;
 
-import backend.NoteTypesConfig;
 import backend.animation.PsychAnimationController;
 import flixel.math.FlxRect;
 import objects.notes.EventNote;
 import objects.notes.Note.NoteSplashData;
+import objects.notes.NoteTypesConfig;
 import objects.notes.StrumNote;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;

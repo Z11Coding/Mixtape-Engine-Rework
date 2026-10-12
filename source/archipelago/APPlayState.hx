@@ -343,12 +343,12 @@ class APPlayState extends PlayState {
                 var originalShaders:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
-                    for (sprite in playfield.playerField.strumNotes) {
+                    /*for (sprite in playfield.playerField.strumNotes) {
                         sprite.shader = originalShaders.get(sprite);
                     };
                     for (sprite in playfield.dadField.strumNotes) {
                         sprite.shader = originalShaders.get(sprite);
-                    };
+                    };*/
                     for (daNote in unspawnNotes) {
                         if (daNote == null) continue;
                         if (daNote.strumTime >= Conductor.songPosition)
@@ -375,14 +375,14 @@ class APPlayState extends PlayState {
                         blurEffect.setStrength(2, 2);
                     else
                         blurEffect.setStrength(32, 32);
-                    for (sprite in playfield.playerField.strumNotes) {
+                    /*for (sprite in playfield.playerField.strumNotes) {
                         originalShaders.set(sprite, sprite.shader);
                         sprite.shader = blurEffect.shader;
                     };
                     for (sprite in playfield.dadField.strumNotes) {
                         originalShaders.set(sprite, sprite.shader);
                         sprite.shader = blurEffect.shader;
-                    };
+                    };*/
                     for (daNote in unspawnNotes) {
                         if (daNote == null) continue;
                         if (daNote.strumTime >= Conductor.songPosition) {
@@ -1966,9 +1966,9 @@ class APPlayState extends PlayState {
 	{
 		timeTxt.y = (effectiveDownScroll ? FlxG.height - 44 : 19);
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
-        playfield.modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
+        //playfield.modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
-		//healthBar2.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
+		healthBarOverflow.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
 		iconP2.y = healthBar.y - (iconP2.height / 2);
 		scoreTxt.y = (effectiveDownScroll ? FlxG.height * 0.1 - 72 : FlxG.height * 0.9 + 36);
@@ -2111,22 +2111,19 @@ class APPlayState extends PlayState {
 		{
 			if (PlayfieldManager.SONG.notes[Math.floor((MegaManager.conductor.currentStep + pickSteps + 1) / 16)].mustHitSection)
 			{
-				pickData = specificData % Note.ammo[ExtraKeys.mania];
+				pickData = specificData % ExtraKeys.ammo[ExtraKeys.mania];
 			}
 			else
 			{
 				// pickData = specificData % 4 + 4;
-				pickData = specificData % Note.ammo[ExtraKeys.mania];
+				pickData = specificData % ExtraKeys.ammo[ExtraKeys.mania];
 			}
 		}
-		var swagNote:Note = ClientPrefs.data.useExperimentalNotePool ?
-			managers.NotePoolManager.createNote(pickTime, pickData, null, false, false, this) :
-			new Note(pickTime, pickData);
+		var swagNote:Note = new Note(pickTime, pickData);
 		switch (type)
 		{
 			case 1:
 				swagNote.noteType = 'Mine Note';
-				swagNote.reloadNote();
 				swagNote.isMine = true;
 				swagNote.specialNote = true;
 				swagNote.hitCausesMiss = true;
@@ -2134,7 +2131,6 @@ class APPlayState extends PlayState {
                 swagNote.cod = 'Hit a Mine Note.';
 			case 2:
 				swagNote.noteType = 'Warning Note';
-				swagNote.reloadNote();
 				swagNote.isAlert = true;
 				swagNote.specialNote = true;
 				swagNote.hitCausesMiss = false;
@@ -2142,14 +2138,12 @@ class APPlayState extends PlayState {
                 swagNote.cod = 'Missed a Warning Note.';
 			case 3:
 				swagNote.noteType = 'Heal Note';
-				swagNote.reloadNote();
 				swagNote.isHeal = true;
 				swagNote.specialNote = true;
 				swagNote.hitCausesMiss = false;
                 swagNote.ratingDisabled = true;
 			case 4:
 				swagNote.noteType = 'Ice Note';
-				swagNote.reloadNote();
 				swagNote.isFreeze = true;
 				swagNote.hitCausesMiss = true;
 				swagNote.specialNote = true;
@@ -2157,7 +2151,6 @@ class APPlayState extends PlayState {
                 swagNote.cod = 'Hit a Ice Note.';
 			case 5:
 				swagNote.noteType = 'Fake Heal Note';
-				swagNote.reloadNote();
 				swagNote.isFakeHeal = true;
 				swagNote.hitCausesMiss = true;
 				swagNote.specialNote = true;
@@ -2176,25 +2169,7 @@ class APPlayState extends PlayState {
 			{}
 		swagNote.x += FlxG.width / 2;
 
-        if (swagNote.fieldIndex == -1 && swagNote.field == null)
-            swagNote.field = swagNote.mustPress ? playfield.playerField : playfield.dadField;
-        if (swagNote.field != null)
-            swagNote.fieldIndex = playfield.playfields.members.indexOf(swagNote.field);
-        var playfieldN:PlayField = playfield.playfields.members[swagNote.fieldIndex];
-        if (playfieldN != null)
-        {
-            playfieldN.queue(swagNote); // queues the note to be spawned
-            unspawnNotes.push(swagNote);
-            playfield.allNotes.push(swagNote); // just for the sake of convenience
-        }
-        else
-        {
-            swagNote.destroy();
-        }
-		unspawnNotes.sort(PlayfieldManager.sortByTime);
-        playfield.allNotes.sort(PlayfieldManager.sortByTime);
-        for (field in playfield.playfields.members)
-			field.clearStackedNotes();
+        notes.insert(0, swagNote); // just for the sake of convenience
 	}
 
 	public var isFrozen:Bool = false;
@@ -2955,7 +2930,7 @@ class APPlayState extends PlayState {
         if (note.specialNote)
 		{
             COD.setPresetCOD(note);
-			specialNoteHit(note, field);
+			specialNoteHit(note);
 			return;
 		}
 
@@ -2969,14 +2944,14 @@ class APPlayState extends PlayState {
             trace("\"NOTE CHECK\" CHECK FAILED!\n"+e);
         }
 
-        super.goodNoteHit(note, field);
+        super.goodNoteHit(note);
 
         if (releasethebeast && !note.gfNote) {
             if (resistanceAmount > 0) resistanceAmount -= 0.0080;
             if (note.noteType == 'Anti-Horny Note') resistanceAmount -= 0.03;
             if (note.noteType == 'Bat Note') resistanceAmount -= 0.5;
 
-            var animToPlay:String = Note.keysShit.get(ExtraKeys.mania).get('singAnims')[note.noteData] + "-alt";
+            var animToPlay:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get('singAnims')[note.noteData] + "-alt";
             if(note.isSustainNote)
             {
                 var holdAnim:String = animToPlay + '-hold';
@@ -3034,7 +3009,7 @@ class APPlayState extends PlayState {
 				comboManager.songMisses++;
 				FlxG.sound.play(Paths.sound('streamervschat/freeze'));
 				frozenInput++;
-				for (sprite in playerField.strumNotes)
+				for (sprite in playerStrums.members)
 				{
 					sprite.color = 0x0073b5;
 				};
@@ -3044,7 +3019,7 @@ class APPlayState extends PlayState {
 					frozenInput--;
 					if (frozenInput <= 0)
 					{
-						for (sprite in playerField.strumNotes)
+						for (sprite in playerStrums.members)
 						{
 							sprite.color = 0xffffff;
 						};
@@ -3074,7 +3049,7 @@ class APPlayState extends PlayState {
                     if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
                         time += 0.15;
 
-                    strumPlayAnim(field, note.column % field.keyCount, time, /*note*/);
+                    strumPlayAnim(note.noteData % (ExtraKeys.mania+1), time, /*note*/);
                 }
                 else
                 {
@@ -3184,7 +3159,7 @@ class APPlayState extends PlayState {
 
     override public function noteMissPress(direction:Int = 1)
     {
-        super.noteMissPress(direction, field);
+        super.noteMissPress(direction);
         setBoyfriendInvuln(4 / 60);
     }
 

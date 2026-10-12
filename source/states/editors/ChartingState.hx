@@ -23,6 +23,7 @@ import objects.HealthIcon;
 import objects.charting.ChartingNote;
 import objects.charting.ChartingStrumNote;
 import objects.notes.Note;
+import objects.notes.NoteTypesConfig;
 import objects.notes.StrumNote;
 import openfl.events.KeyboardEvent;
 import stages.StageData;
@@ -1289,7 +1290,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		maniaStepper.value = PlayfieldManager.SONG.mania;
 		startManiaStepper.value = PlayfieldManager.SONG.startMania;
 		GRID_COLUMNS_PER_PLAYER = ExtraKeys.ammo[PlayfieldManager.SONG.mania];
-		GRID_SIZE = Note.gridSizes[PlayfieldManager.SONG.mania];
+		GRID_SIZE = ExtraKeys.gridSizes[PlayfieldManager.SONG.mania];
 		changeMania();
 
 		bpmStepper.value = PlayfieldManager.SONG.bpm;
@@ -4257,7 +4258,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			#if LUA_ALLOWED exts.push('.lua'); #end
 			#if HSCRIPT_ALLOWED exts.push('.hx'); #end
 			noteTypes = loadFileList('custom_notetypes/', exts);
-			for (id => noteType in Note.defaultNoteTypes)
+			for (id => noteType in NoteTypesConfig.defaultNoteTypes)
 				if(!noteTypes.contains(noteType))
 					noteTypes.insert(id, noteType);
 
@@ -4529,7 +4530,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			PlayfieldManager.SONG.mania = Std.int(maniaStepper.value);
 			ExtraKeys.mania = Std.int(maniaStepper.value);
 			GRID_COLUMNS_PER_PLAYER = ExtraKeys.ammo[ExtraKeys.mania];
-			GRID_SIZE = Note.gridSizes[ExtraKeys.mania];
+			GRID_SIZE = ExtraKeys.gridSizes[ExtraKeys.mania];
 			changeMania();
 		};
 
@@ -6024,7 +6025,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			note.rgbShader.enabled = !noRGBCheckBox.checked;
 			if(note.rgbShader.enabled)
 			{
-				var data = backend.NoteTypesConfig.loadNoteTypeData(note.noteType);
+				var data = objects.notes.NoteTypesConfig.loadNoteTypeData(note.noteType);
 				if(data == null || data.length < 1) continue;
 
 				for (line in data)
@@ -6232,7 +6233,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	override function destroy()
 	{
 		Note.globalRgbShaders = [];
-		backend.NoteTypesConfig.clearNoteTypesData();
+		objects.notes.NoteTypesConfig.clearNoteTypesData();
 
 		for (num => text in MetaNote.noteTypeTexts)
 			text.destroy();
