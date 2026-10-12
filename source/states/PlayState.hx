@@ -5644,7 +5644,7 @@ class PlayState extends MusicBeatState
 		if (allowSkip)
 		{
 			if (ClientPrefs.data.skipMode == 'First Note') {
-				var daNote:PreloadedNote = unspawnNotes[0];
+				var daNote:PreloadNotes = unspawnNotes[0];
 				if (daNote != null && daNote.strumTime > 100)
 				{
 					needSkip = true;
@@ -8626,7 +8626,7 @@ class PlayState extends MusicBeatState
 		if (!note.isSustainNote) invalidateNote(note);
 	}
 
-	public function goodNoteHit(note:Note, noteAlt:PreloadedNote = null):Void
+	public function goodNoteHit(note:Note, noteAlt:PreloadNotes = null):Void
 	{
 		if (note != null)
 		{

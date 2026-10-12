@@ -2925,7 +2925,7 @@ class APPlayState extends PlayState {
     }
 
     public var check:Int = 0;
-    override function goodNoteHit(note:Note):Void
+    override function goodNoteHit(note:Note, noteAlt:PreloadNotes = null):Void
     {
         if (note.specialNote)
 		{
@@ -2944,7 +2944,7 @@ class APPlayState extends PlayState {
             trace("\"NOTE CHECK\" CHECK FAILED!\n"+e);
         }
 
-        super.goodNoteHit(note);
+        super.goodNoteHit(note, noteAlt);
 
         if (releasethebeast && !note.gfNote) {
             if (resistanceAmount > 0) resistanceAmount -= 0.0080;
