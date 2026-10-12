@@ -274,7 +274,7 @@ class SserafimStage extends BaseStage
 
   function hideOpponentStrumline()
   {
-    game.modManager.setValue('alpha', 1, 1);
+    //game.modManager.setValue('alpha', 1, 1);
   }
 
   /**
@@ -386,10 +386,6 @@ class SserafimStage extends BaseStage
               game.boyfriend = ssBF;
               game.boyfriend.alpha = 1;
               game.iconP1.changeIcon(game.boyfriend.healthIcon);
-              for (field in game.playfields.members) {
-                if (field.owner == oldChar) field.owner = game.boyfriend;
-                if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? game.boyfriend : curChar);
-              }
               game.setOnScripts('boyfriendName', game.boyfriend.curCharacter);
 
             case 1:
@@ -399,10 +395,6 @@ class SserafimStage extends BaseStage
               game.dad = ssDad;
               game.dad.alpha = 1;
               game.iconP2.changeIcon(game.dad.healthIcon);
-              for (field in game.playfields.members) {
-                if (field.owner == oldChar) field.owner = game.dad;
-                if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? game.dad : curChar);
-              }
               game.setOnScripts('dadName', game.dad.curCharacter);
 
             case 2:
@@ -413,10 +405,6 @@ class SserafimStage extends BaseStage
                 game.gf.shader = null;
                 game.gf = ssGF;
                 game.gf.alpha = 1;
-                for (field in game.playfields.members) {
-                  if (field.owner == oldChar) field.owner = game.gf;
-                  if (field.owners.contains(oldChar)) field.owners.map(function(curChar) return curChar == oldChar ? game.gf : curChar);
-                }
                 game.setOnScripts('gfName', game.gf.curCharacter);
               }
           }
@@ -492,15 +480,6 @@ class SserafimStage extends BaseStage
     boyfriend.charType = singingArray[4] ? CharType.BF : CharType.DAD;
 
     gf.charType = singingArray[5] ? CharType.BF : CharType.DAD;
-
-    var ownerArray:Array<Character> = [];
-
-    for (char in [yunjin, dad, chaewon, eunchae, boyfriend, gf]) {
-      if (char.charType == BF)
-        ownerArray.push(char);
-    }
-    game.playerField.owners = ownerArray;
-
   }
 
   var hasHidden = false;

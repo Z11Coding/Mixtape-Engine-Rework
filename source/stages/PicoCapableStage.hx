@@ -3,7 +3,7 @@ package stages;
 import flixel.graphics.tile.FlxGraphicsShader;
 import flixel.util.FlxSignal;
 import flixel.util.typeLimit.OneOfTwo;
-import objects.Note;
+import objects.notes.Note;
 import stages.objects.ABotPixel;
 import stages.objects.ABotSpeaker;
 import substates.GameOverSubstate;

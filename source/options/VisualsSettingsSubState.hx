@@ -1,17 +1,16 @@
 package options;
 
 import objects.Alphabet;
-import objects.Note;
-import objects.StrumNote;
 import objects.charting.ChartingNote;
 import objects.charting.ChartingStrumNote;
-import options.SNS;
+import objects.notes.Note;
+import objects.notes.StrumNote;
 
 class VisualsSettingsSubState extends BaseOptionsMenu
 {
 	var noteOptionID:Int = -1;
-	var notes:FlxTypedGroup<ChartingStrumNote>;
-	var splashes:FlxTypedGroup<SNS.NoteSplash>;
+	var notes:FlxTypedGroup<StrumNote>;
+	var splashes:FlxTypedGroup<NoteSplash>;
 	var noteY:Float = 90;
 	public function new()
 	{
@@ -19,17 +18,17 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		rpcTitle = 'Visuals Settings Menu'; //for Discord Rich Presence
 
 		// for note skins and splash skins
-		notes = new FlxTypedGroup<ChartingStrumNote>();
-		splashes = new FlxTypedGroup<SNS.NoteSplash>();
-		for (i in 0...ChartingNote.colArray.length)
+		notes = new FlxTypedGroup<StrumNote>();
+		splashes = new FlxTypedGroup<NoteSplash>();
+		for (i in 0...ExtraKeys.colArray.length)
 		{
-			var note:ChartingStrumNote = new ChartingStrumNote(370 + (560 / ChartingNote.colArray.length) * i, -200, i, 0);
+			var note:StrumNote = new StrumNote(370 + (560 / ExtraKeys.colArray.length) * i, -200, i, 0);
 			changeNoteSkin(note);
 			notes.add(note);
 
-			var splash:SNS.NoteSplash = new SNS.NoteSplash(0, 0, SNS.NoteSplash.defaultNoteSplash + SNS.NoteSplash.getSplashSkinPostfix());
+			var splash:NoteSplash = new NoteSplash(0, 0, NoteSplash.defaultNoteSplash + NoteSplash.getSplashSkinPostfix());
 			splash.inEditor = true;
-			splash.babyArrowCharting = note;
+			splash.babyArrow = note;
 			splash.ID = i;
 			splash.kill();
 			splashes.add(splash);
@@ -216,14 +215,14 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 	function onChangeNoteSkin()
 	{
-		notes.forEachAlive(function(note:ChartingStrumNote) {
+		notes.forEachAlive(function(note:StrumNote) {
 			changeNoteSkin(note);
 			note.centerOffsets();
 			note.centerOrigin();
 		});
 	}
 
-	function changeNoteSkin(note:ChartingStrumNote)
+	function changeNoteSkin(note:StrumNote)
 	{
 		var skin:String = Note.defaultNoteSkin;
 		var customSkin:String = skin + Note.getNoteSkinPostfix();
@@ -255,7 +254,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 			splash.spawnSplashNote(0, 0, splash.ID, null, false);
 			if (splash.maxAnims > 1)
-				splash.noteData = splash.noteData % Note.colArray.length + (rand * Note.colArray.length);
+				splash.noteData = splash.noteData % ExtraKeys.colArray.length + (rand * ExtraKeys.colArray.length);
 
 			var anim:String = splash.playDefaultAnim();
 			var conf = splash.config.animations.get(anim);

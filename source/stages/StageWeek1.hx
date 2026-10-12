@@ -1,7 +1,7 @@
 package stages;
 
 import objects.Character;
-import objects.Note;
+import objects.notes.Note;
 import stages.gimmicks.Week1Gimmick;
 import stages.objects.*;
 
@@ -90,7 +90,7 @@ class StageWeek1 extends BaseStage
 		super.beatHit();
 	}
 
-	override function eventPushed(event:objects.Note.EventNote)
+	override function eventPushed(event:objects.notes.EventNote)
 	{
 		switch(event.event)
 		{

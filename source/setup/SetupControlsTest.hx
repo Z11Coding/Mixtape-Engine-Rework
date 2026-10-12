@@ -7,8 +7,8 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
-import objects.Note;
-import objects.StrumNote;
+import objects.notes.Note;
+import objects.notes.StrumNote;
 import states.PlayState;
 
 /**
@@ -80,7 +80,7 @@ class SetupControlsTest extends MusicBeatState {
         var noteY = 300;
 
         for (i in 0...4) {
-            var strum = new StrumNote(startX + i * noteSize, noteY, i, null);
+            var strum = new StrumNote(startX + i * noteSize, noteY, i, 0);
             strum.playAnim('static');
             add(strum);
             strumNotes.push(strum);

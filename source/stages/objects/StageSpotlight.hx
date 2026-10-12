@@ -15,7 +15,7 @@ class StageSpotlight extends BaseStage{
         this.Y = Y;
     }
 
-    override function eventPushed(event:objects.Note.EventNote)
+    override function eventPushed(event:objects.notes.EventNote)
 	{
 		switch(event.event)
 		{

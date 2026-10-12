@@ -1,7 +1,7 @@
 package stages.objects;
 
-import objects.Note;
 import objects.Character;
+import objects.notes.Note;
 
 class DarnellBlazinHandler
 {
@@ -97,7 +97,7 @@ class DarnellBlazinHandler
 
 		cantUppercut = false;
 	}
-	
+
 	public function noteMiss(note:Note)
 	{
 		// SPECIAL CASE: Darnell prepared to uppercut last time and Pico missed! FINISH HIM!
@@ -207,7 +207,7 @@ class DarnellBlazinHandler
 				playBlockAnim();
 		}
 	}
-	
+
 	var alternate:Bool = false;
 	function doAlternate():String
 	{
@@ -310,12 +310,12 @@ class DarnellBlazinHandler
 		PlayState.instance.camGame.shake(0.0025, 0.15);
 		moveToBack();
 	}
-	
+
 	function willMissBeLethal()
 	{
 		return PlayState.instance.health <= 0.0 && !PlayState.instance.practiceMode;
 	}
-	
+
 	function wasNoteHitPoorly(rating:String)
 	{
 		return (rating == "bad" || rating == "shit");
@@ -325,7 +325,7 @@ class DarnellBlazinHandler
 	{
 		return PlayState.instance.health <= 0.3 * 2;
 	}
-	
+
 	function moveToBack()
 	{
 		var dadPos:Int = FlxG.state.members.indexOf(dadGroup);

@@ -216,7 +216,7 @@ class ReflectionFunctions
 		});
 
 		Lua_helper.add_callback(lua, "removeNote", function(index:Int = -1) {
-			PlayState.instance.invalidateNote(PlayState.instance.allNotes[index]);
+			PlayState.instance.invalidateNote(PlayState.instance.notes.members[index]);
 		});
 
 		Lua_helper.add_callback(lua, "callMethod", function(funcToRun:String, ?args:Array<Dynamic>) {

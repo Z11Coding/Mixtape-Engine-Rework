@@ -2,9 +2,9 @@ package options;
 
 import backend.animation.PsychAnimationController;
 import flixel.system.FlxAssets.FlxShader;
-import objects.Note;
-import objects.StrumNote;
 import objects.charting.ChartingStrumNote;
+import objects.notes.Note;
+import objects.notes.StrumNote;
 import shaders.RGBPalette;
 
 typedef RGB = {
@@ -165,7 +165,7 @@ class NoteSplash extends FlxSprite
 		var failedToFind:Bool = false;
 		while (true)
 		{
-			for (v in Note.colArray)
+			for (v in ExtraKeys.colArray)
 			{
 				if (!checkForAnim('$anim $v ${maxAnims+1}'))
 				{
@@ -179,9 +179,9 @@ class NoteSplash extends FlxSprite
 
 		for (animNum in 0...maxAnims)
 		{
-			for (i => col in Note.colArray)
+			for (i => col in ExtraKeys.colArray)
 			{
-				var data:Int = i % Note.colArray.length + (animNum * Note.colArray.length);
+				var data:Int = i % ExtraKeys.colArray.length + (animNum * ExtraKeys.colArray.length);
 				var name:String = animNum > 0 ? '$col' + (animNum + 1) : col;
 				var offset:Array<Float> = offsets[FlxMath.wrap(data, 0, Std.int(offsets.length-1))];
 				addAnimationToConfig(tempConfig, 1, name, '$anim $col ${animNum + 1}', fps, offset, [], data);
@@ -220,7 +220,7 @@ class NoteSplash extends FlxSprite
 			noteData = note.noteData;
 
 		if (randomize && maxAnims > 1)
-			noteData = noteData % Note.colArray.length + (FlxG.random.int(0, maxAnims - 1) * Note.colArray.length);
+			noteData = noteData % ExtraKeys.colArray.length + (FlxG.random.int(0, maxAnims - 1) * ExtraKeys.colArray.length);
 
 		this.noteData = noteData;
 		var anim:String = playDefaultAnim();
@@ -228,7 +228,7 @@ class NoteSplash extends FlxSprite
 		var tempShader:RGBPalette = null;
 		if (config.allowRGB)
 		{
-			Note.initializeGlobalRGBShader(noteData % Note.colArray.length);
+			Note.initializeGlobalRGBShader(noteData % ExtraKeys.colArray.length);
 			if (inEditor || (note == null || note.noteSplashData.useRGBShader) && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB))
 			{
 				tempShader = new RGBPalette();
@@ -242,8 +242,8 @@ class NoteSplash extends FlxSprite
 						{
 							if (i > 2) break;
 
-							var arr:Array<FlxColor> = ClientPrefs.data.arrowRGB[noteData % Note.colArray.length];
-							if (PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixel[noteData % Note.colArray.length];
+							var arr:Array<FlxColor> = ClientPrefs.data.arrowRGBExtra[noteData % ExtraKeys.colArray.length];
+							if (PlayState.isPixelStage) arr = ClientPrefs.data.arrowRGBPixelExtra[noteData % ExtraKeys.colArray.length];
 
 							var rgb = colors[i];
 							if (rgb == null)
@@ -268,7 +268,7 @@ class NoteSplash extends FlxSprite
 							else if (i == 2) tempShader.b = color;
 						}
 					}
-					else tempShader.copyValues(Note.globalRgbShaders[noteData % Note.colArray.length]);
+					else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
 
 					if (note != null)
 					{
@@ -277,7 +277,7 @@ class NoteSplash extends FlxSprite
 						if (note.noteSplashData.b != -1) tempShader.b = note.noteSplashData.b;
 					}
 				}
-				else tempShader.copyValues(Note.globalRgbShaders[noteData % Note.colArray.length]);
+				else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
 			}
 		}
 		rgbShader.copyValues(tempShader);
@@ -432,7 +432,7 @@ class NoteSplash extends FlxSprite
 	function set_maxAnims(value:Int)
 	{
 		if (value > 0)
-			noteData = Std.int(FlxMath.wrap(noteData, 0, (value * Note.colArray.length) - 1));
+			noteData = Std.int(FlxMath.wrap(noteData, 0, (value * ExtraKeys.colArray.length) - 1));
 		else
 			noteData = 0;
 

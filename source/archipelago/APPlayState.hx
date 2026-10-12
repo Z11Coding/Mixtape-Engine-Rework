@@ -349,11 +349,6 @@ class APPlayState extends PlayState {
                     for (sprite in playfield.dadField.strumNotes) {
                         sprite.shader = originalShaders.get(sprite);
                     };*/
-                    for (daNote in unspawnNotes) {
-                        if (daNote == null) continue;
-                        if (daNote.strumTime >= Conductor.songPosition)
-                            daNote.shader = originalShaders.get(daNote);
-                    }
                     for (daNote in notes) {
                         if (daNote == null) continue;
                         else
@@ -383,13 +378,6 @@ class APPlayState extends PlayState {
                         originalShaders.set(sprite, sprite.shader);
                         sprite.shader = blurEffect.shader;
                     };*/
-                    for (daNote in unspawnNotes) {
-                        if (daNote == null) continue;
-                        if (daNote.strumTime >= Conductor.songPosition) {
-                            originalShaders.set(daNote, daNote.shader);
-                            daNote.shader = blurEffect.shader;
-                        }
-                    }
                     for (daNote in notes) {
                         if (daNote == null) continue;
                         else {
@@ -538,11 +526,6 @@ class APPlayState extends PlayState {
             'rainbow' => function() {
                 var ttl:Float = 20;
                 var onEnd:(Void->Void) = function() {
-                    for (daNote in unspawnNotes) {
-                        if (daNote == null) continue;
-                        if (daNote.strumTime >= Conductor.songPosition)
-                            daNote.defaultRGB();
-                    }
                     for (daNote in notes) {
                         if (daNote == null) continue;
                         daNote.defaultRGB();
@@ -2612,7 +2595,7 @@ class APPlayState extends PlayState {
         super.update(elapsed);
     }
 
-    override function opponentNoteHit(note:Note):Void {
+    override function opponentNoteHit(note:Note, noteAlt:PreloadNotes = null):Void {
         super.opponentNoteHit(note);
 
         if (releasethebeast) {
@@ -3181,7 +3164,7 @@ class APPlayState extends PlayState {
 
     //Removes the Throat Notes
     public function removeThroatNotes() {
-        for (note in allNotes) {
+        for (note in notes.members) {
             if (note.noteType == "Throat Note")
                 invalidateNote(note);
         }
@@ -3190,21 +3173,17 @@ class APPlayState extends PlayState {
     //Adjust the note's alpha
     public function adjustSight() {
         if (APInfo.blindness) {
-            for (field in playfields.members) {
-                for (strum in field.strumNotes) {
-                    strum.multAlpha = 0.3;
-                }
+            for (strum in strumLineNotes.members) {
+                strum.multAlpha = 0.3;
             }
-            for (note in allNotes) {
+            for (note in notes.members) {
                 note.multAlpha = 0.3;
             }
         } else {
-            for (field in playfields.members) {
-                for (strum in field.strumNotes) {
-                    strum.multAlpha = 1;
-                }
+            for (strum in strumLineNotes.members) {
+                strum.multAlpha = 1;
             }
-            for (note in allNotes) {
+            for (note in notes.members) {
                 note.multAlpha = 1;
             }
         }

@@ -578,7 +578,7 @@ class APItem {
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
                                 APPlayState.instance.doEffect('songSwitch');
-                                APPlayState.instance.allNotes = APPlayState.instance.allNotes.map(function(note) {
+                                APPlayState.instance.notes.members.map(function(note) {
                                     note.botNote = true;
                                     return note;
                                 });
@@ -745,7 +745,7 @@ class APItem {
                     });
                 }), function() {
                     popup('Freaky Friday! Now YOU\'RE the opponent!', 'Opponent Mode Trap');
-                    states.PlayState.instance.opponentmode = true;
+                    /*states.PlayState.instance.opponentmode = true;
                     states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
                     states.PlayState.instance.playerField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
@@ -753,7 +753,7 @@ class APItem {
                     states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
                     states.PlayState.instance.dadField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
-                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);*/
                     FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
                 }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -768,13 +768,13 @@ class APItem {
                     });
                 }), function() {
                     popup('Ever wanted to play both strums at once?\nNow you have to!', 'Both Play Trap');
-                    states.PlayState.instance.bothMode = true;
+                    /*states.PlayState.instance.bothMode = true;
                     states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
                     states.PlayState.instance.playerField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
                     states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
-                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);*/
                     FlxG.sound.play(Paths.sound("streamervschat/randomize"), 1);
                 }, true, true, false, fromTrapLink).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1017,15 +1017,15 @@ class APItem {
             case "Strums":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     popup('Strums restored!', "Z11 Hell Element: Strums");
-                    objects.StrumNote.hardAlpha = 1;
-				    objects.Note.hardAlpha = 1;
+                    objects.notes.StrumNote.hardAlpha = 1;
+				    objects.notes.Note.hardAlpha = 1;
                     hardmodeItems.push("Strums");
                 }, true, true, false, fromTrapLink);
 
             case "BF's Mic":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     popup('Boyfriend\'s singing restored!', "Z11 Hell Element: BF's Mic");
-                    for (note in APPlayState.instance?.allNotes) {
+                    for (note in APPlayState.instance?.notes.members) {
                         note.forceBlockHit = false;
                     }
                     hardmodeItems.push("BF's Mic");
@@ -1087,7 +1087,7 @@ class APItem {
                         return states.PlayState.instance?.startedSong == true;
                     });
                 }), function() {
-                    states.PlayState.instance?.modManager.setValue('sudden', 1);
+                    //states.PlayState.instance?.modManager.setValue('sudden', 1);
                     popup('Suddenly, Notes.', "TrapLink: Ghost Trap");
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1096,13 +1096,13 @@ class APItem {
 
             case "My Turn! Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    states.PlayState.instance.bothMode = true;
+                    /*states.PlayState.instance.bothMode = true;
                     states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
                     states.PlayState.instance.playerField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
                     states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
-                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);*/
                     popup('Now you have to play BOTH sides!', "TrapLink: My Turn! Trap");
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1164,10 +1164,6 @@ class APItem {
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "TrapLink: Home Trap");
                                 APPlayState.instance.doEffect('songSwitch');
-                                APPlayState.instance.playfields.forEach(function(pf) {
-                                    pf.autoPlayed = true;
-                                    pf.inControl = false;
-                                });
                             }, false, false, true, true);
                         } else {
                             // Retry after a short delay if countdown hasn't started
@@ -1203,7 +1199,7 @@ class APItem {
                     popup('You\'re Frozen Solid!', 'TrapLink: $name', true);
                     FlxG.sound.play(Paths.sound('streamervschat/freeze'));
                     frozenInput++;
-                    for (sprite in APPlayState.instance.playerField.strumNotes)
+                    for (sprite in APPlayState.instance.playerStrums.members)
                     {
                         sprite.color = 0x0073b5;
                     };
@@ -1214,7 +1210,7 @@ class APItem {
                         frozenInput--;
                         if (frozenInput <= 0)
                         {
-                            for (sprite in APPlayState.instance.playerField.strumNotes)
+                            for (sprite in APPlayState.instance.playerStrums.members)
                             {
                                 sprite.color = 0xffffff;
                             };
@@ -1554,7 +1550,7 @@ class APItem {
 
             case "Posession Trap":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    states.PlayState.instance.opponentmode = true;
+                    /*states.PlayState.instance.opponentmode = true;
                     states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
                     states.PlayState.instance.playerField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
@@ -1562,7 +1558,7 @@ class APItem {
                     states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
                     states.PlayState.instance.dadField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
-                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);*/
                     popup('You\'re the opponent now!', 'TrapLink: Posession Trap');
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -1642,7 +1638,7 @@ class APItem {
             //TODO: make the opponent stums use a different set of keybinds from the normal ones
             case "Gooey Bag":
                 return new APTrap(name, ConditionHelper.PlayState(), function() {
-                    states.PlayState.instance.opponentmode = true;
+                    /*states.PlayState.instance.opponentmode = true;
                     states.PlayState.instance.playerField.isPlayer = !states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.playerField.autoPlayed = states.PlayState.instance.opponentmode || states.PlayState.instance.cpuControlled || states.PlayState.playAsGF;
                     states.PlayState.instance.playerField.noteHitCallback.remove(!states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
@@ -1650,7 +1646,7 @@ class APItem {
                     states.PlayState.instance.dadField.isPlayer = states.PlayState.instance.opponentmode && !states.PlayState.playAsGF || states.PlayState.instance.bothMode;
                     states.PlayState.instance.dadField.autoPlayed = (!states.PlayState.instance.opponentmode || (states.PlayState.instance.opponentmode && states.PlayState.instance.cpuControlled) || states.PlayState.playAsGF) || states.PlayState.instance.bothMode && states.PlayState.instance.cpuControlled;
                     states.PlayState.instance.dadField.noteHitCallback.remove(states.PlayState.instance.opponentmode ? states.PlayState.instance.opponentNoteHit : states.PlayState.instance.goodNoteHit);
-                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);
+                    states.PlayState.instance.dadField.noteHitCallback.add(states.PlayState.instance.opponentmode ? states.PlayState.instance.goodNoteHit : states.PlayState.instance.opponentNoteHit);*/
                     popup('Two-Player Mode Activated!', 'TrapLink: Gooey Bag');
                 }, true, true).funcAndReturn(function(t:APItem) {
                     // Set it as a trap.
@@ -2338,7 +2334,7 @@ class APChartModifier extends APTrap {
 
         this.chartModifier = modifiers[Std.random(modifiers.length)];
         this.chartModifier = (this.chartModifier == "ManiaConverter" &&
-            ((PlayfieldManager.mania[0] > 3) ||
+            ((ExtraKeys.mania > 3) ||
              (PlayfieldManager.SONG != null && PlayfieldManager.SONG.mania != null && PlayfieldManager.SONG.mania > 3)))
             ? "4K Only" : this.chartModifier;
 

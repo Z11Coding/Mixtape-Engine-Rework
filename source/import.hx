@@ -114,6 +114,7 @@ import objects.notes.EventNote;
 import objects.notes.ExtraKeys;
 import objects.notes.Note;
 import objects.notes.NoteSplash;
+import objects.notes.NoteTypesConfig;
 import objects.notes.PreloadNotes;
 import objects.notes.StrumNote;
 import openfl.display.StageQuality;

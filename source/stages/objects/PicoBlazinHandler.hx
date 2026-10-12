@@ -1,7 +1,7 @@
 package stages.objects;
 
-import objects.Note;
 import objects.Character;
+import objects.notes.Note;
 
 // Pico Note functions
 class PicoBlazinHandler
@@ -181,12 +181,12 @@ class PicoBlazinHandler
 				playIdleAnim();
 		}
 	}
-	
+
 	public function noteMissPress(direction:Int)
 	{
 		if (willMissBeLethal())
 			playHitLowAnim(); // Darnell throws a punch so that Pico dies.
-		else 
+		else
 			playPunchHighAnim(); // Pico wildly throws punches but Darnell dodges.
 	}
 
@@ -319,7 +319,7 @@ class PicoBlazinHandler
 	{
 		return PlayState.instance.health <= 0.0 && !PlayState.instance.practiceMode;
 	}
-	
+
 	function isDarnellPreppingUppercut()
 	{
 		return dad.getAnimationName() == 'uppercutPrep';
@@ -339,7 +339,7 @@ class PicoBlazinHandler
 	{
 		return PlayState.instance.health <= 0.3 * 2;
 	}
-	
+
 	function moveToBack()
 	{
 		var bfPos:Int = FlxG.state.members.indexOf(boyfriendGroup);

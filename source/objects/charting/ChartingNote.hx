@@ -428,7 +428,7 @@ class ChartingNote extends FlxSprite
 		isSustainNote = sustainNote;
 		this.inEditor = inEditor;
 		this.moves = false;
-		mania = PlayfieldManager.mania[0];
+		mania = ExtraKeys.mania;
 		x += (ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X) + 50;
 		// MAKE SURE ITS DEFINITELY OFF SCREEN?
 		y -= 2000;
@@ -443,15 +443,15 @@ class ChartingNote extends FlxSprite
 			if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) rgbShader.enabled = false;
 			texture = '';
 
-			x += swagWidth * (noteData % Note.ammo[PlayfieldManager.mania[0]]);
-			if(!isSustainNote && noteData > -1 && noteData < Note.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
+			x += swagWidth * (noteData % ExtraKeys.ammo[ExtraKeys.mania]);
+			if(!isSustainNote && noteData > -1 && noteData < ExtraKeys.maxManiaUI_integer) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
-				animToPlay = Note.keysShit.get(mania).get('letters')[noteData];
+				animToPlay = ExtraKeys.keysShit.get(mania).get('letters')[noteData];
 				if (hasAnimation(animToPlay))
 					animation.play(animToPlay);
 				else
 				{
-					animToPlay = colArray[Note.keysShit.get(mania).get('colArray')[noteData]];
+					animToPlay = colArray[ExtraKeys.keysShit.get(mania).get('colArray')[noteData]];
 					animation.play(animToPlay + 'Scroll');
 				}
 			}
@@ -473,10 +473,10 @@ class ChartingNote extends FlxSprite
 			copyAngle = false;
 
 			var animToPlay:String = '';
-			animToPlay = Note.keysShit.get(mania).get('letters')[noteData] + ' tail';
+			animToPlay = ExtraKeys.keysShit.get(mania).get('letters')[noteData] + ' tail';
 			if (!hasAnimation(animToPlay))
 			{
-				animToPlay = colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + 'holdend';
+				animToPlay = colArray[ExtraKeys.keysShit.get(mania).get('colArray')[noteData]] + 'holdend';
 			}
 			animation.play(animToPlay);
 
@@ -490,10 +490,10 @@ class ChartingNote extends FlxSprite
 			if (prevNote.isSustainNote)
 			{
 				var animToPlay2:String = '';
-				animToPlay2 = Note.keysShit.get(mania).get('letters')[noteData] + ' hold';
+				animToPlay2 = ExtraKeys.keysShit.get(mania).get('letters')[noteData] + ' hold';
 				if (!hasAnimation(animToPlay2))
 				{
-					animToPlay2 = colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + 'hold';
+					animToPlay2 = colArray[ExtraKeys.keysShit.get(mania).get('colArray')[noteData]] + 'hold';
 				}
 				prevNote.animation.play(animToPlay2);
 
@@ -591,13 +591,13 @@ class ChartingNote extends FlxSprite
 			publicTextureSus = 'pixelUI/' + skinPixel + 'ENDS' + skinPostfix;
 			if(isSustainNote) {
 				var graphic = Paths.image('pixelUI/' + skinPixel + 'ENDS' + skinPostfix);
-				loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[1]), Math.floor(graphic.height / 2));
+				loadGraphic(graphic, true, Math.floor(graphic.width / ExtraKeys.pixelNotesDivisionValue[1]), Math.floor(graphic.height / 2));
 				originalHeight = graphic.height / 2;
 			} else {
 				var graphic = Paths.image('pixelUI/' + skinPixel + skinPostfix);
-				loadGraphic(graphic, true, Math.floor(graphic.width / Note.pixelNotesDivisionValue[1]), Math.floor(graphic.height / 5));
+				loadGraphic(graphic, true, Math.floor(graphic.width / ExtraKeys.pixelNotesDivisionValue[1]), Math.floor(graphic.height / 5));
 			}
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayfieldManager.mania[0]]));
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]));
 			loadPixelNoteAnims();
 			antialiasing = false;
 
@@ -639,8 +639,8 @@ class ChartingNote extends FlxSprite
 	}
 
 	function loadNoteAnims() {
-		attemptToAddAnimationByPrefix(gfxLetter[noteData], colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + '0');
-		attemptToAddAnimationByPrefix(gfxLetter[noteData], colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + '0');
+		attemptToAddAnimationByPrefix(gfxLetter[noteData], colArray[ExtraKeys.keysShit.get(mania).get('colArray')[noteData]] + '0');
+		attemptToAddAnimationByPrefix(gfxLetter[noteData], colArray[ExtraKeys.keysShit.get(mania).get('colArray')[noteData]] + '0');
 		attemptToAddAnimationByPrefix(gfxLetter[noteData], gfxLetter[noteData] + '0');
 
 		if (isSustainNote)
@@ -649,8 +649,8 @@ class ChartingNote extends FlxSprite
 			attemptToAddAnimationByPrefix(gfxLetter[noteData] + ' tail', gfxLetter[noteData] + ' tail');
 
 			attemptToAddAnimationByPrefix(gfxLetter[noteData] + ' tail', 'pruple end hold');
-			attemptToAddAnimationByPrefix(gfxLetter[noteData] + ' tail', colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + ' hold end');
-			attemptToAddAnimationByPrefix(gfxLetter[noteData] + ' hold', colArray[Note.keysShit.get(mania).get('colArray')[noteData]] + ' hold piece');
+			attemptToAddAnimationByPrefix(gfxLetter[noteData] + ' tail', colArray[ExtraKeys.keysShit.get(mania).get('colArray')[noteData]] + ' hold end');
+			attemptToAddAnimationByPrefix(gfxLetter[noteData] + ' hold', colArray[ExtraKeys.keysShit.get(mania).get('colArray')[noteData]] + ' hold piece');
 		}
 
 		if (!isSustainNote)
@@ -662,7 +662,7 @@ class ChartingNote extends FlxSprite
 
 	function loadPixelNoteAnims() {
 		// Optimize Anim Loading.
-		var colorIndex:Int = Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex')[noteData];
+		var colorIndex:Int = ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex')[noteData];
 		var animName:String = gfxLetter[noteData];
 
 		if (animName != null) {

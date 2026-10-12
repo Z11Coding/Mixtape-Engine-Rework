@@ -1,11 +1,10 @@
 package stages;
 
+import flixel.addons.effects.FlxTrail;
+import openfl.utils.Assets as OpenFlAssets;
 import shaders.WiggleEffectRuntime;
 import stages.cutscenes.SchoolDoof;
-import flixel.addons.effects.FlxTrail;
-
 import substates.GameOverSubstate;
-import openfl.utils.Assets as OpenFlAssets;
 
 class SchoolEvil extends BaseStage
 {
@@ -70,7 +69,7 @@ class SchoolEvil extends BaseStage
 		}
 	}
 
-	override function eventPushed(event:objects.Note.EventNote)
+	override function eventPushed(event:objects.notes.EventNote)
 	{
 		// used for preloading assets used on events
 		switch(event.event)

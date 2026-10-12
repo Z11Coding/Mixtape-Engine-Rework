@@ -1582,7 +1582,7 @@ class LegacyFunkinLua {
 			return true;
 		});
 		Lua_helper.add_callback(lua, "endSong", function() {
-			PlayState.instance.KillNotes();
+			MegaManager.playfield.killDaNotes();
 			PlayState.instance.endSong();
 			return true;
 		});

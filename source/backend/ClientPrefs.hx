@@ -49,6 +49,9 @@ import states.TitleState;
 	public var hideHud:Bool = false;
 	public var showRenderedText:Bool = false;
 	public var freeplayOptionsOpen:Bool = false; // Remember if options menu was open in freeplay
+	public var rainbowTime:Float = 5.0;
+	public var opponentLightStrum:Bool = true;
+	public var botLightStrum:Bool = true;
 
 	// Dynamic Freeplay Loading Settings
 	public var dynamicFreeplayLoading:String = 'Adaptive (Hybrid)'; // Sync Load / Adaptive (Hybrid) / Aggressive (On-Demand)
@@ -111,6 +114,29 @@ import states.TitleState;
 		[0xFFB055BC, 0xFFf4f4ff, 0xFF4D0060],
 		[0xFFdf3e23, 0xFFffe6e9, 0xFF440000],
 		[0xFF2F69E5, 0xFFf5f5ff, 0xFF000F5D]];
+
+	//Quants
+	public var quantRGB:Array<Array<FlxColor>> = [
+		[0xFFF9393F, 0xFFFFFFFF, 0xFF651038], //4th
+		[0xFF3A48F5, 0xFFFFFFFF, 0xFF0C3D60], //8th
+		[0xFFB200FF, 0xFFFFFFFF, 0xFF57007F], //12th
+		[0xFFFFD800, 0xFFFFFFFF, 0xFF4D4100], //16th
+		[0xFFFF00DC, 0xFFFFFFFF, 0xFF740066], //24th
+		[0xFFFF6A00, 0xFFFFFFFF, 0xFF652800], //32nd
+		[0xFF00FFFF, 0xFFFFFFFF, 0xFF004B5E], //48th
+		[0xFF12FA05, 0xFFFFFFFF, 0xFF0A4447], //64th
+		[0xFFFF7F7F, 0xFFFFFFFF, 0xFF592C2C], //96th
+		[0xFFD67FFF, 0xFFFFFFFF, 0xFF5F3870], //128th
+		[0xFF00FF90, 0xFFFFFFFF, 0xFF003921], //192nd
+		[0xFF7F3300, 0xFFFFFFFF, 0xFF401800], //256th
+		[0xFF007F0E, 0xFFFFFFFF, 0xFF003404], //384th
+		[0xFF230093, 0xFFFFFFFF, 0xFF0F0043], //512th
+		[0xFFE7E7E7, 0xFFFFFFFF, 0xFF2A2A2A], //768th
+		[0xFF00AB64, 0xFFFFFFFF, 0xFF00321E], //1024th
+		[0xFF000000, 0xFFFFFFFF, 0xFF000000], //1536th
+		[0xFFA69C52, 0xFFFFFFFF, 0xFF2F2D17], //2048th
+		[0xFFFFF9AB, 0xFFFFFFFF, 0xFF45442F], //3072nd
+		[0xFFFF6A00, 0xFFFFFFFF, 0xFF652800]]; //6144th
 
 	public var ghostTapping:Bool = true;
 	public var timeBarType:String = 'Time Left';

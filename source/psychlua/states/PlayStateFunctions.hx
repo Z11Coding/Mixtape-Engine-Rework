@@ -173,7 +173,7 @@ class PlayStateFunctions {
 			return true;
 		});
 		Lua_helper.add_callback(lua, "endSong", function() {
-			game.KillNotes();
+			MegaManager.playfield.killDaNotes();
 			game.endSong();
 			return true;
 		});

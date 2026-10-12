@@ -117,8 +117,8 @@ class FunkinLua {
 		// build target (windows, mac, linux, etc.)
 		set('buildTarget', LuaUtils.getBuildTarget());
 
-		set('mania', PlayfieldManager.mania[0]);
-		set('trueMania', Note.ammo[PlayfieldManager.mania[0]]);
+		set('mania', ExtraKeys.mania);
+		set('trueMania', ExtraKeys.ammo[ExtraKeys.mania]);
 
 		Lua_helper.add_callback(lua, "runInLegacyMode", function() {
 			this.closed = true;
@@ -1315,7 +1315,6 @@ class FunkinLua {
 		CursorFunctions.implement(this);
 		VideoFunctions.implement(this);
 		PlayFieldFunctions.implement(this);
-		FMMFunctions.implement(this);
 		stages.VSliceLoader.implement(this);
 		WindowFunctions.implement(this);
 
@@ -1466,17 +1465,8 @@ class FunkinLua {
 	{
 		if(PlayState.instance == null) return null;
 
-		/*var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+		var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 		if(strumNote == null) return null;
-
-		for (field in PlayState.instance.playfields.members) {
-			if (field.strumNotes.contains(strumNote)) {
-				var i = field.strumNotes.indexOf(strumNote);
-				if (i != -1) {
-					strumNote = field.strumNotes[i];
-				}
-			}
-		}
 
 		if(tag != null)
 		{
@@ -1494,113 +1484,7 @@ class FunkinLua {
 			}));
 			return tag;
 		}
-		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});*/
-		if(PlayState.instance == null) return null;
-
-		/*var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
-		if(strumNote == null) return null;
-
-		for (field in PlayState.instance.playfields.members) {
-			if (field.strumNotes.contains(strumNote)) {
-				var i = field.strumNotes.indexOf(strumNote);
-				if (i != -1) {
-					strumNote = field.strumNotes[i];
-				}
-			}
-		}
-
-		if(tag != null)
-		{
-			var originalTag:String = tag;
-			tag = LuaUtils.formatVariable('tween_$tag');
-			LuaUtils.cancelTween(tag);
-
-			var variables = MusicBeatState.getVariables();
-			variables.set(tag, FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease),
-				onComplete: function(twn:FlxTween)
-				{
-					variables.remove(tag);
-					if(PlayState.instance != null) PlayState.instance.callOnLuas('onTweenCompleted', [originalTag]);
-				}
-			}));
-			return tag;
-		}
-		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});*/
-
-		if (ClientPrefs.data.modcharts) {
-			var keys:Int = PlayfieldManager.mania[0] + 1;
-
-			// use original note index
-			var originalNote:Int = note;
-
-			var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
-			if(strumNote == null) return null;
-			for (field in PlayState.instance.playfields.members) {
-				if (field.strumNotes.contains(strumNote)) {
-					var i = field.strumNotes.indexOf(strumNote);
-					if (i != -1) {
-						strumNote = field.strumNotes[i];
-					}
-				}
-			}
-
-			@:privateAccess
-			var field = strumNote.field;
-
-			var whoWeTweening:String = '';
-			var whoElseWeTweening:String = '';
-			var howMuchWeTweening:Float = 0;
-
-			if (data.x != null) {
-				var psychDefaults = [731.0, 843.0, 956.0, 1068.0];
-				var mixtapeDefaults = [1438.0, 1656.0, 1874.0, 2091.0];
-
-				var psychDefaultX:Float = psychDefaults[strumNote.column];
-				var mixtapeDefaultX:Float = mixtapeDefaults[strumNote.column];
-
-				var translatedX:Float = mixtapeDefaultX + (data.x - psychDefaultX);
-
-				whoWeTweening = 'transform${strumNote.column}X';
-				howMuchWeTweening = translatedX - field.getBaseX(strumNote.column);
-			}
-			else if (data.y != null) {
-				whoWeTweening = 'transform${strumNote.column}Y';
-				howMuchWeTweening = field.getBaseY(strumNote.column) + data.y;
-			}
-			else if (data.angle != null) {
-				whoWeTweening = 'note${strumNote.column}AngleX';
-				whoElseWeTweening = 'receptor${strumNote.column}AngleX';
-				howMuchWeTweening = data.angle;
-			}
-			else if (data.direction != null) {
-				whoWeTweening = 'scrollAngle${strumNote.column}';
-				howMuchWeTweening = data.direction;
-			}
-
-			PlayState.instance.forceModSyncOff = true;
-			if (duration>0)duration+=1.5;
-			@:privateAccess
-			PlayState.instance.modManager.queueEaseL(
-				MegaManager.conductor.currentStep,
-				duration,
-				whoWeTweening,
-				howMuchWeTweening,
-				ease,
-				field.playerId
-			);
-
-			@:privateAccess
-			if (whoElseWeTweening != '')
-				PlayState.instance.modManager.queueEaseL(
-					MegaManager.conductor.currentStep,
-					duration,
-					whoElseWeTweening,
-					howMuchWeTweening,
-					ease,
-					field.playerId
-				);
-		}
-
+		else FlxTween.tween(strumNote, data, duration, {ease: LuaUtils.getTweenEaseByString(ease)});
 		return null;
 	}
 

@@ -189,8 +189,8 @@ class GameplayOptionsLoader {
 
             var convertMania = new GameplayOption('Convert Mania', 'convertMania', INT, 3);
             convertMania.scrollSpeed = 2.5;
-            convertMania.minValue = Note.minMania;
-            convertMania.maxValue = Note.maxMania;
+            convertMania.minValue = ExtraKeys.minMania;
+            convertMania.maxValue = ExtraKeys.maxMania;
             options.push(convertMania);
         }
         #end

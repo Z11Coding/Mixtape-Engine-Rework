@@ -810,12 +810,12 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		option.onChange = function() {backend.GarbageController.updateFromPrefs();};
 		addOption(option);
 
-		var option:Option = new Option('Use Experimental Note Pool',
+		/*var option:Option = new Option('Use Experimental Note Pool',
 			"If checked, all notes will be generated and managed through an optimized NotePool system for better performance.\nWARNING: This is experimental and may cause issues!",
 			'useExperimentalNotePool',
 			BOOL);
 		addOption(option);
-		option.onChange = onChangeExperimentalNotePool;
+		option.onChange = onChangeExperimentalNotePool;*/
 
 		var option:Option = new Option('Preload Song',
 			"If checked, songs will be preloaded using ASync processing when loading into PlayState for improved performance.\nWARNING: This is experimental and may cause issues!",
@@ -1154,17 +1154,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		}
 	}
 	#end
-
-	function onChangeExperimentalNotePool()
-	{
-		if (ClientPrefs.data.useExperimentalNotePool) {
-			// Update pool settings when enabled
-			managers.NotePoolManager.updatePoolSettings();
-			trace('Experimental NotePool enabled');
-		} else {
-			trace('Experimental NotePool disabled');
-		}
-	}
 
 	override function destroy() {
 		if (changedMusic) MusicManager.playMenuMusic(1);

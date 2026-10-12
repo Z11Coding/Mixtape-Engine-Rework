@@ -9,7 +9,7 @@ import objects.notes.PreloadNotes;
 import objects.notes.SustainSplash;
 import openfl.events.KeyboardEvent;
 
-class EditorPlayState extends MusicBeatSubstate
+class EditorPlayStateMixtape extends MusicBeatSubstate
 {
 	// Yes, this is mostly a copy of PlayState, it's kinda dumb to make a direct copy of it but... ehhh
 	public var strumLineNotes:FlxTypedGroup<StrumNote>;
@@ -56,7 +56,7 @@ class EditorPlayState extends MusicBeatSubstate
 	// Less laggy controls
 	private var keysArray:Array<Dynamic>;
 
-	public static var instance:EditorPlayState;
+	public static var instance:EditorPlayStateMixtape;
 
 	public static var cpuControlled:Bool = false;
 
@@ -976,14 +976,16 @@ class EditorPlayState extends MusicBeatSubstate
 		if(ClientPrefs.data.noteSplashes && note != null) {
 			var strum:StrumNote = playerStrums.members[note.noteData];
 			if(strum != null) {
-				spawnNoteSplash(strum.x, strum.y, note.noteData, note);
+				spawnNoteSplash(note);
 			}
 		}
 	}
 
-	function spawnNoteSplash(x:Float, y:Float, data:Int, ?note:Note = null) {
+	function spawnNoteSplash(note:Note, ?splashSkin:String) {
+		if (note == null) return;
+
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-		splash.setupNoteSplash(x, y, data, note);
+		splash.setupNoteSplash(0, 0, note.noteData, splashSkin);
 		grpNoteSplashes.add(splash);
 	}
 

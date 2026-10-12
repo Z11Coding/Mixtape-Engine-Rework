@@ -1,7 +1,7 @@
 package stages;
 
 import objects.Character;
-import objects.Note;
+import objects.notes.Note;
 import openfl.display.BlendMode;
 import shaders.AdjustColorShader;
 import stages.PicoCapableStage;

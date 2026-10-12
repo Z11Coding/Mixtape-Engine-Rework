@@ -187,7 +187,7 @@ class HScript extends Iris
 		#end
 		set('Character', Character);
 		set('Alphabet', Alphabet);
-		set('Note', objects.Note);
+		set('Note', objects.notes.Note);
 		set('CustomSubstate', CustomSubstate);
 		#if (!flash && sys)
 		set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
@@ -605,8 +605,8 @@ class HScript extends Iris
 		set("TankmenBG", stages.objects.TankmenBG);
 		set("FNFSprite", objects.FunkinSprite);
 		set("HealthIcon", objects.HealthIcon);
-		set("NoteSplash", objects.NoteSplash);
-		set("StrumNote", objects.StrumNote);
+		set("NoteSplash", objects.notes.NoteSplash);
+		set("StrumNote", objects.notes.StrumNote);
 		set("AttachedSprite", objects.AttachedSprite);
 		set("CutsceneHandler", cutscenes.CutsceneHandler);
 	}

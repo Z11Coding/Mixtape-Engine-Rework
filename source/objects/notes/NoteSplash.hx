@@ -209,8 +209,8 @@ class NoteSplash extends FlxSprite
 
 		// Get current key count from PlayState or default to 4
 		var keyCount:Int = 4; // Default fallback
-		if (PlayState.instance != null && PlayState.instance.playfields != null && PlayState.instance.playfields.members.length > 0) {
-			keyCount = PlayState.instance.playfields.members[0].keyCount;
+		if (PlayState.instance != null && PlayState.instance.playerStrums != null && PlayState.instance.playerStrums.members.length > 0) {
+			keyCount = PlayState.instance.playerStrums.members.length;
 		} else if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length) {
 			keyCount = ExtraKeys.ammo[ExtraKeys.mania];
 		}
@@ -291,13 +291,6 @@ class NoteSplash extends FlxSprite
 			setPosition(babyArrow.x - Note.swagWidth * 0.95, babyArrow.y - Note.swagWidth);
 			#if debug
 			trace('NoteSplash: Using babyArrow position: (${babyArrow.x - Note.swagWidth * 0.95}, ${babyArrow.y - Note.swagWidth})');
-			#end
-		}
-
-		if (babyArrowCharting != null && (inEditor || (x == 0 && y == 0))) {
-			setPosition(babyArrowCharting.x - Note.swagWidth * 0.95, babyArrowCharting.y - Note.swagWidth);
-			#if debug
-			trace('NoteSplash: Using babyArrowCharting position');
 			#end
 		}
 

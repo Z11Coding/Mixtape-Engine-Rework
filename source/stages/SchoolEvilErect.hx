@@ -1,11 +1,11 @@
 package stages;
 
+import flixel.addons.effects.FlxTrail;
+import openfl.utils.Assets as OpenFlAssets;
 import shaders.DropShadowShader;
 import shaders.WiggleEffectRuntime;
 import stages.cutscenes.SchoolDoof;
-import flixel.addons.effects.FlxTrail;
 import substates.GameOverSubstate;
-import openfl.utils.Assets as OpenFlAssets;
 
 class SchoolEvilErect extends BaseStage
 {
@@ -92,9 +92,9 @@ class SchoolEvilErect extends BaseStage
 	}
 
 	#if LEGACY_PSYCH
-	override function eventPushed(event:Note.EventNote)
+	override function eventPushed(event:objects.notes.EventNote)
 	#else
-	override function eventPushed(event:objects.Note.EventNote)
+	override function eventPushed(event:objects.notes.EventNote)
 	#end
 	{
 		// used for preloading assets used on events

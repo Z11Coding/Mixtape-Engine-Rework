@@ -2,7 +2,7 @@ package stages;
 
 import flixel.addons.display.FlxTiledSprite;
 import flixel.addons.transition.FlxTransitionableState;
-import objects.Note;
+import objects.notes.Note;
 import openfl.filters.ShaderFilter;
 import shaders.RainShader;
 import stages.objects.*;
@@ -146,7 +146,7 @@ class PhillyBlazin extends BaseStage
 		remove(dadGroup, true);
 		addBehindBF(dadGroup);
 
-		var off:Float = Math.min(FlxG.width, 1280) / 4;
+		/*var off:Float = Math.min(FlxG.width, 1280) / 4;
 		var opp:Int = PlayState.instance.opponentmode ? 0 : 1;
 
 		var halfKeys:Int = Math.floor(Note.ammo[PlayfieldManager.mania[0]] / 2);
@@ -159,7 +159,7 @@ class PhillyBlazin extends BaseStage
 			PlayState.instance.modManager.setValue('transform${i}X', off, opp);
 
 		PlayState.instance.modManager.setValue("alpha", 1, opp);
-		PlayState.instance.modManager.setValue("opponentSwap", 0.5);
+		PlayState.instance.modManager.setValue("opponentSwap", 0.5);*/
 	}
 
 	function setupRainShader()

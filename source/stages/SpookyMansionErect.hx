@@ -1,7 +1,7 @@
 package stages;
 
 import objects.Character;
-import objects.Note;
+import objects.notes.Note;
 import shaders.RainShader;
 import stages.PicoCapableStage;
 class SpookyMansionErect extends BaseStage

@@ -9,9 +9,8 @@ import flixel.FlxSprite;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxGradient;
+import objects.notes.Note;
 import states.PlayState;
-import objects.Note;
-import objects.playfields.PlayField;
 
 /**
  * Enhanced PlayState specifically designed for control testing during setup
@@ -119,13 +118,13 @@ class SetupControlsPlayState extends PlayState {
         }
     }
 
-    override function goodNoteHit(note:Note, field:PlayField) {
-        super.goodNoteHit(note, field);
+    override function goodNoteHit(note:Note, noteAlt:PreloadNotes = null) {
+        super.goodNoteHit(note, noteAlt);
         notesHit++;
     }
 
-    override function noteMiss(daNote:Note, field:PlayField) {
-        super.noteMiss(daNote, field);
+    override function noteMiss(daNote:Note) {
+        super.noteMiss(daNote);
         notesMissed++;
     }
 

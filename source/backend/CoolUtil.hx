@@ -3,6 +3,7 @@ package backend;
 import haxe.Json;
 import lime.utils.Assets as LimeAssets;
 import openfl.utils.Assets;
+import shaders.RGBPalette.RGBShaderReference;
 
 class CoolUtil
 {
@@ -539,6 +540,69 @@ class CoolUtil
 	public static function showPopUp(message:String, title:String):Void
 	{
 		FlxG.stage.window.alert(message, title);
+	}
+
+	public static function getHealthColors(char:Character):Array<Int>
+	{
+		if (char != null)
+			return char.healthColorArray;
+		else
+			return [255, 0, 0];
+	}
+
+	public static final beats:Array<Int> = [
+		4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 6144
+	];
+
+	static var foundQuant:Int = 0;
+	static var theCurBPM:Float = 0;
+	static var stepCrochet:Float = 0;
+	static var latestBpmChangeIndex = 0;
+	static var latestBpmChange = null;
+
+	public static function checkNoteQuant(note:Note, timeToCheck:Float, ?rgbShader:RGBShaderReference)
+	{
+		if (ClientPrefs.data.noteColorStyle == 'Quant-Based' && (ClientPrefs.data.showNotes && ClientPrefs.data.enableColorShader))
+		{
+			theCurBPM = MegaManager.conductor.currentBpm;
+			stepCrochet = (60 / theCurBPM) * 1000;
+			latestBpmChangeIndex = -1;
+			latestBpmChange = null;
+
+			for (i in 0...MegaManager.conductor.timeChanges.length)
+			{
+				var bpmchange = MegaManager.conductor.timeChanges[i];
+				if (timeToCheck >= bpmchange.time)
+				{
+					latestBpmChangeIndex = i; // Update index of latest change
+					latestBpmChange = bpmchange;
+				}
+			}
+			if (latestBpmChangeIndex >= 0)
+			{
+				theCurBPM = latestBpmChange.bpm;
+				timeToCheck -= latestBpmChange.time;
+				stepCrochet = (60 / theCurBPM) * 1000;
+			}
+
+			var beat = Math.round((timeToCheck / stepCrochet) * 1536); // really stupid but allows the game to register every single quant
+			for (i in 0...beats.length)
+			{
+				if (beat % (6144 / beats[i]) == 0)
+				{
+					beat = beats[i];
+					foundQuant = i;
+					break;
+				}
+			}
+
+			if (rgbShader != null)
+			{
+				rgbShader.r = ClientPrefs.data.quantRGB[foundQuant][0];
+				rgbShader.g = ClientPrefs.data.quantRGB[foundQuant][1];
+				rgbShader.b = ClientPrefs.data.quantRGB[foundQuant][2];
+			}
+		}
 	}
 
 }

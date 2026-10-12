@@ -189,7 +189,7 @@ class Week1Gimmick extends Bar
                     crowdBoo.volume = 0.9;
                     crowdBoo.play();
                     lastState = MAD;
-                    PlayState.instance.modManager.setValue('vibrate-a', 1);
+                    //PlayState.instance.modManager.setValue('vibrate-a', 1);
                     trace('Crowd Mood: Mad');
                     setColors(FlxColor.BLACK, FlxColor.RED);
                     healthDrainMult = 0.01 / ClientPrefs.data.framerate;
@@ -198,7 +198,7 @@ class Week1Gimmick extends Bar
                     if (crowdBoo.playing)
                         crowdBoo.fadeOut(2, 0);
                     lastState = UNHAPPY;
-                    PlayState.instance.modManager.setValue('vibrate-a', 0.5);
+                    //PlayState.instance.modManager.setValue('vibrate-a', 0.5);
                     trace('Crowd Mood: Unhappy');
                     setColors(FlxColor.BLACK, FlxColor.fromRGB(102, 4, 4));
                     healthDrainMult = 0.004 / ClientPrefs.data.framerate;
@@ -209,7 +209,7 @@ class Week1Gimmick extends Bar
                     if (crowdCheer.playing)
                         crowdCheer.fadeOut(0.5, 0);
                     lastState = NEUTRAL;
-                    PlayState.instance.modManager.setValue('vibrate-a', 0);
+                    //PlayState.instance.modManager.setValue('vibrate-a', 0);
                     trace('Crowd Mood: Neutral');
                     setColors(FlxColor.BLACK, FlxColor.BLUE);
                     if (onCrowdNeutral != null) onCrowdNeutral();

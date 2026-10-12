@@ -10,13 +10,13 @@ import objects.notes.StrumNote;
 
 class MechanicsPlaystate {
 
-    public static var instance:MechanicsPlaystate;
+	public static var instance:MechanicsPlaystate;
 
-    public function new() {
-        instance = this;
-    }
+	public function new() {
+		instance = this;
+	}
 
-    public var burstTime:{min:Float, max:Float, value:Float} = null;
+	public var burstTime:{min:Float, max:Float, value:Float} = null;
 	public var allowBurstTween:Bool = true;
 
 	public function burstNote():Void
@@ -91,20 +91,12 @@ class MechanicsPlaystate {
 					var time:Float = 3100;
 					if (PlayState.instance.songSpeed < 1)
 						time /= PlayState.instance.songSpeed;
-					var restoreNote:Note = backend.ClientPrefs.data.useExperimentalNotePool ?
-						managers.NotePoolManager.createNote(Conductor.songPosition + time, FlxG.random.int(0, 3), null, false, false, PlayState.instance) :
-						new Note(Conductor.songPosition + time, FlxG.random.int(0, 3), null);
-
+					var restoreNote:Note = new Note(Conductor.songPosition + time, FlxG.random.int(0, ExtraKeys.mania));
 					restoreNote.mustPress = restoreNote.formerPress = true;
-					restoreNote.scrollSpeed = PlayState.instance.songSpeed;
 					restoreNote.noteType = 'Restore Note';
 					restoreNote.x += FlxG.width / 2; // general offset
-					restoreNote.fieldIndex = 0;
-					restoreNote.field = PlayState.instance.playfields.members[0];
 					restoreNoteGroup.push(restoreNote);
-					PlayState.instance.allNotes.unshift(restoreNote);
-					PlayState.instance.unspawnNotes.unshift(restoreNote);
-					PlayState.instance.playfields.members[0].queue(restoreNote);
+					PlayState.instance.notes.insert(0, restoreNote);
 				}
 			}
 			PlayState.instance.noTriggerKarma = false;
@@ -149,10 +141,6 @@ class MechanicsPlaystate {
 		{
 			if (PlayState.instance.notes.members.contains(restoreNote))
 				PlayState.instance.notes.remove(restoreNote, true);
-			if (PlayState.instance.unspawnNotes.contains(restoreNote))
-				PlayState.instance.unspawnNotes.remove(restoreNote);
-
-            restoreNote.field.removeNote(restoreNote);
 		}
 
 		PlayState.instance.notes.forEachAlive(function(daNote:Note)
@@ -162,7 +150,7 @@ class MechanicsPlaystate {
 				daNote.noteType = null;
 
 				if (MechanicManager.mechanics['flashlight'].points > 0 && daNote.canBeHit && daNote.mustPress)
-					PlayState.instance.goodNoteHit(daNote, daNote.field);
+					PlayState.instance.goodNoteHit(daNote);
 			}
 		});
 

@@ -67,7 +67,7 @@ class NoteTypesConfig
 	{
 		var data:Array<NoteTypeProperty> = loadNoteTypeData(name);
 		if(data == null || data.length < 1) {
-      switch(value) {
+      switch(name) {
 				case 'Hurt Note':
 					note.ignoreNote = note.mustPress;
 					// note colors
@@ -81,13 +81,13 @@ class NoteTypesConfig
 
 					// gameplay data
 					note.lowPriority = true;
-					note.missHealth = isSustainNote ? 0.25 : 0.1;
+					note.missHealth = note.isSustainNote ? 0.25 : 0.1;
 					note.hitCausesMiss = true;
 					note.hitsound = 'cancelMenu';
 					note.hitsoundChartEditor = false;
 				case 'Kill Note':
 					note.ignoreNote = note.mustPress;
-					note.reloadNote('noteSkins/mechanicsmod/KILLNOTE_assets');
+					note.texture = 'noteSkins/mechanicsmod/KILLNOTE_assets';
 					note.noteSplashData.texture = 'noteSplashes/HURTnoteSplashes';
 					note.rgbShader.enabled = false;
 					note.missHealth = FlxMath.MAX_VALUE_FLOAT;
@@ -95,7 +95,7 @@ class NoteTypesConfig
 					note.hitCausesMiss = true;
 				case 'Burst Note':
 					note.ignoreNote = note.mustPress;
-					note.reloadNote('noteSkins/mechanicsmod/BURSTNOTE_assets');
+					note.texture = 'noteSkins/mechanicsmod/BURSTNOTE_assets';
 					note.noteSplashData.disabled = true;
 					note.rgbShader.enabled = false;
 					if (note.isSustainNote)
@@ -110,7 +110,7 @@ class NoteTypesConfig
 					note.lowPriority = true;
 				case 'Sleep Note':
 					note.ignoreNote = note.mustPress;
-					note.reloadNote('noteSkins/mechanicsmod/SLEEPYNOTE_assets');
+					note.texture = 'noteSkins/mechanicsmod/SLEEPYNOTE_assets';
 					note.noteSplashData.disabled = true;
 					note.rgbShader.enabled = false;
 					if (note.isSustainNote)
@@ -124,7 +124,7 @@ class NoteTypesConfig
 					note.hitCausesMiss = true;
 					note.lowPriority = true;
 				case 'Restore Note':
-					note.reloadNote('noteSkins/mechanicsmod/RESTORENOTE_assets');
+					note.texture = 'noteSkins/mechanicsmod/RESTORENOTE_assets';
 					if (note.isSustainNote)
 					{
 						note.missHealth = 0.0475 / 2;
@@ -135,8 +135,8 @@ class NoteTypesConfig
 					}
 					note.rgbShader.enabled = false;
 				case 'Fake Note':
-					note.ignoreNote = mustPress;
-					note.reloadNote('noteSkins/mechanicsmod/FAKENOTE_assets');
+					note.ignoreNote = note.mustPress;
+					note.texture = 'noteSkins/mechanicsmod/FAKENOTE_assets';
 					note.noteSplashData.texture = 'HURTnoteSplashes';
 					note.rgbShader.enabled = false;
 					if (note.isSustainNote)
@@ -149,7 +149,7 @@ class NoteTypesConfig
 					}
 					note.hitCausesMiss = true;
 				case 'Swap Note':
-					note.reloadNote('noteSkins/mechanicsmod/SWAPNOTE_assets');
+					note.texture = 'noteSkins/mechanicsmod/SWAPNOTE_assets';
 					note.rgbShader.enabled = false;
 					if (note.isSustainNote)
 					{
@@ -172,7 +172,7 @@ class NoteTypesConfig
 					note.botNote = true;
 					note.hitsoundChartEditor = false;
 				case "Throat Note":
-					note.reloadNote('noteSkins/mechanicsmod/THROATNOTE_assets');
+					note.texture = 'noteSkins/mechanicsmod/THROATNOTE_assets';
 					note.ignoreNote = note.mustPress;
 					note.hitCausesMiss = true;
 					note.missHealth = 0.0475;

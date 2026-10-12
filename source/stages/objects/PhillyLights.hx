@@ -18,8 +18,8 @@ class PhillyLights extends BaseStage {
     /**
      * Creates a new stage for handling philly lights.
      * @param index members.indexOf(phillyStreet)
-     * @param windowX 
-     * @param windowY 
+     * @param windowX
+     * @param windowY
      */
     public function new(phillyStreet:FlxSprite,windowX:Float,windowY:Float,colors:Array<FlxColor>) {
         super();
@@ -29,9 +29,9 @@ class PhillyLights extends BaseStage {
         Y = windowY;
     }
     #if LEGACY_PSYCH
-	override function eventPushed(event:Note.EventNote)
+	override function eventPushed(event:objects.notes.EventNote)
 	#else
-	override function eventPushed(event:objects.Note.EventNote)
+	override function eventPushed(event:objects.notes.EventNote)
 	#end
 	{
 		switch(event.event)
@@ -75,7 +75,7 @@ class PhillyLights extends BaseStage {
                 case "Philly Glow":
                     if(flValue1 == null || flValue1 <= 0) flValue1 = 0;
                     var lightId:Int = Math.round(flValue1);
-    
+
                     var chars:Array<Character> = [boyfriend, gf, dad];
                     switch(lightId)
                     {
@@ -88,24 +88,24 @@ class PhillyLights extends BaseStage {
                                     FlxG.camera.zoom += 0.5;
                                     camHUD.zoom += 0.1;
                                 }
-    
+
                                 blammedLightsBlack.visible = false;
                                 phillyWindowEvent.visible = false;
                                 phillyGlowGradient.visible = false;
                                 phillyGlowParticles.visible = false;
                                 curLightEvent = -1;
-    
+
                                 for (who in chars)
                                 {
                                     who.color = FlxColor.WHITE;
                                 }
                                 phillyStreet.color = FlxColor.WHITE;
                             }
-    
+
                         case 1: //turn on
                             curLightEvent = FlxG.random.int(0, phillyLightsColors.length-1, [curLightEvent]);
                             var color:FlxColor = phillyLightsColors[curLightEvent];
-    
+
                             if(!phillyGlowGradient.visible)
                             {
                                 doFlash();
@@ -114,7 +114,7 @@ class PhillyLights extends BaseStage {
                                     FlxG.camera.zoom += 0.5;
                                     camHUD.zoom += 0.1;
                                 }
-    
+
                                 blammedLightsBlack.visible = true;
                                 blammedLightsBlack.alpha = 1;
                                 phillyWindowEvent.visible = true;
@@ -127,11 +127,11 @@ class PhillyLights extends BaseStage {
                                 colorButLower.alpha = 64;
                                 FlxG.camera.flash(colorButLower, 0.5, null, true);
                             }
-    
+
                             var charColor:FlxColor = color;
                             if(!ClientPrefs.data.flashing) charColor.saturation *= 0.5;
                             else charColor.saturation *= 0.75;
-    
+
                             for (who in chars)
                             {
                                 who.color = charColor;
@@ -142,10 +142,10 @@ class PhillyLights extends BaseStage {
                             });
                             phillyGlowGradient.color = color;
                             phillyWindowEvent.color = color;
-    
+
                             color.brightness *= 0.5;
                             phillyStreet.color = color;
-    
+
                         case 2: // spawn particles
                             if(!ClientPrefs.data.lowQuality)
                             {
@@ -168,12 +168,12 @@ class PhillyLights extends BaseStage {
                     }
             }
         }
-    
+
         function doFlash()
         {
             var color:FlxColor = FlxColor.WHITE;
             if(!ClientPrefs.data.flashing) color.alphaFloat = 0.5;
-    
+
             FlxG.camera.flash(color, 0.15, null, true);
         }
 }

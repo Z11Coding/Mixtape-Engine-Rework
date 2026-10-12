@@ -1,17 +1,17 @@
 package stages;
 
-import stages.cutscenes.VideoCutscene;
-import substates.StickerSubState;
+import cutscenes.CutsceneHandler;
 import flixel.FlxSubState;
-import openfl.filters.ShaderFilter;
-import shaders.RainShader;
 import flixel.addons.display.FlxTiledSprite;
 import flixel.graphics.frames.FlxAtlasFrames;
-import substates.PauseSubState;
-import substates.GameOverSubstate;
-import objects.Note;
-import cutscenes.CutsceneHandler;
 import objects.SpraycanAtlasSprite;
+import objects.notes.Note;
+import openfl.filters.ShaderFilter;
+import shaders.RainShader;
+import stages.cutscenes.VideoCutscene;
+import substates.GameOverSubstate;
+import substates.PauseSubState;
+import substates.StickerSubState;
 
 using stages.cutscenes.DarnellStart;
 

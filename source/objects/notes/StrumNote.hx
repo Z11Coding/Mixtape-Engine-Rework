@@ -1,11 +1,14 @@
 package objects.notes;
 
+import backend.animation.PsychAnimationController;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;
 
 class StrumNote extends FlxSprite
 {
   public static var hardAlpha:Float = 1; // For hard mode
+	public var formerPosition:FlxPoint = FlxPoint.get();
+	public var positionData:Int = 0;
 
   public final animationArray:Array<String> = ['static', 'pressed', 'confirm'];
 	public var static_anim(default, set):String = "static";
@@ -79,7 +82,7 @@ class StrumNote extends FlxSprite
 
     if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) {
       rgbShader.enabled = false;
-      if (PlayState.SONG != null && PlayState.SONG.disableNoteRGB || !ClientPrefs.data.enableColorShader)
+      if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB || !ClientPrefs.data.enableColorShader)
         useRGBShader = false;
     }
 
@@ -101,9 +104,10 @@ class StrumNote extends FlxSprite
 		this.player = player;
 		this.noteData = leData;
 		super(x, y);
+		this.positionData = leData;
 
 		var skin:String = null;
-		if(PlayState.SONG != null && PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
+		if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 1) skin = PlayfieldManager.SONG.arrowSkin;
 		else skin = Note.defaultNoteSkin;
 
 		var customSkin:String = skin + Note.getNoteSkinPostfix();
@@ -163,26 +167,26 @@ class StrumNote extends FlxSprite
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
 		var pxDV:Int = ExtraKeys.pixelNotesDivisionValue[width == 306 ? 1 : 0];
 
-    animationArray[0] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('strumAnims')[column];
-		animationArray[1] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[column];
-		animationArray[2] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[column]; //jic
+    animationArray[0] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('strumAnims')[noteData];
+		animationArray[1] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData];
+		animationArray[2] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData]; //jic
 
 		if(PlayState.isPixelStage)
 		{
 			loadGraphic(Paths.image('pixelUI/' + skin));
-			pxDV = Note.pixelNotesDivisionValue[width == 306 ? 1 : 0];
+			pxDV = ExtraKeys.pixelNotesDivisionValue[width == 306 ? 1 : 0];
 			width = width / pxDV;
 			height = height / 5;
 			antialiasing = false;
 			loadGraphic(Paths.image('pixelUI/' + skin), true, Math.floor(width), Math.floor(height));
-      var daFrames:Array<Int> = Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex');
+      var daFrames:Array<Int> = ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex');
 
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[ExtraKeys.mania]));
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]));
       updateHitbox();
 			antialiasing = false;
-			animation.add('static', [daFrames[column]]);
-			animation.add('pressed', [daFrames[column] + pxDV, daFrames[column] + (pxDV * 2)], 12, false);
-			animation.add('confirm', [daFrames[column] + (pxDV * 3), daFrames[column] + (pxDV * 4)], 24, false);
+			animation.add('static', [daFrames[noteData]]);
+			animation.add('pressed', [daFrames[noteData] + pxDV, daFrames[noteData] + (pxDV * 2)], 12, false);
+			animation.add('confirm', [daFrames[noteData] + (pxDV * 3), daFrames[noteData] + (pxDV * 4)], 24, false);
 		}
 		else
 		{
@@ -201,14 +205,14 @@ class StrumNote extends FlxSprite
 
 			frames = Paths.getSparrowAtlas(skin);
       antialiasing = ClientPrefs.data.antialiasing;
-			setGraphicSize(Std.int(width * Note.scales[ExtraKeys.mania]));
+			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
 
 			// Get the appropriate animation name for this column from the mania mapping
 			var strumAnim:String = animationArray[0]; // This is the strumAnims value
 			var letterAnim:String = animationArray[1]; // This is the letters value
 
 			// First try the hardcoded switch for traditional 4K animations (backwards compatibility)
-			switch (Math.abs(column))
+			switch (Math.abs(noteData))
 			{
 				case 0:
 					attemptToAddAnimationByPrefix('static', 'arrowLEFT', 24, true);
@@ -265,10 +269,18 @@ class StrumNote extends FlxSprite
 
 	public function postAddedToGroup() {
 		playAnim('static');
-		x += Note.swagWidth * noteData;
+		switch (ExtraKeys.mania)
+		{
+			case 0 | 1 | 2: x += width * noteData;
+			case 3: x += (Note.swagWidth * noteData);
+			default: x += ((width - ExtraKeys.lessX[ExtraKeys.mania]) * noteData);
+		}
 		x += 50;
+		x += ExtraKeys.xtra[ExtraKeys.mania];
 		x += ((FlxG.width / 2) * player);
+		x -= ExtraKeys.posRest[ExtraKeys.mania];
 		ID = noteData;
+		formerPosition.set(x, y);
 	}
 
 	override function update(elapsed:Float) {

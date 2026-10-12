@@ -115,19 +115,19 @@ class ChartingStrumNote extends FlxSprite
 	{
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
-		var pxDV:Int = Note.pixelNotesDivisionValue[1];
+		var pxDV:Int = ExtraKeys.pixelNotesDivisionValue[1];
 
 		if(PlayState.isPixelStage)
 		{
 			loadGraphic(Paths.image('pixelUI/' + texture));
-			pxDV = Note.pixelNotesDivisionValue[width == 306 ? 1 : 0];
+			pxDV = ExtraKeys.pixelNotesDivisionValue[width == 306 ? 1 : 0];
 			height = height / 5;
 			width = width / pxDV;
 			antialiasing = false;
 			loadGraphic(Paths.image('pixelUI/' + texture), true, Math.floor(width), Math.floor(height));
-			var daFrames:Array<Int> = Note.keysShit.get(PlayfieldManager.mania[0]).get('pixelAnimIndex');
+			var daFrames:Array<Int> = ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex');
 
-			setGraphicSize(Std.int(width * PlayState.daPixelZoom * Note.pixelScales[PlayfieldManager.mania[0]]));
+			setGraphicSize(Std.int(width * PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]));
 			updateHitbox();
 			antialiasing = false;
 			animation.add('static', [daFrames[noteData]]);
@@ -143,10 +143,10 @@ class ChartingStrumNote extends FlxSprite
 
 			frames = Paths.getSparrowAtlas(texture);
 			antialiasing = ClientPrefs.data.antialiasing;
-			setGraphicSize(Std.int(width * Note.scales[PlayfieldManager.mania[0]]));
-			animationArray[0] = Note.keysShit.get(PlayfieldManager.mania[0]).get('strumAnims')[noteData];
-			animationArray[1] = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData];
-			animationArray[2] = Note.keysShit.get(PlayfieldManager.mania[0]).get('letters')[noteData]; //jic
+			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
+			animationArray[0] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('strumAnims')[noteData];
+			animationArray[1] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData];
+			animationArray[2] = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData]; //jic
 			switch (Math.abs(noteData))
 			{
 				case 0:

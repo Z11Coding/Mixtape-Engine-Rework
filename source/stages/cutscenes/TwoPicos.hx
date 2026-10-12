@@ -121,7 +121,7 @@ class TwoPicos
 					game.opponentVocals = new FlxSound();
 					for (note in game.unspawnNotes)
 					{
-						if (!note.mustPress && note.eventName == "")
+						if (!note.mustPress)
 						{
 							note.ignoreNote = true;
 						}

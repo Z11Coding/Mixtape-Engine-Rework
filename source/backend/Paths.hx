@@ -97,24 +97,24 @@ class Paths
     for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters').length)
 		{
 			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + '0');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + '0');
 
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold end');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold piece');
 			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
 			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
 
 			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold end');
 
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold piece');
 		}
     noteSkinFramesMap.set(noteSkin, spr.frames);
     noteSkinAnimsMap.set(noteSkin, spr.animation);
   }
 
-	function attemptToAddAnimationByPrefix(obj:FlxSprite, name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
+	static function attemptToAddAnimationByPrefix(obj:FlxSprite, name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
 	{
 		try {
 			var animFrames = [];
