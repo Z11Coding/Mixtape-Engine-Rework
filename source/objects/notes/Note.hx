@@ -158,7 +158,7 @@ class Note extends FlxSprite
 			if (!changeSize)
 			{
 				changeSize = true;
-				setGraphicSize(Std.int(width * 0.7));
+				setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
 				updateHitbox();
 			}
 			offsetX = 0;
@@ -392,7 +392,7 @@ class Note extends FlxSprite
 		}
 
 		var skinPixel:String = skin;
-		var lastScaleY:Float = (scale != null ? scale.y : 0.7);
+		var lastScaleY:Float = (scale != null ? scale.y : ExtraKeys.scales[ExtraKeys.mania]);
 		var skinPostfix:String = getNoteSkinPostfix();
 		var customSkin:String = skin + skinPostfix;
 		var path:String = pixelNote ? 'pixelUI/' : '';
@@ -496,23 +496,23 @@ class Note extends FlxSprite
 	}
 
   function loadNoteAnims() {
-		for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter').length)
+		for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters').length)
 		{
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
+			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
 
 			if (isSustainNote)
 			{
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' hold');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' tail');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
 
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' tail', 'pruple end hold');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
 
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
 			}
 		}
 
@@ -526,7 +526,7 @@ class Note extends FlxSprite
 	function loadPixelNoteAnims() {
 		// Optimize Anim Loading.
 		var colorIndex:Int = ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex')[noteData];
-		var animName:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get('gfxLetter')[noteData];
+		var animName:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData];
 
 		if (animName != null) {
 			var graphic = Paths.image(publicTexture);
@@ -592,7 +592,7 @@ class Note extends FlxSprite
 		if (isSustainNote)
 		{
 			flipY = strum.downScroll;
-			scale.set(0.7, animation != null && animation.curAnim != null && animation.curAnim.name.endsWith('end') ? 1 : MegaManager.conductor.currentStepTime * 0.0105 * (songSpeed * multSpeed) * sustainScale);
+			scale.set(ExtraKeys.scales[ExtraKeys.mania], animation != null && animation.curAnim != null && animation.curAnim.name.endsWith('end') ? 1 : MegaManager.conductor.stepLengthMs * 0.0105 * (songSpeed * multSpeed) * sustainScale);
 
 			if (PlayState.isPixelStage)
 			{
@@ -847,7 +847,7 @@ class Note extends FlxSprite
 		if (!changeSize && !PlayState.isPixelStage)
 		{
 			changeSize = true;
-			setGraphicSize(Std.int(width * 0.7));
+			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
 			updateHitbox();
 		}
 

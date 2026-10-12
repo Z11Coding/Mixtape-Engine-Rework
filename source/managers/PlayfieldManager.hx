@@ -108,9 +108,6 @@ class PlayfieldManager {
 			keysArray = backend.Keybinds.fill();
     controlArray = ['NOTE_LEFT', 'NOTE_DOWN', 'NOTE_UP', 'NOTE_RIGHT'];
     manualInputChecks = false;
-
-    grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
-		grpNoteSplashes = new FlxTypedGroup<NoteSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
   }
 
   /// Mania
@@ -330,7 +327,7 @@ class PlayfieldManager {
 			}
 
 			if (player == 1)
-        opponentStrums.add(babyArrow);
+        playerStrums.add(babyArrow);
 			else
 			{
 				if(ClientPrefs.data.middleScroll)
@@ -340,7 +337,7 @@ class PlayfieldManager {
 						babyArrow.x += FlxG.width / 2 + 25;
 					}
 				}
-				playerStrums.add(babyArrow);
+				opponentStrums.add(babyArrow);
 			}
 
 			strumLineNotes.add(babyArrow);
@@ -357,17 +354,14 @@ class PlayfieldManager {
 
   public function addNotes() {
     sustainNotes = new FlxTypedGroup<Note>();
-		PlayState.instance?.add(sustainNotes);
 
 		strumLineNotes = new FlxTypedGroup<StrumNote>();
-		PlayState.instance?.add(strumLineNotes);
 
 		notes = new FlxTypedGroup<Note>();
-		PlayState.instance?.add(notes);
-    notes.visible = sustainNotes.visible = ClientPrefs.data.showNotes; //that was easier than expected
+		notes.visible = sustainNotes.visible = ClientPrefs.data.showNotes; //that was easier than expected
 
-    PlayState.instance?.add(grpNoteSplashes);
-		PlayState.instance?.add(grpHoldSplashes);
+    grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
+		grpNoteSplashes = new FlxTypedGroup<NoteSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
 
     var splash:NoteSplash = new NoteSplash(100, 100, 0);
 		grpNoteSplashes.add(splash);

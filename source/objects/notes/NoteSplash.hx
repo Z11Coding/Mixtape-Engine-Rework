@@ -209,9 +209,7 @@ class NoteSplash extends FlxSprite
 
 		// Get current key count from PlayState or default to 4
 		var keyCount:Int = 4; // Default fallback
-		if (PlayState.instance != null && PlayState.instance.playerStrums != null && PlayState.instance.playerStrums.members.length > 0) {
-			keyCount = PlayState.instance.playerStrums.members.length;
-		} else if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length) {
+		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length) {
 			keyCount = ExtraKeys.ammo[ExtraKeys.mania];
 		}
 

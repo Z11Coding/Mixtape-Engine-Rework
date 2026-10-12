@@ -155,7 +155,10 @@ class StrumNote extends FlxSprite
 		if (Paths.fileExists('images/$pixelFolder$texture$skinPostfix.png', IMAGE)) { // If a varient of a skin exists and is selected, load it
 			skin = texture + skinPostfix;
 		} else if (Paths.fileExists('images/${pixelFolder}noteSkins/$texture$skinPostfix.png', IMAGE)) { // If a noteSkins folder exists and the note is in it, use that
-			skin = 'noteSkins/$texture$skinPostfix';
+			if (skinPostfix == null || skinPostfix.length < 1)
+				skin = "noteSkins/strums";
+			else
+				skin = 'noteSkins/$texture$skinPostfix';
 		}
 
     if (PlayState.isPixelStage || postfix.toLowerCase() == '-retribution') {
@@ -193,17 +196,14 @@ class StrumNote extends FlxSprite
       var postfix:String = Note.getNoteSkinPostfix();
 			var skin:String = texture + postfix;
 			//trace("Skin: " + skin);
-			if(texture.length < 1)
-			{
-				skin = (PlayfieldManager.SONG != null ? PlayfieldManager.SONG.arrowSkin : (texture + postfix));
-				if (skin == 'noteSkins/NOTE_assets') {
-					skin = "noteSkins/strums";
-				}
+			skin = (PlayfieldManager.SONG != null && (PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 0) ? PlayfieldManager.SONG.arrowSkin : (texture + postfix));
+			if (skin == 'noteSkins/NOTE_assets') {
+				skin = "noteSkins/strums";
 			}
 
 			trace("Skin: " + skin);
 
-			frames = Paths.getSparrowAtlas(skin);
+			frames = Paths.getAtlas(skin);
       antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
 

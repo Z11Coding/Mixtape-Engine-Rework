@@ -20,7 +20,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		// for note skins and splash skins
 		notes = new FlxTypedGroup<StrumNote>();
 		splashes = new FlxTypedGroup<NoteSplash>();
-		for (i in 0...ExtraKeys.colArray.length)
+		for (i in 0...3)
 		{
 			var note:StrumNote = new StrumNote(370 + (560 / ExtraKeys.colArray.length) * i, -200, i, 0);
 			changeNoteSkin(note);
