@@ -1,0 +1,1077 @@
+package backend.modchartSystem;
+
+import StringTools;
+import backend.Constants;
+import backend.Song;
+import backend.funkin.audio.FunkinSound; // used for debugging stuff lol
+import backend.funkin.util.GRhythmUtil;
+import backend.funkin.util.SortUtil;
+import backend.modchartSystem.ModConstants;
+import backend.modchartSystem.modifiers.BaseModifier;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.FlxStrip;
+import flixel.graphics.FlxGraphic;
+import flixel.graphics.tile.FlxDrawTrianglesItem;
+import flixel.math.FlxMath;
+import flixel.text.FlxText;
+import flixel.util.FlxColor;
+import flixel.util.FlxSort;
+import flixel.util.FlxStringUtil;
+import lime.math.Vector2;
+import objects.funkin.graphics.FunkinSprite;
+import objects.funkin.graphics.ZSprite;
+import objects.notes.Note;
+import objects.notes.StrumNote;
+import objects.notes.Strumline;
+import openfl.display.Sprite;
+// funkin stuff
+// Math and utils
+// extra
+
+class ModHandler
+{
+  // The amount in pixels to offset the debug text on the x axis
+  public var debugTxtOffsetX:Float = 0;
+  // The amount in pixels to offset the debug text on the y axis
+  public var debugTxtOffsetY:Float = 0;
+  // If true, any mods in the ModConstants.dadInvert will have their values inverted.
+  public var invertValues:Bool = false;
+  public var isDad:Bool = false;
+  // A map containing all the modifiers.
+  public var modifiers:Map<String, Modifier> = new Map<String, Modifier>();
+  // A series of arrays that contain all the modifiers in each catagory. This is what is used to apply the math!
+  public var mods_all:Array<Modifier> = [];
+  public var mods_arrowpath:Array<Modifier> = [];
+  public var mods_strums:Array<Modifier> = [];
+  public var mods_notes:Array<Modifier> = [];
+  public var mods_speed:Array<Modifier> = [];
+  public var mods_special:Array<Modifier> = [];
+  // The prefix added to every tween name associated with this ModHandler.
+  public var customTweenerName:String = "???";
+  // The strumline this modHandler is tied to
+  public var strum:Strumline;
+
+  public function new(daddy:Bool = false)
+  {
+    if (daddy)
+    {
+      isDad = daddy;
+    }
+    // Speedmod is always added by default
+    // addMod('speedmod', 1);
+  }
+
+  public var sinClip:Float = 1;
+  public var cosClip:Float = 1;
+  public var tanClip:Float = Math.POSITIVE_INFINITY;
+  public var sinOffset:Float = 0.0;
+  public var cosOffset:Float = 0.0;
+  public var tanOffset:Float = 0.0;
+  public var useCosecant:Bool = false;
+  public var cosecantOffset:Float = 0.0;
+
+  // FlxMath fastSin but with sinClip applied
+
+  public function sin(r:Float):Float
+  {
+    return FlxMath.bound(FlxMath.fastSin(r + sinOffset), -sinClip, sinClip);
+  }
+
+  // FlxMath fastSin but with cosClip applied
+
+  public function cos(r:Float):Float
+  {
+    return FlxMath.bound(FlxMath.fastCos(r + cosOffset), -cosClip, cosClip);
+  }
+
+  // FlxMath fastSin but with cosClip applied
+
+  public function tan(r:Float):Float
+  {
+    if (useCosecant)
+    {
+      return (tanClip == Math.POSITIVE_INFINITY ? cosecant(r) : FlxMath.bound(cosecant(r), -tanClip, tanClip));
+    }
+    else
+    {
+      return (tanClip == Math.POSITIVE_INFINITY ? ModConstants.fastTan(r + tanOffset) : FlxMath.bound(ModConstants.fastTan(r + tanOffset), -tanClip, tanClip));
+    }
+  }
+
+  function cosecant(angle:Float):Float
+  {
+    // Edwhak claims math.sin is better her instead of fastSin.
+    return 1 / Math.sin(angle + cosecantOffset);
+  }
+
+  public function resortMods():Void
+  {
+    sortMods(true);
+    strum.debugNeedsUpdate = true;
+  }
+
+  // Offset the perspective math center by this amount! Added ontop of the one in NoteData.
+  // Currently doesn't do anything though lol
+  public var perspectiveCenterOffset:Vector2 = new Vector2(0, 0);
+
+  /**
+   * Goes through every modifier and resets them back to their base / starting / default values.
+   */
+  public function resetModValues():Void
+  {
+    trace("Mod Values Reset - " + customTweenerName);
+
+    perspectiveCenterOffset.setTo(0, 0);
+
+    for (mod in mods_all)
+    {
+      mod.reset();
+    }
+
+    debugTxtOffsetX = 0;
+    debugTxtOffsetY = 0;
+
+    sinClip = 1;
+    cosClip = 1;
+    tanClip = Math.POSITIVE_INFINITY;
+    sinOffset = 0.0;
+    cosOffset = 0.0;
+    tanOffset = 0.0;
+    cosecantOffset = 0.0;
+    useCosecant = false;
+
+    for (i in 0...Strumline.KEY_COUNT)
+    {
+      strum.StrumNotes.members[i].strumExtraModData.reset();
+    }
+
+    strum.debugNeedsUpdate = true;
+  }
+
+  /**
+   * Clears out all the modifiers for this ModHandler.
+   */
+  public function clearMods():Void
+  {
+    resetModValues();
+    for (key in modifiers.keys())
+    {
+      modifiers.remove(key);
+    }
+    modifiers.clear();
+
+    // https://stackoverflow.com/questions/45324169/what-is-the-correct-way-to-clear-an-array-in-haxe
+    while (mods_all.length > 0)
+      mods_all.pop();
+
+    while (mods_strums.length > 0)
+      mods_strums.pop();
+
+    while (mods_notes.length > 0)
+      mods_notes.pop();
+
+    while (mods_speed.length > 0)
+      mods_speed.pop();
+
+    while (mods_arrowpath.length > 0)
+      mods_arrowpath.pop();
+
+    while (mods_special.length > 0)
+      mods_special.pop();
+  }
+
+  /**
+   * Sets a modifier's current value.
+   * @param tag The identifying tag to locate the target modifier. Supports submodifiers and lane modifiers (i.e. drunk__speed or tipsy--2)
+   * @param val The new value that the target modifier will be set to.
+   */
+  public function setModVal(tag:String, val:Float):Void
+  {
+    var tagToUse:String = tag;
+    var isSub:Bool = false;
+    var subModArr = null;
+
+    if (ModConstants.isTagSub(tag))
+    {
+      isSub = true;
+      subModArr = tag.split('__');
+      tagToUse = subModArr[1];
+    }
+
+    if (isSub)
+    {
+      if (modifiers.exists(subModArr[0]))
+      {
+        final mod:Modifier = modifiers.get(subModArr[0]);
+        final subModName:String = mod.subModAliasConvert(subModArr[1]);
+        mod.setSubVal(subModName, val);
+      }
+      else
+      {
+        addMod(subModArr[0]); // try and add the mod
+        PlayState.instance.modDebugNotif(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+
+        final mod:Modifier = modifiers.get(subModArr[0]);
+        final subModName:String = mod.subModAliasConvert(subModArr[1]);
+        mod.setSubVal(subModName, val);
+      }
+      strum.debugNeedsUpdate = true;
+      return;
+    }
+
+    if (modifiers.exists(tagToUse))
+    {
+      var mod = modifiers.get(tagToUse);
+      mod.setVal(val * (invertValues && mod.invertForDad ? -1 : 1));
+    }
+    else
+    {
+      PlayState.instance.modDebugNotif(tagToUse + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+      var _m = addMod(tagToUse, val); // try and add the mod lol
+      _m.setVal(val * (invertValues && _m.invertForDad ? -1 : 1));
+      sortMods();
+    }
+    strum.debugNeedsUpdate = true;
+  }
+
+  /**
+   * Sets a modifier's default value.
+   * Note that this does not automatically set the modifier's value!
+   * @param tag The identifying tag to locate the target modifier. Supports submodifiers and lane modifiers (i.e. drunk__speed or tipsy--2)
+   * @param val The new default value that the target modifier will use.
+   */
+  public function setDefaultModVal(tag:String, val:Float):Void
+  {
+    var tagToUse:String = tag;
+    var isSub:Bool = false;
+    var subModArr = null;
+
+    if (ModConstants.isTagSub(tag))
+    {
+      isSub = true;
+      subModArr = tag.split('__');
+      tagToUse = subModArr[1];
+    }
+
+    if (isSub)
+    {
+      if (modifiers.exists(subModArr[0]))
+      {
+        final mod:Modifier = modifiers.get(subModArr[0]);
+        final subModName:String = mod.subModAliasConvert(subModArr[1]);
+        mod.setDefaultSubVal(subModName, val);
+      }
+      else
+      {
+        addMod(subModArr[0]); // try and add the mod
+        // PlayState.instance.modDebugNotif(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+
+        final mod:Modifier = modifiers.get(subModArr[0]);
+        final subModName:String = mod.subModAliasConvert(subModArr[1]);
+        mod.setDefaultSubVal(subModName, val);
+      }
+      strum.debugNeedsUpdate = true;
+      return;
+    }
+
+    if (modifiers.exists(tagToUse))
+    {
+      var _M = modifiers.get(tagToUse);
+      _M.setDefaultVal(val * (invertValues && _M.invertForDad ? -1 : 1));
+    }
+    else
+    {
+      var _M = addMod(tagToUse, val); // try and add the mod
+      _M.setDefaultVal(val * (invertValues && _M.invertForDad ? -1 : 1));
+    }
+    strum.debugNeedsUpdate = true;
+  }
+
+  public function addMod(nameOfMod:String, startingValue:Null<Float> = null):Null<Modifier>
+  {
+    var mod = ModConstants.createNewMod(nameOfMod);
+    if (mod == null)
+    {
+      mod = new Modifier(nameOfMod); // to prevent everything from going to shit when an unknown mod gets used
+    }
+
+    final mmm = (invertValues && mod.invertForDad ? -1 : 1);
+
+    // mod.baseValue = baseVal == null ? startingValue : baseVal;
+    if (startingValue != null)
+    {
+      startingValue *= mmm;
+      mod.setVal(startingValue);
+    }
+
+    // check if is lane mod
+    var subModArr = null;
+    if (StringTools.contains(mod.tag, "--"))
+    {
+      subModArr = mod.tag.split('--');
+      mod.targetLane = Std.parseInt(subModArr[1]);
+    }
+
+    mod.strumOwner = strum;
+
+    modifiers.set(mod.tag, mod);
+    return mod;
+  }
+
+  public function addCustomMod(modIn:Modifier, makeCopy:Bool = false):Null<Modifier>
+  {
+    var mod:Modifier = makeCopy ? modIn.clone() : modIn;
+
+    /*
+      // we already have this!
+      if (modifiers.exists(mod.tag))
+      {
+        PlayState.instance.modDebugNotif(mod.tag + " already exists?", FlxColor.RED);
+        return;
+      }
+     */
+
+    // check if is lane mod
+    var subModArr = null;
+    if (StringTools.contains(mod.tag, "--"))
+    {
+      subModArr = mod.tag.split('--');
+      mod.targetLane = Std.parseInt(subModArr[1]);
+    }
+    mod.strumOwner = strum;
+
+    if (mod.specialMod)
+    {
+      try
+      {
+        mod.specialMath(0, strum);
+      }
+      catch (e)
+      {
+        PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
+        return null;
+      }
+    }
+    modifiers.set(mod.tag, mod);
+    return mod;
+  }
+
+  function isSpecialMod(m:Modifier):Bool
+  {
+    if (!m.unknown) return m.specialMod;
+    return false;
+  }
+
+  var fakeNote:NoteData;
+  var sampleModVals:Array<Float> = [
+    -200,
+    -144,
+    -1,
+    -0.5,
+    0,
+    0.5,
+    1,
+    2,
+    79,
+    133,
+    555
+  ];
+
+  function propeModMath_Speed(m:Modifier):Bool
+  {
+    if (!m.unknown) return m.speedMod;
+
+    var sampleValue:Float = 1;
+    var valueChanged:Bool = false;
+    var baseModVal:Float = m.currentValue;
+
+    for (i in 0...Strumline.KEY_COUNT)
+    {
+      for (v in sampleModVals)
+      {
+        for (s in -3...20)
+        {
+          m.currentValue = v;
+          sampleValue = m.speedMath(i, s * 100, this.strum, false);
+          if (sampleValue != 1)
+          {
+            valueChanged = true;
+            break;
+          }
+        }
+      }
+    }
+    m.currentValue = baseModVal;
+    // trace("tested: " + m.tag + " as " + valueChanged);
+    return valueChanged;
+  }
+
+  var specialModCases:Array<String> = [
+    "straightholds",
+    "spiralholds",
+    "longholds",
+    "grain",
+    "debugx",
+    "debugy",
+    "strumx",
+    "strumz",
+    "strumy",
+    "drawdistanceback",
+    "drawdistance",
+    "showsubmods",
+    "showallmods",
+    "showextra",
+    "showlanemods",
+    "showzerovalue",
+    "arrowpathgrain",
+    "arrowpathlength",
+    "arrowpathbacklength",
+    "arrowpathstraighthold",
+    "arrowpath",
+    "arrowpath_notitg",
+    "zsort",
+    "mathcutoff"
+  ];
+
+  function propeModMath(m:Modifier, type:String):Bool
+  {
+    var valueChanged:Bool = false;
+    var modName:String = m.tag.toLowerCase();
+    // if (modName == "arrowpath" && type != "strum") return false; // don't add this for now?
+
+    switch (type)
+    {
+      case "strum":
+        if (!m.unknown) return m.strumsMod;
+        for (n in specialModCases)
+        {
+          // trace("n = " + n);
+          if (StringTools.contains(modName, n)) valueChanged = true;
+        }
+      case "arrowpath":
+        if (!m.unknown) return m.pathMod;
+        if (StringTools.contains(modName, "scale") || StringTools.contains(modName, "angle") || modName == "orient")
+        {
+          // trace("EEEEEE LOUD BUZZER" + m.tag);
+          return false;
+        }
+      case "hold":
+        if (!m.unknown) return m.holdsMod;
+        if (modName == "sudden") valueChanged = true;
+      case "note":
+        if (!m.unknown) return m.notesMod;
+        if (modName == "sudden") valueChanged = true;
+    }
+
+    // lol, special case for orient mod cuz unique math XD
+    if (type != "arrowpath")
+    {
+      if (modName == "orient" && type != "hold") valueChanged = true;
+      else if (modName == "blink") valueChanged = true;
+    }
+    if (modName == "custompath") valueChanged = true;
+    if (valueChanged) return true;
+
+    // trace("about to test: " + m.tag);
+
+    var baseModVal:Float = m.currentValue;
+    for (lane in 0...Strumline.KEY_COUNT)
+    {
+      for (v in sampleModVals)
+      {
+        for (s in -3...20)
+        {
+          fakeNote.defaultValues();
+
+          fakeNote.direction = lane;
+          fakeNote.curPos = s * 100;
+          fakeNote.curPos_unscaled = s * 100 * 1.1;
+
+          m.currentValue = v;
+          switch (type)
+          {
+            case "note":
+              m.noteMath(fakeNote, this.strum, false);
+            case "hold":
+              m.noteMath(fakeNote, this.strum, true);
+            case "arrowpath":
+              m.noteMath(fakeNote, this.strum, true, true);
+            case "strum":
+              fakeNote.x = 50; // TEMP
+              // m.strumMath(fakeNote, lane, this.strum);
+          }
+
+          if (fakeNote.didValueChange())
+          {
+            m.currentValue = baseModVal;
+            valueChanged = true;
+            break;
+          }
+        }
+      }
+    }
+    // trace("tested: " + m.tag + " as " + valueChanged);
+
+    fakeNote.defaultValues();
+    m.currentValue = baseModVal;
+    return valueChanged;
+  }
+
+  // Call this to properly sort the mod apply order!
+
+  public function sortMods(skipProbe:Bool = false):Void
+  {
+    if (fakeNote == null) fakeNote = new NoteData();
+
+    if (!skipProbe)
+    {
+      mods_all = [];
+      mods_strums = [];
+      mods_notes = [];
+      mods_speed = [];
+      mods_arrowpath = [];
+      mods_special = [];
+
+      for (m in modifiers)
+      {
+        mods_all.push(m);
+
+        if (StringTools.contains(m.tag, "--"))
+        {
+          // m.modPriority += 6; // make it higher priority if lane mod!
+          m.modPriority -= 6; // V0.7.1, NOW IS LOWER PRIORITY FOR SPECIAL MODS TO WORK PROPERLY!
+        }
+
+        // test to see if it'll affect this?
+        if (propeModMath_Speed(m))
+        {
+          mods_speed.push(m);
+        }
+        if (propeModMath(m, "note") || propeModMath(m, "hold"))
+        {
+          mods_notes.push(m);
+        }
+        if (propeModMath(m, "strum"))
+        {
+          mods_strums.push(m);
+        }
+        if (propeModMath(m, "arrowpath"))
+        {
+          mods_arrowpath.push(m);
+        }
+        if (isSpecialMod(m)) mods_special.push(m);
+      }
+    }
+
+    // mods_arrowpath = mods_all;
+
+    mods_all.sort(function(a, b)
+    {
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
+      else
+        return 0;
+    });
+
+    mods_strums.sort(function(a, b)
+    {
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
+      else
+        return 0;
+    });
+
+    mods_notes.sort(function(a, b)
+    {
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
+      else
+        return 0;
+    });
+
+    mods_speed.sort(function(a, b)
+    {
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
+      else
+        return 0;
+    });
+
+    mods_arrowpath.sort(function(a, b)
+    {
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
+      else
+        return 0;
+    });
+
+    mods_special.sort(function(a, b)
+    {
+      if (a.modPriority + a.modPriority_additive < b.modPriority + b.modPriority_additive) return 1;
+      else if (a.modPriority + a.modPriority_additive > b.modPriority + b.modPriority_additive) return -1;
+      else
+        return 0;
+    });
+
+    if (traceDebug)
+    {
+      trace("\n------------------------------");
+      trace("ALL MODS TO BE USED:  \n");
+
+      trace("Speed Mods:");
+      for (m in mods_speed)
+      {
+        trace(m.tag);
+      }
+
+      trace("\nStrum Mods:");
+      for (m in mods_strums)
+      {
+        trace(m.tag);
+      }
+
+      trace("\nNote Mods:");
+      for (m in mods_notes)
+      {
+        trace(m.tag);
+      }
+
+      trace("\nArrowPath Mods:");
+      for (m in mods_arrowpath)
+      {
+        trace(m.tag);
+      }
+      trace("\n------------------------------\n");
+    }
+  }
+
+  // if true, will do all the traces above ^
+  final traceDebug:Bool = false;
+
+  public var holdMagicNumber:Float = 28;
+  public var pathMagicNumber:Float = 10;
+
+  public function getHoldOffsetX(arrowpath:Bool = false, graphicWidth:Float = 0):Float
+  {
+    if (arrowpath)
+    {
+      return (Strumline.STRUMLINE_SIZE / 2.0) + pathMagicNumber; // old math to keep paths happy until they become part of notestyle
+    }
+    else
+    {
+      // Move the hold note left side to always be in the middle of the strum note!
+      // works for default funkin noteskin which is 52.
+      var shit:Float = (Strumline.STRUMLINE_SIZE / 2.0) + holdMagicNumber; // JANK NUMBER SPOTTED
+
+      // then offset it with the correct graphicwidth in use
+      if (graphicWidth == 0) graphicWidth = strum.sustainGraphicWidth;
+      shit -= graphicWidth / 2;
+
+      return shit;
+    }
+  }
+
+  @:deprecated("this function will be removed") @:noCompletion
+  public function makeHoldCopyStrum_sample(note:ZSprite, strumTime:Float, direction:Int, strumLine:Strumline, notePos:Float, isArrowPath:Bool = false, graphicWidth:Float = 0):Float
+  {
+    final whichStrumNote = strumLine.getByIndex(direction % Strumline.KEY_COUNT);
+    var scrollMult:Float = 1.0;
+    for (mod in mods_speed)
+    {
+      scrollMult *= mod.speedMath((direction) % Strumline.KEY_COUNT, notePos, strumLine, true);
+    }
+
+    note.x = whichStrumNote.x + getHoldOffsetX(isArrowPath, graphicWidth);
+
+    var sillyPos:Float = GRhythmUtil.getNoteY(strumTime, strumLine.scrollSpeed, strumLine.isDownscroll, strumLine.conductorInUse) * scrollMult;
+
+    var noteHeight:Float = 0.0;
+
+    if (Preferences.downscroll)
+    {
+      note.y = (whichStrumNote.y + sillyPos - noteHeight + Strumline.STRUMLINE_SIZE / 2);
+    }
+    else
+    {
+      note.y = (whichStrumNote.y - Strumline.INITIAL_OFFSET + sillyPos + Strumline.STRUMLINE_SIZE / 2);
+    }
+    note.z = whichStrumNote.z;
+    return sillyPos;
+  }
+
+  public function mathCutOffCheck(notePos:Float, lane:Int = 0):Bool
+  {
+    final whichStrumNote:StrumNote = strum.getByIndex(lane % Strumline.KEY_COUNT);
+    return (whichStrumNote.strumExtraModData.mathCutOff > 0 && !(whichStrumNote.strumExtraModData.mathCutOff >= Math.abs(notePos)));
+  }
+
+  public function sampleModMath(susFakeNote:ZSprite, strumTime:Float, lane:Int, strumLine:Strumline, hold:Bool = false, yJank:Bool = false, ?notePos:Float = -0.69, ?isArrowpath:Bool = false, ?fakeNoteWidth:Float, ?fakeNoteHeight:Float):Void
+  {
+    var notePos2:Float = strumLine.calculateNoteYPos(strumTime);
+    if (notePos == -0.69 || notePos == null)
+    {
+      notePos = notePos2;
+    }
+
+    if (fakeNote == null) fakeNote = new NoteData();
+    fakeNote.defaultValues();
+    fakeNote.setValuesFromZSprite(susFakeNote);
+    fakeNote.direction = lane;
+    fakeNote.curPos = notePos;
+    fakeNote.curPos_unscaled = notePos2;
+
+    for (mod in (isArrowpath ? mods_arrowpath : mods_notes))
+    {
+      mod.noteMath(fakeNote, strumLine, hold, isArrowpath);
+    }
+    susFakeNote.applyNoteData(fakeNote);
+
+    if (Preferences.downscroll) susFakeNote.y += 27; // fix gap for downscroll lol Moved from verts so it is applied before perspective fucks it up!
+
+    ModConstants.applyPerspective(susFakeNote, fakeNoteWidth, fakeNoteHeight);
+  }
+
+  /**
+   * Input a Note into this function to set it's position, applying this ModHandler's Mods Array
+   * @param note The note to be set.
+   * @param orientPass If true, will set the note based on a slightly different strumTime so that it's last known position gets set for orient2 to work.
+   */
+  public function setNotePos(note:Note, orientPass:Bool = false):Void
+  {
+    /*
+      Notes DO copy the strums: x, y, z, anglez
+      Notes DO NOT copy the strums: anglex, angley, scalex, scaley, skewx, skewy, skewz (any any other value outside what they do copy)
+     */
+    if (!orientPass && (note.noteModData.orient2[0] != 0 || note.noteModData.orient2[1] != 0 || note.noteModData.orient2[2] != 0))
+    {
+      setNotePos(note, true);
+    }
+
+    note.noteModData.defaultValues();
+    note.noteModData.width = note.width;
+    note.noteModData.height = note.height;
+    note.noteModData.strumTime = note.strumTime + (orientPass ? ModConstants.orientTimeOffset : 0);
+    note.noteModData.noteType = "note";
+    note.noteModData.noteKind = note.kind;
+    note.noteModData.noteStyleName = note.noteStyleName;
+    note.noteModData.direction = note.direction;
+    note.color = FlxColor.WHITE;
+    note.noteModData.whichStrumNote = strum.getByIndex(note.noteModData.direction);
+    var timmy:Float = note.noteModData.strumTime - note.noteModData.whichStrumNote.strumExtraModData.strumPos;
+
+    note.noteModData.curPos_unscaled = strum.calculateNoteYPos(timmy);
+
+    for (mod in this.mods_speed)
+    {
+      if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+      note.noteModData.speedMod *= mod.speedMath(note.noteModData.direction, note.noteModData.curPos_unscaled, strum, false);
+    }
+
+    for (mod in note.noteModData.noteMods)
+    {
+      if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+      note.noteModData.speedMod *= mod.speedMath(note.noteModData.direction, note.noteModData.curPos_unscaled, strum, false);
+    }
+
+    note.noteModData.curPos = strum.calculateNoteYPos(timmy) * note.noteModData.speedMod;
+
+    note.scale.set(note.targetScale, note.targetScale);
+    note.noteModData.scaleX = note.scale.x;
+    note.noteModData.scaleY = note.scale.y;
+
+    note.noteModData.angleZ = note.noteModData.whichStrumNote.angle;
+    note.noteModData.y = note.noteModData.whichStrumNote.y + note.noteModData.curPos - Strumline.INITIAL_OFFSET;
+    note.noteModData.z = note.noteModData.whichStrumNote.z; // Copy strum Z
+
+    note.noteModData.x = strum.x;
+    note.noteModData.x += strum.getXPos(note.noteModData.direction);
+    note.noteModData.x -= (note.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
+    note.noteModData.x -= Strumline.NUDGE;
+
+    final defaultPosition:Array<Float> = getDefaultStrumPos(note.noteModData.direction);
+    final xDif:Float = note.noteModData.whichStrumNote.x - defaultPosition[0];
+    note.noteModData.x += xDif;
+    note.noteModData.y -= note.noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetY;
+
+    if (!this.mathCutOffCheck(note.noteModData.curPos, note.noteModData.direction))
+    {
+      for (mod in this.mods_notes)
+      {
+        if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+        mod.noteMath(note.noteModData, strum);
+      }
+
+      for (mod in note.noteModData.noteMods)
+      {
+        if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+        mod.noteMath(note.noteModData, strum);
+      }
+    }
+    note.noteModData.funnyOffMyself();
+
+    note.applyNoteData(note.noteModData);
+
+    note.alpha *= note.weBelongTo?.alpha ?? 1.0; // Fix for notes not respecting their parents alpha.
+
+    note.updateLastKnownPos();
+    note.noteModData.lastKnownPosition = note.lastKnownPosition;
+
+    if (!(note.noteModData?.whichStrumNote?.strumExtraModData?.threeD ?? false))
+    {
+      ModConstants.playfieldSkew(
+        note,
+        note.noteModData.skewX_playfield,
+        note.noteModData.skewY_playfield,
+        note.noteModData.whichStrumNote.strumExtraModData.playfieldX,
+        note.noteModData.whichStrumNote.strumExtraModData.playfieldY,
+        note.width / 2,
+        note.height / 2
+      );
+      // undo the strum skew
+      note.x -= note.noteModData.whichStrumNote.strumExtraModData.skewMovedX;
+      note.y -= note.noteModData.whichStrumNote.strumExtraModData.skewMovedY;
+      note.skew.x += note.noteModData.skewX_playfield;
+      note.skew.y += note.noteModData.skewY_playfield;
+    }
+
+    note.pivotOffsetX = note.noteModData.meshOffsets_PivotX;
+    note.pivotOffsetY = note.noteModData.meshOffsets_PivotY;
+    note.pivotOffsetZ = note.noteModData.meshOffsets_PivotZ;
+    note.skewX_offset = note.noteModData.meshOffsets_SkewX;
+    note.skewY_offset = note.noteModData.meshOffsets_SkewY;
+    note.skewZ_offset = note.noteModData.meshOffsets_SkewZ;
+
+    note.updateStealthGlow();
+    // perspective applied in applyperspective part of update routine
+  }
+
+  /**
+   * Go through each special mod and trigger it's specialMath function
+   */
+  public function updateSpecialMods():Void
+  {
+    for (lane in 0...Strumline.KEY_COUNT)
+    {
+      for (mod in this.mods_special)
+      {
+        if (mod.targetLane != -1 && lane != mod.targetLane) continue;
+        try
+        {
+          mod.specialMath(lane, strum);
+        }
+        catch (e)
+        {
+          PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
+          return;
+        }
+      }
+    }
+  }
+
+  public function getStrumOffsetX():Float
+  {
+    @:privateAccess
+    return strum.noteStyle._data.assets.noteStrumline.offsets[0];
+  }
+
+  public function getStrumOffsetY():Float
+  {
+    @:privateAccess
+    return strum.noteStyle._data.assets.noteStrumline.offsets[1];
+  }
+
+  /**
+   * Grabs where the strum notes WOULD be, given there are no modifiers / modifications made.
+   * This SHOULD be the same as where the strum notes will be in vanilla!
+   * @param direction Which lane / direction this note is.
+   * @return The point where the strum note would be by default.
+   */
+  public function getDefaultStrumPos(direction):Array<Float>
+  {
+    var pos:Array<Float> = [0, 0, 0]; // x,y,z
+
+    pos[0] = strum.getXPos(direction);
+    pos[0] += strum.x;
+    pos[0] += Strumline.INITIAL_OFFSET;
+    pos[1] = strum.y;
+    pos[2] = 0;
+
+    final offsets:Array<Float> = strum.noteStyle.getStrumlineOffsets();
+    pos[0] += offsets[0];
+    pos[1] += offsets[1];
+
+    return pos;
+  }
+
+  /**
+   * Sets the StrumNote to where it's supposed to be first, BEFORE any modifiers are applied to it.
+   */
+  function setStrumPos(note:StrumNote):Void
+  {
+    var p:Array<Float> = getDefaultStrumPos(note.direction);
+    note.x = p[0];
+    note.y = p[1];
+    note.z = p[2];
+
+    note.alpha = 1;
+    note.angle = 0;
+    note.scale.set(note.targetScale, note.targetScale);
+
+    note.skew.x = 0;
+    note.skew.y = 0;
+
+    if (note.strumExtraModData.introTweenPercentage != 1)
+    {
+      var p:Float = note.strumExtraModData.introTweenPercentage;
+      note.alpha = p;
+      p = 1 - p;
+      note.y -= p * 10;
+    }
+
+    note.resetStealthGlow(true);
+    note.noteModData.defaultValues();
+    note.noteModData.setValuesFromZSprite(note);
+    note.noteModData.direction = note.direction;
+    note.noteModData.whichStrumNote = note;
+    note.noteModData.noteType = "receptor";
+    note.noteModData.noteKind = "";
+    note.noteModData.noteStyleName = note.noteStyleName;
+    note.noteModData.width = note.width;
+    note.noteModData.height = note.height;
+    note.noteModData.inOrientPass = false;
+
+    note.noteModData.curPos = 0;
+    note.noteModData.curPos_unscaled = 0;
+
+    final ohgod:Float = note.strumExtraModData.strumPos;
+    note.strumDistance = ohgod;
+    note.noteModData.strumPosition = ohgod;
+
+    note.strumExtraModData.playfieldX = strum.x + (2 * Strumline.NOTE_SPACING);
+    // note.strumExtraModData.playfieldY = strum.y + (strum.height / 2);
+    note.strumExtraModData.playfieldY = FlxG.height / 2;
+    note.strumExtraModData.playfieldZ = 0;
+  }
+
+  /**
+   * This function applies the modifier math onto the strumline note!
+   * Assumes the strumline note is already at the base default position.
+   */
+  function applyStrumModifierMath(note:StrumNote, timeOffset:Float = 0):Void
+  {
+    // Move the strum notes like regular notes.
+    if (note.strumDistance != 0 || timeOffset != 0 || note.noteModData.inOrientPass)
+    {
+      note.noteModData.strumTime = ModConstants.getSongPosition();
+      note.noteModData.strumTime += note.noteModData.strumPosition + timeOffset;
+
+      note.noteModData.curPos_unscaled = strum.calculateNoteYPos(note.noteModData.strumTime) * -1;
+      for (mod in this.mods_speed)
+      {
+        if (mod.targetLane != -1 && note.direction != mod.targetLane) continue;
+        note.noteModData.speedMod *= mod.speedMath(note.noteModData.direction, note.noteModData.curPos_unscaled, strum, false);
+      }
+      note.noteModData.curPos = strum.calculateNoteYPos(note.noteModData.strumTime) * note.noteModData.speedMod * -1;
+      for (mod in this.mods_strums)
+      {
+        if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+        mod.strumMath(note.noteModData, strum);
+      }
+
+      note.noteModData.setStrumPosWasHere(); // for rotate mods to still function as intended
+
+      note.noteModData.y += note.noteModData.curPos; // move it like a regular note
+
+      if (!this.mathCutOffCheck(note.noteModData.curPos, note.noteModData.direction))
+      {
+        for (mod in this.mods_notes)
+        {
+          if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+          mod.noteMath(note.noteModData, strum, false);
+        }
+      }
+      note.noteModData.strumPosOffsetThingy.x = note.noteModData.strumPosWasHere.x - note.noteModData.x;
+      note.noteModData.strumPosOffsetThingy.y = note.noteModData.strumPosWasHere.y - note.noteModData.y;
+      note.noteModData.strumPosOffsetThingy.z = note.noteModData.strumPosWasHere.z - note.noteModData.z;
+    }
+    else
+    {
+      for (mod in this.mods_strums)
+      {
+        if (mod.targetLane != -1 && note.noteModData.direction != mod.targetLane) continue;
+        mod.strumMath(note.noteModData, strum);
+      }
+    }
+
+    final rememberMeX:Float = note.scale.x;
+    final rememberMeY:Float = note.scale.y;
+    note.applyNoteData(note.noteModData);
+    note.alpha *= note.weBelongTo?.alpha ?? 1.0; // Fix for notes not respecting their parents alpha.
+    note.updateLastKnownPos();
+    note.noteModData.lastKnownPosition = note.lastKnownPosition;
+    note.updateStealthGlow();
+
+    note.strumExtraModData.strumScaleDifX = note.scale.x - rememberMeX;
+    note.strumExtraModData.strumScaleDifY = note.scale.y - rememberMeY;
+
+    if (!(note.strumExtraModData?.threeD ?? false))
+    {
+      final wasX:Float = note.x;
+      final wasY:Float = note.y;
+      ModConstants.playfieldSkew(
+        note,
+        note.noteModData.skewX_playfield,
+        note.noteModData.skewY_playfield,
+        note.strumExtraModData.playfieldX,
+        note.strumExtraModData.playfieldY,
+        note.width / 2,
+        note.height / 2
+      );
+      note.strumExtraModData.skewMovedX = note.x - wasX;
+      note.strumExtraModData.skewMovedY = note.y - wasY;
+      note.skew.x += note.noteModData.skewX_playfield;
+      note.skew.y += note.noteModData.skewY_playfield;
+    }
+
+    note.pivotOffsetX = note.noteModData.meshOffsets_PivotX;
+    note.pivotOffsetY = note.noteModData.meshOffsets_PivotY;
+    note.pivotOffsetZ = note.noteModData.meshOffsets_PivotZ;
+    note.skewX_offset = note.noteModData.meshOffsets_SkewX;
+    note.skewY_offset = note.noteModData.meshOffsets_SkewY;
+    note.skewZ_offset = note.noteModData.meshOffsets_SkewZ;
+  }
+
+  /**
+   * Goes through each StrumNote and set's their position using the current active mods.
+   */
+  public function updateStrums():Void
+  {
+    strum.StrumNotes.forEach(function(note:StrumNote)
+    {
+      setStrumPos(note);
+
+      note.updateLastKnownPos();
+      note.noteModData.lastKnownPosition = note.lastKnownPosition;
+
+      var doOrientPass:Bool = false;
+      for (o in 0...note.strumExtraModData.orientExtraMath.length)
+      {
+        if (note.strumExtraModData.orientExtraMath[o] != 0)
+        {
+          doOrientPass = true;
+          break;
+        }
+      }
+
+      if (doOrientPass)
+      {
+        note.noteModData.inOrientPass = true;
+        applyStrumModifierMath(note, ModConstants.orientTimeOffset);
+        setStrumPos(note);
+        note.noteModData.inOrientPass = false;
+      }
+      applyStrumModifierMath(note);
+    });
+  }
+}

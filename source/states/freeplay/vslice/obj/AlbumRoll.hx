@@ -6,7 +6,7 @@ import flixel.group.FlxSpriteGroup;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxSort;
 import flixel.util.FlxTimer;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import states.freeplay.vslice.DifficultyStars;
 import states.freeplay.vslice.obj.Album;
 import states.freeplay.vslice.obj.AlbumRegistry;

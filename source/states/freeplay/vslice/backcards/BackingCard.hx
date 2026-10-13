@@ -6,7 +6,7 @@ import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxPoint;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import openfl.display.BlendMode;
 import states.freeplay.VSliceFreeplayState;
 import states.freeplay.vslice.PlayableCharacter;

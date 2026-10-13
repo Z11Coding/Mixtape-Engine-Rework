@@ -1,11 +1,23 @@
 package objects.notes;
 
 import backend.animation.PsychAnimationController;
+import backend.modchartSystem.StrumExtraData;
+import objects.funkin.graphics.ZSpriteProjected;
+import shaders.HSVNotesShader;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;
 
-class StrumNote extends FlxSprite
+class StrumNote extends ZSpriteProjected
 {
+	public var strumExtraModData:StrumExtraData;
+	var hsvShader:HSVNotesShader;
+
+	 /**
+   * Set this flag to `true` to disable performance optimizations that cause
+   * the Strumline note sprite to ignore `velocity` and `acceleration`.
+   */
+  public var forceActive:Bool = false;
+
   public static var hardAlpha:Float = 1; // For hard mode
 	public var formerPosition:FlxPoint = FlxPoint.get();
 	public var positionData:Int = 0;
@@ -63,7 +75,7 @@ class StrumNote extends FlxSprite
 	public var texture(default, set):String = null;
 	private function set_texture(value:String):String {
 		if(texture != value) {
-			texture = (value != null ? value : "noteskins/NOTE_assets" + Note.getNoteSkinPostfix());
+			texture = (value != null ? value : "noteSkins/NOTE_assets" + Note.getNoteSkinPostfix());
 			reloadNote();
 		}
 		return value;
@@ -85,6 +97,9 @@ class StrumNote extends FlxSprite
       if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB || !ClientPrefs.data.enableColorShader)
         useRGBShader = false;
     }
+
+		strumExtraModData = new StrumExtraData(this);
+		this.applyAngularVelocityOffset = true;
 
     var colorIndex:Int = (PlayState.instance != null && PlayState.isPixelStage) ?
 			ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex')[leData] :
@@ -125,6 +140,8 @@ class StrumNote extends FlxSprite
 
 		texture = skin; //Load texture and anims
 		ogNoteskin = skin;
+
+		this.hsvShader = new HSVNotesShader();
 
 		scrollFactor.set();
 	}
@@ -193,11 +210,10 @@ class StrumNote extends FlxSprite
 		}
 		else
 		{
-      var postfix:String = Note.getNoteSkinPostfix();
-			var skin:String = texture + postfix;
+      var skin:String = texture;
 			//trace("Skin: " + skin);
 			skin = (PlayfieldManager.SONG != null && (PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 0) ? PlayfieldManager.SONG.arrowSkin : (texture + postfix));
-			if (skin == 'noteSkins/NOTE_assets') {
+			if (skin == 'noteSkins/NOTE_assets' || skin == null) {
 				skin = "noteSkins/strums";
 			}
 
@@ -311,9 +327,9 @@ class StrumNote extends FlxSprite
 		} else if (!useRGBShader && rgbShader != null) rgbShader.enabled = false;
 	}
 	public function updateNoteSkin(noteskin:String) {
-			if (texture == "noteskins/" + noteskin || noteskin == ogNoteskin || texture == noteskin) return; //if the noteskin to change to is the same as before then don't update it
-			if (noteskin != null && noteskin.length > 0) texture = "noteskins/" + noteskin;
-			else texture = "noteskins/NOTE_assets" + Note.getNoteSkinPostfix();
+			if (texture == "noteSkins/" + noteskin || noteskin == ogNoteskin || texture == noteskin) return; //if the noteskin to change to is the same as before then don't update it
+			if (noteskin != null && noteskin.length > 0) texture = "noteSkins/" + noteskin;
+			else texture = "noteSkins/NOTE_assets" + Note.getNoteSkinPostfix();
 	}
 
 	public function updateRGBColors(?r:FlxColor, ?g:FlxColor, ?b:FlxColor) {
@@ -345,4 +361,39 @@ class StrumNote extends FlxSprite
 			rgbShader.enabled = false;
 		}
 	}
+
+	@:access(flixel.FlxCamera)
+  override public function draw():Void
+  {
+    if (this.alpha <= 0 || !this.visible || !this.alive)
+    {
+      return;
+    }
+
+    this.playfieldSkewCenterX = strumExtraModData.playfieldX;
+    this.playfieldSkewCenterY = strumExtraModData.playfieldY;
+    this.playfieldSkewCenterZ = strumExtraModData.playfieldZ;
+
+    projectionEnabled = strumExtraModData?.threeD ?? false;
+    super.draw();
+  }
+
+	// call this to reset stealthGlow back to default values
+  public function resetStealthGlow(skipUpdate:Bool = false):Void
+  {
+    this.stealthGlow = 0.0;
+    this.stealthGlowBlue = 1.0;
+    this.stealthGlowGreen = 1.0;
+    this.stealthGlowRed = 1.0;
+    if (!skipUpdate) updateStealthGlow();
+  }
+
+  // call this to update the stealthglow on the hsv shader
+  public function updateStealthGlow():Void
+  {
+    this.hsvShader.stealthGlow = stealthGlow;
+    this.hsvShader.stealthGlowBlue = stealthGlowBlue;
+    this.hsvShader.stealthGlowGreen = stealthGlowGreen;
+    this.hsvShader.stealthGlowRed = stealthGlowRed;
+  }
 }

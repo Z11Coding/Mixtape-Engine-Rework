@@ -3,7 +3,7 @@ package states.freeplay.vslice.obj;
 import flixel.FlxSprite;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.util.FlxTimer;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 
 //? Checked
 class LetterSort extends FlxTypedSpriteGroup<FlxSprite>

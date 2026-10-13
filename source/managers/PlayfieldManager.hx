@@ -488,7 +488,7 @@ class PlayfieldManager {
 					continue;
 
 				if (songNotes[0] >= startingPoint + offsetStart) {
-					final daStrumTime:Float = songNotes[0];
+					final daStrumTime:Float = songNotes[0] - songData.offset;
 					var daNoteData:Int = 0;
 
           daNoteData = Std.int(noteColumn % ExtraKeys.ammo[songData.mania != null ? songData.mania : 3]);

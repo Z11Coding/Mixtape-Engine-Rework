@@ -1,7 +1,7 @@
 package backend.animation;
 
 import animate.FlxAnimateController;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 
 class FunkinAnimationController extends FlxAnimateController
 {

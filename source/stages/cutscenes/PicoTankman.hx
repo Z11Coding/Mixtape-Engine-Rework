@@ -1,7 +1,7 @@
 package stages.cutscenes;
 
 import cutscenes.CutsceneHandler;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import openfl.filters.ShaderFilter;
 import shaders.DropShadowScreenspace;
 import stages.TankErect;

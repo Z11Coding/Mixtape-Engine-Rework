@@ -74,15 +74,15 @@ class Paths
   public static var noteSkinFramesMap:Map<String, FlxFramesCollection> = new Map();
   public static var noteSkinAnimsMap:Map<String, FlxAnimationController> = new Map();
 
-  public static var defaultSkin = 'noteskins/NOTE_assets' + Note.getNoteSkinPostfix();
+  public static var defaultSkin = 'noteSkins/NOTE_assets' + Note.getNoteSkinPostfix();
 
   // Function that initializes the first note. This way, we can recycle the notes
   public static function initDefaultSkin(?noteSkin:String, ?inEditor:Bool = false)
   {
     if (noteSkin.length > 0) defaultSkin = noteSkin;
-    else if (!PlayState.isPixelStage) defaultSkin = 'noteskins/NOTE_assets' + Note.getNoteSkinPostfix();
+    else if (!PlayState.isPixelStage) defaultSkin = 'noteSkins/NOTE_assets' + Note.getNoteSkinPostfix();
     else
-      defaultSkin = 'noteskins/NOTE_assets';
+      defaultSkin = 'noteSkins/NOTE_assets';
     trace(defaultSkin);
   }
 

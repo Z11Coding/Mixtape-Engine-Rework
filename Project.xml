@@ -188,6 +188,9 @@
 	<haxelib name="deflatex" version="1.0.0"/>
 	<ndll name="systools" haxelib="systools" />
 
+	<!-- Base Game Stuff -->
+	<haxelib name="json2object" />
+
 	<!-- Disable Discord IO Thread -->
 	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="hxdiscord_rpc" />
 	<haxedef name="NO_PRECOMPILED_HEADERS" if="linux" />
@@ -216,6 +219,23 @@
 	</section>
 
 	<haxedef name="HX_HAS_ATOMIC"/>
+
+	<!--What In The Funkin stuff needed-->
+	<!--
+		EXPERIMENTAL!
+  	If this flag is enabled, WITF will use time with delta (which should make the notes move smoother at higher framerates).
+   	Otherwise, will default to using the raw conductor values instead.
+   	Disabled by default due to breaking driven drops and looking very stuttery in some cases (like with wave modifier)
+	-->
+	<define name="FEATURE_WITF_USE_TIME_DELTA"/>
+
+	<!--
+		EXPERIMENTAL!
+  	If this flag is enabled, will change how notes are selected when hitting them.
+   	Enabled, it will prioritise notes by strumTime. Disabled, it will just use vanilla FNF inputs.
+  	Enabled by default.
+	-->
+	<define name="FEATURE_WITF_INPUTS"/>
 
 	<!-- ______________________________ Haxedefines _____________________________ -->
 

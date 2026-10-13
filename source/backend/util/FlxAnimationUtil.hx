@@ -3,7 +3,7 @@ package backend.util;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFramesCollection;
 import objects.Character.AnimArray;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 
 class FlxAnimationUtil
 {

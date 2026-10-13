@@ -61,9 +61,9 @@ class ItemSprite
 	/**
 	 * Converts this sprite to a FunkinSprite with the item texture
 	 */
-	public function toFunkinSprite(x:Float = 0, y:Float = 0):objects.FunkinSprite
+	public function toFunkinSprite(x:Float = 0, y:Float = 0):objects.funkin.graphics.FunkinSprite
 	{
-		var sprite = new objects.FunkinSprite(x, y);
+		var sprite = new objects.funkin.graphics.FunkinSprite(x, y);
 		try
 		{
 			// Load directly from file path (not through Paths system)

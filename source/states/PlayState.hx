@@ -1476,8 +1476,8 @@ class PlayState extends MusicBeatState
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
 		playfield.addNotes();
-		noteGroup.add(playfield.sustainNotes);
 		noteGroup.add(playfield.strumLineNotes);
+		noteGroup.add(playfield.sustainNotes);
 		noteGroup.add(playfield.notes);
 		noteGroup.add(playfield.grpHoldSplashes);
 		noteGroup.add(playfield.grpNoteSplashes);
@@ -3260,6 +3260,7 @@ class PlayState extends MusicBeatState
 							FlxTween.tween(camHUD, {alpha: 1}, 5, {ease: FlxEase.circOut});
 						tick = GO;
 					case 4:
+						countdownFinished = true;
 						new FlxTimer().start(2, function(tmr:FlxTimer)
 						{
 							FlxTween.tween(camCredit, {alpha: 0, y: 1000}, 1, {ease: FlxEase.circInOut});
@@ -4076,6 +4077,7 @@ class PlayState extends MusicBeatState
 	public var paused:Bool = false;
 	public var canReset:Bool = true;
 	public var startedCountdown:Bool = false;
+	public var countdownFinished:Bool = false;
 	public var canPause:Bool = true;
 	public var canPauseHardMode:Bool = true;
 	var freezeCamera:Bool = false;
@@ -4239,7 +4241,8 @@ class PlayState extends MusicBeatState
 			callOnScripts('onUpdate', [elapsed]);
 		}
 
-		updateVisPos();
+		if (ClientPrefs.data.allowVis && ClientPrefs.data.healthVis)
+			updateVisPos();
 
 		if (curHealthMode == "Tabi" || curHealthMode == "Amalgam")
 		{
@@ -4381,7 +4384,7 @@ class PlayState extends MusicBeatState
 
 		if (startingSong)
 		{
-			if (startedCountdown && conductor.musicPosition >= conductor.musicPositionOffset)
+			if (countdownFinished && startedCountdown && conductor.musicPosition >= conductor.musicPositionOffset)
 				startSong();
 		}
 		else if (!paused && updateTime)
@@ -4594,7 +4597,8 @@ class PlayState extends MusicBeatState
 				}
 			}
 
-			destroyNotes();
+			if (playfield.killNotes.length > 0)
+				destroyNotes();
 
 			if (mechanicsMod != null) {
 				var fakeCrochet:Float = (60 / SONG.bpm) * 1000;
@@ -4955,15 +4959,18 @@ class PlayState extends MusicBeatState
 					spawnedNote = (targetNote.isSustainNote ? sustainNotes : notes).recycle(Note);
 					spawnedNote.setupNoteData(targetNote);
 
-					/*var rowArray = playfield.noteRows[spawnedNote.mustPress?0:1];
-          if(rowArray[spawnedNote.row]==null)
-            rowArray[spawnedNote.row]=[];
-          rowArray[spawnedNote.row].push(spawnedNote);
+					if (targetNote.isSustain) {
+						var animToPlay:String = '';
+						animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[targetNote.noteData] + (targetNote.isSustainEnd ? ' tail' : ' hold');
+						if (!spawnedNote.animation.exists(animToPlay))
+							animToPlay = ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[targetNote.noteData]] + (targetNote.isSustainEnd ? ' holdend' : ' hold');
+						spawnedNote.animation.play(animToPlay);
+					}
 
-					spawnedNote.prevNote = (targetNote.isSustainNote ? sustainNotes : notes).members[notesAddedCount-1];
+					//spawnedNote.prevNote = (targetNote.isSustainNote ? sustainNotes : notes.members[notesAddedCount-1];
 					//spawnedNote.nextNote = unspawnNotes[notesAddedCount+1];
 
-					spawnedNote.noteIndex = notesAddedCount;*/
+					//spawnedNote.noteIndex = notesAddedCount;
 
 					callOnLuas('onSpawnNote', [(!spawnedNote.isSustainNote ? notes.members.indexOf(spawnedNote) : sustainNotes.members.indexOf(spawnedNote)), targetNote.noteData, targetNote.noteType, targetNote.isSustainNote]);
 					notesAddedCount++; limitNC++;
@@ -5534,12 +5541,17 @@ class PlayState extends MusicBeatState
 	var songAboutToLoop:Bool = false;
 	public function loopCallback(startingPoint:Float = 0) // this took so much effort to get working I really hope people use this
 	{
-		// playfield.killNotes(); // kill any existing notes...except there should be any
+		playfield.killDaNotes(); // kill any existing notes...except there should be any
 		conductor.target.time = startingPoint;
 		if (SONG.needsVoices) setVocalsTime(startingPoint);
 		lastUpdateTime = startingPoint;
 		RConductor.visualPosition = startingPoint;
 		RConductor.mapBPMChanges(SONG);
+		notesAddedCount = 0;
+
+		for (n in unspawnNotes)
+			if (n.strumTime <= startingPoint)
+				notesAddedCount++;
 
 		//reGenerating = true;
 		endingSong = false;
@@ -5583,6 +5595,16 @@ class PlayState extends MusicBeatState
 		{
 			playbackRate *= loopPlayMult;
 			currentRate *= loopPlayMult;
+		}
+
+		if (!ClientPrefs.data.showNotes)
+		{
+			var noteIndex:Int = 0;
+			while (unspawnNotes.length > 0 && unspawnNotes[noteIndex] != null)
+			{
+				unspawnNotes[noteIndex].wasHit = false;
+				noteIndex++;
+			}
 		}
 
 		if (allowSkip)
@@ -8465,6 +8487,14 @@ class PlayState extends MusicBeatState
 				}
 			}
 
+			if (!daNote.isSustainNote)
+			{
+				invalidateNote(daNote);
+			}
+
+			if(ClientPrefs.data.oppNoteSplashes && !daNote.isSustainNote && playfield.splashesPerFrame[0] <= 4)
+				spawnNoteSplashOnNote(true, daNote);
+
 			if ((curHealthMode == "Tabi" || curHealthMode == "Amalgam") && health > 0)
 			{
 				backend.COD.COD.COD = (boyfriend.charName != null && boyfriend.charName != '???' && boyfriend.charName != '' ? '${boyfriend.charName} ' : '') + "couldn't handle the opponent's sheer skill.";
@@ -8491,8 +8521,11 @@ class PlayState extends MusicBeatState
 			}
 
 			if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
-			strumPlayAnim(note.noteData % (ExtraKeys.mania+1), conductor.currentStepTime * 1.25 / 1000 / playbackRate);
+			strumPlayAnim(note.noteData, conductor.currentStepTime * 1.25 / 1000 / playbackRate);
 			note.hitByOpponent = true;
+
+			if (ClientPrefs.data.oppNoteSplashes && daNote.isSustainNote && playfield.splashesPerFrame[2] <= 4)
+				spawnHoldSplashOnNote(daNote, true);
 
 			stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
 			var result:Dynamic = callOnLuas('opponentNoteHit', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
@@ -8500,6 +8533,7 @@ class PlayState extends MusicBeatState
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('opponentNoteHit', [note]);
 
 			if (!note.isSustainNote) invalidateNote(note);
+			return;
 		}
 
 		if (noteAlt  != null) {
@@ -8688,7 +8722,7 @@ class PlayState extends MusicBeatState
 					var spr = playerStrums.members[note.noteData];
 					if(spr != null) spr.playAnim('confirm', true);
 				}
-				else strumPlayAnim(note.noteData % (ExtraKeys.mania+1), conductor.stepLengthMs * 1.25 / 1000 / playbackRate);
+				else strumPlayAnim(note.noteData + (ExtraKeys.mania+1), conductor.stepLengthMs * 1.25 / 1000 / playbackRate);
 				vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 
 				if (!note.isSustainNote)
@@ -8824,7 +8858,7 @@ class PlayState extends MusicBeatState
 				}
 
 				noteMiss(note);
-				//if(!note.noteSplashData.disabled && !note.isSustainNote) note.field.spawnNoteSplashOnNote(note);
+				if(!note.noteSplashData.disabled && !note.isSustainNote) spawnNoteSplashOnNote(false, note);
 			}
 
 			if (mechanicsMod != null) {
@@ -8845,6 +8879,7 @@ class PlayState extends MusicBeatState
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHit', [note]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHit', [note]);
 			if(!note.isSustainNote) invalidateNote(note);
+			return;
 		}
 
 		if (noteAlt != null)

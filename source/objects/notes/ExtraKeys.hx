@@ -18,6 +18,7 @@ class ExtraKeys {
 	public static final noteSplashScales:Array<Float> = [1.3, 1.2, 1.1, 1, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.3, 0.3, 0.2, 0.18, 0.18, 0.15];
 	public static final noteSplashOffsets:Map<Int, Array<Int>> = [0 => [20, 10], 9 => [10, 20]];
 	public static final colArray:Array<String> = ['purple', 'blue', 'green', 'red', 'white', 'yellow', 'violet', 'black', 'dark'];
+	public static final colArray4k:Array<String> = ['purple', 'blue', 'green', 'red'];
 
 	public static final minMania:Int = 0;
 	public static final maxMania:Int = 17;

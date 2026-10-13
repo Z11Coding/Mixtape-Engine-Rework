@@ -1,10 +1,9 @@
 package states.freeplay.vslice;
 
-import backend.FunkinSound;
 import flixel.FlxSprite;
 import flixel.util.FlxSignal;
 import flixel.util.FlxTimer;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import states.freeplay.vslice.PlayerData.PlayerFreeplayDJData;
 
 class FreeplayDJ extends FunkinSprite

@@ -20,7 +20,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
-import objects.FunkinCamera;
+import objects.funkin.FunkinCamera;
 import openfl.display.BlendMode;
 import openfl.filters.ShaderFilter;
 import openfl.utils.AssetCache;
@@ -392,8 +392,8 @@ class VSliceFreeplayState extends MusicBeatSubstate
 
 		albumRoll = new AlbumRoll();
 		fp = new FreeplayScore(FlxG.width - (MobileScaleMode.gameNotchSize.x + 353), 60, 7, 100, styleData);
-		rankCamera = new FunkinCamera('rankCamera', 0, 0, FlxG.width, FlxG.height);
-		funnyCam = new FunkinCamera('freeplayFunny', 0, 0, FlxG.width, FlxG.height);
+		rankCamera = new FunkinCamera('rankCamera', 0, 0, FlxG.width, FlxG.height, 1);
+		funnyCam = new FunkinCamera('freeplayFunny', 0, 0, FlxG.width, FlxG.height, 1);
 		grpCapsules = new SongCapsuleGroup(styleData);
 		grpCapsules.onRandomSelected.add(capsuleOnConfirmRandom);
 		grpCapsules.onSongSelected.add(capsuleOnOpenDefault);

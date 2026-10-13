@@ -1,0 +1,368 @@
+package backend.modchartSystem;
+
+import backend.modchartSystem.modifiers.BaseModifier;
+import flixel.FlxSprite;
+import flixel.addons.effects.FlxSkewedSprite;
+import lime.math.Vector2;
+import objects.funkin.graphics.FunkinSkewedSprite;
+import objects.funkin.graphics.ZSprite;
+import objects.notes.Note;
+import objects.notes.StrumNote;
+import objects.notes.Strumline;
+import openfl.geom.Vector3D;
+
+class NoteData
+{
+  // Which strum receptor is this note targetting?
+  public var whichStrumNote:StrumNote;
+  // note direction
+  public var direction:Int = 0;
+  // The speed multiplier of the note. Higher means faster speed!
+  public var speedMod:Float = 1;
+  // Time in the song this note is to be hit at!
+  public var strumTime:Float = 0;
+  // The distance (in pixels) from receptors, taking into account speedMods.
+  public var curPos:Float = 0;
+  // The TRUE distance (in pixels) from receptors. Same as Curpos but ignores speed mods.
+  public var curPos_unscaled:Float = 0;
+  // Position of the strum in terms of curPos. Could be useful later when the strums can follow the notepath in drive2 mod or something lol
+  public var strumPosition:Float = 0;
+  // The real X position of the note.
+  public var x:Float = 0.0;
+  // The real Y position of the note.
+  public var y:Float = 0.0;
+  // The real Z position of the note.
+  public var z:Float = 0.0;
+  // The width and height of this sprite's graphic.
+  public var width:Float = 112;
+  public var height:Float = 112;
+  // The stealth glow variable. 1 means fully lit!
+  public var stealth:Float = 0;
+  // The opacity of the note. 1 is fully visible, 0 is invisible.
+  public var alpha:Float = 1;
+  // rotation on the z axis (just the default sprite.angle)
+  public var angleZ:Float = 0;
+  // rotation on the y axis (used for 3D projection thingy)
+  public var angleY:Float = 0;
+  // rotation on the x axis (used for 3D projection thingy)
+  public var angleX:Float = 0;
+  // The scale on the x axis
+  public var scaleX:Float = 1;
+  // The scale on the y axis
+  public var scaleY:Float = 1;
+  // The scale on the z axis (unused unless 3D models /noteskins are added somehow)
+  public var scaleZ:Float = 1;
+  // The scale on the x axis, unaffected by rotations
+  public var scaleX2:Float = 1;
+  // The scale on the y axis, unaffected by rotations
+  public var scaleY2:Float = 1;
+  // The amount to skew on the x axis
+  public var skewX:Float = 0;
+  // The amount to skew on the y axis
+  public var skewY:Float = 0;
+  // The amount to skew on the z axis
+  public var skewZ:Float = 0;
+  // The amount to skew on the x axis
+  public var skewX_playfield:Float = 0;
+  // The amount to skew on the y axis
+  public var skewY_playfield:Float = 0;
+  // The amount to skew on the z axis
+  public var skewZ_playfield:Float = 0;
+  // offsets for 3D rendering mode:
+  public var meshOffsets_SkewX:Float = 0;
+  public var meshOffsets_SkewY:Float = 0;
+  public var meshOffsets_SkewZ:Float = 0;
+  public var meshOffsets_PivotX:Float = 0;
+  public var meshOffsets_PivotY:Float = 0;
+  public var meshOffsets_PivotZ:Float = 0;
+  // Offset the perspective math center by this amount!
+  public var perspectiveOffset:Vector2 = new Vector2(0, 0);
+  // The red colour! Is a float value between 0 - 1
+  public var red:Float = 1;
+  // The green colour! Is a float value between 0 - 1
+  public var green:Float = 1;
+  // The blue colour! Is a float value between 0 - 1
+  public var blue:Float = 1;
+  // Value between -180 to 180 which allows you to hueshift the notes with the HSV shader
+  public var hueShift:Float = 0;
+  public var stealthGlowRed:Float = 1;
+  public var stealthGlowGreen:Float = 1;
+  public var stealthGlowBlue:Float = 1;
+  // Used for orient mod, but could be useful to use?
+  public var lastKnownPosition:Vector3D;
+  /*
+   * Sometimes orient mod just has a heart attack and dies.
+   * This should make the notes spazz out less in the event that happens. just a bandaid fix for the NaN problem from orient.
+   * orient, orientx, orienty, orient2, orientx2, orienty2
+   */
+  public var lastKnownOrientAngle:Array<Float> = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ];
+  // Cur orient2 modifier value. Used to determine if additional math must be performed (will overwrite last known position!!)
+  public var orient2:Array<Float> = [0, 0, 0];
+  // Is set to true when sampling for orient modifier. Used to skip unneccessary modifiers that won't impact the orient math (such as angle, dizzy, confusion, noteskewx, etc)
+  public var inOrientPass:Bool = false;
+  // An array of mods which should be done to this note!
+  public var noteMods:Array<Modifier> = [];
+  /*
+   * What type of note is this?
+   * Valid types: "note", "hold", "path", "receptor"
+   */
+  public var noteType:String = "note";
+  // What notekind is this note? Can be default, hurt, noAnim, etc
+  public var noteKind:String = "default";
+  // That ID of the notestyle this note is using.
+  public var noteStyleName:String = "funkin";
+  // Lower number = more detailed holds
+  public var holdGrain:Float = 82;
+
+  /**
+   * Determines the hold render method:
+   * Above 0.5 is spiral holds (rotates the sustain to always face direction of travel).
+   * Below 0 will prevent holds from going backwards, kind of like NotITG.
+   * Otherwise, will default to the usual method.
+   */
+  public var holdType:Float = 0;
+
+  // Returns true if spiralPaths should be used.
+
+  public function usingSpiralHolds():Bool
+  {
+    return (this.holdType >= 0.5);
+  }
+
+  // Returns true if holdType is below 0
+
+  public function usingForwardHolds(isArrowPath:Bool = false):Bool
+  {
+    return (this.holdType < 0.0);
+  }
+
+  // Makes holds straight. negative makes them less straight.
+  public var straightHolds:Float = 0;
+  // Makes holds look longer then what they actually are
+  public var longHolds:Float = 0;
+  // Enable this to re-enable the old 3D math for sustains! This basically just makes them scale on the x axis instead of applying true 3D math for each vert.
+  public var old3Dholds:Bool = false;
+  // I think these two were for Centered2 mod?
+  public var strumPosOffsetThingy:Vector3D;
+  public var strumPosWasHere:Vector3D;
+
+  public function new()
+  {
+    lastKnownPosition = new Vector3D(x, y);
+    strumPosOffsetThingy = new Vector3D(0, 0, 0);
+    strumPosWasHere = new Vector3D(0, 0, 0);
+    defaultValues();
+  }
+
+  // Gets the current reverse modifier amount.
+
+  public function getReverse():Float
+  {
+    if (whichStrumNote?.strumExtraModData == null) return 0;
+
+    var reverseModAmount:Float = whichStrumNote.strumExtraModData.reverseMod + whichStrumNote.strumExtraModData.reverseModLane;
+    return reverseModAmount;
+  }
+
+  public function clearNoteMods():Void
+  {
+    noteMods = [];
+  }
+
+  public function getNoteXOffset():Float
+  {
+    return whichStrumNote.weBelongTo.getNoteXOffset();
+  }
+
+  // call this to set the values from an already existing sprite!
+
+  public function setValuesFromSkewSprite(spr:FlxSkewedSprite):Void
+  {
+    this.x = spr.x;
+    this.y = spr.y;
+
+    this.width = spr.width;
+    this.height = spr.height;
+
+    this.angleZ = spr.angle;
+    this.scaleX = spr.scale.x;
+    this.scaleY = spr.scale.y;
+    this.skewX = spr.skew.x;
+    this.skewY = spr.skew.y;
+    this.alpha = spr.alpha;
+  }
+
+  // call this to set the values from an already existing sprite!
+
+  public function setValuesFromFunkinSkewSprite(spr:FunkinSkewedSprite):Void
+  {
+    this.x = spr.x;
+    this.y = spr.y;
+
+    this.width = spr.width;
+    this.height = spr.height;
+
+    this.angleZ = spr.angle;
+    this.scaleX = spr.scale.x;
+    this.scaleY = spr.scale.y;
+    this.skewX = spr.skew.x;
+    this.skewY = spr.skew.y;
+    this.alpha = spr.alpha;
+  }
+
+  // call this to set the values from an already existing sprite! FOR ZSPRITE
+
+  public function setValuesFromZSprite(spr:ZSprite):Void
+  {
+    this.z = spr.z;
+    this.stealth = spr.stealthGlow;
+    this.stealthGlowBlue = spr.stealthGlowBlue;
+    this.stealthGlowGreen = spr.stealthGlowGreen;
+    this.stealthGlowRed = spr.stealthGlowRed;
+    this.hueShift = spr.hueShift;
+    setValuesFromFunkinSkewSprite(spr);
+  }
+
+  // call this to set the values from an already existing sprite! FOR NOTES
+
+  public function setValuesFromNoteSprite(noteSpr:Note):Void
+  {
+    setValuesFromZSprite(noteSpr);
+    this.strumTime = noteSpr.strumTime;
+    this.noteType = "note";
+    this.noteKind = noteSpr.kind;
+    this.noteStyleName = noteSpr.noteStyleName;
+    this.direction = noteSpr.direction;
+  }
+
+  // Call this function to reset all values back to default!
+
+  public function defaultValues():Void
+  {
+    perspectiveOffset.setTo(0, 0);
+    speedMod = 1;
+    strumPosition = 0;
+
+    orient2 = [0, 0, 0];
+
+    noteType = "note";
+    noteKind = "default";
+    noteStyleName = "funkin";
+
+    x = 0;
+    y = 0;
+    z = 0;
+
+    angleX = 0;
+    angleY = 0;
+    angleZ = 0;
+
+    scaleX = 1;
+    scaleY = 1;
+    scaleZ = 1;
+    scaleX2 = 1;
+    scaleY2 = 1;
+
+    stealth = 0;
+    alpha = 1;
+
+    skewX = 0;
+    skewY = 0;
+    skewZ = 0;
+    skewX_playfield = 0;
+    skewY_playfield = 0;
+    skewZ_playfield = 0;
+
+    red = 1;
+    green = 1;
+    blue = 1;
+
+    meshOffsets_PivotX = 0;
+    meshOffsets_PivotY = 0;
+    meshOffsets_PivotZ = 0;
+
+    meshOffsets_SkewX = 0;
+    meshOffsets_SkewY = 0;
+    meshOffsets_SkewZ = 0;
+
+    stealthGlowRed = 1;
+    stealthGlowGreen = 1;
+    stealthGlowBlue = 1;
+
+    straightHolds = 0;
+    longHolds = 0;
+
+    strumPosWasHere.setTo(0, 0, 0);
+    strumPosOffsetThingy.setTo(0, 0, 0);
+    // strumPosWasHere = new Vector3D(0, 0, 0);
+    // strumPosOffsetThingy = new Vector3D(0, 0, 0);
+  }
+
+  public function setStrumPosWasHere():Void
+  {
+    strumPosWasHere.x += this.x;
+    strumPosWasHere.y += this.y;
+    strumPosWasHere.z += this.z;
+  }
+
+  public function funnyOffMyself():Void
+  {
+    this.x += whichStrumNote.noteModData.strumPosOffsetThingy.x;
+    this.y += whichStrumNote.noteModData.strumPosOffsetThingy.y;
+    this.z += whichStrumNote.noteModData.strumPosOffsetThingy.z;
+  }
+
+  public function updateLastKnownPos():Void
+  {
+    lastKnownPosition.x = x;
+    lastKnownPosition.y = y;
+    lastKnownPosition.z = z;
+  }
+
+  // Used in sampling a mod to figure out what it does if unknown
+
+  public function didValueChange():Bool
+  {
+    if (x != 0) return true;
+    if (y != 0) return true;
+    if (z != 0) return true;
+
+    if (angleX != 0) return true;
+    if (angleY != 0) return true;
+    if (angleZ != 0) return true;
+
+    if (stealth != 1) return true;
+    if (alpha != 1) return true;
+
+    if (scaleX != 1) return true;
+    if (scaleY != 1) return true;
+    if (scaleZ != 1) return true;
+
+    if (scaleX2 != 1) return true;
+    if (scaleY2 != 1) return true;
+
+    if (skewX != 0) return true;
+    if (skewY != 0) return true;
+    if (skewZ != 0) return true;
+
+    if (red != 1) return true;
+    if (blue != 1) return true;
+    if (green != 1) return true;
+
+    if (stealthGlowRed != 1) return true;
+    if (stealthGlowBlue != 1) return true;
+    if (stealthGlowGreen != 1) return true;
+
+    if (hueShift != 1) return true;
+
+    // All other checks failed, then we know nothing changed and can assume that this mod is useless to use
+    return false;
+  }
+}

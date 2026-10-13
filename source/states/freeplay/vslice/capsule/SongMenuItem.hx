@@ -11,7 +11,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import openfl.display.BlendMode;
 import shaders.GaussianBlurShader;
 import shaders.Grayscale;

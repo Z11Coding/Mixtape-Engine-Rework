@@ -7,7 +7,7 @@ import flixel.addons.display.FlxBackdrop;
 import flixel.tweens.misc.ColorTween;
 import objects.Character.CharType;
 import objects.Character;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import shaders.DropShadowShader;
 import shaders.SserafimShader;
 import stages.objects.*;

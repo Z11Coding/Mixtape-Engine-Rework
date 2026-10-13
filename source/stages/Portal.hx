@@ -29,7 +29,7 @@ class Portal extends BaseStage
 		for (i in 0 ... 150)
 		{
 			var p = new FlxParticle();
-			p.frames = Paths.getSparrowAtlas('noteskins/normal');
+			p.frames = Paths.getSparrowAtlas('noteSkins/normal');
 			p.animation.addByPrefix('0','A', 0, false);
 			p.animation.addByPrefix('1','B', 0, false);
 			p.animation.addByPrefix('2','C', 0, false);
@@ -59,7 +59,7 @@ class Portal extends BaseStage
 		powerEmitter.drag.set(0, 0, 0, 0, 5, 5, 10, 10);
 		powerEmitter.width = 4200.45;
 		powerEmitter.alpha.set(1, 1);
-		powerEmitter.lifespan.set(4, 4.5);
+		powerEmitter.lifespan.set(4, 8.5);
 
 		powerEmitter.start(false, FlxG.random.float(0.3, 0.4), 100000);
 

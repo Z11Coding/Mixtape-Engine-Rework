@@ -1,6 +1,7 @@
 package objects.notes;
 
 import backend.animation.PsychAnimationController;
+import objects.funkin.graphics.ZSpriteProjected;
 import objects.notes.NoteTypesConfig;
 import objects.notes.SustainSplash;
 import shaders.RGBPalette.RGBShaderReference;
@@ -24,9 +25,10 @@ typedef NoteSplashData = {
  * If you want to make a custom note type, you should search for: "function set_noteType"
 **/
 
-class Note extends FlxSprite
+class Note extends ZSpriteProjected
 {
 	public var extraData:Map<String, Dynamic> = new Map<String, Dynamic>();
+	public var noteModData:NoteData;
 
 	public var parentST:Float = 0;
 	public var parentSL:Float = 0;
@@ -70,7 +72,7 @@ class Note extends FlxSprite
 	public static final SUSTAIN_SIZE:Int = 44;
 	public static final swagWidth:Float = 160 * 0.7;
 
-	public static var defaultNoteSkin(default, never):String = 'noteskins/NOTE_assets';
+	public static var defaultNoteSkin(default, never):String = 'noteSkins/NOTE_assets';
 
 	public var noteSplashData:NoteSplashData = {
 		disabled: false,
@@ -264,11 +266,27 @@ class Note extends FlxSprite
 	var justMixedUp:Bool = false;
 	var posTween:FlxTween;
 
+	//Base Game Stuff
+	/**
+   * The hold note sprite for this note.
+   */
+  public var holdNoteSprite:SustainTrail;
+	// The Hue, Saturation, Value Shader attached to this note sprites. Mainly used for quant coloured note styles
+  public var hsvShader:HSVNotesShader;
+	public var vwooshing:Bool = false;
+
 	public function new(?newStrumTime:Float, ?newNoteData:Int)
 	{
 		super();
 
+		this.hsvShader = new HSVNotesShader();
+
+    noteModData = new NoteData();
+
 		animation = new PsychAnimationController(this);
+
+		vwooshing = false;
+		this.applyAngularVelocityOffset = true;
 
 		pixelNote = PlayState.isPixelStage;
 
@@ -499,20 +517,20 @@ class Note extends FlxSprite
 		for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters').length)
 		{
 			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
 
 			if (isSustainNote)
 			{
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
 				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
 				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
 
 				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
 
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
 			}
 		}
 
@@ -592,7 +610,7 @@ class Note extends FlxSprite
 		if (isSustainNote)
 		{
 			flipY = strum.downScroll;
-			scale.set(ExtraKeys.scales[ExtraKeys.mania], animation != null && animation.curAnim != null && animation.curAnim.name.endsWith('end') ? 1 : MegaManager.conductor.stepLengthMs * 0.0105 * (songSpeed * multSpeed) * sustainScale);
+			scale.set(ExtraKeys.scales[ExtraKeys.mania], animation != null && animation.curAnim != null && animation.curAnim.name.endsWith('tail') ? 1 : MegaManager.conductor.stepLengthMs * 0.0105 * (songSpeed * multSpeed) * sustainScale);
 
 			if (PlayState.isPixelStage)
 			{
@@ -687,6 +705,8 @@ class Note extends FlxSprite
 
 	public override function destroy()
 	{
+		// This function should ONLY get called as you leave PlayState entirely.
+    // Otherwise, we want the game to keep reusing note sprites to save memory.
 		super.destroy();
 		_lastValidChecked = '';
 	}
@@ -755,11 +775,22 @@ class Note extends FlxSprite
 
   override function draw()
 	{
+		if (this.alpha <= 0 || !this.visible || !this.alive)
+    {
+      return;
+    }
+
 		if (tooLate && !inEditor)
 		{
 			if (alpha > 0.3)
 				alpha = 0.3;
 		}
+
+		var strumExtraModData = noteModData?.whichStrumNote?.strumExtraModData ?? null;
+    projectionEnabled = strumExtraModData?.threeD ?? false;
+    playfieldSkewCenterX = (strumExtraModData?.playfieldX ?? FlxG.width / 2);
+    playfieldSkewCenterY = (strumExtraModData?.playfieldY ?? FlxG.height / 2);
+    playfieldSkewCenterZ = (strumExtraModData?.playfieldZ ?? 0);
 
 		super.draw();
 	}
@@ -776,7 +807,7 @@ class Note extends FlxSprite
 		wasGoodHit = hitByOpponent = tooLate = canBeHit = false; // Don't make an update call of this for the note group
 
 		if (ns.length > 0 && ns != texture) {
-			texture = 'noteskins/' + ns;
+			texture = 'noteSkins/' + ns;
 			useRGBShader = false;
 		}
 
@@ -790,6 +821,19 @@ class Note extends FlxSprite
 			useRGBShader = (ClientPrefs.data.enableColorShader && PlayfieldManager.SONG != null && !PlayfieldManager.SONG.disableNoteRGB);
 			shouldCenterOffsets = useRGBShader;
 		}
+
+		stealthGlow = 0.0;
+    stealthGlowBlue = 1.0;
+    stealthGlowGreen = 1.0;
+    stealthGlowRed = 1.0;
+		updateStealthGlow();
+
+		noteModData.clearNoteMods();
+		angleAngularVelocityOffset = 0;
+		angularVelocity = 0;
+		spinVelocity = 0;
+		spinAngle = 0;
+		graphic.destroyOnNoUse = false;
 
 		strumTime = chartNoteData.strumTime;
 		noteData = chartNoteData.noteData;
@@ -815,6 +859,7 @@ class Note extends FlxSprite
 		blockHit = chartNoteData.blockHit;
 		multSpeed = chartNoteData.multSpeed;
 		noteDensity = chartNoteData.noteDensity;
+		row = chartNoteData.row;
 
 		if (ClientPrefs.data.enableColorShader && useRGBShader)
 		{
@@ -901,5 +946,38 @@ class Note extends FlxSprite
 			if (alpha != 1) alpha = 1; //if (multAlpha != 1) multAlpha = 1;
 		}
 		if (flipY) flipY = false;
+
+		var rowArray = MegaManager.playfield.noteRows[mustPress?0:1];
+		if(rowArray[row]==null)
+			rowArray[row]=[];
+		rowArray[row].push(this);
 	}
+
+	 // call this to reset stealthGlow back to default values
+  public function resetStealthGlow(skipUpdate:Bool = false):Void
+  {
+    this.stealthGlow = 0.0;
+    this.stealthGlowBlue = 1.0;
+    this.stealthGlowGreen = 1.0;
+    this.stealthGlowRed = 1.0;
+    if (!skipUpdate) updateStealthGlow();
+  }
+
+  // call this to update the stealthglow on the hsv shader
+  public function updateStealthGlow():Void
+  {
+    this.hsvShader.stealthGlow = stealthGlow;
+    this.hsvShader.stealthGlowBlue = stealthGlowBlue;
+    this.hsvShader.stealthGlowGreen = stealthGlowGreen;
+    this.hsvShader.stealthGlowRed = stealthGlowRed;
+
+		this.rgbShader.mult = (stealthGlow+1);
+		this.updateRGBColors(stealthGlowRed, stealthGlowGreen, stealthGlowBlue);
+  }
+
+	override public function kill():Void
+  {
+    super.kill();
+    vwooshing = false;
+  }
 }

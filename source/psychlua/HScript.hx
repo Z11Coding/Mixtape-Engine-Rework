@@ -603,7 +603,7 @@ class HScript extends Iris
 		set("BackgroundDancer", stages.objects.BackgroundDancer);
 		set("BackgroundGirls", stages.objects.BackgroundGirls);
 		set("TankmenBG", stages.objects.TankmenBG);
-		set("FNFSprite", objects.FunkinSprite);
+		set("FNFSprite", objects.funkin.graphics.FunkinSprite);
 		set("HealthIcon", objects.HealthIcon);
 		set("NoteSplash", objects.notes.NoteSplash);
 		set("StrumNote", objects.notes.StrumNote);

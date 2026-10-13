@@ -1,7 +1,7 @@
 package states.freeplay.vslice;
 
 import flixel.group.FlxSpriteGroup;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import shaders.HSVShader;
 import states.freeplay.vslice.obj.FreeplayFlames;
 

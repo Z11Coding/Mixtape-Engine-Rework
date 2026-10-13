@@ -11,7 +11,7 @@ import flixel.util.FlxTimer;
 // import flxtyped group
 import haxe.Json;
 import lime.utils.Assets;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.display.Sprite;

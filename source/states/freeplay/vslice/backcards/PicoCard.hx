@@ -8,7 +8,7 @@ import flixel.math.FlxMath;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxSpriteUtil;
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import openfl.display.BlendMode;
 import states.freeplay.VSliceFreeplayState;
 import states.freeplay.vslice.FreeplayHelpers;

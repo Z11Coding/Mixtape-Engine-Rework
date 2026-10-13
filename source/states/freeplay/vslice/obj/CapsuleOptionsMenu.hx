@@ -1,6 +1,6 @@
 package states.freeplay.vslice.obj;
 
-import objects.FunkinSprite;
+import objects.funkin.graphics.FunkinSprite;
 import shaders.PureColor;
 
 // using mikolka.funkin.utils.StringTools;
