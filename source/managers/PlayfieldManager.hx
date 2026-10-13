@@ -2980,9 +2980,15 @@ class PlayfieldManager {
 
   public function killDaNotes()
 	{
-		notes.clear();
-		unspawnNotes = [];
+		for (group in [notes, sustainNotes]){
+			if (group != null){
+				while (group.length > 0) {
+					group.remove(group.members[0], true);
+				}
+			}
+		}
 
+		unspawnNotes = [];
 		eventNotes = [];
 	}
 

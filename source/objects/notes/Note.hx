@@ -96,7 +96,7 @@ class Note extends FlxSprite
 
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
-	public var copyAngle:Bool = true;
+	public var copyAngle:Bool = false;
 	public var copyAlpha:Bool = true;
 	public var copyScaleX:Bool = true;
 	public var copyScaleY:Bool = true;
@@ -854,7 +854,13 @@ class Note extends FlxSprite
 		if (isSustainNote) {
 			offsetX += width / 2;
 			copyAngle = false;
-			animation.play(ExtraKeys.colArray[noteData] + (chartNoteData.isSustainEnd ? 'holdend' : 'hold'));
+			var animToPlay:String = '';
+			animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData] + (chartNoteData.isSustainEnd ? ' tail' : ' hold');
+			if (!animation.exists(animToPlay))
+			{
+				animToPlay = ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + (chartNoteData.isSustainEnd ? ' holdend' : ' hold');
+			}
+			animation.play(animToPlay);
 			updateHitbox();
 			offsetX -= width / 2;
 
@@ -864,7 +870,15 @@ class Note extends FlxSprite
 			updateHitbox();
 		}
 		else {
-			animation.play(ExtraKeys.colArray[noteData] + 'Scroll');
+			var animToPlay:String = '';
+			animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData];
+			if (animation.exists(animToPlay))
+				animation.play(animToPlay);
+			else
+			{
+				animToPlay = ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]];
+				animation.play(animToPlay + 'Scroll');
+			}
 			if (!copyAngle) copyAngle = true;
 			offsetX = 0; //Just in case we recycle a sustain note to a regular note
 			if (useRGBShader && shouldCenterOffsets)

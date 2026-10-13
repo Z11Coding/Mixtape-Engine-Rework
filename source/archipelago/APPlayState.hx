@@ -2943,7 +2943,6 @@ class APPlayState extends PlayState {
 
             zenetta?.playAnim(animToPlay, true);
             zenetta.holdTimer = 0;
-              "e".GoToTag();
         }
     }
 
