@@ -233,7 +233,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 
 					if(!Std.isOfType(songNotes[3], String)) swagNote.noteType = objects.notes.NoteTypesConfig.defaultNoteTypes[songNotes[3]]; //Backward compatibility + compatibility with Week 7 charts
 
-					inline unspawnNotes.push(swagNote);
+					unspawnNotes.push(swagNote);
 
 					var ratio:Float = Conductor.bpm / currentBPMLol;
 
@@ -263,7 +263,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 								hitCausesMiss: songNotes[3] == 'Hurt Note',
 								ignoreNote: songNotes[3] == 'Hurt Note' && swagNote.mustPress
 							};
-							inline unspawnNotes.push(sustainNote);
+							unspawnNotes.push(sustainNote);
 							//Sys.sleep(0.0001);
 						}
 					}
@@ -620,9 +620,9 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 	{
 		if (daNote != null && daNote.exists)
 		{
-			inline daNote.followStrum((daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData], PlayfieldManager.SONG.speed);
+			daNote.followStrum((daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData], PlayfieldManager.SONG.speed);
 			final strum = (daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData];
-			if(daNote.isSustainNote && strum != null && strum.sustainReduce) inline daNote.clipToStrumNote(strum);
+			if(daNote.isSustainNote && strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);
 
 			if (!daNote.mustPress && daNote.strumTime <= Conductor.songPosition)
 			{
@@ -634,9 +634,9 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 					time += 0.15;
 				}
 				if (ClientPrefs.data.noteColorStyle != 'Normal' && ClientPrefs.data.showNotes && ClientPrefs.data.enableColorShader) {
-					inline opponentStrums.members[daNote.noteData].playAnim('confirm', true, daNote.rgbShader.r, daNote.rgbShader.g, daNote.rgbShader.b);
+					opponentStrums.members[daNote.noteData].playAnim('confirm', true, daNote.rgbShader.r, daNote.rgbShader.g, daNote.rgbShader.b);
 				} else {
-					inline opponentStrums.members[daNote.noteData].playAnim('confirm', true);
+					opponentStrums.members[daNote.noteData].playAnim('confirm', true);
 				}
 				opponentStrums.members[daNote.noteData].resetAnim = calculateResetTime(daNote.isSustainNote);
 				daNote.hitByOpponent = true;
@@ -707,9 +707,9 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 			{
 				if(playerStrums.members[note.noteData] != null) {
 					if (ClientPrefs.data.noteColorStyle != 'Normal' && ClientPrefs.data.showNotes && ClientPrefs.data.enableColorShader) {
-						inline playerStrums.members[note.noteData].playAnim('confirm', true, note.rgbShader.r, note.rgbShader.g, note.rgbShader.b);
+						playerStrums.members[note.noteData].playAnim('confirm', true, note.rgbShader.r, note.rgbShader.g, note.rgbShader.b);
 					} else {
-						inline playerStrums.members[note.noteData].playAnim('confirm', true);
+						playerStrums.members[note.noteData].playAnim('confirm', true);
 					}
 					playerStrums.members[note.noteData].resetAnim = calculateResetTime(note.isSustainNote);
 				}
@@ -720,9 +720,9 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 				if(spr != null)
 				{
 					if (ClientPrefs.data.noteColorStyle != 'Normal' && ClientPrefs.data.showNotes && ClientPrefs.data.enableColorShader) {
-						inline spr.playAnim('confirm', true, note.rgbShader.r, note.rgbShader.g, note.rgbShader.b);
+						spr.playAnim('confirm', true, note.rgbShader.r, note.rgbShader.g, note.rgbShader.b);
 					} else {
-						inline spr.playAnim('confirm', true);
+						spr.playAnim('confirm', true);
 					}
 				}
 			}

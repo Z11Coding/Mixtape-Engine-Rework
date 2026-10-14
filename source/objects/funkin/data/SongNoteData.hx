@@ -1,5 +1,7 @@
 package objects.funkin.data;
 
+import backend.funkin.util.tools.ICloneable;
+
 /**
  * The underlying data for a single note.
  */

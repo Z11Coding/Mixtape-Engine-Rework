@@ -2,6 +2,7 @@ package shaders;
 
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
+import shaders.RuntimePostEffectShader;
 
 class RuntimeCustomBlendShader extends RuntimePostEffectShader
 {

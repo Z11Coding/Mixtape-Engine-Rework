@@ -2,6 +2,8 @@ package backend.modchartSystem;
 
 import StringTools;
 import backend.Constants;
+import backend.funkin.audio.FunkinSound;
+import backend.funkin.util.SortUtil;
 import backend.modchartSystem.HazardEase;
 import backend.modchartSystem.ModConstants;
 import backend.modchartSystem.ModHandler;
@@ -14,11 +16,6 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;
-import funkin.Conductor;
-import funkin.Paths;
-import funkin.audio.FunkinSound;
-import funkin.modding.events.ScriptEvent;
-import funkin.util.SortUtil;
 import objects.notes.StrumNote;
 import objects.notes.Strumline;
 // funkin stuff
@@ -83,7 +80,7 @@ class ModEventHandler
     modEvents = [];
 
     // wake everyone back up as that is the default!
-    for (strum in PlayState.instance.allStrumLines)
+    for (strum in MegaManager.playfield.allStrumLines)
     {
       strum.asleep = false;
       strum.mods.resetModValues();
@@ -103,7 +100,7 @@ class ModEventHandler
     songTime = Conductor.instance.songPosition;
     beatTime = Conductor.instance.currentBeatTime;
 
-    if (songTime + ((PlayState.instance?.isGamePaused ?? false) ? 0 : backInTimeLeniency) < lastReportedSongTime)
+    if (songTime + ((PlayState.instance?.paused ?? false) ? 0 : backInTimeLeniency) < lastReportedSongTime)
     {
       lastReportedBeatTime = beatTime;
       resetMods(); // Just reset everything and let the event handler put everything back.
@@ -124,14 +121,14 @@ class ModEventHandler
     // check if the name is valid. For now, just checks if its sub lol
     if (ModConstants.isTagSub(mod.tag))
     {
-      PlayState.instance.modDebugNotif(mod.tag + ' is not a valid custom mod name!', FlxColor.RED);
+      MegaManager.scriptManager.addTextToDebug(mod.tag + ' is not a valid custom mod name!', FlxColor.RED);
       return;
     }
 
     // Add it to the mod handlers
     if (playerTarget == 'both' || playerTarget == 'all')
     {
-      for (customStrummer in PlayState.instance.allStrumLines)
+      for (customStrummer in MegaManager.playfield.allStrumLines)
       {
         customStrummer.mods.addCustomMod(mod, makeCopy);
       }
@@ -188,7 +185,7 @@ class ModEventHandler
       }
     }
 
-    for (strumLine in PlayState.instance.allStrumLines)
+    for (strumLine in MegaManager.playfield.allStrumLines)
     {
       strumLine.mods.sortMods();
 
@@ -270,7 +267,7 @@ class ModEventHandler
       final mod:Modifier = target.modifiers.get(subModArr[0]);
       if (mod == null)
       {
-        PlayState.instance.modDebugNotif(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
+        MegaManager.scriptManager.addTextToDebug(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
         return null;
       }
       else
@@ -310,7 +307,7 @@ class ModEventHandler
           }
           else
           {
-            PlayState.instance.modDebugNotif(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
+            MegaManager.scriptManager.addTextToDebug(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
             return null;
           }
 
@@ -398,7 +395,7 @@ class ModEventHandler
       final mod:Modifier = target.modifiers.get(subModArr[0]);
       if (mod == null)
       {
-        PlayState.instance.modDebugNotif(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
+        MegaManager.scriptManager.addTextToDebug(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
         return null;
       }
       else
@@ -441,7 +438,7 @@ class ModEventHandler
           }
           else
           {
-            PlayState.instance.modDebugNotif(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
+            MegaManager.scriptManager.addTextToDebug(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
             return null;
           }
 
@@ -527,7 +524,7 @@ class ModEventHandler
       catch (e)
       {
         modResetFuncs.remove(resetFunc);
-        PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
+        MegaManager.scriptManager.addTextToDebug(e.toString(), FlxColor.RED);
         return;
       }
     }
@@ -560,7 +557,7 @@ class ModEventHandler
     // HazardModLuaTest.allTargetExlusions = [];
 
     // wake everyone back up as that is the default!
-    for (strum in PlayState.instance.allStrumLines)
+    for (strum in MegaManager.playfield.allStrumLines)
     {
       strum.asleep = false;
 
@@ -582,7 +579,7 @@ class ModEventHandler
       });
     }
     triggerResetFuncs();
-    PlayState.instance.dispatchEvent(new ScriptEvent(MODCHART_RESET));
+    MegaManager.scriptManager.callOnScripts('resetModchart');
   }
 
   // Instead of checking EVERY event EVERY frame, we instead only check the event that will be triggered next.
@@ -651,7 +648,7 @@ class ModEventHandler
           }
           catch (e)
           {
-            PlayState.instance.modDebugNotif(e.toString(), 0xFFFF0000);
+            MegaManager.scriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
           }
           return true;
 
@@ -674,12 +671,12 @@ class ModEventHandler
           }
           else
           {
-            PlayState.instance.modDebugNotif('Tween set error! \n' + modEvent.modName, 0xFFFF7300);
+            MegaManager.scriptManager.addTextToDebug('Tween set error! \n' + modEvent.modName, 0xFFFF7300);
             setModVal(modEvent.target, modEvent.modName, modEvent.gotoValue, true);
           }
           return true;
         default:
-          PlayState.instance.modDebugNotif('Unknown event type!', 0xFFFF7300);
+          MegaManager.scriptManager.addTextToDebug('Unknown event type!', 0xFFFF7300);
           return true;
       }
     }
@@ -726,7 +723,7 @@ class ModEventHandler
           }
           catch (e)
           {
-            PlayState.instance.modDebugNotif(e.toString(), 0xFFFF0000);
+            MegaManager.scriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
           }
 
           return true;
@@ -754,7 +751,7 @@ class ModEventHandler
             }
             catch (e)
             {
-              PlayState.instance.modDebugNotif(e.toString(), 0xFFFF0000);
+              MegaManager.scriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
             }
           });
           if (tweenTagged) modchartTweens.set(modEvent.modName.toLowerCase(), tween);
@@ -860,7 +857,7 @@ class ModEventHandler
     final timeEventTest:ModTimeEvent = new ModTimeEvent();
     timeEventTest.startingBeat = startTime;
     timeEventTest.style = 'reset';
-    if (target == null) target = PlayState.instance.playerStrumline.mods;
+    if (target == null) target = MegaManager.playfield.playerStrums.mods;
 
     timeEventTest.target = target;
     modEvents.push(timeEventTest);
@@ -875,7 +872,8 @@ class ModEventHandler
     final timeEventTest:ModTimeEvent = new ModTimeEvent();
     timeEventTest.startingBeat = startTime;
     timeEventTest.style = 'resort';
-    if (target == null) target = PlayState.instance.playerStrumline.mods;
+    if (target == null)
+      target = MegaManager.playfield.playerStrums.mods;
 
     timeEventTest.target = target;
     modEvents.push(timeEventTest);
@@ -948,8 +946,8 @@ class ModEventHandler
     // default to target BF for now
     if (target == null)
     {
-      target = PlayState.instance.playerStrumline.mods;
-      PlayState.instance.modDebugNotif('null target for valueTween,\ndefaulting to player.', FlxColor.ORANGE);
+      target = MegaManager.playfield.playerStrums.mods;
+      MegaManager.scriptManager.addTextToDebug('null target for valueTween,\ndefaulting to player.', FlxColor.ORANGE);
     }
 
     final timeEventTest:ModTimeEvent = new ModTimeEvent();
@@ -957,7 +955,7 @@ class ModEventHandler
     if (modName != null) timeEventTest.modName = modName.toLowerCase();
     else
     {
-      PlayState.instance.modDebugNotif('No mod name for value tween?', FlxColor.ORANGE);
+      MegaManager.scriptManager.addTextToDebug('No mod name for value tween?', FlxColor.ORANGE);
       timeEventTest.modName = "";
     }
     timeEventTest.target = target;
@@ -970,7 +968,7 @@ class ModEventHandler
     if (ease == null)
     {
       ease = FlxEase.linear;
-      PlayState.instance.modDebugNotif('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
+      MegaManager.scriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
     }
     timeEventTest.easeToUse = ease;
     timeEventTest.style = 'value';
@@ -1000,8 +998,8 @@ class ModEventHandler
 
     if (target == null)
     {
-      target = PlayState.instance.playerStrumline.mods;
-      PlayState.instance.modDebugNotif('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
+      target = MegaManager.playfield.playerStrums.mods;
+      MegaManager.scriptManager.addTextToDebug('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
     }
     timeEventTest.target = target;
     timeEventTest.startingBeat = startTime;
@@ -1011,7 +1009,7 @@ class ModEventHandler
     if (ease == null)
     {
       ease = FlxEase.linear;
-      PlayState.instance.modDebugNotif('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
+      MegaManager.scriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
     }
     timeEventTest.easeToUse = ease;
     timeEventTest.persist = persist;
@@ -1046,8 +1044,8 @@ class ModEventHandler
     // default to target BF for now
     if (target == null)
     {
-      target = PlayState.instance.playerStrumline.mods;
-      PlayState.instance.modDebugNotif('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
+      target = MegaManager.playfield.playerStrums.mods;
+      MegaManager.scriptManager.addTextToDebug('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
     }
 
     timeEventTest.target = target;
@@ -1055,7 +1053,7 @@ class ModEventHandler
     if (ease == null)
     {
       ease = FlxEase.linear;
-      PlayState.instance.modDebugNotif('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
+      MegaManager.scriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
     }
     timeEventTest.easeToUse = ease;
 

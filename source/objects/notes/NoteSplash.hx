@@ -6,6 +6,7 @@ import flixel.animation.FlxBaseAnimation;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
+import objects.funkin.graphics.ZSprite;
 import objects.notes.Note;
 import objects.notes.StrumNote;
 import shaders.ColorSwap.ColorSwap;
@@ -34,7 +35,7 @@ typedef NoteSplashConfig = {
 	rgb:Array<Null<RGB>>
 }
 
-class NoteSplash extends FlxSprite
+class NoteSplash extends ZSprite
 {
 	public var rgbShader:PixelSplashShaderRef;
 	public var texture:String;

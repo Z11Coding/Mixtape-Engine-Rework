@@ -1,3 +1,5 @@
+package backend.util;
+
 import flash.events.Event;
 import flash.events.IOErrorEvent;
 import flash.net.FileReference;
@@ -40,7 +42,7 @@ class FileUtil {
         _file.addEventListener(Event.CANCEL, onSaveCancel);
         _file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
         _file.addEventListener(Event.COMPLETE, onLoadComplete);
-        
+
         if (instantAction && onLoad != null) {
             this.load(onLoad, onCancel, onError);
         }
@@ -98,5 +100,21 @@ class FileUtil {
         _file.removeEventListener(Event.CANCEL, onSaveCancel);
         _file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
         _file.removeEventListener(Event.COMPLETE, onLoadComplete);
+    }
+
+    /**
+     * Read string file contents directly from a given path.
+     * Only works on native.
+     *
+     * @param path The path to the file.
+     * @return The file contents.
+     */
+    public static function readStringFromPath(path:String):String
+    {
+      #if sys
+      return sys.io.File.getContent(path);
+      #else
+      throw 'Direct file reading by path is not supported on this platform.';
+      #end
     }
 }

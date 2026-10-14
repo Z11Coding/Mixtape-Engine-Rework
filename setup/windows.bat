@@ -30,7 +30,7 @@ haxelib install random 1.4.1
 haxelib install moonchart 0.5.1
 haxelib set lime 8.2.2
 haxelib set openfl 9.4.1
-haxelib git flixel-animate https://github.com/MaybeMaru/flixel-animate c61476f4b3a3d225631ab3065e4e925a4b63c076
+haxelib git flixel-animate https://github.com/MaybeMaru/flixel-animate c5e3393c70b71a191f20fa902114cea92042e486
 haxelib git flxsoundfilters https://github.com/TheZoroForce240/FlxSoundFilters
 haxelib git hxWebSockets https://github.com/ianharrigan/hxWebSockets
 haxelib git linc_dialogs https://github.com/ceramic-engine/linc_dialogs.git

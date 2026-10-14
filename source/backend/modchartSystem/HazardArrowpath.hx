@@ -50,7 +50,7 @@ class HazardArrowpath
   var strum:Strumline;
   var fakeNoteData:NoteData;
 
-  function setNotePos(note:ZSprite, strumTime:Float, lane:Int, whichStrumNote:StrumlineNote):Void
+  function setNotePos(note:ZSprite, strumTime:Float, lane:Int, whichStrumNote:StrumNote):Void
   {
     // note.strumTime = Conductor.instance?.songPosition ?? 0;
     // note.strumTime -= arrowpathBackwardsLength[note.noteDirection % KEY_COUNT] ?? 0;
@@ -111,7 +111,7 @@ class HazardArrowpath
 
     for (l in 0...Strumline.KEY_COUNT)
     {
-      final whichStrumNote:StrumlineNote = strum.getByIndex(l % Strumline.KEY_COUNT);
+      final whichStrumNote:StrumNote = strum.getByIndex(l % Strumline.KEY_COUNT);
 
       // var arrowPathAlpha:Float = strum.arrowPathAlpha[l];
       var arrowPathAlpha:Float = whichStrumNote?.strumExtraModData?.arrowPathAlpha;

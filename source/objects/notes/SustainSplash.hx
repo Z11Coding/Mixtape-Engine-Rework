@@ -1,10 +1,11 @@
 package objects.notes;
 
+import objects.funkin.graphics.ZSprite;
 import shaders.RGBPalette;
 
 // This code was from Psych Online, so credit to NotMagniill and Snirozu for the code
 
-class SustainSplash extends FlxSprite
+class SustainSplash extends ZSprite
 {
 	public var rgbShader:NoteSplash.PixelSplashShaderRef;
 
@@ -16,6 +17,19 @@ class SustainSplash extends FlxSprite
 	var timer:FlxTimer;
 
 	public static var defaultNoteHoldSplash(default, never):String = 'noteSplashes/holdSplashes/holdSplash';
+
+	// true if using spiral hold, false if not. Done this way so when the hold is finished, it keeps its angle.
+	public var isSpiralHold:Bool = false;
+
+	// Custom position logic added by WITF that positions holdCovers at the ends of holds (where they get clipped) instead of at the strumNote.
+	public var holdPositioned(default, set):Bool;
+
+	function set_holdPositioned(value:Bool):Bool
+	{
+		autoCalculatePerspective = !value;
+		holdPositioned = value;
+		return holdPositioned;
+	}
 
 	public function new():Void
 	{
@@ -31,10 +45,22 @@ class SustainSplash extends FlxSprite
 		}
 		animation.addByPrefix('hold', 'hold', 24, true);
 		animation.addByPrefix('end', 'end', 24, false);
+
+		isHoldCover = true;
+    coverBehindStrums = false;
+    applyAngularVelocityOffset = true;
 	}
 
+	public var autoOrigin:Bool = false;
 	override function update(elapsed)
 	{
+		if (autoOrigin) glow.centerOrigin();
+		if (!holdPositioned)
+		{
+			var o = [1.08, 0.75];
+			glow.perspectiveWidth = glow.width * o[0];
+			glow.perspectiveHeight = glow.height * o[1];
+		}
 		super.update(elapsed);
 
 		if (strumNote != null)
@@ -117,6 +143,24 @@ class SustainSplash extends FlxSprite
 			}
 			kill();
 		});
+
+		final holdOrigin = strumNote.origin;
+    if (holdOrigin == null)
+    {
+      autoOrigin = true;
+    }
+    else
+    {
+      if (holdOrigin.length >= 2 && holdOrigin[2] >= 1)
+      {
+        autoOrigin = true;
+      }
+      else
+      {
+        autoOrigin = false;
+        this.origin.set(holdOrigin[0], holdOrigin[1]); // Magic numbers which make it rotate from the center properly!
+      }
+    }
 	}
 
 	public static function getSplashSkinPostfix()

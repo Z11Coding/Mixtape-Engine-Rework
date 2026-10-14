@@ -1,6 +1,7 @@
 package objects.notes;
 
 import backend.animation.PsychAnimationController;
+import backend.modchartSystem.NoteData;
 import backend.modchartSystem.StrumExtraData;
 import objects.funkin.graphics.ZSpriteProjected;
 import shaders.HSVNotesShader;
@@ -9,8 +10,19 @@ import shaders.RGBPalette;
 
 class StrumNote extends ZSpriteProjected
 {
+	public var noteModData:NoteData;
 	public var strumExtraModData:StrumExtraData;
 	var hsvShader:HSVNotesShader;
+
+	public var strumDistance(default, set):Float;
+
+  function set_strumDistance(value:Float):Float
+  {
+    this.strumDistance = value;
+    if (noteModData != null) noteModData.strumPosition = this.strumDistance;
+    return this.strumDistance;
+  }
+
 
 	 /**
    * Set this flag to `true` to disable performance optimizations that cause
@@ -98,6 +110,7 @@ class StrumNote extends ZSpriteProjected
         useRGBShader = false;
     }
 
+		noteModData = new NoteData();
 		strumExtraModData = new StrumExtraData(this);
 		this.applyAngularVelocityOffset = true;
 

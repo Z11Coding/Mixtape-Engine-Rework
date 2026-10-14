@@ -1,6 +1,7 @@
 package objects.notes;
 
 import backend.animation.PsychAnimationController;
+import backend.modchartSystem.NoteData;
 import objects.funkin.graphics.ZSpriteProjected;
 import objects.notes.NoteTypesConfig;
 import objects.notes.SustainSplash;
@@ -971,8 +972,9 @@ class Note extends ZSpriteProjected
     this.hsvShader.stealthGlowGreen = stealthGlowGreen;
     this.hsvShader.stealthGlowRed = stealthGlowRed;
 
-		this.rgbShader.mult = (stealthGlow+1);
-		this.updateRGBColors(stealthGlowRed, stealthGlowGreen, stealthGlowBlue);
+		var rgbConvert = FlxColor.fromRGB(stealthGlowRed, stealthGlowGreen, stealthGlowBlue, stealthGlow);
+		this.rgbShader.mult = rgbConvert.alphaFloat;
+		this.updateRGBColors(rgbConvert, rgbConvert, rgbConvert);
   }
 
 	override public function kill():Void

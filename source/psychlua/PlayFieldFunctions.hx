@@ -1,16 +1,1467 @@
 package psychlua;
 
+import backend.modchartSystem.ModHandler;
+import backend.modchartSystem.NoteData;
+import backend.modchartSystem.modifiers.BaseModifier;
+import flixel.FlxBasic;
+import flixel.FlxCamera;
+import flixel.FlxG;
+import flixel.FlxGame;
+import flixel.FlxObject;
+import flixel.FlxSprite;
+import flixel.FlxState;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+import flixel.math.FlxMath;
+// import flixel.system.FlxSound;
+import flixel.text.FlxText;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
+import funkin.data.song.SongData.SongNoteData;
+import funkin.graphics.ZSprite;
+import hscript.Expr;
+import hscript.Interp;
+import hscript.Parser;
+import llua.Convert;
+import llua.Lua;
+import llua.LuaL;
+import llua.State;
+import objects.notes.StrumNote;
+import objects.notes.Strumline;
+import objects.notes.notestyle.NoteStyle;
+import openfl.display.BlendMode;
+import openfl.display.TriangleCulling;
+
+using StringTools;
 
 class PlayFieldFunctions
 {
+	// Any strumlines added to here will be ignored by the any uses of "all" when picking targets. Useful if you know you are never going to use opponentStrumline for example.
+  var allTargetExlusions:Array<Strumline> = [];
+
 	public static function implement(funk:FunkinLua)
 	{
 		//TODO: use this when the modchart system actually gets added
 		var lua = funk.lua;
-		Lua_helper.add_callback(lua, "thing", function()
-		{
-			// Do Thing
-		});
 
-	}
+		set('curBpm', Conductor.instance.bpm);
+    set('startingBPM', Conductor.instance.startingBPM);
+    set('songPos', Conductor.instance.songPosition);
+    set('beatPos', Conductor.instance.currentBeatTime);
+
+    set('measureLength', Conductor.instance.measureLengthMs);
+    set('beatLength', Conductor.instance.beatLengthMs);
+    set('stepLength', Conductor.instance.stepLengthMs);
+
+    set('stepsPerBeat', Constants.STEPS_PER_BEAT);
+
+    set('strumSize', ModConstants.strumSize);
+
+    set('modchartVersion', ModConstants.MODCHART_VERSION);
+    set('witfVersion', ModConstants.MODCHART_VERSION);
+
+    set('sw', FlxG.width);
+    set('sh', FlxG.height);
+    set('downScroll', ClientPrefs.data.downScroll);
+    set('upscroll', !ClientPrefs.data.downScroll);
+    set('upScroll', !ClientPrefs.data.downScroll);
+
+    set('invertStrumlineTarget', ModConstants.invertStrumlineTarget); // For swap chart mod
+
+		Lua_helper.add_callback(lua, "getBeatTimeInMs", Conductor.instance.getBeatTimeInMs);
+    Lua_helper.add_callback(lua, "getStepTimeInMs", Conductor.instance.getStepTimeInMs);
+    Lua_helper.add_callback(lua, "getTimeInSteps", Conductor.instance.getTimeInSteps);
+
+    Lua_helper.add_callback(lua, "targetExclude", function(who:String):Void
+    {
+      var strummy:Null<Strumline> = ModConstants.grabStrumModTarget(who).strum;
+      if (strummy != null) allTargetExlusions.push(strummy);
+    });
+
+    Lua_helper.add_callback(lua, "notesBehindHUD", function(newVal:Bool)
+    {
+      if (MegaManager.playfield != null)
+      {
+        MegaManager.playfield.notesAboveHUD = !newVal;
+      }
+    });
+
+    // v0.8.1a -> New function that allows you to get the beats of notes between two points in a song, similar to using GetNoteData() for NotITG mirin
+    // v[1] == the beats that the charted notes are on
+    // v[2] == the column that the charted notes are on, starting from 0
+    // v[3] == the hold length (0 means no hold) in ms
+    // v[4] == the type of note (such as "default", "hurt", "invisible", "dodge",etc)
+    Lua_helper.add_callback(lua, "getNoteBeats", ModConstants.getNoteBeats);
+
+    // TODO:
+    // FUNCS, FUNC_TWEEN, AND PERFRAME
+    // OTHER LUA EVENT STUFF LOL
+
+    Lua_helper.add_callback(lua, "setasleep", function(time:Float, playerTarget:String, newSleepState:Bool = false)
+    {
+      if (playerTarget == "bf" || playerTarget == "boyfriend" || playerTarget == "0" || playerTarget == "1")
+      {
+        PlayState.instance.addTextToDebug("Player strumline cannot be set to sleep!", FlxColor.ORANGE);
+        return;
+      }
+
+      if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+      {
+        for (customStrummer in MegaManager.playfield.allStrumLines)
+        {
+          // DO NOT ASLEEP BF!
+          if (customStrummer != MegaManager.playfield.playerStrums)
+          {
+            MegaManager.playfield.modchartEventHandler.funcModEvent(customStrummer.mods, time, function()
+            {
+              customStrummer.asleep = newSleepState;
+            });
+          }
+        }
+      }
+      else
+      {
+        var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+        if (modsTarget.strum != MegaManager.playfield.playerStrums)
+        {
+          MegaManager.playfield.modchartEventHandler.funcModEvent(modsTarget, time, function()
+          {
+            modsTarget.strum.asleep = newSleepState;
+          });
+        }
+      }
+    });
+
+    Lua_helper.add_callback(lua, "setStrumControl", function(playerTarget:String, isPlayerControlled:Bool, time:Float)
+    {
+      if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+      {
+        for (customStrummer in MegaManager.playfield.allStrumLines)
+        {
+          // DO NOT ASLEEP BF!
+          if (!(customStrummer == MegaManager.playfield.playerStrums || customStrummer == MegaManager.playfield.opponentStrumline))
+          {
+            MegaManager.playfield.modchartEventHandler.funcModEvent(customStrummer.mods, time, function()
+            {
+              customStrummer.isPlayerControlled = isPlayerControlled;
+            });
+          }
+        }
+      }
+      else
+      {
+        var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+
+        if (modsTarget.strum == MegaManager.playfield.opponentStrumline || modsTarget.strum == MegaManager.playfield.playerStrums)
+        {
+          MegaManager.playfield.addTextToDebug("Changing player control only works for custom strumlines!", FlxColor.ORANGE);
+        }
+        else
+        {
+          MegaManager.playfield.modchartEventHandler.funcModEvent(modsTarget, time, function()
+          {
+            modsTarget.strum.isPlayerControlled = isPlayerControlled;
+          });
+        }
+      }
+    });
+
+    // LMAO
+    Lua_helper.add_callback(lua, "easeFlip", function(ease1:String):String
+    {
+      return 'flip(${ease1})';
+    });
+    Lua_helper.add_callback(lua, "easeBlend", function(ease1:String, ease2:String):String
+    {
+      return 'blend(${ease1},${ease2})';
+    });
+    Lua_helper.add_callback(lua, "easeMerge", function(ease1:String, ease2:String):String
+    {
+      return 'merge(${ease1},${ease2})';
+    });
+    Lua_helper.add_callback(lua, "easeLerp", function(ease1:String, ease2:String):String
+    {
+      return 'lerp(${ease1},${ease2})';
+    });
+
+    Lua_helper.add_callback(lua, "flip", function(ease1:String):String
+    {
+      return 'flip(${ease1})';
+    });
+    Lua_helper.add_callback(lua, "blend", function(ease1:String, ease2:String):String
+    {
+      return 'blend(${ease1},${ease2})';
+    });
+    Lua_helper.add_callback(lua, "merge", function(ease1:String, ease2:String):String
+    {
+      return 'merge(${ease1},${ease2})';
+    });
+    Lua_helper.add_callback(lua, "lerp", function(ease1:String, ease2:String):String
+    {
+      return 'lerp(${ease1},${ease2})';
+    });
+
+    Lua_helper.add_callback(lua, "tween", tweenFunc_parser);
+    Lua_helper.add_callback(lua, "ease", tweenFunc_parser);
+    Lua_helper.add_callback(lua, "value", valueFunc);
+    Lua_helper.add_callback(lua, "setdefault", setDefaultFunc_parser);
+    Lua_helper.add_callback(lua, "set", setFunc_parser);
+    Lua_helper.add_callback(lua, "add", addFunc_parser);
+
+    Lua_helper.add_callback(lua, "setdefaults", function(data:String)
+    {
+      var input:String = StringTools.replace(data, "\n", "");
+      input = StringTools.replace(input, " ", "");
+      var a:Array<String> = input.split(',');
+
+      var modValues:Array<Float> = [];
+      var modNames:Array<String> = [];
+      var targets:Array<String> = [];
+
+      var inArray:Bool = false;
+      var stage:Int = 0;
+      var usingAltFormat:Bool = false;
+
+      for (i in 0...a.length)
+      {
+        var str:String = a[i];
+
+        if (StringTools.startsWith(str, "[")) inArray = true;
+        if (StringTools.endsWith(str, "]")) inArray = false;
+        if (!inArray) stage++;
+      }
+      if (stage - 1 < 2)
+      {
+        usingAltFormat = true; // player target is never used, meaning modNames is where the targets are as the user wants to use mirin styled mod table thingy
+        trace("USING ALT FORMAT");
+      }
+      stage = 0;
+      inArray = false;
+      var modAlternator:Bool = false; // ping pongs between true and false during alt format
+      // trace(a);
+      for (i in 0...a.length)
+      {
+        var str:String = a[i];
+
+        // trace(str);
+        if (StringTools.startsWith(str, "[")) inArray = true;
+        str = StringTools.replace(str, "[", "");
+        if (StringTools.endsWith(str, "]")) inArray = false;
+        str = StringTools.replace(str, "]", "");
+        // trace(inArray);
+        switch (stage)
+        {
+          case 0:
+            if (usingAltFormat && modAlternator) modNames.push(str);
+            else
+              modValues.push(Std.parseFloat(str));
+            modAlternator = !modAlternator;
+          case 1:
+            if (usingAltFormat) targets.push(str);
+            else
+              modNames.push(str);
+          case 2:
+            if (!usingAltFormat) targets.push(str);
+        }
+        if (!inArray) stage++;
+      }
+
+      multiFunc([], [], [], modValues, modNames, targets, "default");
+    });
+    Lua_helper.add_callback(lua, "sets", function(data:String)
+    {
+      var input:String = StringTools.replace(data, "\n", "");
+      input = StringTools.replace(input, " ", "");
+      var a:Array<String> = input.split(',');
+
+      var startBeats:Array<Float> = [];
+      var modValues:Array<Float> = [];
+      var modNames:Array<String> = [];
+      var targets:Array<String> = [];
+
+      var inArray:Bool = false;
+      var stage:Int = 0;
+      var usingAltFormat:Bool = false;
+
+      for (i in 0...a.length)
+      {
+        var str:String = a[i];
+
+        if (StringTools.startsWith(str, "[")) inArray = true;
+        if (StringTools.endsWith(str, "]")) inArray = false;
+        if (!inArray) stage++;
+      }
+      if (stage - 1 < 3)
+      {
+        usingAltFormat = true; // player target is never used, meaning modNames is where the targets are as the user wants to use mirin styled mod table thingy
+        trace("USING ALT FORMAT");
+      }
+      stage = 0;
+      inArray = false;
+      var modAlternator:Bool = false; // ping pongs between true and false during alt format
+      // trace(a);
+      for (i in 0...a.length)
+      {
+        var str:String = a[i];
+
+        // trace(str);
+        if (StringTools.startsWith(str, "[")) inArray = true;
+        str = StringTools.replace(str, "[", "");
+        if (StringTools.endsWith(str, "]")) inArray = false;
+        str = StringTools.replace(str, "]", "");
+        // trace(inArray);
+        switch (stage)
+        {
+          case 0:
+            startBeats.push(Std.parseFloat(str));
+          case 1:
+            if (usingAltFormat && modAlternator) modNames.push(str);
+            else
+              modValues.push(Std.parseFloat(str));
+            modAlternator = !modAlternator;
+          case 2:
+            if (usingAltFormat) targets.push(str);
+            else
+              modNames.push(str);
+          case 3:
+            if (!usingAltFormat) targets.push(str);
+        }
+        if (!inArray) stage++;
+      }
+
+      multiFunc(startBeats, [], [], modValues, modNames, targets, "set");
+    });
+    Lua_helper.add_callback(lua, "adds", function(data:String)
+    {
+      multiFuncParse(data, "add");
+    });
+    Lua_helper.add_callback(lua, "eases", function(data:String)
+    {
+      multiFuncParse(data, "tween");
+    });
+    Lua_helper.add_callback(lua, "tweens", function(data:String)
+    {
+      multiFuncParse(data, "tween");
+    });
+    Lua_helper.add_callback(lua, "values", function(data:String)
+    {
+      trace("!!! TEST !!!");
+
+      // remove all \n and spaces
+      var input:String = StringTools.replace(data, "\n", "");
+      input = StringTools.replace(input, " ", "");
+      // "[4,6,8.5,9],[0.75,1,1.5],[sineInOut,bounce,sineInOut],[100,drunk,200,tipsy],[bf,3]"
+      // "4, 1, bounce, [100, -100], [x, y], bf"
+      var a:Array<String> = input.split(',');
+
+      // [[4], [6], [8.5], [9]] ....
+      // [4], [1], [bounce], [[100], [-100]], [[x], [y]], [bf]
+      var startBeats:Array<Float> = [];
+      var lengthBeats:Array<Float> = [];
+      var eases:Array<String> = [];
+      var modStartValues:Array<Float> = [];
+      var modEndValues:Array<Float> = [];
+      var modNames:Array<String> = [];
+      var targets:Array<String> = [];
+
+      var inArray:Bool = false;
+      var stage:Int = 0;
+      var usingAltFormat:Bool = false;
+
+      for (i in 0...a.length)
+      {
+        var str:String = a[i];
+
+        if (StringTools.startsWith(str, "[")) inArray = true;
+        if (StringTools.endsWith(str, "]")) inArray = false;
+        if (!inArray) stage++;
+      }
+      trace("stage: " + stage);
+      if (stage - 1 <= 4)
+      {
+        usingAltFormat = true; // player target is never used, meaning modNames is where the targets are as the user wants to use mirin styled mod table thingy
+        trace("USING ALT FORMAT");
+      }
+      stage = 0;
+      inArray = false;
+      var modAlternator:Int = 0; // ping pongs between true and false during alt format
+      // trace(a);
+      for (i in 0...a.length)
+      {
+        var str:String = a[i];
+
+        // trace(str);
+        if (StringTools.startsWith(str, "[")) inArray = true;
+        str = StringTools.replace(str, "[", "");
+        if (StringTools.endsWith(str, "]")) inArray = false;
+        str = StringTools.replace(str, "]", "");
+        // trace(inArray);
+        switch (stage)
+        {
+          case 0:
+            startBeats.push(Std.parseFloat(str));
+          case 1:
+            lengthBeats.push(Std.parseFloat(str));
+          case 2:
+            eases.push(str);
+          case 3:
+            if (usingAltFormat)
+            {
+              switch (modAlternator)
+              {
+                case 0:
+                  modStartValues.push(Std.parseFloat(str));
+                case 1:
+                  modEndValues.push(Std.parseFloat(str));
+                case 2:
+                  modNames.push(str);
+              }
+              modAlternator++;
+              if (modAlternator > 2) modAlternator = 0;
+            }
+            else
+            {
+              modStartValues.push(Std.parseFloat(str));
+            }
+          case 4:
+            if (usingAltFormat)
+            {
+              targets.push(str);
+            }
+            else
+            {
+              modEndValues.push(Std.parseFloat(str));
+            }
+          case 5:
+            if (!usingAltFormat) modNames.push(str);
+          case 6:
+            if (!usingAltFormat) targets.push(str);
+        }
+        if (!inArray) stage++;
+      }
+      trace(" ---------- ");
+      trace(startBeats);
+      trace(lengthBeats);
+      trace(eases);
+      trace(modStartValues);
+      trace(modEndValues);
+      trace(modNames);
+      trace(targets);
+      trace("!!! FIN !!!");
+
+      if (targets.length < 1)
+      { // if empty, default to targetting all
+        targets.push("all");
+      }
+
+      for (i in 0...startBeats.length)
+      {
+        var startBeat:Float = startBeats[i];
+        var length:Float = 1;
+
+        if (i < lengthBeats.length)
+        {
+          length = lengthBeats[i];
+        }
+        else
+        {
+          length = lengthBeats[lengthBeats.length - 1];
+        }
+        var e:String = "linear";
+
+        if (i < eases.length)
+        {
+          e = eases[i];
+        }
+        else
+        {
+          e = eases[eases.length - 1];
+        }
+        for (m in 0...modNames.length)
+        {
+          var mn:String = modNames[m];
+          var msv:Float = 1;
+          if (m < modStartValues.length)
+          {
+            msv = modStartValues[m];
+          }
+          else
+          {
+            msv = modStartValues[modStartValues.length - 1];
+          }
+          var mev:Float = 0;
+          if (m < modEndValues.length)
+          {
+            mev = modEndValues[m];
+          }
+          else
+          {
+            mev = modEndValues[modEndValues.length - 1];
+          }
+          for (k in 0...targets.length)
+          {
+            var t:String = targets[k];
+            valueFunc(startBeat, length, e, msv, mev, mn, t);
+          }
+        }
+      }
+    });
+
+    Lua_helper.add_callback(lua, "reset", function(startBeat:Float, playerTarget:String = "all")
+    {
+      if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+      {
+        for (strummer in MegaManager.playfield.allStrumLines)
+        {
+          if (!allTargetExlusions.contains(strummer)) MegaManager.playfield.modchartEventHandler.resetModEvent(strummer.mods, startBeat);
+        }
+      }
+      else
+      {
+        var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+        MegaManager.playfield.modchartEventHandler.resetModEvent(modsTarget, startBeat);
+      }
+    });
+
+    Lua_helper.add_callback(lua, "resort", function(startBeat:Float, playerTarget:String = "all")
+    {
+      MegaManager.playfield.modchartEventHandler.modChartHasResort = true;
+      if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+      {
+        for (strummer in MegaManager.playfield.allStrumLines)
+        {
+          if (!allTargetExlusions.contains(strummer)) MegaManager.playfield.modchartEventHandler.resortModEvent(strummer.mods, startBeat);
+        }
+      }
+      else
+      {
+        var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+        MegaManager.playfield.modchartEventHandler.resortModEvent(modsTarget, startBeat);
+      }
+    });
+
+    Lua_helper.add_callback(lua, "percentageMode", function(newval:Bool = false)
+    {
+      trace("set percentage mode to: " + newval);
+      MegaManager.playfield.modchartEventHandler.percentageMods = newval;
+      luaTrace("'percentageMode' is not available!", FlxColor.RED);
+    });
+
+    Lua_helper.add_callback(lua, "hideNotifs", function(newval:Bool = false)
+    {
+      MegaManager.playfield.hideNotifs = newval;
+      trace(MegaManager.playfield.hideNotifs ? "Will no longer display notifs..." : "Showing notifs!");
+    });
+
+    Lua_helper.add_callback(lua, "invertForDad", function(newval:Bool = false)
+    {
+      trace("set invert mode to: " + newval);
+      MegaManager.playfield.modchartEventHandler.invertForOpponent = newval;
+    });
+
+    Lua_helper.add_callback(lua, "copyZoom", function(newval:Bool = false)
+    {
+      MegaManager.playfield.noteCamCopyHudZoom = newval;
+    });
+
+    Lua_helper.add_callback(lua, "centerPlayer", function(pointless:String = "")
+    {
+      var playerStrums:Strumline = MegaManager.playfield.playerStrums;
+      if (playerStrums != null)
+      {
+        playerStrums.x = (FlxG.width / 2 - playerStrums.width / 2);
+      }
+    });
+    Lua_helper.add_callback(lua, "hideOpponent", function(pointless:String = "")
+    {
+      trace("attempting to hide opponent");
+      var strummer = MegaManager.playfield.playerStrums;
+      if (strummer != null)
+      {
+        strummer.asleep = true;
+        strummer.x = -999;
+        strummer.visible = false;
+        for (arrow in strummer.members)
+        {
+          arrow.visible = false;
+        }
+      }
+    });
+
+    Lua_helper.add_callback(lua, "centerStrum", function(playerTarget:String = "all")
+    {
+      if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+      {
+        for (strummer in MegaManager.playfield.allStrumLines)
+        {
+          if (!allTargetExlusions.contains(strummer))
+          {
+            strummer.x = (FlxG.width / 2 - strummer.width / 2);
+          }
+        }
+      }
+      else
+      {
+        var strummer:FlxSprite = ModConstants.grabStrumModTarget(playerTarget).strum;
+        if (strummer != null)
+        {
+          strummer.x = (FlxG.width / 2 - strummer.width / 2);
+        }
+      }
+    });
+
+    Lua_helper.add_callback(lua, "hideStrum", function(playerTarget:String = "opponent")
+    {
+      if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+      {
+        for (strummer in MegaManager.playfield.allStrumLines)
+        {
+          if (!allTargetExlusions.contains(strummer))
+          {
+            strummer.asleep = true;
+            strummer.x = -999;
+            strummer.visible = false;
+            for (arrow in strummer.members)
+            {
+              arrow.visible = false;
+            }
+          }
+        }
+      }
+      else
+      {
+        var strummer:Strumline = ModConstants.grabStrumModTarget(playerTarget).strum;
+        if (strummer != null)
+        {
+          strummer.asleep = true;
+          strummer.x = -999;
+          strummer.visible = false;
+          for (arrow in strummer.members)
+          {
+            arrow.visible = false;
+          }
+        }
+      }
+    });
+
+    Lua_helper.add_callback(lua, "centerOpponent", function(pointless:String = "")
+    {
+      var strummer:FlxSprite = MegaManager.playfield.opponentStrums;
+      if (strummer != null)
+      {
+        strummer.x = (FlxG.width / 2 - strummer.width / 2);
+      }
+    });
+
+    Lua_helper.add_callback(lua, "hidePlayer", function(pointless:String = "")
+    {
+      trace("attempting to hide player");
+      var strummer:Strumline = MegaManager.playfield.playerStrums;
+      if (strummer != null)
+      {
+        strummer.asleep = true;
+        strummer.x = -999;
+        strummer.visible = false;
+        for (arrow in strummer.members)
+        {
+          arrow.visible = false;
+        }
+      }
+    });
+
+    // legacy function, just use the grain mod
+    Lua_helper.add_callback(lua, "setGrain", function(newGrainValue:Float = 80, playerTarget:String = "all")
+    {
+      luaTrace("'setGrain' is obsolete! Use the 'grain' modifier instead!", FlxColor.RED);
+    });
+
+    // legacy function, use createNewPlayer
+    Lua_helper.add_callback(lua, "customStrumAmount", function(newval:Int = 0)
+    {
+      luaTrace("'customStrumAmount' is obsolete! Use 'createNewPlayer()' instead!", true, FlxColor.RED);
+    });
+
+    Lua_helper.add_callback(lua, "createNewPlayer", function(playerControlled:Bool, ?noteStyle:String)
+    {
+      MegaManager.playfield.constructNewStrumLine(playerControlled, noteStyle);
+    });
+
+    Lua_helper.add_callback(lua, "trace", function(text:String, startBeat:Null<Float> = null)
+    {
+      if (startBeat != null)
+      {
+        MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+        {
+          MegaManager.playfield.addTextToDebug(text);
+        }, false);
+      }
+      else
+      {
+        MegaManager.playfield.addTextToDebug(text);
+      }
+    });
+
+    Lua_helper.add_callback(lua, "aftSetup", function(startBeat:Null<Float> = null)
+    {
+      if (MegaManager.playfield.luaAFT_Capture != null)
+      {
+        luaTrace("Only one Lua AFT sprite can exist.", FlxColor.ORANGE);
+        return;
+      }
+      if (startBeat == null)
+      {
+        MegaManager.playfield.setUpLuaAft();
+      }
+      else
+      {
+        MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+        {
+          MegaManager.playfield.setUpLuaAft();
+        });
+      }
+    });
+
+    Lua_helper.add_callback(lua, "aftCaptureAlpha", function(startBeat:Float, v:Float)
+    {
+      luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
+      /*
+        if (MegaManager.playfield.luaAFT_Capture == null)
+        {
+          luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+          return;
+        }
+        MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function() {
+          MegaManager.playfield.luaAFT_Capture.alpha = v;
+          trace("oh hey, we alpha cap", v);
+        });
+       */
+    });
+
+    Lua_helper.add_callback(lua, "aftSpriteAlpha", function(startBeat:Float, v:Float)
+    {
+      if (MegaManager.playfield.luaAFT_Capture == null)
+      {
+        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        return;
+      }
+      MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+      {
+        MegaManager.playfield.luaAFT_sprite.alpha = v;
+        trace("oh hey, we alpha spr", v);
+      });
+    });
+
+    Lua_helper.add_callback(lua, "aftAlpha", function(startBeat:Float, v:Float)
+    {
+      if (MegaManager.playfield.luaAFT_Capture == null)
+      {
+        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        return;
+      }
+      MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+      {
+        // MegaManager.playfield.luaAFT_Capture.alpha = v;
+        MegaManager.playfield.luaAFT_sprite.alpha = v;
+        trace("oh hey, we alpha it", v);
+      });
+    });
+
+    Lua_helper.add_callback(lua, "aftRecursive", function(startBeat:Float, v:Bool)
+    {
+      if (MegaManager.playfield.luaAFT_Capture == null)
+      {
+        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        return;
+      }
+      MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+      {
+        MegaManager.playfield.luaAFT_Capture.recursive = v;
+      });
+    });
+    Lua_helper.add_callback(lua, "aftUpdateRate", function(startBeat:Float, v:Float, trueValue:Bool = false)
+    {
+      if (MegaManager.playfield.luaAFT_Capture == null)
+      {
+        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        return;
+      }
+      if (trueValue)
+      {
+        MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+        {
+          MegaManager.playfield.luaAFT_Capture.updateRate = v;
+        });
+      }
+      else
+      {
+        MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+        {
+          MegaManager.playfield.luaAFT_Capture.targetFps(v);
+        });
+      }
+    });
+    Lua_helper.add_callback(lua, "aftBlend", function(startBeat:Float, b:String)
+    {
+      if (MegaManager.playfield.luaAFT_Capture == null)
+      {
+        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        return;
+      }
+      MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+      {
+        MegaManager.playfield.luaAFT_Capture.blendMode = b;
+      });
+    });
+    Lua_helper.add_callback(lua, "aftSize", function(startBeat:Float, s:Float)
+    {
+      if (MegaManager.playfield.luaAFT_Capture == null)
+      {
+        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        return;
+      }
+      MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
+      {
+        MegaManager.playfield.luaAFT_sprite.setGraphicSize(Std.int(MegaManager.playfield.luaAFT_Capture.w * s));
+        trace("oh hey, we resized it");
+      });
+    });
+
+    Lua_helper.add_callback(lua, "aftTweenAlpha", function(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float)
+    {
+      luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
+      /*
+        if (MegaManager.playfield.luaAFT_Capture == null)
+        {
+          luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+          return;
+        }
+        MegaManager.playfield.modchartEventHandler.funcTweenModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, lengthInBeats,
+          ModConstants.getEaseFromString(easeToUse), MegaManager.playfield.luaAFT_Capture.alpha, modValue, function(v) {
+            // MegaManager.playfield.luaAFT_Capture.alpha = v;
+            MegaManager.playfield.luaAFT_sprite.alpha = v;
+            return v;
+        }, "luaAFT_alpha");
+       */
+    });
+
+    Lua_helper.add_callback(lua, "aftTweenSize", function(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float)
+    {
+      if (MegaManager.playfield.luaAFT_Capture == null)
+      {
+        // MegaManager.playfield.addTextToDebug("No lua aft sprite!");
+        // trace("No lua aft!");
+        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        return;
+      }
+      MegaManager.playfield.modchartEventHandler.funcTweenModEvent(
+        ModConstants.grabStrumModTarget("bf"),
+        startBeat,
+        lengthInBeats,
+        ModConstants.getEaseFromString(easeToUse),
+        1,
+        modValue,
+        function(v)
+        {
+          MegaManager.playfield.luaAFT_sprite.setGraphicSize(Std.int(MegaManager.playfield.luaAFT_Capture.w * v));
+          return v;
+        },
+        "luaAFT_scale"
+      );
+    });
+
+    // Stolen from Funkin Lua
+    Lua_helper.add_callback(lua, "addHaxeLibrary", function(libName:String, ?libPackage:String = '')
+    {
+      #if hscript
+      initHaxeModule();
+      try
+      {
+        var full:String = (libPackage.length > 0 ? libPackage + '.' : '') + libName;
+
+        if (isBlacklisted(full))
+        {
+          luaTrace("Cannot use '" + full + "' as it is blacklisted.", false, false, FlxColor.RED);
+          return;
+        }
+
+        hscript.variables.set(libName, Type.resolveClass(full));
+      }
+      catch (e:Dynamic)
+      {
+        luaTrace(scriptName + ":" + lastCalledFunction + " - " + e, false, false, FlxColor.RED);
+      }
+      #else
+      luaTrace("HScript isn't supported on this platform!", false, false, FlxColor.RED);
+      #end
+    });
+
+    Lua_helper.add_callback(lua, "runHaxeCode", function(codeToRun:String)
+    {
+      var retVal:Dynamic = null;
+
+      #if hscript
+      initHaxeModule();
+      try
+      {
+        retVal = hscript.execute(codeToRun);
+      }
+      catch (e:Dynamic)
+      {
+        luaTrace(scriptName + ":" + lastCalledFunction + " - " + e, false, false, FlxColor.RED);
+      }
+      #else
+      luaTrace("runHaxeCode: HScript isn't supported on this platform!", false, false, FlxColor.RED);
+      #end
+
+      if (retVal != null && !isOfTypes(retVal, [
+        Bool,
+        Int,
+        Float,
+        String,
+        Array
+      ])) retVal = null;
+      if (retVal == null) Lua.pushnil(lua);
+      return retVal;
+    });
+  }
+
+  function multiFuncParse(data:String, type:String):Void
+  {
+    // format: adds("[4, 6, 8.5, 9], [0.75, 1, 1.5], [sineInOut, bounce, sineInOut], [100, drunk, 200, tipsy], [bf, 3] ")
+    // startBeat = [4, 6, 8.5, 9]. Loops through each one and adds it as an event
+    // lengthInBeats = [0.75,1,1.5]. 4 will be 0.75, 6 will be 1. If startBeat iteration is larger then this array, default to last member (so 9 is 1.5)
+    // easeToUse = ["sineInOut", "bounce"]. Same as above.
+    // modValue = [100, "drunk", 100, "tipsy"] same as Mirin. Alternatively, it can have the same logic as above (as such, playerTarget will then still be used)
+    // modName will become player target
+    // playerTarget becomes unused.
+
+    trace("!!! TEST !!!");
+
+    // remove all \n and spaces
+    var input:String = StringTools.replace(data, "\n", "");
+    input = StringTools.replace(input, " ", "");
+    // "[4,6,8.5,9],[0.75,1,1.5],[sineInOut,bounce,sineInOut],[100,drunk,200,tipsy],[bf,3]"
+    // "4, 1, bounce, [100, -100], [x, y], bf"
+    var a:Array<String> = input.split(',');
+
+    // [[4], [6], [8.5], [9]] ....
+    // [4], [1], [bounce], [[100], [-100]], [[x], [y]], [bf]
+    var startBeats:Array<Float> = [];
+    var lengthBeats:Array<Float> = [];
+    var eases:Array<String> = [];
+    var modValues:Array<Float> = [];
+    var modNames:Array<String> = [];
+    var targets:Array<String> = [];
+
+    var inArray:Bool = false;
+    var stage:Int = 0;
+    var usingAltFormat:Bool = false;
+
+    for (i in 0...a.length)
+    {
+      var str:String = a[i];
+
+      if (StringTools.startsWith(str, "[")) inArray = true;
+      if (StringTools.endsWith(str, "]")) inArray = false;
+      if (!inArray) stage++;
+    }
+    trace("stage: " + stage);
+    if (stage - 1 < 5)
+    {
+      usingAltFormat = true; // player target is never used, meaning modNames is where the targets are as the user wants to use mirin styled mod table thingy
+      trace("USING ALT FORMAT");
+    }
+    stage = 0;
+    inArray = false;
+    var modAlternator:Bool = false; // ping pongs between true and false during alt format
+    // trace(a);
+    for (i in 0...a.length)
+    {
+      var str:String = a[i];
+
+      // trace(str);
+      if (StringTools.startsWith(str, "[")) inArray = true;
+      str = StringTools.replace(str, "[", "");
+      if (StringTools.endsWith(str, "]")) inArray = false;
+      str = StringTools.replace(str, "]", "");
+      // trace(inArray);
+      switch (stage)
+      {
+        case 0:
+          startBeats.push(Std.parseFloat(str));
+        case 1:
+          lengthBeats.push(Std.parseFloat(str));
+        case 2:
+          eases.push(str);
+        case 3:
+          if (usingAltFormat && modAlternator) modNames.push(str);
+          else
+            modValues.push(Std.parseFloat(str));
+          modAlternator = !modAlternator;
+        case 4:
+          if (usingAltFormat) targets.push(str);
+          else
+            modNames.push(str);
+        case 5:
+          if (!usingAltFormat) targets.push(str);
+      }
+      if (!inArray) stage++;
+    }
+
+    trace(" ---------- ");
+    trace(startBeats);
+    trace(lengthBeats);
+    trace(eases);
+    trace(modValues);
+    trace(modNames);
+    trace(targets);
+    trace("!!! FIN !!!");
+
+    multiFunc(startBeats, lengthBeats, eases, modValues, modNames, targets, type);
+  }
+
+  function multiFunc(startBeats:Array<Float>, lengthBeats:Array<Float>, eases:Array<String>, modValues:Array<Float>, modNames:Array<String>, targets:Array<String>, type:String):Void
+  {
+    if (targets.length < 1)
+    { // if empty, default to targetting all
+      targets.push("all");
+    }
+    switch (type)
+    {
+      case "default":
+        for (m in 0...modNames.length)
+        {
+          var mn:String = modNames[m];
+          var mv:Float = 1;
+          if (m < modValues.length)
+          {
+            mv = modValues[m];
+          }
+          else
+          {
+            mv = modValues[modValues.length - 1];
+          }
+          for (k in 0...targets.length)
+          {
+            var t:String = targets[k];
+            setDefaultFunc(mv, mn, t);
+          }
+        }
+      case "set":
+        for (i in 0...startBeats.length)
+        {
+          var startBeat:Float = startBeats[i];
+          for (m in 0...modNames.length)
+          {
+            var mn:String = modNames[m];
+            var mv:Float = 1;
+            if (m < modValues.length)
+            {
+              mv = modValues[m];
+            }
+            else
+            {
+              mv = modValues[modValues.length - 1];
+            }
+            for (k in 0...targets.length)
+            {
+              var t:String = targets[k];
+              setFunc(startBeat, mv, mn, t);
+            }
+          }
+        }
+      case "add" | "tween":
+        for (i in 0...startBeats.length)
+        {
+          var startBeat:Float = startBeats[i];
+          var length:Float = 1;
+
+          if (i < lengthBeats.length)
+          {
+            length = lengthBeats[i];
+          }
+          else
+          {
+            length = lengthBeats[lengthBeats.length - 1];
+          }
+          var e:String = "linear";
+
+          if (i < eases.length)
+          {
+            e = eases[i];
+          }
+          else
+          {
+            e = eases[eases.length - 1];
+          }
+          for (m in 0...modNames.length)
+          {
+            var mn:String = modNames[m];
+            var mv:Float = 1;
+            if (m < modValues.length)
+            {
+              mv = modValues[m];
+            }
+            else
+            {
+              mv = modValues[modValues.length - 1];
+            }
+            for (k in 0...targets.length)
+            {
+              var t:String = targets[k];
+
+              if (type == "add")
+              {
+                addFunc(startBeat, length, e, mv, mn, t);
+              }
+              else
+              {
+                tweenFunc(startBeat, length, e, mv, mn, t);
+              }
+            }
+          }
+        }
+    }
+  }
+
+  function valueFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, startingValue:Float, endingValue:Float, modName:String, playerTarget:String = "all"):Void
+  {
+    // trace("WOW! WE NEED TWEEN: " + modName);
+    modName = ModConstants.modAliasCheck(modName);
+
+    // trace("ease name : " + easeToUse);
+    // trace("ease to use : " + ModConstants.getEaseFromString(easeToUse));
+    if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+    {
+      for (strummer in MegaManager.playfield.allStrumLines)
+      {
+        if (!allTargetExlusions.contains(
+          strummer
+        )) MegaManager.playfield.modchartEventHandler.valueTweenModEvent(
+          strummer.mods,
+          startBeat,
+          lengthInBeats,
+          ModConstants.getEaseFromString(easeToUse),
+          startingValue,
+          endingValue,
+          modName
+          );
+      }
+    }
+    else
+    {
+      var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+
+      MegaManager.playfield.modchartEventHandler.valueTweenModEvent(
+        modsTarget,
+        startBeat,
+        lengthInBeats,
+        ModConstants.getEaseFromString(easeToUse),
+        startingValue,
+        endingValue,
+        modName
+      );
+    }
+  }
+
+  function formaterTargets(targetsRaw:Any):Array<String>
+  {
+    var targets:Array<String> = [];
+    if (Std.isOfType(targetsRaw, Array))
+    {
+      var targetsArray:Array<String> = cast targetsRaw;
+      for (i in targetsArray)
+      {
+        targets.push(i);
+      }
+    }
+    else
+    {
+      targets = [(targetsRaw ?? "all")];
+    }
+    return targets;
+  }
+
+  function setDefaultFunc_parser(modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  {
+    var targets_raw:Any = _playerTarget;
+
+    var modArray:Bool = false;
+    if (Std.isOfType(modValue, Array))
+    {
+      // modName becomes playerTarget and _playerTarget is unused.
+      modArray = true;
+      targets_raw = modName;
+    }
+
+    var targets:Array<String> = formaterTargets(targets_raw);
+
+    var modValues:Array<Float> = [];
+    var modNames:Array<String> = [];
+    if (!modArray)
+    {
+      modValues = [modValue];
+      modNames = [modName];
+    }
+    else
+    {
+      var isName:Bool = false;
+      var modsInputArray:Array<String> = cast modValue;
+      for (i in modsInputArray)
+      {
+        if (isName) modNames.push(i);
+        else
+          modValues.push(Std.parseFloat(i));
+        isName = !isName;
+      }
+    }
+
+    for (t in targets)
+    {
+      for (i in 0...modNames.length)
+      {
+        setDefaultFunc(modValues[i], modNames[i], t);
+      }
+    }
+  }
+
+  function setFunc_parser(startBeat:Float, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  {
+    var targets_raw:Any = _playerTarget;
+
+    var modArray:Bool = false;
+    if (Std.isOfType(modValue, Array))
+    {
+      // modName becomes playerTarget and _playerTarget is unused.
+      modArray = true;
+      targets_raw = modName;
+    }
+
+    var targets:Array<String> = formaterTargets(targets_raw);
+
+    var modValues:Array<Float> = [];
+    var modNames:Array<String> = [];
+    if (!modArray)
+    {
+      modValues = [modValue];
+      modNames = [modName];
+    }
+    else
+    {
+      var isName:Bool = false;
+      var modsInputArray:Array<String> = cast modValue;
+      for (i in modsInputArray)
+      {
+        if (isName) modNames.push(i);
+        else
+          modValues.push(Std.parseFloat(i));
+        isName = !isName;
+      }
+    }
+
+    for (t in targets)
+    {
+      for (i in 0...modNames.length)
+      {
+        setFunc(startBeat, modValues[i], modNames[i], t);
+      }
+    }
+  }
+
+  function addFunc_parser(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  {
+    var targets_raw:Any = _playerTarget;
+
+    var modArray:Bool = false;
+    if (Std.isOfType(modValue, Array))
+    {
+      // modName becomes playerTarget and _playerTarget is unused.
+      modArray = true;
+      targets_raw = modName;
+    }
+
+    var targets:Array<String> = formaterTargets(targets_raw);
+
+    var modValues:Array<Float> = [];
+    var modNames:Array<String> = [];
+    if (!modArray)
+    {
+      modValues = [modValue];
+      modNames = [modName];
+    }
+    else
+    {
+      var isName:Bool = false;
+      var modsInputArray:Array<String> = cast modValue;
+      for (i in modsInputArray)
+      {
+        if (isName) modNames.push(i);
+        else
+          modValues.push(Std.parseFloat(i));
+        isName = !isName;
+      }
+    }
+
+    for (t in targets)
+    {
+      for (i in 0...modNames.length)
+      {
+        addFunc(startBeat, lengthInBeats, easeToUse, modValues[i], modNames[i], t);
+      }
+    }
+  }
+
+  // could be
+  // tween(0, 4, "linear", 1, "beat", "3")
+  // tween(0, 4, "linear", {1, "beat", 1, "drunk"}, {3,1})
+  // Work In Progress replacement to allow users to input multiple mod values into the same function without needing to convert it all to a string like for tweens func
+
+  function tweenFunc_parser(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  {
+    var targets_raw:Any = _playerTarget;
+    var modArray:Bool = false;
+    if (Std.isOfType(modValue, Array))
+    {
+      // modName becomes playerTarget and _playerTarget is unused.
+      modArray = true;
+      targets_raw = modName;
+    }
+
+    var targets:Array<String> = formaterTargets(targets_raw);
+
+    var modValues:Array<Float> = [];
+    var modNames:Array<String> = [];
+    if (!modArray)
+    {
+      modValues = [modValue];
+      modNames = [modName];
+    }
+    else
+    {
+      var isName:Bool = false;
+      var modsInputArray:Array<String> = cast modValue;
+      for (i in modsInputArray)
+      {
+        if (isName) modNames.push(i);
+        else
+          modValues.push(Std.parseFloat(i));
+        isName = !isName;
+      }
+    }
+
+    for (t in targets)
+    {
+      for (i in 0...modNames.length)
+      {
+        tweenFunc(startBeat, lengthInBeats, easeToUse, modValues[i], modNames[i], t);
+      }
+    }
+  }
+
+  function tweenFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float, modName:String, playerTarget:String = "all"):Void
+  {
+    // trace("WOW! WE NEED TWEEN: " + modName);
+    modName = ModConstants.modAliasCheck(modName);
+
+    // trace("ease name : " + easeToUse);
+    // trace("ease to use : " + ModConstants.getEaseFromString(easeToUse));
+    if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+    {
+      for (strummer in MegaManager.playfield.allStrumLines)
+      {
+        if (!allTargetExlusions.contains(strummer))
+        {
+          MegaManager.playfield.modchartEventHandler.tweenModEvent(
+            strummer.mods,
+            startBeat,
+            lengthInBeats,
+            ModConstants.getEaseFromString(easeToUse),
+            modValue,
+            modName
+          );
+        }
+      }
+    }
+    else
+    {
+      var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+
+      MegaManager.playfield.modchartEventHandler.tweenModEvent(
+        modsTarget,
+        startBeat,
+        lengthInBeats,
+        ModConstants.getEaseFromString(easeToUse),
+        modValue,
+        modName
+      );
+    }
+  }
+
+  function setDefaultFunc(modValue:Float, modName:String, playerTarget:String = "all"):Void
+  {
+    modName = ModConstants.modAliasCheck(modName);
+
+    if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+    {
+      for (strummer in MegaManager.playfield.allStrumLines)
+      {
+        if (!allTargetExlusions.contains(strummer)) strummer.mods.setDefaultModVal(modName, modValue);
+      }
+    }
+    else
+    {
+      var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+
+      modsTarget.setDefaultModVal(modName, modValue);
+    }
+  }
+
+  function setFunc(startBeat:Float, modValue:Float, modName:String, playerTarget:String = "all"):Void
+  {
+    // trace("WOW! WE NEED SET: " + modName);
+    modName = ModConstants.modAliasCheck(modName);
+
+    if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+    {
+      for (strummer in MegaManager.playfield.allStrumLines)
+      {
+        if (!allTargetExlusions.contains(strummer)) MegaManager.playfield.modchartEventHandler.setModEvent(strummer.mods, startBeat, modValue, modName);
+      }
+    }
+    else
+    {
+      var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+
+      MegaManager.playfield.modchartEventHandler.setModEvent(modsTarget, startBeat, modValue, modName);
+    }
+  }
+
+  function addFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float, modName:String, playerTarget:String = "all"):Void
+  {
+    // trace("WOW! WE NEED ADD: " + modName);
+    modName = ModConstants.modAliasCheck(modName);
+    if (playerTarget == "everyone" || playerTarget == "both" || playerTarget == "all")
+    {
+      for (strummer in MegaManager.playfield.allStrumLines)
+      {
+        if (!allTargetExlusions.contains(
+          strummer
+        )) MegaManager.playfield.modchartEventHandler.addModEvent(
+          strummer.mods,
+          startBeat,
+          lengthInBeats,
+          ModConstants.getEaseFromString(easeToUse),
+          modValue,
+          modName
+          );
+      }
+    }
+    else
+    {
+      var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
+
+      MegaManager.playfield.modchartEventHandler.addModEvent(modsTarget, startBeat, lengthInBeats, ModConstants.getEaseFromString(easeToUse), modValue, modName);
+    }
+  }
 }

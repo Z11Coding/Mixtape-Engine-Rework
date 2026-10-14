@@ -235,7 +235,7 @@ class FunkinSprite extends FlxAnimate
    */
   public function loadTexture(key:String):FunkinSprite
   {
-    var graphicKey:String = Paths.image(key);
+    var graphicKey:String = Paths.imagePath(key);
 
     if (!Assets.exists(graphicKey, IMAGE))
     {
@@ -362,7 +362,7 @@ class FunkinSprite extends FlxAnimate
    */
   public function loadSparrow(key:String):FunkinSprite
   {
-    var graphicKey:String = Paths.image(key);
+    var graphicKey:String = Paths.imagePath(key);
     if (!FunkinMemory.isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
 
     this.frames = Paths.getSparrowAtlas(key);
@@ -377,7 +377,7 @@ class FunkinSprite extends FlxAnimate
    */
   public function loadPacker(key:String):FunkinSprite
   {
-    var graphicKey:String = Paths.image(key);
+    var graphicKey:String = Paths.imagePath(key);
     if (!FunkinMemory.isTextureCached(graphicKey)) FlxG.log.warn('Texture not cached, may experience stuttering! $graphicKey');
 
     this.frames = Paths.getPackerAtlas(key);
@@ -801,7 +801,11 @@ class FunkinSprite extends FlxAnimate
     return value;
   }
 
+  #if (flixel >= "6.1.0")
   override function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void
+  #else
+  override function drawComplex(camera:FlxCamera):Void
+  #end
   {
     final willUseRenderTexture = checkRenderTexture();
     final matrix = this._matrix;

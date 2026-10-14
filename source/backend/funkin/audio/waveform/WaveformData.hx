@@ -1,5 +1,7 @@
 package backend.funkin.audio.waveform;
 
+using backend.funkin.util.tools.ArrayTools;
+
 @:nullSafety
 class WaveformData
 {
@@ -166,7 +168,7 @@ class WaveformData
 
     var ratio = newSamplesPerPoint / samplesPerPoint;
     if (ratio == 1) return result;
-    if (ratio < 1) trace(' WARNING '.warning() + ' Downsampling will result in a low precision.');
+    if (ratio < 1) trace('WARNING: Downsampling will result in a low precision.');
 
     var inputSampleCount = this.lenSamples();
     var outputSampleCount = Std.int(inputSampleCount * ratio);

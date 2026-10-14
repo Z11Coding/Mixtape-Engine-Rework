@@ -116,8 +116,6 @@ class NoteData
   public var noteType:String = "note";
   // What notekind is this note? Can be default, hurt, noAnim, etc
   public var noteKind:String = "default";
-  // That ID of the notestyle this note is using.
-  public var noteStyleName:String = "funkin";
   // Lower number = more detailed holds
   public var holdGrain:Float = 82;
 
@@ -238,8 +236,7 @@ class NoteData
     this.strumTime = noteSpr.strumTime;
     this.noteType = "note";
     this.noteKind = noteSpr.kind;
-    this.noteStyleName = noteSpr.noteStyleName;
-    this.direction = noteSpr.direction;
+    this.direction = noteSpr.noteData;
   }
 
   // Call this function to reset all values back to default!
@@ -254,7 +251,6 @@ class NoteData
 
     noteType = "note";
     noteKind = "default";
-    noteStyleName = "funkin";
 
     x = 0;
     y = 0;

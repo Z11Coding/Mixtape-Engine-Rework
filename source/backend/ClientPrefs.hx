@@ -24,6 +24,7 @@ import states.TitleState;
 	public var splashAlpha:Float = 0.6;
 	public var maxSplashLimit:Int = 16;
 	public var noteSplashes:Bool = false;
+	public var oppNoteSplashes:Bool = false;
 	public var showNotes:Bool = true;
 	public var ezSpam:Bool = true;
 	public var dynamicSpawnTime:Bool = false;

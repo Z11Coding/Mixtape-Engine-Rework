@@ -37,7 +37,7 @@ class HSVNotesShader extends HSVShader
   public function new(h:Float = 1, s:Float = 1, v:Float = 1, g:Float = 0, shaderPath:String = "hsv_WITF")
   {
     super(h, s, v, shaderPath);
-    FlxG.debugger.addTrackerProfile(new TrackerProfile(HSVShader, ['hue', 'saturation', 'value', 'stealthGlow']));
+    //FlxG.debugger.addTrackerProfile(new TrackerProfile(HSVShader, ['hue', 'saturation', 'value', 'stealthGlow']));
     hue = h;
     saturation = s;
     value = v;

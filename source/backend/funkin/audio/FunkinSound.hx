@@ -14,6 +14,9 @@ import openfl.events.Event;
 import openfl.media.SoundChannel;
 import openfl.media.SoundMixer;
 
+using backend.funkin.util.tools.IntTools;
+using backend.funkin.util.tools.IteratorTools;
+
 /**
  * A FlxSound which adds additional functionality:
  * - Delayed playback via negative song position.
@@ -23,26 +26,6 @@ import openfl.media.SoundMixer;
 class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
 {
   static final MAX_VOLUME:Float = 1.0;
-
-  /**
-   * An FlxSignal which is dispatched when the volume changes.
-   */
-  public static var onVolumeChanged(get, never):FlxTypedSignal<Float->Void>;
-
-  static var _onVolumeChanged:Null<FlxTypedSignal<Float->Void>> = null;
-
-  static function get_onVolumeChanged():FlxTypedSignal<Float->Void>
-  {
-    if (_onVolumeChanged == null)
-    {
-      _onVolumeChanged = new FlxTypedSignal<Float->Void>();
-      FlxG.sound.onVolumeChange.add(function(volume:Float)
-      {
-        _onVolumeChanged.dispatch(volume);
-      });
-    }
-    return _onVolumeChanged;
-  }
 
   /**
    * Using `FunkinSound.load` will override a dead instance from here rather than creating a new one, if possible!
@@ -280,6 +263,7 @@ class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
    *   Data should be at `music/<key>/<key>-metadata.json`.
    * @return Whether the music was started. `false` if music was already playing or could not be started
    */
+  @:access(openfl.media.Sound)
   public static function playMusic(key:String, params:FunkinSoundPlayMusicParams):Bool {
 		if(params.pathsFunction == INST){
 			var instPath = "";

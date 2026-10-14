@@ -235,28 +235,16 @@ class SustainTrail extends ZSprite
    * Creates hold note graphic and applies correct zooming
    * @param noteStyle The note style
    */
-  public function setupHoldNoteGraphic(noteStyle:NoteStyle):Void
+  public function setupHoldNoteGraphic(noteStyle:String):Void
   {
     if (isArrowPath)
     {
-      if (parentStrumline != null)
-      {
-        loadGraphic(Paths.image(parentStrumline.arrowPathFileName));
-      }
-      else
-      {
-        loadGraphic(Paths.image('NOTE_ArrowPath'));
-      }
-    }
-    else
-    {
-      loadGraphic(noteStyle.getHoldNoteAssetPath());
+      loadGraphic(Paths.image('NOTE_ArrowPath'));
     }
 
-    noteStyleName = noteStyle.id;
+    noteStyleName = 'ArrowPath';
     antialiasing = true;
 
-    this.isPixel = noteStyle.isHoldNotePixel();
     if (isPixel)
     {
       endOffset = bottomClip = 1;
@@ -270,8 +258,6 @@ class SustainTrail extends ZSprite
 
     zoom = 1.0;
     if (isArrowPath) zoom *= 0.7; // based of funkin notestyle
-    else
-      zoom *= noteStyle.fetchHoldNoteScale(); // arrowpath scale should not be controlled by notestyle hold scale
 
     // CALCULATE SIZE
     graphicWidth = graphic.width / 8 * zoom; // amount of notes * 2
@@ -286,10 +272,7 @@ class SustainTrail extends ZSprite
       }
     }
 
-    flipY = Preferences.downscroll #if mobile || (
-      Preferences.controlsScheme == FunkinHitboxControlSchemes.Arrows
-      && !funkin.mobile.input.ControlsHandler.hasExternalInputDevice
-    ) #end;
+    flipY = ClientPrefs.data.downscroll;
 
     // alpha = 0.6;
     alpha = 1.0;
@@ -306,7 +289,7 @@ class SustainTrail extends ZSprite
 
   function getBaseScrollSpeed():Float
   {
-    return (PlayState.instance?.currentChart?.scrollSpeed ?? 1.0);
+    return (PlayfieldManager.instance?.songSpeed ?? 1.0);
   }
 
   var previousScrollSpeed:Float = 1;

@@ -133,7 +133,7 @@ class WaveformDataParser
 
     for (error in errors)
     {
-      funkin.data.DataError.printError(error);
+      backend.funkin.data.DataError.printError(error);
     }
   }
 }

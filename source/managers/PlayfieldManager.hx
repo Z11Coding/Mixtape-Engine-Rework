@@ -1,11 +1,14 @@
 package managers;
 import backend.Song.SwagSong;
+import backend.modchartSystem.*;
 import flixel.FlxState;
 import flixel.input.keyboard.FlxKey;
+import objects.funkin.graphics.ZSprite;
 import objects.notes.Note;
 import objects.notes.NoteSplash;
 import objects.notes.PreloadNotes;
 import objects.notes.StrumNote;
+import objects.notes.Strumline;
 import objects.notes.SustainSplash;
 import openfl.events.KeyboardEvent;
 import openfl.system.System;
@@ -28,9 +31,12 @@ class PlayfieldManager {
   public var eventNotes:Array<EventNote> = [];
 	public var curEvents:Array<EventNote> = [];
 
-  public var strumLineNotes:FlxTypedGroup<StrumNote>;
-	public var opponentStrums:FlxTypedGroup<StrumNote>;
-	public var playerStrums:FlxTypedGroup<StrumNote>;
+  /**
+   * an array containg every strumline! Used for easy reference to different players!
+  */
+  public var allStrumLines:Array<Strumline> = [];
+	public var opponentStrums:Strumline;
+	public var playerStrums:Strumline;
 	public var grpHoldSplashes:FlxTypedGroup<SustainSplash>;
 	public var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
 
@@ -100,6 +106,177 @@ class PlayfieldManager {
 
   public var manualInputChecks:Bool = false;
 
+  public var perframeFunctions:Array<Float->Void> = [];
+  public var allStrumSprites:FlxTypedSpriteGroup<ZSprite>;
+  public var customZspritesGroup:FlxTypedSpriteGroup<ZSprite>;
+
+  // If true, will enable the modchart logic. If false, the game should act identical to Vanilla.
+  public var isModchartSong:Bool = true;
+
+  // basic flxSprite that can be used by lua for AFT purposes.
+  public var luaAFT_sprite:HazardAFTSpriteTest;
+  // basic AFT that can be used by lua for AFT purposes.
+  public var luaAFT_Capture:HazardAFT;
+
+  public function setUpLuaAft():Void
+  {
+    if (luaAFT_Capture != null || luaAFT_sprite != null) return; // already exists!
+    luaAFT_Capture = new HazardAFT(camNotes);
+
+    luaAFT_sprite = new HazardAFTSpriteTest(luaAFT_Capture);
+    luaAFT_sprite.cameras = [camNotes];
+    // luaAFT_sprite.setGraphicSize(Std.int(luaAFT_Capture.w * 0.95));
+    luaAFT_sprite.zIndex = -9999;
+    add(luaAFT_sprite);
+  }
+
+  function compareZSprites(order:Int, a:ZSprite, b:ZSprite):Int
+  {
+    // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
+    return FlxSort.byValues(order, a?.z + ((a?.zIndex ?? 0) * 0.01), b?.z + ((b?.zIndex ?? 0) * 0.01));
+  }
+
+  // Offset for paths in zSort mode
+  public var zSortMod_PathOffset:Float = -10000; // paths should always try and render below the notes!
+  // Offset for sustains in zSort mode
+  public var zSortMod_SustainOffset:Float = -15;
+  // Offset for strumlineNotes in zSort mode
+  public var zSortMod_StrumNoteOffset:Float = -0.4;
+  // Offset for note splashes in zSort mode
+  public var zSortMod_SplashOffset:Float = 3;
+  // Offset for hold covers in zSort mode
+  public var zSortMod_CoverOffset:Float = 3;
+  // Offset for hold covers in zSort mode IF set to behind strums
+  public var zSortMod_CoverBehindOffset:Float = -11.5;
+
+  function offsetValueBasedOnType(a):Float
+  {
+    if (a.isHoldCover)
+    {
+      return a.coverBehindStrums ? zSortMod_CoverBehindOffset : zSortMod_CoverOffset;
+    }
+    else if (Std.isOfType(a, SustainNote))
+    {
+      var pcheck:SustainNote = cast(a, SustainNote);
+      return zSortMod_SustainOffset;
+    }
+    else if (Std.isOfType(a, SustainTrail))
+    {
+      var pcheck:SustainTrail = cast(a, SustainTrail);
+      return zSortMod_PathOffset;
+    }
+    else if (Std.isOfType(a, StrumNote))
+    {
+      return zSortMod_StrumNoteOffset;
+    }
+    else if (Std.isOfType(a, NoteSplash))
+    {
+      return zSortMod_SplashOffset;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
+  function compareZSprites_playfields(order:Int, a:ZSprite, b:ZSprite):Int
+  {
+    var a_value:Float = a.z;
+    var b_value:Float = b.z;
+
+    // push the sustain and strumlinenotes back a bit to try and keep their correct layering. Note they can still layer over each other with a big enough z difference.
+    // Set the offset variables to extremely high values to prevent this from ever occuring (like keep the sustains at the far back for example)
+
+    a_value += offsetValueBasedOnType(a);
+    b_value += offsetValueBasedOnType(b);
+
+    if (a_value == b_value) // If they are equal, try and use zIndex to break the tie.
+    {
+      a_value = a.zIndex;
+      b_value = b.zIndex;
+    }
+
+    return FlxSort.byValues(order, a_value, b_value);
+  }
+
+  /*
+  * Changes the way notes are rendered (kinda) so now all the sprites are in one big group for them to have their z's sorted properly!
+  */
+  public var noteRenderMode(default, set):Bool = false;
+
+  function set_noteRenderMode(v:Bool):Bool
+  {
+    if (v == noteRenderMode) return v; // skip, it's already set to this value
+    noteRenderMode = v;
+
+    if (allStrumSprites != null)
+    {
+      allStrumSprites.active = false;
+      for (strumLine in allStrumLines)
+      {
+        if (strumLine.asleep) continue; // Skip this strumline if it's asleep lol
+        strumLine.notes.visible = !v;
+        strumLine.sustainNotes.visible = !v;
+        strumLine.strumNotes.visible = !v;
+        strumLine.arrowPaths.visible = !v;
+        strumLine.noteSplashes.visible = !v;
+        strumLine.holdSplashes.visible = !v;
+
+        // Grab everything and throw it into the spritegroup!
+        if (noteRenderMode)
+        {
+          strumLine.strumNotes.forEach(function(note:ZSprite)
+          {
+            allStrumSprites.add(note);
+          });
+          strumLine.notes.forEach(function(note:ZSprite)
+          {
+            allStrumSprites.add(note);
+          });
+          strumLine.sustainNotes.forEach(function(note:ZSprite)
+          {
+            allStrumSprites.add(note);
+          });
+
+          strumLine.arrowPaths.forEach(function(note:ZSprite)
+          {
+            allStrumSprites.add(note);
+          });
+
+          strumLine.noteSplashes.forEach(function(note:ZSprite)
+          {
+            allStrumSprites.add(note);
+          });
+
+          strumLine.holdSplashes.forEach(function(note:ZSprite)
+          {
+            allStrumSprites.add(note);
+          });
+        }
+        else
+        {
+          allStrumSprites.clear();
+        }
+      }
+      allStrumSprites.visible = v;
+      trace(noteRenderMode ? "ZSort Render Method enabled!" : "ZSort Render Method disabled!");
+    }
+    return v;
+  }
+
+  /**
+ * The camera which contains and controls the visibility of the strumlines!
+ */
+  public var camNotes:FlxCamera;
+
+  /**
+  * An extra camera layer stacked in front of the notes camera that can be used for effects.
+  */
+  public var camAFT:FlxCamera;
+
+  // The event handler
+  public var modchartEventHandler:ModEventHandler;
+
   public function new() {
     instance = this;
     ExtraKeys.mania = 3;
@@ -143,10 +320,10 @@ class PlayfieldManager {
     var daOldMania = ExtraKeys.mania;
     ExtraKeys.mania = newValue;
 
-    if (playerStrums != null) playerStrums.clear();
-    if (opponentStrums != null) opponentStrums.clear();
-    if (strumLineNotes != null) strumLineNotes.clear();
+    if (playerStrums != null) playerStrums.strumNotes.clear();
+    if (opponentStrums != null) opponentStrums.strumNotes.clear();
     if (grpNoteSplashes != null) grpNoteSplashes.clear();
+    if (playfield.grpHoldSplashes != null) playfield.grpHoldSplashes.clear();
 
     if (MusicBeatState.getState() == PlayState.instance)
       PlayState.instance?.callOnScripts('onChangeMania', [ExtraKeys.mania, daOldMania]);
@@ -155,10 +332,12 @@ class PlayfieldManager {
     if (MusicBeatState.getState() == PlayState.instance)
       PlayState.instance?.setOnScripts('mania', ExtraKeys.mania);
 
-    notes.forEachAlive(function(note:Note)
-    {
-      updateNote(note);
-    });
+    for (strum in allStrumLines) {
+      strum.notes.forEachAlive(function(note:Note)
+      {
+        updateNote(note);
+      });
+    }
 
     if (MusicBeatState.getState() == PlayState.instance) {
       PlayState.instance?.callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
@@ -292,6 +471,59 @@ class PlayfieldManager {
 		}
 	}
 
+  // NEW VARIABLE FOR V0.7.5A WHICH DEFAULTS TO TRUE TO COPY HUD ZOOMING!
+  public var noteCamCopyHudZoom:Bool = true;
+
+  function updateHazModchartSystem(elapsed:Float):Void
+  {
+    if (isModchartSong && modchartEventHandler != null)
+    {
+      modchartEventHandler.update(elapsed);
+      updateTweenList();
+
+      if (allStrumSprites != null)
+      {
+        if (
+          allStrumSprites.members.length > 1
+          && allStrumSprites.visible
+        ) allStrumSprites.members.insertionSort(compareZSprites_playfields.bind(FlxSort.ASCENDING));
+      }
+
+      if (customZspritesGroup != null)
+      {
+        if (customZspritesGroup.members.length > 1 && customZspritesGroup.visible)
+        {
+          customZspritesGroup.members.insertionSort(compareZSprites.bind(FlxSort.ASCENDING));
+        }
+      }
+    }
+    if (luaAFT_Capture != null) luaAFT_Capture.update(elapsed);
+
+    if (camNotes != null && noteCamCopyHudZoom)
+    {
+      camNotes.zoom = camHUD.zoom;
+    }
+    if (camAFT != null && noteCamCopyHudZoom)
+    {
+      camAFT.zoom = camHUD.zoom;
+    }
+
+    for (fun in perframeFunctions)
+    {
+      try
+      {
+        fun(elapsed);
+      }
+      catch (e)
+      {
+        perframeFunctions.remove(fun); // to avoid constantly spamming the broken function
+        addTextToDebug(e.toString(), FlxColor.RED);
+        trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
+        return;
+      }
+    }
+  }
+
   public function generateStaticArrows(player:Int):Void
 	{
     if (MusicBeatState.getState() == PlayState.instance) {
@@ -376,6 +608,41 @@ class PlayfieldManager {
 
 		playerStrums = new FlxTypedGroup<StrumNote>();
 		opponentStrums = new FlxTypedGroup<StrumNote>();
+
+    if (isModchartSong)
+    {
+      camNotes = new FlxCamera();
+      camNotes.bgColor.alpha = 0; // Show the game scene behind the camera.
+
+      camAFT = new FlxCamera();
+      camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
+
+      opponentStrums.mods.customTweenerName = "opponent";
+      playerStrums.mods.customTweenerName = "player";
+      playerStrums.cameras = [camNotes];
+      opponentStrums.cameras = [camNotes];
+
+      modchartEventHandler = new ModEventHandler();
+      customStrumLines = [];
+
+      MegaManager.scriptManager.callOnScripts('setUp');
+
+      for (strumLine in allStrumLines)
+      {
+        if (!strumLine.defaultPlayerControl)
+        {
+          strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
+        }
+      }
+
+      modchartEventHandler.setupEvents();
+      setUpModTXT();
+
+      MegaManager.scriptManager.callOnScripts('resetModchart');
+    }
+
+    FlxG.cameras.add(camNotes, false);
+    FlxG.cameras.add(camAFT, false);
 
     strumLineNotes.cameras = [PlayState.instance?.camHUD];
 		sustainNotes.cameras = [PlayState.instance?.camHUD];
@@ -2852,7 +3119,7 @@ class PlayfieldManager {
 		splashesPerFrame[(isDad ? 2 : 3)] += 1;
 
 		if (note != null) {
-			var strum:StrumNote = (isDad ? playerStrums : opponentStrums).members[note.noteData];
+			var strum:StrumNote = (isDad ? playerStrums : opponentStrums).strumNotes.members[note.noteData];
 			final susLength:Float = (!note.isSustainNote ? note.sustainLength : note.parentSL);
 			final tailLength:Int = Math.floor(susLength / Conductor.stepCrochet);
 
@@ -2865,14 +3132,14 @@ class PlayfieldManager {
 		var end:Note = note;
 		var splash:SustainSplash = grpHoldSplashes.recycle(SustainSplash);
     final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
-		splash.setupSusSplash((note.mustPress ? playerStrums : opponentStrums).members[note.noteData], note, playbackRate);
+		splash.setupSusSplash((note.mustPress ? playerStrums : opponentStrums).strumNotes.members[note.noteData], note, playbackRate);
 		grpHoldSplashes.add(end.noteHoldSplash = splash);
 	}
 
 	public function spawnNoteSplashOnNote(note:Note, ?isDad:Bool) {
 		if(ClientPrefs.data.noteSplashes && note != null) {
 			splashesPerFrame[(isDad ? 0 : 1)] += 1;
-			final strum:StrumNote = !isDad ? playerStrums.members[note.noteData] : opponentStrums.members[note.noteData];
+			final strum:StrumNote = !isDad ? playerStrums.strumNotes.members[note.noteData] : opponentStrums.strumNotes.members[note.noteData];
 			if(strum != null)
 				spawnNoteSplash(strum.x, strum.y, note.noteData);
 		}
@@ -3113,6 +3380,7 @@ class PlayfieldManager {
 
   public function update(elapsed:Float) {
     if (!manualInputChecks) keysCheck();
+    updateHazModchartSystem(elapsed);
   }
 }
 

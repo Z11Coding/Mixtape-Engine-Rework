@@ -49,16 +49,16 @@ class FunkinMemory
       permanentCacheTexture(file);
     }
 
-    permanentCacheTexture(Paths.image('healthBar'));
-    permanentCacheTexture(Paths.image('menuDesat'));
-    permanentCacheTexture(Paths.image('notes', 'shared'));
-    permanentCacheTexture(Paths.image('noteSplashes', 'shared'));
-    permanentCacheTexture(Paths.image('noteStrumline', 'shared'));
-    permanentCacheTexture(Paths.image('NOTE_hold_assets'));
+    permanentCacheTexture(Paths.imagePath('healthBar'));
+    permanentCacheTexture(Paths.imagePath('menuDesat'));
+    permanentCacheTexture(Paths.imagePath('notes', 'shared'));
+    permanentCacheTexture(Paths.imagePath('noteSplashes', 'shared'));
+    permanentCacheTexture(Paths.imagePath('noteStrumline', 'shared'));
+    permanentCacheTexture(Paths.imagePath('NOTE_hold_assets'));
     // dude
-    permanentCacheTexture(Paths.image('fonts/bold', null));
-    permanentCacheTexture(Paths.image('fonts/default', null));
-    permanentCacheTexture(Paths.image('fonts/freeplay-clear', null));
+    permanentCacheTexture(Paths.imagePath('fonts/bold', null));
+    permanentCacheTexture(Paths.imagePath('fonts/default', null));
+    permanentCacheTexture(Paths.imagePath('fonts/freeplay-clear', null));
 
     var allSounds:Array<String> = Assets.list(AssetType.SOUND);
 
@@ -76,19 +76,17 @@ class FunkinMemory
       permanentCacheSound(file);
     }
 
-    permanentCacheSound(Paths.sound('cancelMenu'));
-    permanentCacheSound(Paths.sound('confirmMenu'));
-    permanentCacheSound(Paths.sound('screenshot'));
-    permanentCacheSound(Paths.sound('scrollMenu'));
-    permanentCacheSound(Paths.sound('soundtray/Voldown'));
-    permanentCacheSound(Paths.sound('soundtray/VolMAX'));
-    permanentCacheSound(Paths.sound('soundtray/Volup'));
-    permanentCacheSound(Paths.music('freakyMenu/freakyMenu'));
-    permanentCacheSound(Paths.music('offsetsLoop/offsetsLoop'));
-    permanentCacheSound(Paths.music('offsetsLoop/drumsLoop'));
-    permanentCacheSound(Paths.sound('missnote1', 'shared'));
-    permanentCacheSound(Paths.sound('missnote2', 'shared'));
-    permanentCacheSound(Paths.sound('missnote3', 'shared'));
+    permanentCacheSound(Paths.soundP('cancelMenu'));
+    permanentCacheSound(Paths.soundP('confirmMenu'));
+    permanentCacheSound(Paths.soundP('screenshot'));
+    permanentCacheSound(Paths.soundP('scrollMenu'));
+    permanentCacheSound(Paths.soundP('soundtray/Voldown'));
+    permanentCacheSound(Paths.soundP('soundtray/VolMAX'));
+    permanentCacheSound(Paths.soundP('soundtray/Volup'));
+    permanentCacheSound(Paths.musicPath('freakyMenu/freakyMenu'));
+    permanentCacheSound(Paths.soundP('missnote1'));
+    permanentCacheSound(Paths.soundP('missnote2'));
+    permanentCacheSound(Paths.soundP('missnote3'));
   }
 
   /**
@@ -97,14 +95,14 @@ class FunkinMemory
    */
   public static inline function purgeCache(callGarbageCollector:Bool = false):Void
   {
-    trace(' CLEARING CACHE '.bg_bright_lilac().bold() +  ' Disposing all cached textures, assets and sounds...');
+    trace('CLEARING CACHE: Disposing all cached textures, assets and sounds...');
 
     preparePurgeTextureCache();
     purgeTextureCache();
     preparePurgeSoundCache();
     purgeSoundCache();
     #if (cpp || neko || hl)
-    if (callGarbageCollector) funkin.util.MemoryUtil.collect(true);
+    if (callGarbageCollector) backend.util.MemoryUtil.collect(true);
     #end
   }
 
@@ -368,7 +366,7 @@ class FunkinMemory
     Assets.cache.clear('songs');
     Assets.cache.clear('music');
     // Felt lazy.
-    var key = Paths.music('freakyMenu/freakyMenu');
+    var key = Paths.musicPath('freakyMenu/freakyMenu');
     var sound:Null<Sound> = Assets.getSound(key, true);
     if (sound != null)
     {
@@ -450,6 +448,6 @@ class FunkinMemory
    */
   static function log(message:String):Void
   {
-    trace(' MEMORY '.bg_bright_lilac().bold() + ' ${message}');
+    trace('MEMORY: ${message}');
   }
 }

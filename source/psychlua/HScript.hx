@@ -609,6 +609,176 @@ class HScript extends Iris
 		set("StrumNote", objects.notes.StrumNote);
 		set("AttachedSprite", objects.AttachedSprite);
 		set("CutsceneHandler", cutscenes.CutsceneHandler);
+
+		//Modchart Stuff
+		set('ZSprite', ZSprite);
+		set('eh', PlayState.instance.modchartEventHandler);
+
+		set("Constants", Type.resolveClass("funkin.util.Constants"));
+    set("ModConstants", Type.resolveClass("backend.modchartSystem.ModConstants"));
+    set("BaseModifier", Type.resolveClass("backend.modchartSystem.modifiers.BaseModifier"));
+    set("CustomModifier", Type.resolveClass("backend.modchartSystem.modifiers.CustomModifier"));
+    set("NoteData", Type.resolveClass("backend.modchartSystem.NoteData"));
+    set('ModHandler', ModHandler);
+    set('ModEventHandler', ModEventHandler);
+    set('Preferences', Preferences);
+    set('downScroll', Preferences.downscroll);
+    set('upScroll', !Preferences.downscroll);
+
+    set("FlxTypedSpriteGroup", Type.resolveClass("flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup"));
+
+		set('culling', function(b:String)
+		{
+			switch (b.toLowerCase())
+			{
+				case "positive":
+					return TriangleCulling.POSITIVE;
+				case "none":
+					return TriangleCulling.NONE;
+				case "negative":
+					return TriangleCulling.NEGATIVE;
+				default:
+					return TriangleCulling.NONE;
+			}
+		});
+
+		set('createCustomEase', function(nameOfEase:String, func:Float->Float):Void
+		{
+			if (PlayState.instance.modchartEventHandler != null)
+			{
+				PlayState.instance.modchartEventHandler.customEases.set(nameOfEase, func);
+			}
+		});
+
+		set('createSprGroup', function(variableTag:String, addToGame:Bool = true)
+		{
+			var grp:FlxTypedSpriteGroup<FlxSprite> = null;
+
+			if (PlayState.instance.variables.exists(variableTag))
+			{
+				grp = PlayState.instance.variables.get(variableTag);
+			}
+			else
+			{
+				var grp:FlxTypedSpriteGroup<FlxSprite> = new FlxTypedSpriteGroup<FlxSprite>(0, 0);
+				grp.scrollFactor.set();
+				// grp.scrollFactor.set();
+				if (addToGame)
+				{
+					PlayState.instance.variables.set(variableTag, grp);
+					PlayState.instance.add(grp);
+				}
+			}
+			return grp;
+		});
+		set('addToSprGrp', function(variableTag_Grp:String, toAdd:FlxSprite)
+		{
+			var grp:FlxTypedSpriteGroup<FlxSprite> = null;
+			if (PlayState.instance.variables.exists(variableTag_Grp)) grp = PlayState.instance.variables.get(variableTag_Grp);
+			if (grp != null)
+			{
+				grp.add(toAdd);
+			}
+			return grp;
+		});
+
+		// set('FlxColor', FlxColor);
+		// set('HazardAFT', HazardAFT);
+
+		set('getSpr', function(name:String)
+		{
+			var result:FlxSprite = null;
+			if (PlayState.instance.customLuaSprites.exists(name)) result = PlayState.instance.customLuaSprites.get(name);
+			return result;
+		});
+
+		set('createSpr', function(tag:String, imagePath:String, addToGame:Bool = true)
+		{
+			var newSpr:FlxSprite = new FlxSprite(0, 0);
+			newSpr.loadGraphic(Paths.image(imagePath));
+			newSpr.scrollFactor.set();
+			if (addToGame)
+			{
+				PlayState.instance.customLuaSprites.set(tag, newSpr);
+				PlayState.instance.add(newSpr);
+			}
+			return newSpr;
+		});
+
+		set('createZSpr', function(tag:String, imagePath:String, addToGame:Bool = true)
+		{
+			var newSpr:ZSprite = new ZSprite(0, 0);
+			newSpr.loadGraphic(Paths.image(imagePath));
+			newSpr.scrollFactor.set();
+			if (addToGame)
+			{
+				PlayState.instance.customLuaSprites.set(tag, newSpr);
+				PlayState.instance.add(newSpr);
+			}
+			return newSpr;
+		});
+
+		set('createCloneMod', function(modName:String)
+		{
+			if (PlayState.instance.modchartEventHandler == null)
+			{
+				HazardModLuaTest.luaTrace("Custom Mod could not be created as this song isn't a modchart song!", false, false, FlxColor.RED);
+				return null;
+			}
+
+			return ModConstants.createNewMod(modName);
+		});
+
+		set('createCustomMod', function(modName:String, defaultBaseValue:Float = 0)
+		{
+			if (PlayState.instance.modchartEventHandler == null)
+			{
+				HazardModLuaTest.luaTrace("Custom Mod could not be created as this song isn't a modchart song!", false, false, FlxColor.RED);
+				return null;
+			}
+			var newMod:CustomModifier = ModConstants.createNewCustomMod(modName, defaultBaseValue);
+			return newMod;
+		});
+
+		// createSubMod("steps", 4.0);
+
+		set('setResetEvent', function(func:Void->Void)
+		{
+			if (PlayState.instance.modchartEventHandler != null)
+			{
+				PlayState.instance.modchartEventHandler.modResetFuncs.push(func);
+			}
+		});
+		set('addResetEvent', function(func:Void->Void)
+		{
+			if (PlayState.instance.modchartEventHandler != null)
+			{
+				PlayState.instance.modchartEventHandler.modResetFuncs.push(func);
+			}
+		});
+
+		set('addUpdate', function(func:Float->Void)
+		{
+			if (PlayState.instance.perframeFunctions != null)
+			{
+				PlayState.instance.perframeFunctions.push(func);
+			}
+		});
+
+		set('stringSplit', function(inputString:String, splitThing:String)
+		{
+			var split:Array<String> = inputString.split(splitThing);
+			return split;
+		});
+
+		set('existsFromMap', function(theMap:Dynamic, thingToGet:Dynamic)
+		{
+			return theMap.exists(thingToGet);
+		});
+		set('getFromMap', function(theMap:Dynamic, thingToGet:Dynamic)
+		{
+			return theMap.get(thingToGet);
+		});
 	}
 
 	#if LUA_ALLOWED

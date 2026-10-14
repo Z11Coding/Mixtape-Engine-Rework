@@ -22,7 +22,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxGradient;
 import flixel.util.FlxTimer;
 import haxe.Exception;
-import objects.FunkinCamera;
+import objects.funkin.FunkinCamera;
 import objects.funkin.graphics.FunkinSprite;
 import shaders.LeftMaskShader;
 import states.PlaylistState;

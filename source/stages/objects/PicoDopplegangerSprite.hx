@@ -1,7 +1,8 @@
 package stages.objects;
 
-import backend.FunkinSound;
+import backend.funkin.audio.FunkinSound;
 import cutscenes.CutsceneHandler;
+
 class PicoDopplegangerSprite extends FunkinSprite
 {
 

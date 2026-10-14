@@ -1,6 +1,6 @@
 package stages;
 
-import backend.FunkinSound;
+import backend.funkin.audio.FunkinSound;
 import backend.pslice.ScaleMode;
 import cutscenes.CutsceneHandler;
 import flixel.addons.display.FlxBackdrop;

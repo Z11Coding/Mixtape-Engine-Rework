@@ -68,19 +68,6 @@ class SortUtil
   }
 
   /**
-   * Given two Event Data objects, returns 1 or -1 based on whether `a` or `b` has an earlier time.
-   *
-   * @param order Either `FlxSort.ASCENDING` or `FlxSort.DESCENDING`
-   * @param a The first Event to compare.
-   * @param b The second Event to compare.
-   * @return 1 if `a` has an earlier time, -1 if `b` has an earlier time.
-   */
-  public static inline function eventDataByTime(order:Int, a:SongEventData, b:SongEventData):Int
-  {
-    return FlxSort.byValues(order, a.time, b.time);
-  }
-
-  /**
    * Given two FlxFrames, sort their names alphabetically.
    *
    * @param order Either `FlxSort.ASCENDING` or `FlxSort.DESCENDING`

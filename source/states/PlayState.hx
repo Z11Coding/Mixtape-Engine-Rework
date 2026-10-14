@@ -1179,6 +1179,10 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 		camCOD.bgColor.alpha = 0;
+		if (playfield.isModchartSong) {
+			FlxG.cameras.add(playfield.camNotes, false);
+			FlxG.cameras.add(playfield.camAFT, false);
+		}
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camCredit, false);
 		FlxG.cameras.add(camOther, false);
@@ -2537,6 +2541,33 @@ class PlayState extends MusicBeatState
 		//trace("onInitModchart function detected - initializing modchart manager");
 
 		try {
+			playfield.perframeFunctions = [];
+
+			// IF WE ARE RELOADING THIS MIDSONG!
+			if (playerStrums != null && playfield.modchartEventHandler != null)
+			{
+
+				playfield.modchartEventHandler.clearEvents();
+
+				// cuz we cleared the timeline, we need to grab the timelines from the scripts again
+				callOnScripts('modsTimeline');
+
+				for (strumLine in playfield.allStrumLines)
+				{
+					if (!strumLine.defaultPlayerControl)
+					{
+						strumLine.mods.invertValues = playfield.modchartEventHandler.invertForOpponent;
+					}
+				}
+
+				playfield.modchartEventHandler.setupEvents();
+				playfield.modchartEventHandler.resetMods(); // also calls the modchart_reset scriptevent
+			}
+			else
+			{
+				isModchartSong = hasModchartFunction;
+				trace("Is modchartsong? - " + isModchartSong);
+			}
 			trace("Modchart Manager initialized successfully");
 		} catch (e:Dynamic) {
 			trace("Error initializing modcharts: " + e);
@@ -4959,7 +4990,7 @@ class PlayState extends MusicBeatState
 					spawnedNote = (targetNote.isSustainNote ? sustainNotes : notes).recycle(Note);
 					spawnedNote.setupNoteData(targetNote);
 
-					if (targetNote.isSustain) {
+					if (targetNote.isSustainNote) {
 						var animToPlay:String = '';
 						animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[targetNote.noteData] + (targetNote.isSustainEnd ? ' tail' : ' hold');
 						if (!spawnedNote.animation.exists(animToPlay))
@@ -8524,7 +8555,7 @@ class PlayState extends MusicBeatState
 			strumPlayAnim(note.noteData, conductor.currentStepTime * 1.25 / 1000 / playbackRate);
 			note.hitByOpponent = true;
 
-			if (ClientPrefs.data.oppNoteSplashes && daNote.isSustainNote && playfield.splashesPerFrame[2] <= 4)
+			if (ClientPrefs.data.oppNoteSplashes && note.isSustainNote && playfield.splashesPerFrame[2] <= 4)
 				spawnHoldSplashOnNote(daNote, true);
 
 			stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
@@ -8858,7 +8889,7 @@ class PlayState extends MusicBeatState
 				}
 
 				noteMiss(note);
-				if(!note.noteSplashData.disabled && !note.isSustainNote) spawnNoteSplashOnNote(false, note);
+				if(!note.noteSplashData.disabled && !note.isSustainNote) playfield.spawnNoteSplashOnNote(false, note);
 			}
 
 			if (mechanicsMod != null) {

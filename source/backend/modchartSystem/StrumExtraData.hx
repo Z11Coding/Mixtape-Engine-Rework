@@ -327,7 +327,7 @@ class StrumExtraData
   public function formatCustomArrowPathData(d:String):Void
   {
     this.customArrowPathModTest = d;
-    var file_part1 = funkin.util.FileUtil.readStringFromPath(customArrowPathModTest);
+    var file_part1 = backend.util.FileUtil.readStringFromPath(customArrowPathModTest);
 
     var filePath:Array<String> = [];
     filePath = file_part1.trim().split('\n');
@@ -353,7 +353,7 @@ class StrumExtraData
         _g++;
         var coords = line.split(";");
         // trace((_g - 1) + "split: " + coords);
-        var vec = new TimeVector(Std.parseFloat(coords[0]), Std.parseFloat(coords[1]) * (Preferences.downscroll ? -1 : 1), Std.parseFloat(coords[2]),
+        var vec = new TimeVector(Std.parseFloat(coords[0]), Std.parseFloat(coords[1]) * (ClientPrefs.data.downScroll ? -1 : 1), Std.parseFloat(coords[2]),
           Std.parseFloat(coords[3]));
         vec.x *= 200;
         vec.y *= 200;
