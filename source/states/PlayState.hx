@@ -1,5 +1,7 @@
 package states;
 
+import objects.notes.BaseNote;
+import objects.notes.Strumline;
 import yutautil.PyScript;
 /**
  * This is where all the Gameplay stuff happens and is managed
@@ -202,9 +204,9 @@ class PlayState extends MusicBeatState
 	public var eventNotes(get, set):Array<EventNote>;
 	public var curEvents(get, set):Array<EventNote>;
 
-	public var strumLineNotes(get, set):FlxTypedGroup<StrumNote>;
-	public var opponentStrums(get, set):FlxTypedGroup<StrumNote>;
-	public var playerStrums(get, set):FlxTypedGroup<StrumNote>;
+	public var strumLineNotes(get, set):Array<Strumline>;
+	public var opponentStrums(get, set):Strumline;
+	public var playerStrums(get, set):Strumline;
 	public var grpNoteSplashes(get, set):FlxTypedGroup<NoteSplash>;
 
 	public var cpuControlled(get, set):Bool;
@@ -261,24 +263,24 @@ class PlayState extends MusicBeatState
 		playfield.curEvents = value;
 		return playfield.curEvents;
 	}
-	private function get_strumLineNotes():FlxTypedGroup<StrumNote> {
-		return playfield.strumLineNotes;
+	private function get_strumLineNotes():Array<Strumline> {
+		return playfield.allStrumLines;
 	}
-	private function set_strumLineNotes(value:FlxTypedGroup<StrumNote>):FlxTypedGroup<StrumNote> {
-		playfield.strumLineNotes = value;
-		return playfield.strumLineNotes;
+	private function set_strumLineNotes(value:Array<Strumline>):Array<Strumline> {
+		playfield.allStrumLines = value;
+		return playfield.allStrumLines;
 	}
-	private function get_opponentStrums():FlxTypedGroup<StrumNote> {
+	private function get_opponentStrums():Strumline {
 		return playfield.opponentStrums;
 	}
-	private function set_opponentStrums(value:FlxTypedGroup<StrumNote>):FlxTypedGroup<StrumNote> {
+	private function set_opponentStrums(value:Strumline):Strumline {
 		playfield.opponentStrums = value;
 		return playfield.opponentStrums;
 	}
-	private function get_playerStrums():FlxTypedGroup<StrumNote> {
+	private function get_playerStrums():Strumline {
 		return playfield.playerStrums;
 	}
-	private function set_playerStrums(value:FlxTypedGroup<StrumNote>):FlxTypedGroup<StrumNote> {
+	private function set_playerStrums(value:Strumline):Strumline {
 		playfield.playerStrums = value;
 		return playfield.playerStrums;
 	}
@@ -1480,7 +1482,7 @@ class PlayState extends MusicBeatState
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
 		playfield.addNotes();
-		noteGroup.add(playfield.strumLineNotes);
+		//noteGroup.add(playfield.strumLineNotes);
 		noteGroup.add(playfield.sustainNotes);
 		noteGroup.add(playfield.notes);
 		noteGroup.add(playfield.grpHoldSplashes);
@@ -4634,13 +4636,13 @@ class PlayState extends MusicBeatState
 			if (mechanicsMod != null) {
 				var fakeCrochet:Float = (60 / SONG.bpm) * 1000;
 				// dunno how to make it say its actually used
-				var invertStrumGroup:FlxTypedGroup<StrumNote>->FlxTypedGroup<StrumNote> = function(strum:FlxTypedGroup<StrumNote>)
+				var invertStrumGroup:FlxTypedSpriteGroup<StrumNote>->FlxTypedGroup<StrumNote> = function(strum:FlxTypedGroup<StrumNote>)
 				{
-					if (strum == playerStrums)
-						return opponentStrums;
-					else if (strum == opponentStrums)
-						return playerStrums;
-					return strumLineNotes;
+					if (strum == playerStrums.strumNotes)
+						return opponentStrums.strumNotes;
+					else if (strum == opponentStrums.strumNotes)
+						return playerStrums.strumNotes;
+					return strumLineNotes[0].strumNotes;
 				}
 
 				// === OPTIMIZED MECHANICS NOTE PROCESSING ===
@@ -4663,7 +4665,7 @@ class PlayState extends MusicBeatState
 
 				notes.forEachAlive(function(daNote:Note)
 				{
-					var strumGroup:FlxTypedGroup<StrumNote> = playerStrums;
+					var strumGroup:FlxTypedSpriteGroup<StrumNote> = playerStrums.strumNotes;
 					if ((!daNote.formerPress && bothMode) || (!daNote.mustPress && !bothMode))
 						strumGroup = opponentStrums;
 
@@ -5028,11 +5030,11 @@ class PlayState extends MusicBeatState
 
 			amountOfRenderedNotes += daNote.noteDensity;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
-			if (playerStrums.members.length >= (ExtraKeys.mania+1) && playerStrums.members.length >= (ExtraKeys.mania+1))
-				daNote.followStrum((daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData], songSpeed);
+			if (playerStrums.members.length >= (ExtraKeys.mania+1) && playerStrums.strumNotes.members.length >= (ExtraKeys.mania+1))
+				daNote.followStrum((daNote.mustPress ? playerStrums : opponentStrums).strumNotes.members[daNote.noteData], songSpeed);
 			if (daNote.isSustainNote)
 			{
-				final strum = (daNote.mustPress ? playerStrums : opponentStrums).members[daNote.noteData];
+				final strum = (daNote.mustPress ? playerStrums : opponentStrums).strumNotes.members[daNote.noteData];
 				if (strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);
 			}
 
@@ -5458,7 +5460,7 @@ class PlayState extends MusicBeatState
 
 		if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
 		{
-			for (note in playerStrums)
+			for (note in playerStrums.strumNotes.members)
 				if(note.animation.curAnim != null && note.animation.curAnim.name != 'static')
 				{
 					note.playAnim('static');
@@ -8518,13 +8520,13 @@ class PlayState extends MusicBeatState
 				}
 			}
 
-			if (!daNote.isSustainNote)
+			if (!note.isSustainNote)
 			{
-				invalidateNote(daNote);
+				invalidateNote(note);
 			}
 
-			if(ClientPrefs.data.oppNoteSplashes && !daNote.isSustainNote && playfield.splashesPerFrame[0] <= 4)
-				spawnNoteSplashOnNote(true, daNote);
+			if(ClientPrefs.data.oppNoteSplashes && !note.isSustainNote && playfield.splashesPerFrame[0] <= 4)
+				playfield.spawnNoteSplashOnNote(true, note);
 
 			if ((curHealthMode == "Tabi" || curHealthMode == "Amalgam") && health > 0)
 			{
@@ -8552,11 +8554,11 @@ class PlayState extends MusicBeatState
 			}
 
 			if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
-			strumPlayAnim(note.noteData, conductor.currentStepTime * 1.25 / 1000 / playbackRate);
+			strumPlayAnim(playerStrums, note.noteData, conductor.currentStepTime * 1.25 / 1000 / playbackRate);
 			note.hitByOpponent = true;
 
 			if (ClientPrefs.data.oppNoteSplashes && note.isSustainNote && playfield.splashesPerFrame[2] <= 4)
-				spawnHoldSplashOnNote(daNote, true);
+				playfield.spawnHoldSplashOnNote(note, true);
 
 			stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
 			var result:Dynamic = callOnLuas('opponentNoteHit', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
@@ -8648,8 +8650,8 @@ class PlayState extends MusicBeatState
 			if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 			if (ClientPrefs.data.opponentLightStrum && !ClientPrefs.data.showNotes)
 			{
-				opponentStrums.members[noteAlt.noteData].playAnim('confirm', true);
-				opponentStrums.members[noteAlt.noteData].resetAnim = conductor.stepLengthMs * 1.25 / 1000 / playbackRate;
+				opponentStrums.strumNotes.members[noteAlt.noteData].playAnim('confirm', true);
+				opponentStrums.strumNotes.members[noteAlt.noteData].resetAnim = conductor.stepLengthMs * 1.25 / 1000 / playbackRate;
 			}
 
 			var result:Dynamic = callOnLuas('opponentNoteHit', [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
@@ -8750,10 +8752,10 @@ class PlayState extends MusicBeatState
 
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && !note.botNote)
 				{
-					var spr = playerStrums.members[note.noteData];
+					var spr = playerStrums.strumNotes.members[note.noteData];
 					if(spr != null) spr.playAnim('confirm', true);
 				}
-				else strumPlayAnim(note.noteData + (ExtraKeys.mania+1), conductor.stepLengthMs * 1.25 / 1000 / playbackRate);
+				else strumPlayAnim(playerStrums, note.noteData + (ExtraKeys.mania+1), conductor.stepLengthMs * 1.25 / 1000 / playbackRate);
 				vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 
 				if (!note.isSustainNote)
@@ -8889,7 +8891,7 @@ class PlayState extends MusicBeatState
 				}
 
 				noteMiss(note);
-				if(!note.noteSplashData.disabled && !note.isSustainNote) playfield.spawnNoteSplashOnNote(false, note);
+				if(!note.noteSplashData.disabled && !note.isSustainNote) playfield.spawnNoteSplashOnNote(note);
 			}
 
 			if (mechanicsMod != null) {
@@ -9252,14 +9254,12 @@ class PlayState extends MusicBeatState
 
 		playfield.removeInput();
 
-		FlxG.camera.setFilters([]);
-
 		#if FLX_PITCH if (FlxG.sound.music != null) FlxG.sound.music.pitch = 1; #end
 		FlxG.animationTimeScale = 1;
 		FlxG.sound.music.pitch = 1;
 		cpp.vm.Gc.enable(true);
 		playfield.killDaNotes();
-		Note.globalRgbShaders = [];
+		BaseNote.globalRgbShaders = [];
 		NoteTypesConfig.clearNoteTypesData();
 
 		if (threadPool != null) threadPool.shutdown(); // kill all workers safely
@@ -9356,8 +9356,8 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function strumPlayAnim(id:Int, time:Float, ?note:Note) {
-		var spr:StrumNote = strumLineNotes.members[id];
+	function strumPlayAnim(line:Strumline, id:Int, time:Float, ?note:Note) {
+		var spr:StrumNote = line.strumNotes.members[id];
 
 		if(spr != null) {
 			spr.playAnim('confirm', true);

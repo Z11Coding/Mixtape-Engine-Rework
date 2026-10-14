@@ -287,9 +287,9 @@ class NoteSplash extends ZSprite
 
 		// Only use babyArrow positioning if we're in editor mode or no position was provided
 		if (babyArrow != null && (inEditor || (x == 0 && y == 0))) {
-			setPosition(babyArrow.x - Note.swagWidth * 0.95, babyArrow.y - Note.swagWidth);
+			setPosition(babyArrow.x - BaseNote.swagWidth * 0.95, babyArrow.y - BaseNote.swagWidth);
 			#if debug
-			trace('NoteSplash: Using babyArrow position: (${babyArrow.x - Note.swagWidth * 0.95}, ${babyArrow.y - Note.swagWidth})');
+			trace('NoteSplash: Using babyArrow position: (${babyArrow.x - BaseNote.swagWidth * 0.95}, ${babyArrow.y - BaseNote.swagWidth})');
 			#end
 		}
 
@@ -405,7 +405,7 @@ class NoteSplash extends ZSprite
 							else if (i == 2) tempShader.b = color;
 						}
 					}
-					else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
+					else tempShader.copyValues(BaseNote.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
 
 					if (note != null)
 					{
@@ -414,7 +414,7 @@ class NoteSplash extends ZSprite
 						if (note.noteSplashData.b != -1) tempShader.b = note.noteSplashData.b;
 					}
 				}
-				else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
+				else tempShader.copyValues(BaseNote.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
 			}
 		}
 		rgbShader.copyValues(tempShader);
@@ -516,10 +516,10 @@ class NoteSplash extends ZSprite
 		if (babyArrow != null)
 		{
 			if (copyX)
-				x = babyArrow.x - Note.swagWidth * 0.95;
+				x = babyArrow.x - BaseNote.swagWidth * 0.95;
 
 			if (copyY)
-				y = babyArrow.y - Note.swagWidth;
+				y = babyArrow.y - BaseNote.swagWidth;
 		}
 		super.update(elapsed);
 	}

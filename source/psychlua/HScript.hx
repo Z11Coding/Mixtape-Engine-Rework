@@ -622,8 +622,8 @@ class HScript extends Iris
     set('ModHandler', ModHandler);
     set('ModEventHandler', ModEventHandler);
     set('Preferences', Preferences);
-    set('downScroll', Preferences.downscroll);
-    set('upScroll', !Preferences.downscroll);
+    set('downScroll', ClientPrefs.data.downScroll);
+    set('upScroll', !ClientPrefs.data.downScroll);
 
     set("FlxTypedSpriteGroup", Type.resolveClass("flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup"));
 

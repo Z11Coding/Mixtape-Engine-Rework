@@ -124,7 +124,7 @@ class MathUtil
   }
     /**
    * GCD stands for Greatest Common Divisor
-   * It's used in FullScreenScaleMode to prevent weird window resolutions from being counted as wide screen since those were causing issues positioning the game
+   * It's used in ScaleMode to prevent weird window resolutions from being counted as wide screen since those were causing issues positioning the game
    * It returns the greatest common divisor between m and n
    *
    * think it's from hxp..?

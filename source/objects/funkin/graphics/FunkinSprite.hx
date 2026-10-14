@@ -8,6 +8,7 @@ import animate.internal.SymbolItem;
 import animate.internal.elements.AtlasInstance;
 import animate.internal.elements.Element;
 import animate.internal.elements.SymbolInstance;
+import backend.animation.FunkinAnimationController;
 import backend.funkin.FunkinMemory;
 import flixel.FlxCamera;
 import flixel.graphics.FlxGraphic;

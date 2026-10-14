@@ -97,8 +97,8 @@ class ModEventHandler
 
   public function update(elapsed:Float):Void
   {
-    songTime = Conductor.instance.songPosition;
-    beatTime = Conductor.instance.currentBeatTime;
+    songTime = MegaManager.conductor.musicPosition;
+    beatTime = MegaManager.conductor.currentBeatTime;
 
     if (songTime + ((PlayState.instance?.paused ?? false) ? 0 : backInTimeLeniency) < lastReportedSongTime)
     {
@@ -573,7 +573,7 @@ class ModEventHandler
         resortMods_ForTarget(strum.mods);
       }
 
-      strum.strumlineNotes.forEach(function(note:StrumlineNote)
+      strum.strumlineNotes.forEach(function(note:StrumNote)
       {
         note.resetStealthGlow();
       });

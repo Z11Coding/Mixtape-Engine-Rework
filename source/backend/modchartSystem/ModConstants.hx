@@ -149,18 +149,9 @@ class ModConstants
    * @param lane Which lane / direction this note is.
    * @return The point in 3D where the strum note would be by default.
    */
-  public static function getDefaultStrumPosition(strumLine:Strumline, lane:Float):Vector3D
+  public static function getDefaultStrumPosition(strumLine:Strumline, lane:Int):Vector3D
   {
-    var strumBaseX:Float = strumLine.x + Strumline.INITIAL_OFFSET + (lane * Strumline.NOTE_SPACING);
-    var strumBaseY:Float = strumLine.y;
-    var strumBaseZ:Float = 0;
-
-    @:privateAccess
-    final strumlineOffsets = strumLine.noteStyle.getStrumlineOffsets();
-    strumBaseX += strumlineOffsets[0];
-    strumBaseY += strumlineOffsets[1];
-
-    final wasHereOriginally:Vector3D = new Vector3D(strumBaseX, strumBaseY, strumBaseZ);
+    final wasHereOriginally:Vector3D = new Vector3D(strumLine.strumNotes.members[lane].formerPosition.x, strumLine.strumNotes.members[lane].formerPosition.x, 0);
     return wasHereOriginally;
   }
 
@@ -405,90 +396,17 @@ class ModConstants
   public static function getSongPosition():Float
   {
     #if FEATURE_WITF_USE_TIME_DELTA
-    return Conductor.instance?.getTimeWithDelta() ?? 0;
+    return MegaManager.conductor?.getTimeWithDelta() ?? 0;
     #else
-    return Conductor.instance?.songPosition ?? 0;
+    return MegaManager.conductor?.musicPosition ?? 0;
     #end
   }
 
   public static function getBeatPositionWithDelta():Float
   {
-    if (Conductor.instance == null) return 0.0;
-    final timeWithDelta:Float = Conductor.instance.getTimeWithDelta();
-    return Conductor.instance.getTimeInSteps(timeWithDelta) / Constants.STEPS_PER_BEAT;
-  }
-
-  /**
-   * Gets and returns an array of notes between the two specified beats!
-   * @param startBeat The starting beat to start getting notes from. INCLUSIVE!
-   * @param endBeat The ending beat to stop getting notes from. EXCLUSIVE!
-   * @param playerTarget which player to target getting the notes from.
-   * @return The array of notes between the two specified points, formatted as: noteBeat, noteData, noteLength, noteKind
-   */
-  public static function getNoteBeats(startBeat:Float, endBeat:Float, playerTarget:String = "bf"):Array<Array<Dynamic>>
-  {
-    var arr:Array<Array<Dynamic>> = []; // The variable that gets returned.
-    // FNF only has Dad and Boyfriend notes. Until that changes, the target can only point to one or the other.
-    var bfTarget:Bool = false;
-    playerTarget = playerTarget.toLowerCase();
-    if (playerTarget == "bf" || playerTarget == "boyfriend" || playerTarget == "0" || playerTarget == "1")
-    {
-      bfTarget = true;
-    }
-
-    if (ModConstants.invertStrumlineTarget) bfTarget = !bfTarget;
-
-    // Controls whether or not the noteData is gotten straight from the strumline, or the currentChart stored in PlayState.
-    var useStrumlineChart:Bool = true;
-    @:privateAccess
-    var chartData = useStrumlineChart ? (bfTarget ? PlayState.instance?.playerStrumline?.noteData : PlayState.instance?.opponentStrumline?.noteData) : PlayState.instance?.currentChart?.notes;
-    if (chartData != null)
-    {
-      for (songNote in chartData)
-      {
-        final strumTime:Float = songNote.time;
-        final noteBeat:Float = Conductor.instance.getTimeInSteps(strumTime) / Constants.STEPS_PER_BEAT;
-        // if outside of range, skip this note
-        if (!(startBeat <= noteBeat && endBeat > noteBeat))
-        {
-          continue;
-        }
-        final noteData:Int = songNote.getDirection();
-        var kind:String = "default";
-        if (songNote.kind != null)
-        {
-          kind = songNote.kind;
-        }
-        switch (songNote.getStrumlineIndex())
-        {
-          case 0:
-            if (bfTarget)
-            {
-              var a:Array<Dynamic> = [];
-              a.push(noteBeat);
-              a.push(noteData);
-              a.push(songNote.length);
-              a.push(kind);
-              arr.push(a);
-            }
-          case 1:
-            if (!bfTarget)
-            {
-              var a:Array<Dynamic> = [];
-              a.push(noteBeat);
-              a.push(noteData);
-              a.push(songNote.length);
-              a.push(kind);
-              arr.push(a);
-            }
-        }
-      }
-    }
-    else
-    {
-      PlayState.instance.modDebugNotif("Chart data was null!", FlxColor.RED);
-    }
-    return arr;
+    if (MegaManager.conductor == null) return 0.0;
+    final timeWithDelta:Float = MegaManager.conductor.getTimeWithDelta();
+    return MegaManager.conductor.getCumulativeSteps(timeWithDelta) / Constants.STEPS_PER_BEAT;
   }
 
   // Input an ease and this function will return the same ease but flipped horizontally (meaning it'll start at 100% instead of 0%)
@@ -574,7 +492,7 @@ class ModConstants
       var ease = getEaseFromString(str);
       if (ease == null)
       {
-        PlayState.instance.modDebugNotif("'" + str + "' ease not valid! Defaulting to linear.", FlxColor.ORANGE);
+        MegaManager.scriptManager.addTextToDebug("'" + str + "' ease not valid! Defaulting to linear.", FlxColor.ORANGE);
         return return FlxEase.linear;
       }
 
@@ -621,12 +539,12 @@ class ModConstants
 
     // Custom eases stored in event handler
     // check for custom ease:
-    if (PlayState.instance?.modchartEventHandler != null)
+    if (MegaManager.playfield?.modchartEventHandler != null)
     {
       // if found, return that ease func, otherwise continue
-      if (PlayState.instance.modchartEventHandler.customEases.exists(str))
+      if (MegaManager.playfield.modchartEventHandler.customEases.exists(str))
       {
-        return PlayState.instance.modchartEventHandler.customEases.get(str);
+        return MegaManager.playfield.modchartEventHandler.customEases.get(str);
       }
     }
 
@@ -724,7 +642,7 @@ class ModConstants
         var a:Null<Float->Float> = Reflect.field(HazardEase, str);
         if (a == null)
         {
-          PlayState.instance.modDebugNotif("ease '" + str + "' not valid. Defaulting to linear.", FlxColor.ORANGE);
+          MegaManager.scriptManager.addTextToDebug("ease '" + str + "' not valid. Defaulting to linear.", FlxColor.ORANGE);
         }
         return Reflect.field(HazardEase, str);
     }
@@ -736,11 +654,11 @@ class ModConstants
 
     if (target.customTweenerName == "???") // attempt to correct
     {
-      if (target == PlayState.instance.playerStrumline.mods)
+      if (target == MegaManager.playfield.playerStrums.mods)
       {
         stringReturn = "player";
       }
-      else if (target == PlayState.instance.opponentStrumline.mods)
+      else if (target == MegaManager.playfield.opponentStrums.mods)
       {
         stringReturn = "opponent";
       }
@@ -785,15 +703,15 @@ class ModConstants
    */
   public static function grabStrumModTarget(playerTarget:String = "bf"):ModHandler
   {
-    var modsTarget:ModHandler = PlayState.instance.playerStrumline.mods;
+    var modsTarget:ModHandler = MegaManager.playfield.playerStrums.mods;
     if (playerTarget == "dad" || playerTarget == "opponent" || playerTarget == "2")
     {
-      modsTarget = invertStrumlineTarget ? PlayState.instance.playerStrumline.mods : PlayState.instance.opponentStrumline.mods;
+      modsTarget = invertStrumlineTarget ? MegaManager.playfield.playerStrums.mods : MegaManager.playfield.opponentStrums.mods;
       return modsTarget;
     }
     else if (playerTarget == "bf" || playerTarget == "boyfriend" || playerTarget == "1" || playerTarget == "player")
     {
-      modsTarget = invertStrumlineTarget ? PlayState.instance.opponentStrumline.mods : PlayState.instance.playerStrumline.mods;
+      modsTarget = invertStrumlineTarget ? MegaManager.playfield.opponentStrums.mods : MegaManager.playfield.playerStrums.mods;
       return modsTarget;
     }
 
@@ -801,14 +719,14 @@ class ModConstants
     if (k != null)
     {
       k -= 1; // offset so it starts at player 1 instead of player 0.
-      if (k > 0 && k < PlayState.instance.allStrumLines.length)
+      if (k > 0 && k < MegaManager.playfield.allStrumLines.length)
       {
-        modsTarget = PlayState.instance.allStrumLines[k].mods;
+        modsTarget = MegaManager.playfield.allStrumLines[k].mods;
         return modsTarget;
       }
     }
 
-    PlayState.instance.modDebugNotif("Player '" + playerTarget + "' not found! Defaulting to BF.", FlxColor.ORANGE);
+    MegaManager.scriptManager.addTextToDebug("Player '" + playerTarget + "' not found! Defaulting to BF.", FlxColor.ORANGE);
 
     return modsTarget;
   }
@@ -950,7 +868,7 @@ class ModConstants
 
     if (testIfModAlreadyExists != null || ModConstants.isTagSub(modName))
     {
-      if (PlayState.instance != null) PlayState.instance.modDebugNotif(name + " is not a valid mod name", FlxColor.RED);
+      if (MegaManager.scriptManager != null) MegaManager.scriptManager.addTextToDebug(name + " is not a valid mod name", FlxColor.RED);
       else
         trace(name + " is not a valid mod name ");
       return null;
@@ -1825,7 +1743,7 @@ class ModConstants
       case "linearskewy":
         newMod = new LinearSkewYMod(tag);
       case "scalelinear":
-        if (PlayState.instance != null && notif) PlayState.instance.modDebugNotif("'scalelinear' is outdated! Use 'linearScale' instead!", FlxColor.ORANGE);
+        if (MegaManager.scriptManager != null && notif) MegaManager.scriptManager.addTextToDebug("'scalelinear' is outdated! Use 'linearScale' instead!", FlxColor.ORANGE);
         newMod = new ScaleLinearLegacyMod(tag);
 
       // circ mods
@@ -2119,7 +2037,7 @@ class ModConstants
         // newMod.fuck = true;
         if (notif)
         {
-          if (PlayState.instance != null) PlayState.instance.modDebugNotif(tag + " mod is unknown", FlxColor.ORANGE);
+          if (MegaManager.scriptManager != null) MegaManager.scriptManager.addTextToDebug(tag + " mod is unknown", FlxColor.ORANGE);
           trace(tag + " mod is unknown");
         }
         return null;

@@ -33,7 +33,7 @@ class HourGlassModBase extends Modifier
   {
     if (currentValue == 0) return 0.0; // skip math if mod is 0
 
-    final pos:Float = data.curPos_unscaled * (Preferences.downscroll ? -1 : 1);
+    final pos:Float = data.curPos_unscaled * (ClientPrefs.data.downScroll ? -1 : 1);
     // var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
 
     // Copy of Sudden math

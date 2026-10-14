@@ -30,10 +30,10 @@ class AttenuateModBase extends Modifier
 
     // Botched together based on eye from NotITG
 
-    var nd = data.direction % Strumline.KEY_COUNT;
-    var newPos = FlxMath.remapToRange(nd, 0, Strumline.KEY_COUNT, Strumline.KEY_COUNT * -1 * 0.5, Strumline.KEY_COUNT * 0.5);
+    var nd = data.direction % (ExtraKeys.mania+1);
+    var newPos = FlxMath.remapToRange(nd, 0, (ExtraKeys.mania+1), (ExtraKeys.mania+1) * -1 * 0.5, (ExtraKeys.mania+1) * 0.5);
 
-    var p:Float = (useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (Preferences.downscroll ? -1 : 1);
+    var p:Float = (useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (ClientPrefs.data.downScroll ? -1 : 1);
     p += offset.value;
     p = (p * p) * 0.1;
 

@@ -145,7 +145,7 @@ class SongNoteDataRaw implements ICloneable<SongNoteDataRaw>
   {
     if (_stepTime != null && !force) return _stepTime;
 
-    return _stepTime = Conductor.instance.getTimeInSteps(this.time);
+    return _stepTime = MegaManager.conductor.getCumulativeSteps(this.time);
   }
 
   /**
@@ -166,7 +166,7 @@ class SongNoteDataRaw implements ICloneable<SongNoteDataRaw>
 
     if (_stepLength != null && !force) return _stepLength;
 
-    return _stepLength = Conductor.instance.getTimeInSteps(this.time + this.length) - getStepTime();
+    return _stepLength = MegaManager.conductor.getCumulativeSteps(this.time + this.length) - getStepTime();
   }
 
   /**
@@ -182,7 +182,7 @@ class SongNoteDataRaw implements ICloneable<SongNoteDataRaw>
     else
     {
       var endStep:Float = getStepTime() + value;
-      var endMs:Float = Conductor.instance.getStepTimeInMs(endStep);
+      var endMs:Float = MegaManager.conductor.getCumulativeSteps(endStep);
       var lengthMs:Float = endMs - this.time;
 
       this.length = lengthMs;
@@ -219,30 +219,6 @@ class SongNoteDataRaw implements ICloneable<SongNoteDataRaw>
   {
     return 'SongNoteData(${this.time}ms, ' + (this.length > 0 ? '[${this.length}ms hold]' : '') + ' ${this.data}'
       + (this.kind != '' ? ' [kind: ${this.kind}])' : ')');
-  }
-
-  /**
-   * Build a tooltip string for this note, as seen when hovering in the Chart Editor.
-   * @return The tooltip string to display.
-   */
-  public function buildTooltip():String
-  {
-    if ((this.kind?.length ?? 0) == 0) return '';
-
-    var noteKind:Null<NoteKind> = NoteKindManager.getNoteKind(this.kind);
-    var noteKindDesc:String = noteKind?.description ?? this.kind;
-
-    var result:String = 'Kind: $noteKindDesc';
-    if (this.params.length == 0) return result;
-
-    result += '\nParams:';
-
-    for (param in params)
-    {
-      result += '\n- ${param.name}: ${param.value}';
-    }
-
-    return result;
   }
 }
 
@@ -367,7 +343,7 @@ abstract SongNoteData(SongNoteDataRaw) from SongNoteDataRaw to SongNoteDataRaw
 
   public function clone():SongNoteData
   {
-    return new SongNoteData(this.time, this.data, this.length, this.kind, this.params);
+    return new SongNoteData(this.time, this.data, this.length, this.params);
   }
 
   /**

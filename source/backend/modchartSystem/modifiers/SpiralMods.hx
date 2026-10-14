@@ -62,7 +62,7 @@ class SpiralModBase extends Modifier
 
   function spiralMath(curPos:Float):Float
   {
-    curPos = curPos * (Preferences.downscroll ? -1 : 1);
+    curPos = curPos * (ClientPrefs.data.downScroll ? -1 : 1);
     curPos *= -0.1;
     final curposWithOffset:Float = curPos - getOffset();
 
@@ -102,7 +102,7 @@ class SpiralYMod extends SpiralModBase
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
     if (currentValue == 0) return;
-    data.y -= spiralMath((useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (Preferences.downscroll ? -1 : 1));
+    data.y -= spiralMath((useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (ClientPrefs.data.downScroll ? -1 : 1));
   }
 }
 

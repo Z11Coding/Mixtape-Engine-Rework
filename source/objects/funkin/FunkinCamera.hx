@@ -15,6 +15,7 @@ import openfl.Lib;
 import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.display.OpenGLRenderer;
+import openfl.display.TriangleCulling;
 import shaders.RuntimeCustomBlendShader;
 
 using objects.funkin.graphics.framebuffer.BitmapDataUtil;
@@ -270,14 +271,14 @@ class FunkinCamera extends FlxCamera
   }
 
   override function startTrianglesBatch(graphic:FlxGraphic, smoothing:Bool = false, isColored:Bool = false, ?blend:BlendMode, ?hasColorOffsets:Bool,
-      ?shader:FlxShader):FlxDrawTrianglesItem
+      ?shader:FlxShader, ?cullMode:TriangleCulling, repeat:Bool = true):FlxDrawTrianglesItem
   {
     // Can't batch complex non-coherent blends, so always force a new batch
     if (hasKhronosExtension
       && !(OpenGLRenderer.__coherentBlendsSupported ?? false)
       && KHR_BLEND_MODES.contains(blend)) return getNewDrawTrianglesItem(graphic, smoothing, isColored, blend, hasColorOffsets, shader);
 
-    return super.startTrianglesBatch(graphic, smoothing, isColored, blend, hasColorOffsets, shader);
+    return super.startTrianglesBatch(graphic, smoothing, isColored, blend, hasColorOffsets, shader, cullMode, repeat);
   }
 
   override function destroy():Void

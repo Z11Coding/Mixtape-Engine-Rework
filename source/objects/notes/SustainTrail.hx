@@ -572,7 +572,7 @@ class SustainTrail extends ZSprite
     noteModData.scaleX = fakeNote.scale.x;
     noteModData.scaleY = fakeNote.scale.y;
     noteModData.strumTime = strumTimmy;
-    noteModData.direction = noteDirection % Strumline.KEY_COUNT;
+    noteModData.direction = noteDirection % (ExtraKeys.mania+1);
     noteModData.curPos_unscaled = notePos;
     noteModData.whichStrumNote = whichStrumNote;
     noteModData.noteType = isArrowPath ? "path" : "hold";
@@ -596,7 +596,7 @@ class SustainTrail extends ZSprite
 
     // Position like vanilla
     noteModData.x = parentStrumline.x;
-    noteModData.x += parentStrumline.getXPos(Strumline.DIRECTIONS[noteModData.direction % Strumline.KEY_COUNT]);
+    noteModData.x += parentStrumline.getXPos(Strumline.DIRECTIONS[noteModData.direction % (ExtraKeys.mania+1)]);
     noteModData.x += Strumline.STRUMLINE_SIZE / 2;
     noteModData.x -= graphicWidth / 2;
 

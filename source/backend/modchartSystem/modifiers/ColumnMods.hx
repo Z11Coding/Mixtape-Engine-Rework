@@ -22,8 +22,8 @@ class FlipMod extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (currentValue == 0) return; // skip math if mod is 0
-    final nd = data.direction % Strumline.KEY_COUNT;
-    final newPos = FlxMath.remapToRange(nd, 0, Strumline.KEY_COUNT, Strumline.KEY_COUNT, -Strumline.KEY_COUNT);
+    final nd = data.direction % (ExtraKeys.mania+1);
+    final newPos = FlxMath.remapToRange(nd, 0, (ExtraKeys.mania+1), (ExtraKeys.mania+1), -(ExtraKeys.mania+1));
     data.x += ModConstants.strumSize * newPos * currentValue;
     data.x -= ModConstants.strumSize * currentValue;
   }
@@ -116,7 +116,7 @@ class BlackSphereInvertMod extends Modifier
       if (lane % 2 == 1) yValue *= -1;
     }
 
-    if (!Preferences.downscroll) yValue *= -1;
+    if (!ClientPrefs.data.downScroll) yValue *= -1;
 
     retu_val += yValue * 0.125 * speedAffectM * reverseMult;
 
@@ -193,7 +193,7 @@ class BlackSphereFlipMod extends Modifier
     final reverseModAmount:Float = whichStrummy.noteModData.getReverse();
     var reverseMult:Float = FlxMath.remapToRange(reverseModAmount, 0, 1, 1, -1);
 
-    if (!Preferences.downscroll) yValue *= -1;
+    if (!ClientPrefs.data.downScroll) yValue *= -1;
     retu_val += yValue * 0.125 * speedAffectM * reverseMult;
 
     return retu_val;

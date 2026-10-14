@@ -110,6 +110,7 @@ import objects.BGSprite;
 import objects.SyncedVideoSprite;
 import objects.VideoSprite;
 import objects.funkin.graphics.FunkinSprite;
+import objects.notes.*;
 import objects.notes.EventNote;
 import objects.notes.ExtraKeys;
 import objects.notes.Note;

@@ -32,7 +32,7 @@ class BumpyModBase extends Modifier
 
   function getOffset():Float
   {
-    return offset.value * (Preferences.downscroll ? -1 : 1);
+    return offset.value * (ClientPrefs.data.downScroll ? -1 : 1);
   }
 
   // An array which represents each arrow direction. Used to undo the strum movement for the notes for the offset submod to function
@@ -42,7 +42,7 @@ class BumpyModBase extends Modifier
   {
     if (currentValue == 0) return 0.0; // skip math if mod is 0
     curPos += getOffset();
-    final scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
+    final scrollSpeed = PlayfieldManager.instance.songSpeed ?? 1.0;
     return currentValue * sin(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * mult.value) * (Strumline.STRUMLINE_SIZE / 2.0);
   }
 
@@ -50,7 +50,7 @@ class BumpyModBase extends Modifier
   {
     if (currentValue == 0) return 0.0; // skip math if mod is 0
     curPos += getOffset();
-    final scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
+    final scrollSpeed = PlayfieldManager.instance.songSpeed ?? 1.0;
     return currentValue * cos(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * mult.value) * (Strumline.STRUMLINE_SIZE / 2.0);
   }
 
@@ -58,7 +58,7 @@ class BumpyModBase extends Modifier
   {
     if (currentValue == 0) return 0.0; // skip math if mod is 0
     curPos += getOffset();
-    final scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
+    final scrollSpeed = PlayfieldManager.instance.songSpeed ?? 1.0;
     return currentValue * tan(curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * mult.value) * (Strumline.STRUMLINE_SIZE / 2.0);
   }
 }
@@ -472,7 +472,7 @@ class BumpySpeedMod extends BumpyModBase
     if (currentValue == 0) return 1; // skip math if mod is 0
     final bumpyx_Mult:Float = mult.value;
     curPos += getOffset();
-    final scrollSpeed = PlayState.instance?.currentChart?.scrollSpeed ?? 1.0;
+    final scrollSpeed = PlayfieldManager.instance.songSpeed ?? 1.0;
     final modWouldBe:Float = currentValue * 0.025 * sin(
       curPos / (Strumline.STRUMLINE_SIZE / 3.0) / scrollSpeed * bumpyx_Mult
     ) * (Strumline.STRUMLINE_SIZE / 2.0);

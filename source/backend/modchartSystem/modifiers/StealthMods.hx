@@ -28,7 +28,7 @@ class UseOldStealthHoldsModifier extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
     whichStrum.strumExtraModData.useOldStealthGlowStyle = currentValue >= 0.5;
   }
 }
@@ -166,9 +166,9 @@ class StealthMod extends Modifier
     if (!(data.noteType == "receptor" || data.noteType == "path"))
     {
       var curPos2:Float = data.curPos_unscaled;
-      curPos2 *= Preferences.downscroll ? -1 : 1;
+      curPos2 *= ClientPrefs.data.downScroll ? -1 : 1;
       var pastReceptors:Float = 1;
-      // if ((Preferences.downscroll && curPos2 > 0) || (!Preferences.downscroll && curPos2 < 0))
+      // if ((ClientPrefs.data.downScroll && curPos2 > 0) || (!ClientPrefs.data.downScroll && curPos2 < 0))
       if (curPos2 < 0)
       {
         pastReceptors = stealthPastSubmod.value;
@@ -228,7 +228,7 @@ class SuddenMod extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
     whichStrum.strumExtraModData.suddenModAmount = currentValue;
     whichStrum.strumExtraModData.suddenStart = start.value + offset.value;
     whichStrum.strumExtraModData.suddenEnd = end.value + offset.value;
@@ -242,7 +242,7 @@ class SuddenMod extends Modifier
     if (isArrowPath || data.noteType == "receptor" || (isHoldNote && !useOldStealthGlowStyle)) return;
 
     var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
-    curPos2 *= Preferences.downscroll ? -1 : 1;
+    curPos2 *= ClientPrefs.data.downScroll ? -1 : 1;
     // Don't do anything if we're past receptors! Maybe disable this if we want stealth past receptors?
     // if (curPos2 < 0) return;
 
@@ -305,7 +305,7 @@ class HiddenMod extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
     whichStrum.strumExtraModData.hiddenModAmount = currentValue;
     whichStrum.strumExtraModData.hiddenStart = start.value + offset.value;
     whichStrum.strumExtraModData.hiddenEnd = end.value + offset.value;
@@ -319,7 +319,7 @@ class HiddenMod extends Modifier
     if (isArrowPath || data.noteType == "receptor" || (isHoldNote && !useOldStealthGlowStyle)) return;
 
     var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
-    curPos2 *= Preferences.downscroll ? -1 : 1;
+    curPos2 *= ClientPrefs.data.downScroll ? -1 : 1;
 
     // Don't do anything if we're past receptors!
     if (stealthPastSubmod.value <= 0)
@@ -384,7 +384,7 @@ class VanishMod extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumlineNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
     whichStrum.strumExtraModData.vanishModAmount = currentValue;
 
     final sizeThingy:Float = size.value / 2;
@@ -406,7 +406,7 @@ class VanishMod extends Modifier
     if (isArrowPath || data.noteType == "receptor" || (isHoldNote && !useOldStealthGlowStyle)) return;
 
     var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
-    curPos2 *= Preferences.downscroll ? -1 : 1;
+    curPos2 *= ClientPrefs.data.downScroll ? -1 : 1;
 
     // Don't do anything if we're past receptors!
     if (stealthPastSubmod.value <= 0)
@@ -481,7 +481,7 @@ class BlinkMod extends Modifier
     if (stealthPastSubmod.value <= 0)
     {
       var curPos2:Float = data.curPos_unscaled - (data.whichStrumNote?.noteModData?.curPos_unscaled ?? 0);
-      curPos2 *= Preferences.downscroll ? -1 : 1;
+      curPos2 *= ClientPrefs.data.downScroll ? -1 : 1;
       if (curPos2 < 0) return;
     }
 
@@ -536,9 +536,9 @@ class StealthHoldsMod extends Modifier
     if (!isArrowPath && isHoldNote)
     {
       var curPos2:Float = data.curPos_unscaled;
-      curPos2 *= Preferences.downscroll ? -1 : 1;
+      curPos2 *= ClientPrefs.data.downScroll ? -1 : 1;
       var pastReceptors:Float = 1;
-      // if ((Preferences.downscroll && curPos2 > 0) || (!Preferences.downscroll && curPos2 < 0))
+      // if ((ClientPrefs.data.downScroll && curPos2 > 0) || (!ClientPrefs.data.downScroll && curPos2 < 0))
       if (curPos2 < 0)
       {
         pastReceptors = stealthPastSubmod.value;
@@ -646,7 +646,7 @@ class AlphaNoteSplashModifier extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByIndex(lane);
     whichStrum.strumExtraModData.alphaSplashMod = currentValue;
     // strumLine.alphaSplashMod[lane] = currentValue;
   }
@@ -663,7 +663,7 @@ class AlphaHoldCoverModifier extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByIndex(lane);
     whichStrum.strumExtraModData.alphaHoldCoverMod = currentValue;
     // strumLine.alphaHoldCoverMod[lane] = currentValue;
   }

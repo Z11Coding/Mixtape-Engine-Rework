@@ -26,7 +26,7 @@ class LinearModifierBase extends Modifier
 
   function daMath(curPos:Float):Float
   {
-    curPos *= Preferences.downscroll ? -1 : 1;
+    curPos *= ClientPrefs.data.downScroll ? -1 : 1;
     return (curPos + offset.value) * currentValue;
   }
 }
@@ -71,7 +71,7 @@ class LinearYMod extends LinearModifierBase
     data.y -= strumResult[data.direction];
     final curPosToUse:Float = (useUnscaledCurpos ? data.curPos_unscaled : data.curPos);
 
-    data.y += daMath(curPosToUse) * (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+    data.y += daMath(curPosToUse) * (ClientPrefs.data.downScroll && flipForDownscroll ? -1 : 1);
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
@@ -83,7 +83,7 @@ class LinearYMod extends LinearModifierBase
     else
     {
       final curPosToUse:Float = (useUnscaledCurpos ? data.curPos_unscaled : data.curPos);
-      strumResult[data.direction] = daMath(curPosToUse) * (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+      strumResult[data.direction] = daMath(curPosToUse) * (ClientPrefs.data.downScroll && flipForDownscroll ? -1 : 1);
       data.y += strumResult[data.direction];
     }
   }
@@ -348,7 +348,7 @@ class ScaleLinearLegacyMod extends Modifier
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
     if (isArrowPath || currentValue == 0 || data.inOrientPass) return;
-    final curPos2:Float = data.curPos_unscaled * (Preferences.downscroll ? -1 : 1);
+    final curPos2:Float = data.curPos_unscaled * (ClientPrefs.data.downScroll ? -1 : 1);
     final p:Float = curPos2 * -1;
     data.scaleX = FlxMath.lerp(data.scaleX, currentValue, p / 1000 * 2);
     data.scaleY = FlxMath.lerp(data.scaleY, currentValue, p / 1000 * 2);

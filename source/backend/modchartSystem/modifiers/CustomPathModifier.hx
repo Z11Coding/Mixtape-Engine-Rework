@@ -172,7 +172,7 @@ class CustomPathMod extends Modifier
                 // trace((_g - 1) + "split: " + coords);
                 var vec = new TimeVector(
                   Std.parseFloat(coords[0]),
-                  Std.parseFloat(coords[1]) * (Preferences.downscroll ? -1 : 1),
+                  Std.parseFloat(coords[1]) * (ClientPrefs.data.downScroll ? -1 : 1),
                   Std.parseFloat(coords[2]),
                   Std.parseFloat(coords[3])
                 );
@@ -316,7 +316,7 @@ class CustomPathMod extends Modifier
     {
       curPos = data.curPos_unscaled;
     }
-    if (!Preferences.downscroll)
+    if (!ClientPrefs.data.downScroll)
     {
       curPos *= -1;
     }
@@ -530,7 +530,7 @@ class OldCustomPathMod extends Modifier
                 // trace((_g - 1) + "split: " + coords);
                 var vec = new TimeVector(
                   Std.parseFloat(coords[0]),
-                  Std.parseFloat(coords[1]) * (Preferences.downscroll ? -1 : 1),
+                  Std.parseFloat(coords[1]) * (ClientPrefs.data.downScroll ? -1 : 1),
                   Std.parseFloat(coords[2]),
                   Std.parseFloat(coords[3])
                 );
@@ -600,7 +600,7 @@ class OldCustomPathMod extends Modifier
       strumX += isHoldNote ? data.width : strumLine.getNoteXOffset();
       if (isHoldNote)
       {
-        if (Preferences.downscroll)
+        if (ClientPrefs.data.downScroll)
         {
           strumY += (Strumline.STRUMLINE_SIZE / 2);
         }

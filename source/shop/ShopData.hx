@@ -51,7 +51,7 @@ class MoneyPopup extends FlxSpriteGroup {
             FlxG.sound.play(Paths.sound('confirmMenu'), 0.9);
         });
 
-		var cam:Array<FlxCamera> = FlxCamera.defaultCameras;
+		var cam:Array<FlxCamera> = FlxCamera._defaultCameras;
 		if(camera != null) {
 			cam = [camera];
 		}

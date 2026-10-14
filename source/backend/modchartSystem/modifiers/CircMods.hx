@@ -26,7 +26,7 @@ class CircModBase extends Modifier
 
   function daMath(curPos:Float):Float
   {
-    var curPos2:Float = curPos * (Preferences.downscroll ? -1 : 1);
+    var curPos2:Float = curPos * (ClientPrefs.data.downScroll ? -1 : 1);
     curPos2 += offset.value;
     return (curPos2 * curPos2 * currentValue * -0.001);
   }
@@ -63,7 +63,7 @@ class CircYMod extends CircModBase
   {
     if (currentValue == 0 || data.noteType == "receptor") return;
     data.y -= strumResult[data.direction];
-    data.y += daMath(useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+    data.y += daMath(useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (ClientPrefs.data.downScroll && flipForDownscroll ? -1 : 1);
   }
 
   override function strumMath(data:NoteData, strumLine:Strumline):Void
@@ -74,7 +74,7 @@ class CircYMod extends CircModBase
     }
     else
     {
-      strumResult[data.direction] = daMath(useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (Preferences.downscroll && flipForDownscroll ? -1 : 1);
+      strumResult[data.direction] = daMath(useUnscaledCurpos ? data.curPos_unscaled : data.curPos) * (ClientPrefs.data.downScroll && flipForDownscroll ? -1 : 1);
       data.y += strumResult[data.direction];
     }
   }
@@ -298,7 +298,7 @@ class CircSpeedMod extends Modifier
 
   override function speedMath(lane:Int, curPos:Float, strumLine, isHoldNote = false):Float
   {
-    var curPos2:Float = curPos * (Preferences.downscroll ? -1 : 1);
+    var curPos2:Float = curPos * (ClientPrefs.data.downScroll ? -1 : 1);
     curPos2 += offset.value;
     final result:Float = curPos2 * curPos2 * currentValue * -0.001;
     return 1 + result;

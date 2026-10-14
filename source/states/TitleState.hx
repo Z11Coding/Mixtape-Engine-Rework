@@ -981,7 +981,7 @@ class TitleState extends MusicBeatState
 		}
     //underText.alpha = 0;
 		inGasterEgg = true;
-		FlxG.camera.setFilters(camfilters);
+		FlxG.camera.filters = camfilters;
 		FlxG.camera.filtersEnabled = true;
 		camfilters.push(shaders.ShadersHandler.chromaticAberration);
 	}

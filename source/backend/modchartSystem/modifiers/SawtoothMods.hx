@@ -23,7 +23,7 @@ class SawtoothModBase extends Modifier
 
   function get_offset():Float
   {
-    return offsetSubmod.value * (Preferences.downscroll ? -1 : 1);
+    return offsetSubmod.value * (ClientPrefs.data.downScroll ? -1 : 1);
   }
 
   public function new(name:String)

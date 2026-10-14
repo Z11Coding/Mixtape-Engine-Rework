@@ -995,8 +995,8 @@ class APPlayState extends PlayState {
                         drunkTween.cancel();
                         FlxDestroyUtil.destroy(drunkTween);
                     }
-                    camHUD.scrollAngle = camAngle;
-                    camGame.scrollAngle = camAngle;
+                    camHUD.angle = camAngle;
+                    camGame.angle = camAngle;
                 };
                 var playSound:String = "dizzy";
                 var playSoundVol:Float = 1;
@@ -1009,8 +1009,8 @@ class APPlayState extends PlayState {
                     }
                     drunkTween = FlxTween.num(0, 24, FlxG.random.float(1.2, 1.4), {
                         onUpdate: function(tween) {
-                            camHUD.scrollAngle = (tween.executions % 4 > 1 ? 1 : -1) * cast(tween, NumTween).value + camAngle;
-                            camGame.scrollAngle = (tween.executions % 4 > 1 ? -1 : 1) * cast(tween, NumTween).value / 2 + camAngle;
+                            camHUD.angle = (tween.executions % 4 > 1 ? 1 : -1) * cast(tween, NumTween).value + camAngle;
+                            camGame.angle = (tween.executions % 4 > 1 ? -1 : 1) * cast(tween, NumTween).value / 2 + camAngle;
                         },
                         type: PINGPONG
                     });
@@ -3035,7 +3035,7 @@ class APPlayState extends PlayState {
                 }
                 else
                 {
-                    var spr = playerStrums.members[note.noteData];
+                    var spr = playerStrums.strumNotes.members[note.noteData];
     				if(spr != null) spr.playAnim('confirm', true);
                 }
             }

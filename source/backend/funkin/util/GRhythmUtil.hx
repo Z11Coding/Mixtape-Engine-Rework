@@ -40,9 +40,9 @@ class GRhythmUtil
    */
   public static function mirrorNoteDirection(noteData:Int):Int
   {
-    final MAX_KEY_VALUE:Int = (noteData < Strumline.KEY_COUNT ? Strumline.KEY_COUNT : Strumline.KEY_COUNT * 2);
+    final MAX_KEY_VALUE:Int = (noteData < (ExtraKeys.mania+1) ? (ExtraKeys.mania+1) : (ExtraKeys.mania+1) * 2);
 
-    return (MAX_KEY_VALUE - 1) - (noteData % Strumline.KEY_COUNT);
+    return (MAX_KEY_VALUE - 1) - (noteData % (ExtraKeys.mania+1));
   }
 
   /**
@@ -60,72 +60,6 @@ class GRhythmUtil
   }
 
   /**
-   * Process the hit window for a note.
-   * @param note The note to process.
-   * @param isControlled True if the note is controlled by the player, false otherwise.
-   * @return A HitWindowRes object containing the result of the hit window check.
-   */
-  public static function processWindow(note:Note, isControlled:Bool = true, ?inUseConductor:Conductor):HitWindowRes
-  {
-    if (inUseConductor == null) inUseConductor = Conductor.instance;
-
-    var window:HitWindow = getHitWindow(note);
-
-    var windowStart:Float = window.start;
-    var windowCenter:Float = window.center;
-    var windowEnd:Float = window.end;
-
-    if (note.hasMissed || note.hasBeenHit)
-    {
-      return {
-        botplayHit: false,
-        cont: false
-      };
-    }
-
-    // Treat notes as not in window if they are greater or less than the hit window
-    if (inUseConductor.songPosition > windowEnd)
-    {
-      note.tooEarly = false;
-      note.hasMissed = true;
-      note.mayHit = false;
-      if (note.holdNoteSprite != null) note.holdNoteSprite.missedNote = true;
-      return {
-        botplayHit: false,
-        cont: true
-      };
-    }
-
-    // Check if we're not being controlled (ie, botplay/opponent)
-    if (!isControlled && inUseConductor.songPosition >= windowCenter) return {
-      botplayHit: true,
-      cont: true
-    };
-
-    if (note.holdNoteSprite != null) note.holdNoteSprite.missedNote = false;
-
-    if (inUseConductor.songPosition >= windowStart)
-    {
-      note.tooEarly = false;
-      note.hasMissed = false;
-      note.mayHit = true;
-      return {
-        botplayHit: false,
-        cont: true
-      };
-    }
-
-    note.tooEarly = true;
-    note.mayHit = false;
-    note.hasMissed = false;
-
-    return {
-      botplayHit: false,
-      cont: true
-    };
-  }
-
-  /**
    * Get the y-position of a note based on its strum time.
    * @param strumTime The strum time of the note.
    * @param scrollSpeed The scroll speed of the strumline.
@@ -133,9 +67,9 @@ class GRhythmUtil
    * @param conductorInUse The conductor to use for calculating the y-position.
    * @return The y-position of the note.
    */
-  public static function getNoteY(strumTime:Float, scrollSpeed:Float, downscroll:Bool = false, ?conductorInUse:Conductor):Float
+  public static function getNoteY(strumTime:Float, scrollSpeed:Float, downscroll:Bool = false, ?conductorInUse:RConductor):Float
   {
-    if (conductorInUse == null) conductorInUse = Conductor.instance;
+    if (conductorInUse == null) conductorInUse = MegaManager.conductor;
     return Constants.PIXELS_PER_MS * (conductorInUse.getTimeWithDelta() - strumTime) * scrollSpeed * (downscroll ? 1 : -1);
   }
 }

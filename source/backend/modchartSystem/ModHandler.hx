@@ -141,7 +141,7 @@ class ModHandler
     cosecantOffset = 0.0;
     useCosecant = false;
 
-    for (i in 0...Strumline.KEY_COUNT)
+    for (i in 0...(ExtraKeys.mania+1))
     {
       strum.StrumNotes.members[i].strumExtraModData.reset();
     }
@@ -210,7 +210,7 @@ class ModHandler
       else
       {
         addMod(subModArr[0]); // try and add the mod
-        PlayState.instance.modDebugNotif(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+        MegaManager.scriptManager.addTextToDebug(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
 
         final mod:Modifier = modifiers.get(subModArr[0]);
         final subModName:String = mod.subModAliasConvert(subModArr[1]);
@@ -227,7 +227,7 @@ class ModHandler
     }
     else
     {
-      PlayState.instance.modDebugNotif(tagToUse + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+      MegaManager.scriptManager.addTextToDebug(tagToUse + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
       var _m = addMod(tagToUse, val); // try and add the mod lol
       _m.setVal(val * (invertValues && _m.invertForDad ? -1 : 1));
       sortMods();
@@ -265,7 +265,7 @@ class ModHandler
       else
       {
         addMod(subModArr[0]); // try and add the mod
-        // PlayState.instance.modDebugNotif(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+        // MegaManager.scriptManager.addTextToDebug(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
 
         final mod:Modifier = modifiers.get(subModArr[0]);
         final subModName:String = mod.subModAliasConvert(subModArr[1]);
@@ -327,7 +327,7 @@ class ModHandler
       // we already have this!
       if (modifiers.exists(mod.tag))
       {
-        PlayState.instance.modDebugNotif(mod.tag + " already exists?", FlxColor.RED);
+        MegaManager.scriptManager.addTextToDebug(mod.tag + " already exists?", FlxColor.RED);
         return;
       }
      */
@@ -349,7 +349,7 @@ class ModHandler
       }
       catch (e)
       {
-        PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
+        MegaManager.scriptManager.addTextToDebug(e.toString(), FlxColor.RED);
         return null;
       }
     }
@@ -386,7 +386,7 @@ class ModHandler
     var valueChanged:Bool = false;
     var baseModVal:Float = m.currentValue;
 
-    for (i in 0...Strumline.KEY_COUNT)
+    for (i in 0...(ExtraKeys.mania+1))
     {
       for (v in sampleModVals)
       {
@@ -476,7 +476,7 @@ class ModHandler
     // trace("about to test: " + m.tag);
 
     var baseModVal:Float = m.currentValue;
-    for (lane in 0...Strumline.KEY_COUNT)
+    for (lane in 0...(ExtraKeys.mania+1))
     {
       for (v in sampleModVals)
       {
@@ -675,11 +675,11 @@ class ModHandler
   @:deprecated("this function will be removed") @:noCompletion
   public function makeHoldCopyStrum_sample(note:ZSprite, strumTime:Float, direction:Int, strumLine:Strumline, notePos:Float, isArrowPath:Bool = false, graphicWidth:Float = 0):Float
   {
-    final whichStrumNote = strumLine.getByIndex(direction % Strumline.KEY_COUNT);
+    final whichStrumNote = strumLine.getByIndex(direction % (ExtraKeys.mania+1));
     var scrollMult:Float = 1.0;
     for (mod in mods_speed)
     {
-      scrollMult *= mod.speedMath((direction) % Strumline.KEY_COUNT, notePos, strumLine, true);
+      scrollMult *= mod.speedMath((direction) % (ExtraKeys.mania+1), notePos, strumLine, true);
     }
 
     note.x = whichStrumNote.x + getHoldOffsetX(isArrowPath, graphicWidth);
@@ -688,7 +688,7 @@ class ModHandler
 
     var noteHeight:Float = 0.0;
 
-    if (Preferences.downscroll)
+    if (ClientPrefs.data.downScroll)
     {
       note.y = (whichStrumNote.y + sillyPos - noteHeight + Strumline.STRUMLINE_SIZE / 2);
     }
@@ -702,7 +702,7 @@ class ModHandler
 
   public function mathCutOffCheck(notePos:Float, lane:Int = 0):Bool
   {
-    final whichStrumNote:StrumNote = strum.getByIndex(lane % Strumline.KEY_COUNT);
+    final whichStrumNote:StrumNote = strum.getByIndex(lane % (ExtraKeys.mania+1));
     return (whichStrumNote.strumExtraModData.mathCutOff > 0 && !(whichStrumNote.strumExtraModData.mathCutOff >= Math.abs(notePos)));
   }
 
@@ -727,7 +727,7 @@ class ModHandler
     }
     susFakeNote.applyNoteData(fakeNote);
 
-    if (Preferences.downscroll) susFakeNote.y += 27; // fix gap for downscroll lol Moved from verts so it is applied before perspective fucks it up!
+    if (ClientPrefs.data.downScroll) susFakeNote.y += 27; // fix gap for downscroll lol Moved from verts so it is applied before perspective fucks it up!
 
     ModConstants.applyPerspective(susFakeNote, fakeNoteWidth, fakeNoteHeight);
   }
@@ -851,7 +851,7 @@ class ModHandler
    */
   public function updateSpecialMods():Void
   {
-    for (lane in 0...Strumline.KEY_COUNT)
+    for (lane in 0...(ExtraKeys.mania+1))
     {
       for (mod in this.mods_special)
       {
@@ -862,23 +862,11 @@ class ModHandler
         }
         catch (e)
         {
-          PlayState.instance.modDebugNotif(e.toString(), FlxColor.RED);
+          MegaManager.scriptManager.addTextToDebug(e.toString(), FlxColor.RED);
           return;
         }
       }
     }
-  }
-
-  public function getStrumOffsetX():Float
-  {
-    @:privateAccess
-    return strum.noteStyle._data.assets.noteStrumline.offsets[0];
-  }
-
-  public function getStrumOffsetY():Float
-  {
-    @:privateAccess
-    return strum.noteStyle._data.assets.noteStrumline.offsets[1];
   }
 
   /**

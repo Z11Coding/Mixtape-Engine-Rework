@@ -45,14 +45,14 @@ class PlayFieldFunctions
 		//TODO: use this when the modchart system actually gets added
 		var lua = funk.lua;
 
-		set('curBpm', Conductor.instance.bpm);
-    set('startingBPM', Conductor.instance.startingBPM);
-    set('songPos', Conductor.instance.songPosition);
-    set('beatPos', Conductor.instance.currentBeatTime);
+		set('curBpm', MegaManager.conductor.bpm);
+    set('startingBPM', MegaManager.conductor.startingBPM);
+    set('songPos', MegaManager.conductor.songPosition);
+    set('beatPos', MegaManager.conductor.currentBeatTime);
 
-    set('measureLength', Conductor.instance.measureLengthMs);
-    set('beatLength', Conductor.instance.beatLengthMs);
-    set('stepLength', Conductor.instance.stepLengthMs);
+    set('measureLength', MegaManager.conductor.measureLengthMs);
+    set('beatLength', MegaManager.conductor.beatLengthMs);
+    set('stepLength', MegaManager.conductor.stepLengthMs);
 
     set('stepsPerBeat', Constants.STEPS_PER_BEAT);
 
@@ -69,9 +69,9 @@ class PlayFieldFunctions
 
     set('invertStrumlineTarget', ModConstants.invertStrumlineTarget); // For swap chart mod
 
-		Lua_helper.add_callback(lua, "getBeatTimeInMs", Conductor.instance.getBeatTimeInMs);
-    Lua_helper.add_callback(lua, "getStepTimeInMs", Conductor.instance.getStepTimeInMs);
-    Lua_helper.add_callback(lua, "getTimeInSteps", Conductor.instance.getTimeInSteps);
+		Lua_helper.add_callback(lua, "getBeatTimeInMs", MegaManager.conductor.getBeatTimeInMs);
+    Lua_helper.add_callback(lua, "getStepTimeInMs", MegaManager.conductor.getStepTimeInMs);
+    Lua_helper.add_callback(lua, "getTimeInSteps", MegaManager.conductor.getTimeInSteps);
 
     Lua_helper.add_callback(lua, "targetExclude", function(who:String):Void
     {
@@ -92,7 +92,6 @@ class PlayFieldFunctions
     // v[2] == the column that the charted notes are on, starting from 0
     // v[3] == the hold length (0 means no hold) in ms
     // v[4] == the type of note (such as "default", "hurt", "invisible", "dodge",etc)
-    Lua_helper.add_callback(lua, "getNoteBeats", ModConstants.getNoteBeats);
 
     // TODO:
     // FUNCS, FUNC_TWEEN, AND PERFRAME

@@ -157,20 +157,20 @@ class ZSortMod extends Modifier
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
     // IMPORTANT NOTE -> ONLY WORKS FOR BOYFRIEND!
-    if (strumLine != PlayState.instance.playerStrumline) return;
+    if (strumLine != MegaManager.playfield.playerStrums) return;
     if (currentValue >= 0.5)
     {
-      PlayState.instance.noteRenderMode = true;
+      MegaManager.playfield.noteRenderMode = true;
       strumLine.zSortMode = true; // Doesn't really matter what it's set too here, right?
     }
     else if (currentValue < 0.0)
     {
-      PlayState.instance.noteRenderMode = false;
+      MegaManager.playfield.noteRenderMode = false;
       strumLine.zSortMode = false;
     }
     else
     {
-      PlayState.instance.noteRenderMode = false;
+      MegaManager.playfield.noteRenderMode = false;
       strumLine.zSortMode = true;
     }
   }
@@ -206,7 +206,7 @@ class MathCutOffMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByIndex(lane);
     whichStrum.strumExtraModData.mathCutOff = currentValue;
   }
 }
@@ -223,7 +223,7 @@ class NoteSplashCopyStrumScaleMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByIndex(lane);
     whichStrum.strumExtraModData.splashCopyStrumScale = currentValue >= 0.5;
   }
 }
@@ -240,7 +240,7 @@ class HoldCoverCopyStrumScaleMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByIndex(lane);
     whichStrum.strumExtraModData.holdCoverCopyStrumScale = currentValue >= 0.5;
   }
 }
@@ -257,7 +257,7 @@ class DisableHoldMathShortCutMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByIndex(lane);
     whichStrum.strumExtraModData.noHoldMathShortcut = currentValue;
   }
 }

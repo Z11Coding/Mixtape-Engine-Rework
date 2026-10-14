@@ -38,7 +38,7 @@ class WaveyModBase extends Modifier
       final waveyX_timeAdd:Float = offset.value;
       final waveyX_desync:Float = desync.value;
       returnValue = currentValue * (ModConstants.fastTan(
-        (((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult) + (lane * waveyX_desync)) * Math.PI
+        (((beatTime + waveyX_timeAdd / MegaManager.conductor.beatLengthMs) * waveyX_timeMult) + (lane * waveyX_desync)) * Math.PI
       ) * ModConstants.strumSize / 2);
     }
     else
@@ -62,7 +62,7 @@ class WaveyModBase extends Modifier
       final waveyX_timeAdd:Float = offset.value;
       final waveyX_desync:Float = desync.value;
       returnValue = currentValue * (sin(
-        (((beatTime + waveyX_timeAdd / Conductor.instance.beatLengthMs) * waveyX_timeMult) + (lane * waveyX_desync)) * Math.PI
+        (((beatTime + waveyX_timeAdd / MegaManager.conductor.beatLengthMs) * waveyX_timeMult) + (lane * waveyX_desync)) * Math.PI
       ) * ModConstants.strumSize / 2);
     }
     else

@@ -186,7 +186,7 @@ class Modifier
     #if FEATURE_WITF_USE_TIME_DELTA
     return ModConstants.getBeatPositionWithDelta();
     #else
-    return Conductor.instance?.currentBeatTime ?? 0.0;
+    return MegaManager.conductor?.currentBeatTime ?? 0.0;
     #end
   }
 
@@ -195,7 +195,7 @@ class Modifier
   function get_songTime():Float
   {
     return ModConstants.getSongPosition();
-    // return Conductor.instance?.songPosition ?? 0.0;
+    // return MegaManager.conductor?.songPosition ?? 0.0;
   }
 
   function sin(r:Float):Float

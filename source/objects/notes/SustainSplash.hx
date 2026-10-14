@@ -13,6 +13,7 @@ class SustainSplash extends ZSprite
 	public static var frameRate:Int;
 
 	public var strumNote:StrumNote;
+	public var sustainNote:SustainNote;
 
 	var timer:FlxTimer;
 
@@ -54,12 +55,12 @@ class SustainSplash extends ZSprite
 	public var autoOrigin:Bool = false;
 	override function update(elapsed)
 	{
-		if (autoOrigin) glow.centerOrigin();
+		if (autoOrigin) centerOrigin();
 		if (!holdPositioned)
 		{
 			var o = [1.08, 0.75];
-			glow.perspectiveWidth = glow.width * o[0];
-			glow.perspectiveHeight = glow.height * o[1];
+			perspectiveWidth = width * o[0];
+			perspectiveHeight = height * o[1];
 		}
 		super.update(elapsed);
 
@@ -82,6 +83,8 @@ class SustainSplash extends ZSprite
 
 	public function setupSusSplash(strum:StrumNote, daNote:Note, ?playbackRate:Float = 1):Void
 	{
+		sustainNote = cast (daNote, SustainNote);
+
 		final susLength:Float = (!daNote.isSustainNote ? daNote.sustainLength : daNote.parentSL);
 		final lengthToGet:Int = Math.floor(susLength / Conductor.stepCrochet);
 		final timeToGet:Float = !daNote.isSustainNote ? daNote.strumTime : daNote.parentST;
@@ -112,7 +115,7 @@ class SustainSplash extends ZSprite
 					tempShader = daNote.rgbShader.parent;
 				}
 				else
-					tempShader = Note.globalRgbShaders[daNote.noteData];
+					tempShader = BaseNote.globalRgbShaders[daNote.noteData];
 			}
 			rgbShader.copyValues(tempShader);
 		}
@@ -151,15 +154,8 @@ class SustainSplash extends ZSprite
     }
     else
     {
-      if (holdOrigin.length >= 2 && holdOrigin[2] >= 1)
-      {
-        autoOrigin = true;
-      }
-      else
-      {
-        autoOrigin = false;
-        this.origin.set(holdOrigin[0], holdOrigin[1]); // Magic numbers which make it rotate from the center properly!
-      }
+      autoOrigin = false;
+      this.origin.set(holdOrigin.x, holdOrigin.y); // Magic numbers which make it rotate from the center properly!
     }
 	}
 

@@ -22,7 +22,7 @@ class GodCode extends MusicBeatState
 		DiscordClient.changePresence("???", null);
 		#end
 
-		FlxG.camera.setFilters(camfilters);
+		FlxG.camera.filters = camfilters;
 		FlxG.camera.filtersEnabled = true;
 		camfilters.push(shaders.ShadersHandler.chromaticAberration);
 		FlxG.sound.playMusic(Paths.music("WELCOME"), 0.5, true);

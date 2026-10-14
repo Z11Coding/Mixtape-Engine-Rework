@@ -51,7 +51,7 @@ class SortUtil
    */
   public static inline function byStrumtime(order:Int, a:Note, b:Note):Int
   {
-    return noteDataByTime(order, a.noteData, b.noteData);
+    return noteDataByTime(order, a.strumTime, b.strumTime);
   }
 
   /**
@@ -62,9 +62,9 @@ class SortUtil
    * @param b The second Event to compare.
    * @return 1 if `a` has an earlier time, -1 if `b` has an earlier time.
    */
-  public static inline function noteDataByTime(order:Int, a:SongNoteData, b:SongNoteData):Int
+  public static inline function noteDataByTime(order:Int, a:Float, b:Float):Int
   {
-    return FlxSort.byValues(order, a.time, b.time);
+    return FlxSort.byValues(order, a, b);
   }
 
   /**

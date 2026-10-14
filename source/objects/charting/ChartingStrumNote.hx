@@ -1,6 +1,7 @@
 package objects.charting;
 
 import backend.animation.PsychAnimationController;
+import objects.notes.BaseNote;
 import shaders.RGBPalette.RGBShaderReference;
 import shaders.RGBPalette;
 
@@ -198,7 +199,7 @@ class ChartingStrumNote extends FlxSprite
 
 	public function playerPosition()
 	{
-		x += Note.swagWidth * noteData;
+		x += BaseNote.swagWidth * noteData;
 		x += 50;
 		x += ((FlxG.width / 2) * player);
 	}

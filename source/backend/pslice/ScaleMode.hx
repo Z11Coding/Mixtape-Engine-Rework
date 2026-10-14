@@ -80,7 +80,7 @@ class ScaleMode extends BaseScaleMode
   public static var ratioAxis:FlxAxes = X;
 
   /**
-   * Singleton instance of the `FullScreenScaleMode`.
+   * Singleton instance of the `ScaleMode`.
    */
   public static var instance:MobileScaleMode = null;
 
@@ -99,7 +99,7 @@ class ScaleMode extends BaseScaleMode
   private static var cutoutBitmaps:Array<Bitmap> = [null, null];
 
   /**
-   * Constructor for `FullScreenScaleMode`.
+   * Constructor for `ScaleMode`.
    *
    * @param enable Whether fullscreen scaling should be enabled by default.
    */

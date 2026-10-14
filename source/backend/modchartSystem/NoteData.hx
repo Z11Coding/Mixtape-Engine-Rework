@@ -228,17 +228,6 @@ class NoteData
     setValuesFromFunkinSkewSprite(spr);
   }
 
-  // call this to set the values from an already existing sprite! FOR NOTES
-
-  public function setValuesFromNoteSprite(noteSpr:Note):Void
-  {
-    setValuesFromZSprite(noteSpr);
-    this.strumTime = noteSpr.strumTime;
-    this.noteType = "note";
-    this.noteKind = noteSpr.kind;
-    this.direction = noteSpr.noteData;
-  }
-
   // Call this function to reset all values back to default!
 
   public function defaultValues():Void

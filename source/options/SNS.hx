@@ -211,10 +211,10 @@ class NoteSplash extends FlxSprite
 		setPosition(x, y);
 
 		if (babyArrow != null)
-			setPosition(babyArrow.x - Note.swagWidth * 0.95, babyArrow.y - Note.swagWidth); // To prevent it from being misplaced for one game tick
+			setPosition(babyArrow.x - BaseNote.swagWidth * 0.95, babyArrow.y - BaseNote.swagWidth); // To prevent it from being misplaced for one game tick
 
 		if (babyArrowCharting != null)
-			setPosition(babyArrowCharting.x - Note.swagWidth * 0.95, babyArrowCharting.y - Note.swagWidth); // Specifically so that the VisualSettingsSubstate stops crying
+			setPosition(babyArrowCharting.x - BaseNote.swagWidth * 0.95, babyArrowCharting.y - BaseNote.swagWidth); // Specifically so that the VisualSettingsSubstate stops crying
 
 		if (note != null)
 			noteData = note.noteData;
@@ -268,7 +268,7 @@ class NoteSplash extends FlxSprite
 							else if (i == 2) tempShader.b = color;
 						}
 					}
-					else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
+					else tempShader.copyValues(BaseNote.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
 
 					if (note != null)
 					{
@@ -277,7 +277,7 @@ class NoteSplash extends FlxSprite
 						if (note.noteSplashData.b != -1) tempShader.b = note.noteSplashData.b;
 					}
 				}
-				else tempShader.copyValues(Note.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
+				else tempShader.copyValues(BaseNote.globalRgbShaders[noteData % ExtraKeys.colArray.length]);
 			}
 		}
 		rgbShader.copyValues(tempShader);
@@ -358,19 +358,19 @@ class NoteSplash extends FlxSprite
 		if (babyArrow != null)
 		{
 			if (copyX)
-				x = babyArrow.x - Note.swagWidth * 0.95;
+				x = babyArrow.x - BaseNote.swagWidth * 0.95;
 
 			if (copyY)
-				y = babyArrow.y - Note.swagWidth;
+				y = babyArrow.y - BaseNote.swagWidth;
 		}
 
 		if (babyArrowCharting != null)
 		{
 			if (copyX)
-				x = babyArrowCharting.x - Note.swagWidth * 0.95;
+				x = babyArrowCharting.x - BaseNote.swagWidth * 0.95;
 
 			if (copyY)
-				y = babyArrowCharting.y - Note.swagWidth;
+				y = babyArrowCharting.y - BaseNote.swagWidth;
 		}
 		super.update(elapsed);
 	}

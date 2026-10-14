@@ -27,8 +27,8 @@ class TornadoModBase extends Modifier
   function tornadoMath(lane:Int, curPos:Float):Float
   {
     final swagWidth:Float = ModConstants.strumSize;
-    curPos += offset.value * (Preferences.downscroll ? -1 : 1);
-    final playerColumn:Float = lane % Strumline.KEY_COUNT;
+    curPos += offset.value * (ClientPrefs.data.downScroll ? -1 : 1);
+    final playerColumn:Float = lane % (ExtraKeys.mania+1);
     final columnPhaseShift = playerColumn * Math.PI / 3;
     final phaseShift = (curPos / 135) * speed.value * 0.2;
     final returnReceptorToZeroOffsetX = (-cos(-columnPhaseShift) + 1) / 2 * swagWidth * 3;
@@ -40,8 +40,8 @@ class TornadoModBase extends Modifier
   function tanTornadoMath(lane:Int, curPos:Float):Float
   {
     var swagWidth:Float = ModConstants.strumSize;
-    curPos += offset.value * (Preferences.downscroll ? -1 : 1);
-    var playerColumn:Float = lane % Strumline.KEY_COUNT;
+    curPos += offset.value * (ClientPrefs.data.downScroll ? -1 : 1);
+    var playerColumn:Float = lane % (ExtraKeys.mania+1);
     var columnPhaseShift = playerColumn * Math.PI / 3;
     var phaseShift = (curPos / 135) * speed.value * 0.2;
     var returnReceptorToZeroOffsetX = (-tan(-columnPhaseShift) + 1) / 2 * swagWidth * 3;

@@ -89,7 +89,7 @@ class OrientModBase extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumlineNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByIndex(lane);
     whichStrum.strumExtraModData.orientExtraMath[index] = currentValue;
   }
 
@@ -154,7 +154,7 @@ class OrientModBase extends Modifier
     }
     else // allows for 360 degrees
     {
-      if (Preferences.downscroll)
+      if (ClientPrefs.data.downScroll)
       {
         a *= -1;
         b *= -1;

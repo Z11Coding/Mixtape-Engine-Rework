@@ -57,7 +57,7 @@ class AsymptoteModBase extends Modifier
     pos *= 0.0005;
     if (pos == 0) pos = smallestVal; // prevent divide by 0
 
-    final newPos = doLaneOffset.value >= 0.5 ? data.direction - (Strumline.KEY_COUNT - 1) / 2 : 1;
+    final newPos = doLaneOffset.value >= 0.5 ? data.direction - ((ExtraKeys.mania+1) - 1) / 2 : 1;
 
     var result:Float = this.currentValue * (1.0 + magnitude.value / pos) * -newPos;
     if (Math.isNaN(result) || !Math.isFinite(result)) result = 0;

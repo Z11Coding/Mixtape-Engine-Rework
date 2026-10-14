@@ -190,6 +190,7 @@
 
 	<!-- Base Game Stuff -->
 	<haxelib name="json2object" />
+	<haxelib name="thx.semver" />
 
 	<!-- Disable Discord IO Thread -->
 	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="hxdiscord_rpc" />

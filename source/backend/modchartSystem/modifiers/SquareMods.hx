@@ -28,7 +28,7 @@ class SquareModBase extends Modifier
   function squareMath(curPos:Float):Float
   {
     final mult:Float = multSubmod.value / (ModConstants.strumSize * 2);
-    final timeOffset:Float = offsetY.value * (Preferences.downscroll ? -1 : 1);
+    final timeOffset:Float = offsetY.value * (ClientPrefs.data.downScroll ? -1 : 1);
     var xVal:Float = sin((curPos + timeOffset) * Math.PI * mult);
     xVal = Math.floor(xVal) + 0.5 + offsetX.value;
     return xVal;

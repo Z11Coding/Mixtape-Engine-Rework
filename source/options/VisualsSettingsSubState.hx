@@ -224,7 +224,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 
 	function changeNoteSkin(note:StrumNote)
 	{
-		var skin:String = Note.defaultNoteSkin;
+		var skin:String = BaseNote.defaultNoteSkin;
 		var customSkin:String = skin + Note.getNoteSkinPostfix();
 		if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
 
@@ -288,7 +288,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 	override function destroy()
 	{
 		if(changedMusic) MusicManager.playMenuMusic();
-		Note.globalRgbShaders = [];
+		BaseNote.globalRgbShaders = [];
 		super.destroy();
 	}
 

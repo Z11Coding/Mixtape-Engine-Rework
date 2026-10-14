@@ -60,7 +60,7 @@ class RotateModBase extends Modifier
     }
     else if (data.noteType == "hold" || data.noteType == "path")
     {
-      if (Preferences.downscroll)
+      if (ClientPrefs.data.downScroll)
       {
         r += (Strumline.STRUMLINE_SIZE / 2);
       }
@@ -163,7 +163,7 @@ class RotateModBase extends Modifier
   {
     var r:Float = 0;
     r += strumLine.x + Strumline.INITIAL_OFFSET + (Strumline.NOTE_SPACING * 1.5);
-    // r += strumLine.getByIndex(data.direction % Strumline.KEY_COUNT).strumExtraModData.noteStyleOffsetX;
+    // r += strumLine.getByIndex(data.direction % (ExtraKeys.mania+1)).strumExtraModData.noteStyleOffsetX;
     r += data.whichStrumNote.strumExtraModData.noteStyleOffsetX;
     r += this.offsetX.value;
     return r;

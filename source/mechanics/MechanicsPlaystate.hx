@@ -167,7 +167,7 @@ class MechanicsPlaystate {
 	{
 		if (wasSwapped)
 		{
-			PlayState.instance.playerStrums.forEachAlive(function(strum:StrumNote)
+			PlayState.instance.playerStrums.strumNotes.forEachAlive(function(strum:StrumNote)
 			{
 				@:privateAccess
 				{
@@ -182,7 +182,7 @@ class MechanicsPlaystate {
 				}));
 			});
 
-			PlayState.instance.opponentStrums.forEachAlive(function(strum:StrumNote)
+			PlayState.instance.opponentStrums.strumNotes.forEachAlive(function(strum:StrumNote)
 			{
 				@:privateAccess
 				{
@@ -204,19 +204,19 @@ class MechanicsPlaystate {
 		var chosenStrum:Int = FlxG.random.int(0, 3);
 		var tweenToStrum:Int = FlxG.random.int(0, 3, [chosenStrum]);
 
-		PlayState.instance.playerStrums.members[chosenStrum].positionData = tweenToStrum;
-		PlayState.instance.playerStrums.members[tweenToStrum].positionData = chosenStrum;
+		PlayState.instance.playerStrums.strumNotes.members[chosenStrum].positionData = tweenToStrum;
+		PlayState.instance.playerStrums.strumNotes.members[tweenToStrum].positionData = chosenStrum;
 
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrums.members[chosenStrum],
-			{x: PlayState.instance.playerStrums.members[tweenToStrum].formerPosition.x, y: PlayState.instance.playerStrums.members[tweenToStrum].formerPosition.y}, 0.4, {
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrums.strumNotes.members[chosenStrum],
+			{x: PlayState.instance.playerStrums.strumNotes.members[tweenToStrum].formerPosition.x, y: PlayState.instance.playerStrums.strumNotes.members[tweenToStrum].formerPosition.y}, 0.4, {
 				ease: FlxEase.cubeOut,
 				onComplete: function(twn:FlxTween)
 				{
 					noteSwapTweens.remove(twn);
 				}
 			}));
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrums.members[tweenToStrum],
-			{x: PlayState.instance.playerStrums.members[chosenStrum].formerPosition.x, y: PlayState.instance.playerStrums.members[chosenStrum].formerPosition.y}, 0.4, {
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrums.strumNotes.members[tweenToStrum],
+			{x: PlayState.instance.playerStrums.strumNotes.members[chosenStrum].formerPosition.x, y: PlayState.instance.playerStrums.strumNotes.members[chosenStrum].formerPosition.y}, 0.4, {
 				ease: FlxEase.cubeOut,
 				onComplete: function(twn:FlxTween)
 				{
@@ -224,19 +224,19 @@ class MechanicsPlaystate {
 				}
 			}));
 
-		PlayState.instance.opponentStrums.members[chosenStrum].positionData = tweenToStrum;
-		PlayState.instance.opponentStrums.members[tweenToStrum].positionData = chosenStrum;
+		PlayState.instance.opponentStrums.strumNotes.members[chosenStrum].positionData = tweenToStrum;
+		PlayState.instance.opponentStrums.strumNotes.members[tweenToStrum].positionData = chosenStrum;
 
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrums.members[chosenStrum],
-			{x: PlayState.instance.opponentStrums.members[tweenToStrum].formerPosition.x, y: PlayState.instance.opponentStrums.members[tweenToStrum].formerPosition.y}, 0.4, {
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrums.strumNotes.members[chosenStrum],
+			{x: PlayState.instance.opponentStrums.strumNotes.members[tweenToStrum].formerPosition.x, y: PlayState.instance.opponentStrums.strumNotes.members[tweenToStrum].formerPosition.y}, 0.4, {
 				ease: FlxEase.cubeOut,
 				onComplete: function(twn:FlxTween)
 				{
 					noteSwapTweens.remove(twn);
 				}
 			}));
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrums.members[tweenToStrum],
-			{x: PlayState.instance.opponentStrums.members[chosenStrum].formerPosition.x, y: PlayState.instance.opponentStrums.members[chosenStrum].formerPosition.y}, 0.4, {
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrums.strumNotes.members[tweenToStrum],
+			{x: PlayState.instance.opponentStrums.strumNotes.members[chosenStrum].formerPosition.x, y: PlayState.instance.opponentStrums.strumNotes.members[chosenStrum].formerPosition.y}, 0.4, {
 				ease: FlxEase.cubeOut,
 				onComplete: function(twn:FlxTween)
 				{

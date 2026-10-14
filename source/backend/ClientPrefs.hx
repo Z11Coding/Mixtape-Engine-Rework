@@ -39,6 +39,7 @@ import states.TitleState;
 	public var cacheOnGPU:Bool = false; // GPU Caching made by Raltyro // its buggy lol
 	public var framerate:Int = 60;
 	public var oppNoteAlpha:Int = 1;
+	public var strumlineBackgroundOpacity:Int = 0;
 	public var unlockFramerate:Bool = false;
 	public var processPriority:String = 'Normal'; // Process priority: Idle, Below Normal, Normal, Above Normal, High, Realtime
 	public var processPriorityForceLock:Bool = false; // Force-lock process priority to prevent external changes

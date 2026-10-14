@@ -87,8 +87,8 @@ class ReverseMod extends Modifier
     // Compute this only once!
     if (dif == null)
     {
-      final baseY:Float = PlayState.getStrumlineY(strumLine, false);
-      final targetY:Float = PlayState.getStrumlineY(strumLine, true);
+      final baseY:Float = PlayfieldManager.getStrumlineY(strumLine, false);
+      final targetY:Float = PlayfieldManager.getStrumlineY(strumLine, true);
       dif = targetY - baseY;
     }
 
@@ -129,7 +129,7 @@ class BrakeMod extends Modifier
   {
     var returnVal:Float = 1.0;
 
-    var curPos_Part1:Float = curPos * (Preferences.downscroll ? -1 : 1); // Make it act the same for upscroll and downscroll
+    var curPos_Part1:Float = curPos * (ClientPrefs.data.downScroll ? -1 : 1); // Make it act the same for upscroll and downscroll
     var curPos_Part2:Float = curPos_Part1 * 0.001 * 0.31; // Slow the curPos right the fuck down to stop the notes from zooming so hard
     curPos_Part2 = FlxMath.bound(curPos_Part2, 0, 2); // clamp value
     if (curPos_Part1 <= 0) curPos_Part2 = 1.0; // Once past receptors, speed acts like normal...
@@ -159,7 +159,7 @@ class BoostMod extends Modifier
     final start:Float = this.startSubmod.value;
     final finalTargetSpeed:Float = 1.0;
     final div:Float = start * 2;
-    var curPosEdit:Float = curPos * (Preferences.downscroll ? -1 : 1);
+    var curPosEdit:Float = curPos * (ClientPrefs.data.downScroll ? -1 : 1);
 
     if (curPosEdit <= 0) speed = 1; // past receptors
     else if (curPosEdit >= start) // before effect start
@@ -196,7 +196,7 @@ class OldBoostMod extends Modifier
   {
     // IT'S THE SAME AS BRAKE, BUT THE CURVALUE IS REVERSED LMAO
     var returnVal:Float = 1.0;
-    var curPos_Part1:Float = curPos * (Preferences.downscroll ? -1 : 1); // Make it act the same for upscroll and downscroll
+    var curPos_Part1:Float = curPos * (ClientPrefs.data.downScroll ? -1 : 1); // Make it act the same for upscroll and downscroll
     var curPos_Part2:Float = curPos_Part1 * 0.001 * 0.4; // Slow the curPos right the fuck down to stop the notes from zooming so hard
     curPos_Part2 = FlxMath.bound(curPos_Part2, 0, 2); // clamp value
     if (curPos_Part1 <= 0) curPos_Part2 = 1.0; // Once past receptors, speed acts like normal...
@@ -225,7 +225,7 @@ class WaveMod extends Modifier
   {
     var curValue:Float = this.currentValue * 0.58;
     curValue += this.offsetSubmod.value;
-    var curPos_Edit:Float = curPos * (Preferences.downscroll ? -1 : 1); // Make it act the same for upscroll and downscroll
+    var curPos_Edit:Float = curPos * (ClientPrefs.data.downScroll ? -1 : 1); // Make it act the same for upscroll and downscroll
     curPos_Edit *= 0.00875; // Slow the curPos right the fuck down to stop the notes from zooming so hard
     curPos_Edit *= this.multSubmod.value;
     var test:Float = curPos_Edit;
@@ -252,7 +252,7 @@ class OldWaveMod extends Modifier
   {
     var returnVal:Float = 1.0;
     // some magic numbers found by just messing around with values to get it as close as possible to NotITG
-    var curPos_Part1:Float = curPos * (Preferences.downscroll ? -1 : 1); // Make it act the same for upscroll and downscroll
+    var curPos_Part1:Float = curPos * (ClientPrefs.data.downScroll ? -1 : 1); // Make it act the same for upscroll and downscroll
     var curPos_Part2:Float = curPos_Part1; // Slow the curPos right the fuck down to stop the notes from zooming so hard
     returnVal += currentValue * 0.22 * sin(curPos_Part2 / 38.0 * multSubmod.value * 0.2);
     return returnVal;
@@ -274,7 +274,7 @@ class Expand extends Modifier
 
   override function speedMath(lane:Int, curPos:Float, strumLine:Strumline, isHoldNote:Bool = false):Float
   {
-    final b:Float = Conductor.instance.currentBeatTime / 2 * speedSubmod.value;
+    final b:Float = MegaManager.conductor.currentBeatTime / 2 * speedSubmod.value;
     final sine:Float = FlxMath.fastSin(b * Math.PI);
 
     if (this.currentValue > 0)

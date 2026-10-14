@@ -24,7 +24,7 @@ class ZigZagBaseMod extends Modifier
 
   function ziggyMath(curPos:Float):Float
   {
-    curPos += offset.value * (Preferences.downscroll ? -1 : 1);
+    curPos += offset.value * (ClientPrefs.data.downScroll ? -1 : 1);
     final mult:Float = ModConstants.strumSize * mult.value;
     final mm:Float = mult * 2;
 

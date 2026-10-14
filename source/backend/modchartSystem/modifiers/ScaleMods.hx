@@ -515,7 +515,7 @@ class ZoomModifier extends RotateModBase
     if (data.noteType == "hold" || data.noteType == "path")
     {
       r += strumRotateFunc_GetPivotY(data, data.whichStrumNote.weBelongTo);
-      if (Preferences.downscroll)
+      if (ClientPrefs.data.downScroll)
       {
         r += (Strumline.STRUMLINE_SIZE / 2);
       }

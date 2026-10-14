@@ -22,6 +22,7 @@ import objects.Character;
 import objects.HealthIcon;
 import objects.charting.ChartingNote;
 import objects.charting.ChartingStrumNote;
+import objects.notes.BaseNote;
 import objects.notes.Note;
 import objects.notes.NoteTypesConfig;
 import objects.notes.StrumNote;
@@ -3556,7 +3557,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 						if (strum == null) continue;
 						var tex:String = noteTextureInputText.text;
 						if (tex.trim() == '') { // ok
-							tex = Note.defaultNoteSkin;
+							tex = BaseNote.defaultNoteSkin;
 							var customSkin:String = tex + Note.getNoteSkinPostfix();
 							if (Paths.fileExists('images/$customSkin.png', IMAGE)) tex = customSkin;
 						}
@@ -6232,7 +6233,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 
 	override function destroy()
 	{
-		Note.globalRgbShaders = [];
+		BaseNote.globalRgbShaders = [];
 		objects.notes.NoteTypesConfig.clearNoteTypesData();
 
 		for (num => text in MetaNote.noteTypeTexts)

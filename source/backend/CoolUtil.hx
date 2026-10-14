@@ -2,6 +2,7 @@ package backend;
 
 import haxe.Json;
 import lime.utils.Assets as LimeAssets;
+import objects.notes.BaseNote;
 import openfl.utils.Assets;
 import shaders.RGBPalette.RGBShaderReference;
 
@@ -560,7 +561,7 @@ class CoolUtil
 	static var latestBpmChangeIndex = 0;
 	static var latestBpmChange = null;
 
-	public static function checkNoteQuant(note:Note, timeToCheck:Float, ?rgbShader:RGBShaderReference)
+	public static function checkNoteQuant(note:BaseNote, timeToCheck:Float, ?rgbShader:RGBShaderReference)
 	{
 		if (ClientPrefs.data.noteColorStyle == 'Quant-Based' && (ClientPrefs.data.showNotes && ClientPrefs.data.enableColorShader))
 		{

@@ -20,6 +20,22 @@ class RConductor extends FlxRhythmConductor {
 
 	public static var ROWS_PER_BEAT = 48; // from Stepmania
 
+
+	/**
+   * The offset between frame time and music time.
+   * Used in `getTimeWithDelta()` to get a more accurate music time when on higher framerates.
+   */
+  var songPositionDelta(default, null):Float = 0;
+
+	/**
+   * Returns a more accurate music time for higher framerates.
+   * @return Float
+   */
+  public function getTimeWithDelta():Float
+  {
+    return this.musicPosition + this.frameMusicPosition;
+  }
+
   override public function new() {
     super();
     instance = this;
