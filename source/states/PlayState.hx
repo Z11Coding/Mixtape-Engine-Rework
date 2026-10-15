@@ -4636,7 +4636,7 @@ class PlayState extends MusicBeatState
 			if (mechanicsMod != null) {
 				var fakeCrochet:Float = (60 / SONG.bpm) * 1000;
 				// dunno how to make it say its actually used
-				var invertStrumGroup:FlxTypedSpriteGroup<StrumNote>->FlxTypedGroup<StrumNote> = function(strum:FlxTypedGroup<StrumNote>)
+				var invertStrumGroup:FlxTypedSpriteGroup<StrumNote>->FlxTypedSpriteGroup<StrumNote> = function(strum:FlxTypedSpriteGroup<StrumNote>)
 				{
 					if (strum == playerStrums.strumNotes)
 						return opponentStrums.strumNotes;
@@ -4667,7 +4667,7 @@ class PlayState extends MusicBeatState
 				{
 					var strumGroup:FlxTypedSpriteGroup<StrumNote> = playerStrums.strumNotes;
 					if ((!daNote.formerPress && bothMode) || (!daNote.mustPress && !bothMode))
-						strumGroup = opponentStrums;
+						strumGroup = opponentStrums.strumNotes;
 
 					var strumY:Float = strumGroup.members[daNote.noteData].y;
 
@@ -8526,7 +8526,7 @@ class PlayState extends MusicBeatState
 			}
 
 			if(ClientPrefs.data.oppNoteSplashes && !note.isSustainNote && playfield.splashesPerFrame[0] <= 4)
-				playfield.spawnNoteSplashOnNote(true, note);
+				playfield.spawnNoteSplashOnNote(note);
 
 			if ((curHealthMode == "Tabi" || curHealthMode == "Amalgam") && health > 0)
 			{
@@ -8997,8 +8997,8 @@ class PlayState extends MusicBeatState
 				if(cpuControlled && !ClientPrefs.data.showNotes) {
 					if (ClientPrefs.data.botLightStrum)
 					{
-						playerStrums.members[noteAlt.noteData].playAnim('confirm', true);
-						playerStrums.members[noteAlt.noteData].resetAnim = conductor.currentStepTime * 1.25 / 1000 / playbackRate;
+						playerStrums.strumNotes.members[noteAlt.noteData].playAnim('confirm', true);
+						playerStrums.strumNotes.members[noteAlt.noteData].resetAnim = conductor.currentStepTime * 1.25 / 1000 / playbackRate;
 					}
 				}
 

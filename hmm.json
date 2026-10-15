@@ -76,6 +76,13 @@
       "ref": "2bf2b992e06159510f595554e6b952e47922f128"
     },
     {
+      "name": "thx.semver",
+      "type": "git",
+      "dir": null,
+      "ref": "bdb191fe7cf745c02a980749906dbf22719e200b",
+      "url": "https://github.com/fponticelli/thx.semver"
+    },
+    {
       "name": "flixel-text-input",
       "type": "git",
       "url": "https://github.com/FunkinCrew/flixel-text-input",

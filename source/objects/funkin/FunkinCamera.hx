@@ -42,21 +42,6 @@ using objects.funkin.graphics.framebuffer.BitmapDataUtil;
 @:nullSafety @:access(openfl.display.DisplayObject) @:access(openfl.display.BitmapData) @:access(openfl.display3D.Context3D) @:access(openfl.display3D.textures.TextureBase) @:access(flixel.graphics.FlxGraphic) @:access(flixel.graphics.frames.FlxFrame) @:access(openfl.display.OpenGLRenderer) @:access(openfl.geom.ColorTransform)
 class FunkinCamera extends FlxCamera
 {
-  /**
-   * Whether or not the device supports the OpenGL extension `KHR_blend_equation_advanced`.
-   * If `false`, a shader implementation will be used to render certain blend modes.
-   */
-  public static var hasKhronosExtension(get, never):Bool;
-
-  static inline function get_hasKhronosExtension():Bool
-  {
-    #if FORCE_BLEND_SHADER
-    return false;
-    #else
-    @:privateAccess
-    return OpenGLRenderer.__complexBlendsSupported ?? false;
-    #end
-  }
 
   /**
    * A list of blend modes that require the OpenGL extension `KHR_blend_equation_advanced`.
@@ -131,7 +116,7 @@ class FunkinCamera extends FlxCamera
   override function drawPixels(?frame:FlxFrame, ?pixels:BitmapData, matrix:FlxMatrix, ?transform:ColorTransform, ?blend:BlendMode, ?smoothing:Bool = false,
       ?shader:FlxShader):Void
   {
-    var shouldUseShader:Bool = (!hasKhronosExtension && KHR_BLEND_MODES.contains(blend)) || SHADER_REQUIRED_BLEND_MODES.contains(blend);
+    var shouldUseShader:Bool = true || SHADER_REQUIRED_BLEND_MODES.contains(blend);
 
     // Fallback to the shader implementation if the device doesn't support `KHR_blend_equation_advanced`, or if
     // the specified blend mode requires the shader.
@@ -222,7 +207,7 @@ class FunkinCamera extends FlxCamera
       ?shader:FlxShader):FlxDrawQuadsItem
   {
     // Can't batch complex non-coherent blends, so always force a new batch
-    if (hasKhronosExtension && !(OpenGLRenderer.__coherentBlendsSupported ?? false) && KHR_BLEND_MODES.contains(blend))
+    if (!(false) && KHR_BLEND_MODES.contains(blend))
     {
       var itemToReturn = null;
 

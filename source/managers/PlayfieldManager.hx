@@ -3,6 +3,7 @@ import backend.Song.SwagSong;
 import backend.modchartSystem.*;
 import backend.pslice.ScaleMode;
 import flixel.FlxState;
+import flixel.graphics.frames.FlxBitmapFont;
 import flixel.input.keyboard.FlxKey;
 import flixel.text.FlxBitmapText;
 import objects.funkin.graphics.ZSprite;
@@ -648,8 +649,7 @@ class PlayfieldManager {
 		splash.visible = true;
 		splash.alpha = 0.0001;
 
-		playerStrums = new Strumline();
-		opponentStrums = new Strumline();
+		initStrumlines();
 
     if (isModchartSong)
     {
@@ -658,39 +658,15 @@ class PlayfieldManager {
 
       camAFT = new FlxCamera();
       camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
-
-      opponentStrums.mods.customTweenerName = "opponent";
-      playerStrums.mods.customTweenerName = "player";
-      playerStrums.cameras = [camNotes];
-      opponentStrums.cameras = [camNotes];
-
-      modchartEventHandler = new ModEventHandler();
-      customStrumLines = [];
-
-      MegaManager.scriptManager.callOnScripts('setUp');
-
-      for (strumLine in allStrumLines)
-      {
-        if (!strumLine.defaultPlayerControl)
-        {
-          strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
-        }
-      }
-
-      modchartEventHandler.setupEvents();
-      setUpModTXT();
-
-      MegaManager.scriptManager.callOnScripts('resetModchart');
     }
 
     FlxG.cameras.add(camNotes, false);
     FlxG.cameras.add(camAFT, false);
 
-    //strumLineNotes.cameras = [PlayState.instance?.camHUD];
-		sustainNotes.cameras = [PlayState.instance?.camHUD];
-		notes.cameras = [PlayState.instance?.camHUD];
-    grpNoteSplashes.cameras = [PlayState.instance?.camHUD];
-		grpHoldSplashes.cameras = [PlayState.instance?.camHUD];
+    sustainNotes.cameras = [camNotes];
+		notes.cameras = [camNotes];
+    grpNoteSplashes.cameras = [camNotes];
+		grpHoldSplashes.cameras = [camNotes];
   }
 
   public function setStrumAlpha() {

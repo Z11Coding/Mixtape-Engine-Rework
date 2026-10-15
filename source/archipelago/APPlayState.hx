@@ -3031,7 +3031,7 @@ class APPlayState extends PlayState {
                     if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
                         time += 0.15;
 
-                    strumPlayAnim(note.noteData % (ExtraKeys.mania+1), time, /*note*/);
+                    strumPlayAnim(playerStrums, note.noteData % (ExtraKeys.mania+1), time, /*note*/);
                 }
                 else
                 {
