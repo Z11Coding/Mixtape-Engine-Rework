@@ -2,6 +2,7 @@ package backend;
 
 import backend.Song.SwagSong;
 import flixel.addons.sound.FlxRhythmConductor.RhythmSignal;
+import flixel.addons.sound.FlxRhythmConductorConstants as RConstants;
 
 class RConductor extends FlxRhythmConductor {
   // TODO: Connect all the fun FNF stuff to the Rhythm Condoctor through this
@@ -161,6 +162,46 @@ class RConductor extends FlxRhythmConductor {
   inline public static function calculateCrochet(bpm:Float){
 		return (60/bpm)*1000;
 	}
+
+  public function getCumulativeBeats(beatTime:Float):Float {
+    return getCumulativeSteps(beatTime) / Constants.STEPS_PER_BEAT;
+  }
+
+   /**
+   * An all-in-one function for getting either a step, beat, or measure's length in milliseconds from a given time change.
+   * @param ms The time in milliseconds. The time change is determined by this.
+   * @param type The type of length to return. Either "step", "beat", or "measure" works, along with their first character.
+   * @return The length of a step/beat/measure in milliseconds.
+   */
+  public function getTypeLengthAtMs(ms:Float, type:String = 'beat'):Float
+  {
+    if (timeChanges.length == 0) return 0;
+    var wantedTimeChange:MusicTimeChangeEvent = timeChanges[0];
+    for (timeChange in timeChanges)
+    {
+      if (ms >= timeChange.time)
+      {
+        wantedTimeChange = timeChange;
+      }
+      else
+      {
+        // This time change is after the requested time.
+        break;
+      }
+    }
+    var wantedBeatLengthMs:Float = ((RConstants.SECS_PER_MIN / wantedTimeChange.bpm) * RConstants.MS_PER_SECS) * (4 / wantedTimeChange.timeSignatureDen);
+    return switch (type.toLowerCase())
+    {
+      case 'measure', 'm':
+        wantedBeatLengthMs * wantedTimeChange.timeSignatureNum;
+      case 'beat', 'b':
+        wantedBeatLengthMs;
+      case 'step', 's':
+        wantedBeatLengthMs / RConstants.STEPS_PER_BEAT;
+      default:
+        wantedBeatLengthMs;
+    }
+  }
 
   public function reset(?fullReset:Bool = false) {
     if (MegaManager.conductor != null) {

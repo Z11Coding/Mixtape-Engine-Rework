@@ -517,6 +517,7 @@ class MixtapeChartEditorState extends MusicBeatState
         playEntranceAnimation();
     }
 
+    @:access(flixel.FlxCamera)
     function setupCameras():Void
     {
         camGame = new FlxCamera();
@@ -526,7 +527,7 @@ class MixtapeChartEditorState extends MusicBeatState
         FlxG.cameras.reset(camGame);
         FlxG.cameras.add(camHUD, false);
 
-        FlxCamera.defaultCameras = [camGame];
+        FlxCamera._defaultCameras = [camGame];
     }
 
     function setupAudio():Void

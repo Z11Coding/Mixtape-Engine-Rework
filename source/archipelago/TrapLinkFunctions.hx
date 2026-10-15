@@ -80,9 +80,9 @@ class TrapLinkFunctions {
             cool.playAnim('static');
             cool.ID = i;
             cool.scrollFactor.set(1, 1);
-            cool.x = APPlayState.instance.boyfriend.x + (APPlayState.instance.boyfriend.width / 2) - ((Note.swagWidth * randArray.length) / 2);
-            cool.x += Note.swagWidth * i;
-            cool.y = APPlayState.instance.boyfriend.y - Note.swagWidth - 5;
+            cool.x = APPlayState.instance.boyfriend.x + (APPlayState.instance.boyfriend.width / 2) - ((BaseNote.swagWidth * randArray.length) / 2);
+            cool.x += BaseNote.swagWidth * i;
+            cool.y = APPlayState.instance.boyfriend.y - BaseNote.swagWidth - 5;
             APPlayState.instance.add(cool);
             grpNotes[i] = cool;
         }
@@ -91,9 +91,9 @@ class TrapLinkFunctions {
 
         daCoolTween = FlxTween.num(6.1, 0, 2, { ease: FlxEase.expoOut}, function(num) {
             for (j in grpNotes) {
-                j.x = APPlayState.instance.boyfriend.x + (APPlayState.instance.boyfriend.width / 2) - ((Note.swagWidth * randArray.length) / 2);
-                j.x += Note.swagWidth * j.ID;
-                j.y = APPlayState.instance.boyfriend.y - Note.swagWidth - 5;
+                j.x = APPlayState.instance.boyfriend.x + (APPlayState.instance.boyfriend.width / 2) - ((BaseNote.swagWidth * randArray.length) / 2);
+                j.x += BaseNote.swagWidth * j.ID;
+                j.y = APPlayState.instance.boyfriend.y - BaseNote.swagWidth - 5;
                 j.x += FlxG.random.float(-num, num);
                 j.y += FlxG.random.float(-num, num);
                 j.angle = FlxG.random.float(-num / 2, num / 2);

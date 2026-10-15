@@ -19,6 +19,10 @@ import openfl.display.TriangleCulling;
 import openfl.geom.Vector3D;
 import shaders.HSVNotesShader;
 
+using backend.funkin.util.tools.ArraySortTools;
+using backend.funkin.util.tools.FloatTools;
+
+
 /**
  * This is based heavily on the `FlxStrip` class. It uses `drawTriangles()` to clip a sustain note
  * trail at a certain time.
@@ -140,8 +144,6 @@ class SustainTrail extends ZSprite
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
 
-  // if true, then this will have the arrowpath logic applied to this sustain!
-  public var isArrowPath:Bool = false;
   // Makes the mesh all wobbly! Taken from ZProjectSprite_Note.hx
   public var vibrateEffect:Float = 0.0;
 
@@ -151,10 +153,9 @@ class SustainTrail extends ZSprite
    * @param SustainLength Length in milliseconds.
    * @param fileName
    */
-  public function new(?newStrumTime:Float, ?newNoteData:Int, ?sustainLength:Float, ?isArrowPath:Bool = false, ?parentStrum:Strumline)
+  public function new(?newStrumTime:Float, ?newNoteData:Int, ?sustainLength:Float, ?parentStrum:Strumline)
   {
     super(0, 0);
-    this.isArrowPath = isArrowPath;
     this.parentStrumline = parentStrum;
 
     // BASIC SETUP
@@ -162,14 +163,13 @@ class SustainTrail extends ZSprite
       this.sustainLength = sustainLength;
       this.fullSustainLength = sustainLength;
     }
-    if (!Math.isNaN(newNoteData) && pixelNote) this.noteDirection = newNoteData;
+    if (!Math.isNaN(newNoteData) && isPixel) this.noteDirection = newNoteData;
     if (!Math.isNaN(newStrumTime)) strumTime = newStrumTime;
 
     noteModData = new NoteData();
 
     setIndices(TRIANGLE_VERTEX_INDICES);
-    noteStyleOffsets = noteStyle.getHoldNoteOffsets();
-    setupHoldNoteGraphic(noteStyle);
+    setupHoldNoteGraphic();
 
     this.active = true; // This NEEDS to be true for the note to be drawn!
   }
@@ -233,16 +233,11 @@ class SustainTrail extends ZSprite
 
   /**
    * Creates hold note graphic and applies correct zooming
-   * @param noteStyle The note style
    */
-  public function setupHoldNoteGraphic(noteStyle:String):Void
+  public function setupHoldNoteGraphic():Void
   {
-    if (isArrowPath)
-    {
-      loadGraphic(Paths.image('NOTE_ArrowPath'));
-    }
+    loadGraphic(Paths.image('NOTE_ArrowPath'));
 
-    noteStyleName = 'ArrowPath';
     antialiasing = true;
 
     if (isPixel)
@@ -257,22 +252,14 @@ class SustainTrail extends ZSprite
     }
 
     zoom = 1.0;
-    if (isArrowPath) zoom *= 0.7; // based of funkin notestyle
+    zoom *= 0.7; // based of funkin notestyle
 
     // CALCULATE SIZE
     graphicWidth = graphic.width / 8 * zoom; // amount of notes * 2
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     // instead of scrollSpeed, PlayState.SONG.speed
 
-    if (parentStrumline != null)
-    {
-      if (parentStrumline.sustainGraphicWidth == null && !isArrowPath)
-      {
-        parentStrumline.sustainGraphicWidth = graphicWidth;
-      }
-    }
-
-    flipY = ClientPrefs.data.downscroll;
+    flipY = ClientPrefs.data.downScroll;
 
     // alpha = 0.6;
     alpha = 1.0;
@@ -387,16 +374,8 @@ class SustainTrail extends ZSprite
 
   function resetFakeNote():Void
   {
-    if (isArrowPath)
-    {
-      fakeNote.alpha = 0;
-      fakeNote.scale.set(ModConstants.arrowPathScale, ModConstants.arrowPathScale);
-    }
-    else
-    {
-      fakeNote.alpha = 1;
-      fakeNote.scale.set(ModConstants.noteScale, ModConstants.noteScale);
-    }
+    fakeNote.alpha = 0;
+    fakeNote.scale.set(ModConstants.arrowPathScale, ModConstants.arrowPathScale);
     return;
   }
 
@@ -452,91 +431,8 @@ class SustainTrail extends ZSprite
      * Make sure this bitmap data is on another separate channel to avoid overwriting our base graphic.
      */
 
-    if (isArrowPath)
-    {
-      this.hsvShader.setFloat('_holdHeight', holdResolution);
-      return;
-    }
-
-    this.hsvShader.setFloat('_stealthSustainSuddenAmount', 0.0);
-    this.hsvShader.setFloat('_stealthSustainHiddenAmount', 0.0);
-    this.hsvShader.setFloat('_stealthSustainVanishAmount', 0.0);
-
-    useOldStealthGlowStyle = whichStrumNote?.strumExtraModData?.useOldStealthGlowStyle ?? false;
-    if (useOldStealthGlowStyle)
-    {
-      return;
-    }
-
-    this.hsvShader.setFloat('_stealthSustainSuddenNoGlow', whichStrumNote?.strumExtraModData?.sudden_noGlow ?? 0.0);
-    this.hsvShader.setFloat('_stealthSustainHiddenNoGlow', whichStrumNote?.strumExtraModData?.hidden_noGlow ?? 0.0);
-    this.hsvShader.setFloat('_stealthSustainVanishNoGlow', whichStrumNote?.strumExtraModData?.vanish_noGlow ?? 0.0);
-
-    // get the info we need
-    var sStart:Float = whichStrumNote?.strumExtraModData?.suddenStart ?? 500.0;
-    var sEnd:Float = whichStrumNote?.strumExtraModData?.suddenEnd ?? 300.0;
-
-    var hStart:Float = whichStrumNote?.strumExtraModData?.hiddenStart ?? 500.0;
-    var hEnd:Float = whichStrumNote?.strumExtraModData?.hiddenEnd ?? 300.0;
-
-    this.hsvShader.setFloat('_stealthSustainSuddenAmount', whichStrumNote?.strumExtraModData?.suddenModAmount ?? 0.0);
-    this.hsvShader.setFloat('_stealthSustainHiddenAmount', whichStrumNote?.strumExtraModData?.hiddenModAmount ?? 0.0);
-    this.hsvShader.setFloat('_stealthSustainVanishAmount', whichStrumNote?.strumExtraModData?.vanishModAmount ?? 0.0);
-
-    this.hsvShader.setBool('_isHold', true);
     this.hsvShader.setFloat('_holdHeight', holdResolution);
-
-    final holdPosFromReceptor:Float = (distanceFromReceptor_unscaledpos - (whichStrumNote?.noteModData?.curPos_unscaled ?? 0)) * (flipY ? -1 : 1);
-
-    final magicNumber:Float = Constants.PIXELS_PER_MS * parentStrumline?.scrollSpeed ?? 1.0;
-
-    final spacingBetweenEachUVpiece:Float = /*this.fullSustainLength*/ this.bodyLength * magicNumber;
-
-    // Sudden math
-    final holdPosFromSuddenStart:Float = holdPosFromReceptor - sStart;
-    final holdPosFromSuddenEnd:Float = holdPosFromReceptor - sEnd;
-
-    final test1:Float = holdPosFromSuddenStart / spacingBetweenEachUVpiece * -1;
-    final test2:Float = holdPosFromSuddenEnd / spacingBetweenEachUVpiece * -1;
-
-    this.hsvShader.setFloat('_stealthSustainSuddenStart', test2);
-    this.hsvShader.setFloat('_stealthSustainSuddenEnd', test1);
-
-    // Hidden math
-    final holdPosFromHiddenStart:Float = holdPosFromReceptor - hStart;
-    final holdPosFromHiddenEnd:Float = holdPosFromReceptor - hEnd;
-
-    final test1:Float = holdPosFromHiddenStart / spacingBetweenEachUVpiece * -1;
-    final test2:Float = holdPosFromHiddenEnd / spacingBetweenEachUVpiece * -1;
-
-    this.hsvShader.setFloat('_stealthSustainHiddenStart', test1);
-    this.hsvShader.setFloat('_stealthSustainHiddenEnd', test2);
-
-    // FUCK ME
-
-    sStart = whichStrumNote?.strumExtraModData?.vanish_SuddenStart ?? 202.5;
-    sEnd = whichStrumNote?.strumExtraModData?.vanish_SuddenEnd ?? 125.0;
-
-    hStart = whichStrumNote?.strumExtraModData?.vanish_HiddenStart ?? 475.0;
-    hEnd = whichStrumNote?.strumExtraModData?.vanish_HiddenEnd ?? 397.5;
-
-    final holdPosFromSuddenStart:Float = holdPosFromReceptor - sStart;
-    final holdPosFromSuddenEnd:Float = holdPosFromReceptor - sEnd;
-
-    final test1:Float = holdPosFromSuddenStart / spacingBetweenEachUVpiece * -1;
-    final test2:Float = holdPosFromSuddenEnd / spacingBetweenEachUVpiece * -1;
-
-    this.hsvShader.setFloat('_stealthSustainVanish_SuddenStart', test2);
-    this.hsvShader.setFloat('_stealthSustainVanish_SuddenEnd', test1);
-
-    final holdPosFromHiddenStart:Float = holdPosFromReceptor - hStart;
-    final holdPosFromHiddenEnd:Float = holdPosFromReceptor - hEnd;
-
-    final test1:Float = holdPosFromHiddenStart / spacingBetweenEachUVpiece * -1;
-    final test2:Float = holdPosFromHiddenEnd / spacingBetweenEachUVpiece * -1;
-
-    this.hsvShader.setFloat('_stealthSustainVanish_HiddenStart', test1);
-    this.hsvShader.setFloat('_stealthSustainVanish_HiddenEnd', test2);
+    return;
   }
 
   // reuse this vector2 and vector3 variable instead of creating a bunch of new ones all the time
@@ -575,9 +471,8 @@ class SustainTrail extends ZSprite
     noteModData.direction = noteDirection % (ExtraKeys.mania+1);
     noteModData.curPos_unscaled = notePos;
     noteModData.whichStrumNote = whichStrumNote;
-    noteModData.noteType = isArrowPath ? "path" : "hold";
-    noteModData.noteKind = isArrowPath ? "path" : (noteData?.kind ?? "default");
-    noteModData.noteStyleName = noteStyleName;
+    noteModData.noteType = "path";
+    noteModData.noteKind = "path";
     noteModData.width = graphicWidth;
     noteModData.height = 0;
 
@@ -596,7 +491,7 @@ class SustainTrail extends ZSprite
 
     // Position like vanilla
     noteModData.x = parentStrumline.x;
-    noteModData.x += parentStrumline.getXPos(Strumline.DIRECTIONS[noteModData.direction % (ExtraKeys.mania+1)]);
+    noteModData.x += parentStrumline.getXPos((noteModData.direction % (ExtraKeys.mania+1)));
     noteModData.x += Strumline.STRUMLINE_SIZE / 2;
     noteModData.x -= graphicWidth / 2;
 
@@ -604,9 +499,6 @@ class SustainTrail extends ZSprite
     final defaultPosition:Array<Float> = parentStrumline.mods.getDefaultStrumPos(noteModData.direction);
     final xDif:Float = whichStrumNote.x - defaultPosition[0];
     noteModData.x += xDif;
-
-    // The old method with jank
-    // noteModData.x = whichStrumNote.x + parentStrumline.mods.getHoldOffsetX(isArrowPath, graphicWidth);
 
     var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime) * scrollMult;
     if (flipY)
@@ -624,16 +516,16 @@ class SustainTrail extends ZSprite
     noteModData.z = whichStrumNote.z;
     noteModData.curPos = sillyPos;
 
-    for (mod in (isArrowPath ? parentStrumline.mods.mods_arrowpath : parentStrumline.mods.mods_notes))
+    for (mod in parentStrumline.mods.mods_arrowpath)
     {
       if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
-      mod.noteMath(noteModData, parentStrumline, true, isArrowPath);
+      mod.noteMath(noteModData, parentStrumline, true, true);
     }
 
     for (mod in noteModData.noteMods)
     {
       if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
-      mod.noteMath(noteModData, parentStrumline, true, isArrowPath);
+      mod.noteMath(noteModData, parentStrumline, true, true);
     }
 
     noteModData.funnyOffMyself();
@@ -664,8 +556,8 @@ class SustainTrail extends ZSprite
     perspectiveShift.x = fakeNote.x - tempVec2.x;
     perspectiveShift.y = fakeNote.y - tempVec2.y;
 
-    var scaleX = FlxMath.remapToRange(fakeNote.scale.x, 0, isArrowPath ? ModConstants.arrowPathScale : ModConstants.noteScale, 0, 1);
-    var scaleY = FlxMath.remapToRange(fakeNote.scale.y, 0, isArrowPath ? ModConstants.arrowPathScale : ModConstants.noteScale, 0, 1);
+    var scaleX = FlxMath.remapToRange(fakeNote.scale.x, 0, ModConstants.arrowPathScale, 0, 1);
+    var scaleY = FlxMath.remapToRange(fakeNote.scale.y, 0, ModConstants.arrowPathScale, 0, 1);
 
     final forwardHolds:Bool = noteModData.usingForwardHolds();
     final straightHoldsModAmount:Float = noteModData.straightHolds;
@@ -858,7 +750,7 @@ class SustainTrail extends ZSprite
     this.y = ModConstants.holdNoteJankY;
     if (fakeNote == null) fakeNote = new ZSprite();
     var songTimmy:Float = (ModConstants.getSongPosition());
-    whichStrumNote = parentStrumline.getByIndex(noteDirection);
+    whichStrumNote = parentStrumline.getByColumn(noteDirection);
 
     // Moved the first susSample point to be much earlier so that we can also get the current mod values for how we should render he rest of this hold
     // (such as are we using spiral holds for example?)
@@ -870,20 +762,6 @@ class SustainTrail extends ZSprite
 
     // Long hold logic:
     var longHolds:Float = noteModData?.longHolds ?? 0;
-    if (!isArrowPath)
-    {
-      // longHolds = parentStrumline?.mods?.longHolds[noteDirection % 4] ?? 0;
-      if (longHolds != 0)
-      {
-        var percentageTillCompletion_part:Float = 0;
-        if (songTimmy >= strumTime) percentageTillCompletion_part = songTimmy - strumTime;
-        if (percentageTillCompletion_part < 0) percentageTillCompletion_part = 0;
-        var percentageTillCompletion:Float = percentageTillCompletion_part / fullSustainLength;
-        percentageTillCompletion = FlxMath.bound(percentageTillCompletion, 0, 1); // clamp
-        percentageTillCompletion = 1 - percentageTillCompletion;
-        longHolds *= percentageTillCompletion;
-      }
-    }
     longHolds += 1;
 
     final endPixelSize:Float = graphic.height * endOffset * zoom;
@@ -942,15 +820,7 @@ class SustainTrail extends ZSprite
     noteIndices.push(highestNumSoFar_ + 2 + 2);
 
     var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
-    if (clipHeight <= 0.05 && !isArrowPath)
-    {
-      visible = false;
-      return;
-    }
-    else
-    {
-      visible = true;
-    }
+    visible = true;
 
     final holdWidth = graphicWidth;
 
@@ -1540,7 +1410,7 @@ class SustainTrail extends ZSprite
   {
     super.kill();
 
-    if (!((cover?.animation?.name ?? '').startsWith('holdCoverEnd'))) cover?.playEnd();
+    if (!((cover?.animation?.name ?? '').startsWith('holdCoverEnd'))) cover?.animation.play('end', true, false, 0);
     strumTime = 0;
     noteDirection = 0;
     sustainLength = 0;
@@ -1552,7 +1422,8 @@ class SustainTrail extends ZSprite
 
     if (cover != null)
     {
-      cover.holdNote = null;
+      cover.strumNote = null;
+      cover.sustainNote = null;
       this.cover = null;
     }
   }

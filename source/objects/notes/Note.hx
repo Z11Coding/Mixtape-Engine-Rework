@@ -28,6 +28,8 @@ typedef NoteSplashData = {
 
 class Note extends BaseNote
 {
+	public static var hardAlpha:Float = 1; // For hard mode
+
 	public var rgbShader:RGBShaderReference;
 
 	public var texture(default, set):String = null;
@@ -670,6 +672,7 @@ class Note extends BaseNote
 
 	// this is used for note recycling
 	// or was before I removed the option, now it's just kept for reasons
+	public var targetScale:Float = 0.7;
 	var firstOffX = false;
 	var shouldCenterOffsets:Bool = true;
 	public function setupNoteData(chartNoteData:PreloadNotes):Void
@@ -825,6 +828,10 @@ class Note extends BaseNote
 		if(rowArray[row]==null)
 			rowArray[row]=[];
 		rowArray[row].push(this);
+
+		targetScale = this.scale.x;
+
+		this.active = false;
 	}
 
 	 // call this to reset stealthGlow back to default values
@@ -845,7 +852,7 @@ class Note extends BaseNote
     this.hsvShader.stealthGlowGreen = stealthGlowGreen;
     this.hsvShader.stealthGlowRed = stealthGlowRed;
 
-		var rgbConvert = FlxColor.fromRGB(stealthGlowRed, stealthGlowGreen, stealthGlowBlue, stealthGlow);
+		var rgbConvert = FlxColor.fromRGB(Std.int(stealthGlowRed), Std.int(stealthGlowGreen), Std.int(stealthGlowBlue), Std.int(stealthGlow));
 		this.rgbShader.mult = rgbConvert.alphaFloat;
 		this.updateRGBColors(rgbConvert, rgbConvert, rgbConvert);
   }

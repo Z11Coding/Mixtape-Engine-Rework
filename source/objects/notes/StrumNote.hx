@@ -84,6 +84,8 @@ class StrumNote extends ZSpriteProjected
 	public var player:Int;
 	public var ogNoteskin:String = null;
 
+	public var targetScale:Float = 0.7;
+
 	public var texture(default, set):String = null;
 	private function set_texture(value:String):String {
 		if(texture != value) {
@@ -310,6 +312,7 @@ class StrumNote extends ZSpriteProjected
 		x -= ExtraKeys.posRest[ExtraKeys.mania];
 		ID = noteData;
 		formerPosition.set(x, y);
+		targetScale = this.scale.x;
 	}
 
 	override function update(elapsed:Float) {
@@ -389,6 +392,51 @@ class StrumNote extends ZSpriteProjected
 
     projectionEnabled = strumExtraModData?.threeD ?? false;
     super.draw();
+  }
+
+	public function playStatic():Void
+  {
+    this.active = (forceActive || isAnimationDynamic('static'));
+    this.playAnim('static', true);
+  }
+
+  public function playPress():Void
+  {
+    this.active = (forceActive || isAnimationDynamic('press'));
+    this.playAnim('press', true);
+  }
+
+  public function playConfirm():Void
+  {
+    this.active = (forceActive || isAnimationDynamic('confirm'));
+    this.playAnim('confirm', true);
+
+    // On opponent, run a timer to stop playing the confirm animation.
+    // On player, stop the timer to avoid stopping the confirm animation earlier.
+    resetAnim = player==1 ? -1 : 0;
+  }
+
+  public function isConfirm():Bool
+  {
+    return getCurrentAnimation().startsWith('confirm');
+  }
+
+  public function holdConfirm():Void
+  {
+    this.active = true;
+
+    if (getCurrentAnimation() == "confirm")
+    {
+      if (isAnimationFinished())
+      {
+        this.resetAnim = -1;
+        //this.playAnim('confirm-hold', false, false);
+      }
+    }
+    else
+    {
+      this.playAnim('confirm', false);
+    }
   }
 
 	// call this to reset stealthGlow back to default values

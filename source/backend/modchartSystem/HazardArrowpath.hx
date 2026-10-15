@@ -111,7 +111,7 @@ class HazardArrowpath
 
     for (l in 0...(ExtraKeys.mania+1))
     {
-      final whichStrumNote:StrumNote = strum.getByIndex(l % (ExtraKeys.mania+1));
+      final whichStrumNote:StrumNote = strum.getByColumn(l % (ExtraKeys.mania+1));
 
       // var arrowPathAlpha:Float = strum.arrowPathAlpha[l];
       var arrowPathAlpha:Float = whichStrumNote?.strumExtraModData?.arrowPathAlpha;
@@ -128,7 +128,7 @@ class HazardArrowpath
       var commands = new Vector<Int>();
       var data = new Vector<Float>();
 
-      var tim:Float = MegaManager.conductor?.songPosition ?? 0;
+      var tim:Float = MegaManager.conductor?.musicPosition ?? 0;
       tim -= whichStrumNote.strumExtraModData.strumPos; // for drive2 mod
       tim -= pathBackLength;
       for (i in 0...holdResolution)

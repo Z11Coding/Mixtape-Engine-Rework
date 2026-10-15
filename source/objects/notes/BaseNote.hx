@@ -127,7 +127,6 @@ class BaseNote extends ZSpriteProjected
 	public var changeAnim:Bool = true;
 	public var publicTexture:String = '';
 	public var botNote:Bool = false;
-	public static var hardAlpha:Float = 1; // For hard mode
 	public static var defaultWidth:Float = 0;
 	public static var defaultHeight:Float = 0;
 

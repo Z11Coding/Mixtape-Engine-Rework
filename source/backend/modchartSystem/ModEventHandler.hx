@@ -573,7 +573,7 @@ class ModEventHandler
         resortMods_ForTarget(strum.mods);
       }
 
-      strum.strumlineNotes.forEach(function(note:StrumNote)
+      strum.strumLineNotes.forEach(function(note:StrumNote)
       {
         note.resetStealthGlow();
       });

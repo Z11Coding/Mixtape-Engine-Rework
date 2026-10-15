@@ -890,9 +890,6 @@ class PlayState extends MusicBeatState
 	public var maxSkipped:Float = 0;
 	var notesAddedCount:Int = 0;
 
-	static var threadPool:FixedThreadPool = null;
-	static var mutex:Mutex;
-
 	//P-Slice
 
 	//Plus Engine
@@ -940,15 +937,6 @@ class PlayState extends MusicBeatState
 	{
 		// Cache frequently used values for performance
 		_cachedSongName = SONG?.song?.toLowerCase();
-
-		#if MULTITHREADED_LOADING
-		// Due to the Main thread and Discord thread, we decrease it by 2.
-		var threadCount:Int = Std.int(Math.max(1, LoadingState.getCPUThreadsCount() - #if DISCORD_ALLOWED 2 #else 1 #end));
-		#else
-		var threadCount:Int = 1;
-		#end
-		threadPool = new FixedThreadPool(threadCount);
-		mutex = new Mutex();
 
 		// if (SONG != null)
 		// {
@@ -1171,6 +1159,15 @@ class PlayState extends MusicBeatState
 
 		trace("Gameplay Changers Loaded!");
 
+		if (playfield.isModchartSong)
+    {
+      playfield.camNotes = new FlxCamera();
+      playfield.camNotes.bgColor.alpha = 0; // Show the game scene behind the camera.
+
+      playfield.camAFT = new FlxCamera();
+      playfield.camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
+    }
+
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
 		camHUD = new FlxCamera();
@@ -1181,11 +1178,17 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 		camCOD.bgColor.alpha = 0;
-		if (playfield.isModchartSong) {
-			FlxG.cameras.add(playfield.camNotes, false);
-			FlxG.cameras.add(playfield.camAFT, false);
-		}
+		if (playfield.isModchartSong && !playfield.notesAboveHUD)
+    {
+      FlxG.cameras.add(playfield.camNotes, false);
+      FlxG.cameras.add(playfield.camAFT, false);
+    }
 		FlxG.cameras.add(camHUD, false);
+		if (playfield.isModchartSong && playfield.notesAboveHUD)
+    {
+      FlxG.cameras.add(playfield.camNotes, false);
+      FlxG.cameras.add(playfield.camAFT, false);
+    }
 		FlxG.cameras.add(camCredit, false);
 		FlxG.cameras.add(camOther, false);
 		FlxG.cameras.add(camCOD, false);
@@ -2567,8 +2570,8 @@ class PlayState extends MusicBeatState
 			}
 			else
 			{
-				isModchartSong = hasModchartFunction;
-				trace("Is modchartsong? - " + isModchartSong);
+				playfield.isModchartSong = hasModchartFunction;
+				trace("Is modchartsong? - " + playfield.isModchartSong);
 			}
 			trace("Modchart Manager initialized successfully");
 		} catch (e:Dynamic) {
@@ -4638,11 +4641,17 @@ class PlayState extends MusicBeatState
 				// dunno how to make it say its actually used
 				var invertStrumGroup:FlxTypedSpriteGroup<StrumNote>->FlxTypedSpriteGroup<StrumNote> = function(strum:FlxTypedSpriteGroup<StrumNote>)
 				{
-					if (strum == playerStrums.strumNotes)
-						return opponentStrums.strumNotes;
-					else if (strum == opponentStrums.strumNotes)
-						return playerStrums.strumNotes;
-					return strumLineNotes[0].strumNotes;
+					var allofem:FlxTypedSpriteGroup<StrumNote> = new FlxTypedSpriteGroup<StrumNote>();
+
+					for (line in [playerStrums.strumLineNotes, opponentStrums.strumLineNotes])
+						for (strum in line.members)
+							allofem.add(strum);
+
+					if (strum == playerStrums.strumLineNotes)
+						return opponentStrums.strumLineNotes;
+					else if (strum == opponentStrums.strumLineNotes)
+						return playerStrums.strumLineNotes;
+					return allofem;
 				}
 
 				// === OPTIMIZED MECHANICS NOTE PROCESSING ===
@@ -4665,9 +4674,9 @@ class PlayState extends MusicBeatState
 
 				notes.forEachAlive(function(daNote:Note)
 				{
-					var strumGroup:FlxTypedSpriteGroup<StrumNote> = playerStrums.strumNotes;
+					var strumGroup:FlxTypedSpriteGroup<StrumNote> = playerStrums.strumLineNotes;
 					if ((!daNote.formerPress && bothMode) || (!daNote.mustPress && !bothMode))
-						strumGroup = opponentStrums.strumNotes;
+						strumGroup = opponentStrums.strumLineNotes;
 
 					var strumY:Float = strumGroup.members[daNote.noteData].y;
 
@@ -5030,11 +5039,11 @@ class PlayState extends MusicBeatState
 
 			amountOfRenderedNotes += daNote.noteDensity;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
-			if (playerStrums.members.length >= (ExtraKeys.mania+1) && playerStrums.strumNotes.members.length >= (ExtraKeys.mania+1))
-				daNote.followStrum((daNote.mustPress ? playerStrums : opponentStrums).strumNotes.members[daNote.noteData], songSpeed);
+			if (playerStrums.members.length >= (ExtraKeys.mania+1) && playerStrums.strumLineNotes.members.length >= (ExtraKeys.mania+1))
+				daNote.followStrum((daNote.mustPress ? playerStrums : opponentStrums).getByColumn(daNote.noteData), songSpeed);
 			if (daNote.isSustainNote)
 			{
-				final strum = (daNote.mustPress ? playerStrums : opponentStrums).strumNotes.members[daNote.noteData];
+				final strum = (daNote.mustPress ? playerStrums : opponentStrums).getByColumn(daNote.noteData);
 				if (strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);
 			}
 
@@ -5460,7 +5469,7 @@ class PlayState extends MusicBeatState
 
 		if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
 		{
-			for (note in playerStrums.strumNotes.members)
+			for (note in playerStrums.strumLineNotes.members)
 				if(note.animation.curAnim != null && note.animation.curAnim.name != 'static')
 				{
 					note.playAnim('static');
@@ -5490,7 +5499,7 @@ class PlayState extends MusicBeatState
 
 		if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false))
 		{
-			for (note in playerStrums)
+			for (note in playerStrums.strumLineNotes.members)
 				if(note.animation.curAnim != null && note.animation.curAnim.name != 'static')
 				{
 					note.playAnim('static');
@@ -8650,8 +8659,8 @@ class PlayState extends MusicBeatState
 			if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 			if (ClientPrefs.data.opponentLightStrum && !ClientPrefs.data.showNotes)
 			{
-				opponentStrums.strumNotes.members[noteAlt.noteData].playAnim('confirm', true);
-				opponentStrums.strumNotes.members[noteAlt.noteData].resetAnim = conductor.stepLengthMs * 1.25 / 1000 / playbackRate;
+				opponentStrums.getByColumn(noteAlt.noteData).playAnim('confirm', true);
+				opponentStrums.getByColumn(noteAlt.noteData).resetAnim = conductor.stepLengthMs * 1.25 / 1000 / playbackRate;
 			}
 
 			var result:Dynamic = callOnLuas('opponentNoteHit', [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
@@ -8752,7 +8761,7 @@ class PlayState extends MusicBeatState
 
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && !note.botNote)
 				{
-					var spr = playerStrums.strumNotes.members[note.noteData];
+					var spr = playerStrums.getByColumn(note.noteData);
 					if(spr != null) spr.playAnim('confirm', true);
 				}
 				else strumPlayAnim(playerStrums, note.noteData + (ExtraKeys.mania+1), conductor.stepLengthMs * 1.25 / 1000 / playbackRate);
@@ -8997,8 +9006,8 @@ class PlayState extends MusicBeatState
 				if(cpuControlled && !ClientPrefs.data.showNotes) {
 					if (ClientPrefs.data.botLightStrum)
 					{
-						playerStrums.strumNotes.members[noteAlt.noteData].playAnim('confirm', true);
-						playerStrums.strumNotes.members[noteAlt.noteData].resetAnim = conductor.currentStepTime * 1.25 / 1000 / playbackRate;
+						playerStrums.getByColumn(noteAlt.noteData).playAnim('confirm', true);
+						playerStrums.getByColumn(noteAlt.noteData).resetAnim = conductor.currentStepTime * 1.25 / 1000 / playbackRate;
 					}
 				}
 
@@ -9262,10 +9271,6 @@ class PlayState extends MusicBeatState
 		BaseNote.globalRgbShaders = [];
 		NoteTypesConfig.clearNoteTypesData();
 
-		if (threadPool != null) threadPool.shutdown(); // kill all workers safely
-		threadPool = null;
-		mutex = null;
-
 		NoteSplash.configs.clear();
 		playfield.resetFields();
 
@@ -9357,7 +9362,7 @@ class PlayState extends MusicBeatState
 	}
 
 	function strumPlayAnim(line:Strumline, id:Int, time:Float, ?note:Note) {
-		var spr:StrumNote = line.strumNotes.members[id];
+		var spr:StrumNote = line.getByColumn(id);
 
 		if(spr != null) {
 			spr.playAnim('confirm', true);
@@ -9629,27 +9634,6 @@ class PlayState extends MusicBeatState
 		return false;
 	}
 	#end
-
-	static function initThreadAlt(func:Void->Void, traceData:String)
-	{
-		// trace('scheduled $func in threadPool');
-		#if debug
-		var threadSchedule = Sys.time();
-		#end
-		threadPool.run(() -> {
-			#if debug
-			var threadStart = Sys.time();
-			trace('$traceData took ${threadStart - threadSchedule}s to start preloading');
-			#end
-
-			try {
-				func();
-			}
-			catch(e:Dynamic) {
-				trace('ERROR! fail on preloading $traceData: $e');
-			}
-		});
-	}
 
 	/**
 	 * Register dynamic song scripting functions with loaded scripts

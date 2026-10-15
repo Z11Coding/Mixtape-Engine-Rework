@@ -1,12 +1,23 @@
 package psychlua;
 
 import animate.internal.elements.FlxSpriteElement;
+import backend.modchartSystem.ModConstants;
+import backend.modchartSystem.ModHandler;
+import backend.modchartSystem.NoteData;
+import backend.modchartSystem.modifiers.BaseModifier.CustomModifier;
+import backend.modchartSystem.modifiers.BaseModifier;
 import flixel.FlxBasic;
 import flixel.addons.display.FlxRuntimeShader;
 import flixel.group.FlxSpriteContainer;
 import objects.Character;
 import objects.SyncedVideoSprite;
 import objects.VideoSprite;
+import objects.funkin.data.SongNoteData;
+import objects.funkin.graphics.ZSprite;
+import objects.notes.StrumNote;
+import objects.notes.Strumline;
+import openfl.display.BlendMode;
+import openfl.display.TriangleCulling;
 import psychlua.CustomSubstate;
 import psychlua.LuaUtils;
 
@@ -612,16 +623,15 @@ class HScript extends Iris
 
 		//Modchart Stuff
 		set('ZSprite', ZSprite);
-		set('eh', PlayState.instance.modchartEventHandler);
+		set('eh', MegaManager.playfield.modchartEventHandler);
 
-		set("Constants", Type.resolveClass("funkin.util.Constants"));
+		set("Constants", Type.resolveClass("backend.Constants"));
     set("ModConstants", Type.resolveClass("backend.modchartSystem.ModConstants"));
     set("BaseModifier", Type.resolveClass("backend.modchartSystem.modifiers.BaseModifier"));
     set("CustomModifier", Type.resolveClass("backend.modchartSystem.modifiers.CustomModifier"));
     set("NoteData", Type.resolveClass("backend.modchartSystem.NoteData"));
     set('ModHandler', ModHandler);
     set('ModEventHandler', ModEventHandler);
-    set('Preferences', Preferences);
     set('downScroll', ClientPrefs.data.downScroll);
     set('upScroll', !ClientPrefs.data.downScroll);
 
@@ -644,9 +654,9 @@ class HScript extends Iris
 
 		set('createCustomEase', function(nameOfEase:String, func:Float->Float):Void
 		{
-			if (PlayState.instance.modchartEventHandler != null)
+			if (MegaManager.playfield.modchartEventHandler != null)
 			{
-				PlayState.instance.modchartEventHandler.customEases.set(nameOfEase, func);
+				MegaManager.playfield.modchartEventHandler.customEases.set(nameOfEase, func);
 			}
 		});
 
@@ -699,7 +709,7 @@ class HScript extends Iris
 			newSpr.scrollFactor.set();
 			if (addToGame)
 			{
-				PlayState.instance.customLuaSprites.set(tag, newSpr);
+				PlayState.instance.variables.set(tag, newSpr);
 				PlayState.instance.add(newSpr);
 			}
 			return newSpr;
@@ -712,7 +722,7 @@ class HScript extends Iris
 			newSpr.scrollFactor.set();
 			if (addToGame)
 			{
-				PlayState.instance.customLuaSprites.set(tag, newSpr);
+				PlayState.instance.variables.set(tag, newSpr);
 				PlayState.instance.add(newSpr);
 			}
 			return newSpr;
@@ -720,9 +730,9 @@ class HScript extends Iris
 
 		set('createCloneMod', function(modName:String)
 		{
-			if (PlayState.instance.modchartEventHandler == null)
+			if (MegaManager.playfield.modchartEventHandler == null)
 			{
-				HazardModLuaTest.luaTrace("Custom Mod could not be created as this song isn't a modchart song!", false, false, FlxColor.RED);
+				FunkinLua.luaTrace("Custom Mod could not be created as this song isn't a modchart song!", false, false, FlxColor.RED);
 				return null;
 			}
 
@@ -731,9 +741,9 @@ class HScript extends Iris
 
 		set('createCustomMod', function(modName:String, defaultBaseValue:Float = 0)
 		{
-			if (PlayState.instance.modchartEventHandler == null)
+			if (MegaManager.playfield.modchartEventHandler == null)
 			{
-				HazardModLuaTest.luaTrace("Custom Mod could not be created as this song isn't a modchart song!", false, false, FlxColor.RED);
+				FunkinLua.luaTrace("Custom Mod could not be created as this song isn't a modchart song!", false, false, FlxColor.RED);
 				return null;
 			}
 			var newMod:CustomModifier = ModConstants.createNewCustomMod(modName, defaultBaseValue);
@@ -744,24 +754,24 @@ class HScript extends Iris
 
 		set('setResetEvent', function(func:Void->Void)
 		{
-			if (PlayState.instance.modchartEventHandler != null)
+			if (MegaManager.playfield.modchartEventHandler != null)
 			{
-				PlayState.instance.modchartEventHandler.modResetFuncs.push(func);
+				MegaManager.playfield.modchartEventHandler.modResetFuncs.push(func);
 			}
 		});
 		set('addResetEvent', function(func:Void->Void)
 		{
-			if (PlayState.instance.modchartEventHandler != null)
+			if (MegaManager.playfield.modchartEventHandler != null)
 			{
-				PlayState.instance.modchartEventHandler.modResetFuncs.push(func);
+				MegaManager.playfield.modchartEventHandler.modResetFuncs.push(func);
 			}
 		});
 
 		set('addUpdate', function(func:Float->Void)
 		{
-			if (PlayState.instance.perframeFunctions != null)
+			if (MegaManager.playfield.perframeFunctions != null)
 			{
-				PlayState.instance.perframeFunctions.push(func);
+				MegaManager.playfield.perframeFunctions.push(func);
 			}
 		});
 

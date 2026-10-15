@@ -40,7 +40,7 @@ class RotateModBase extends Modifier
 
   function noteRotateFunc_GetPivotX(data:NoteData, strumLine:Strumline):Float
   {
-    var strumNote = data.whichStrumNote ?? strumLine.getByIndex(data.direction);
+    var strumNote = data.whichStrumNote ?? strumLine.getByColumn(data.direction);
 
     var r:Float = strumNote.x;
     if (data.noteType == "receptor")
@@ -163,7 +163,7 @@ class RotateModBase extends Modifier
   {
     var r:Float = 0;
     r += strumLine.x + Strumline.INITIAL_OFFSET + (Strumline.NOTE_SPACING * 1.5);
-    // r += strumLine.getByIndex(data.direction % (ExtraKeys.mania+1)).strumExtraModData.noteStyleOffsetX;
+    // r += strumLine.getByColumn(data.direction % (ExtraKeys.mania+1)).strumExtraModData.noteStyleOffsetX;
     r += data.whichStrumNote.strumExtraModData.noteStyleOffsetX;
     r += this.offsetX.value;
     return r;

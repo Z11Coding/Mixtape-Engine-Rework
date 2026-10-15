@@ -1,6 +1,7 @@
 package backend.modchartSystem;
 
 import backend.Constants;
+import backend.funkin.util.SortUtil;
 import backend.funkin.util.tools.StringTools;
 import backend.modchartSystem.HazardEase;
 import backend.modchartSystem.ModHandler;
@@ -57,7 +58,6 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxSort;
 import flixel.util.FlxStringUtil;
-import backend.funkin.util.SortUtil;
 import lime.math.Vector2;
 import lime.math.Vector4;
 import objects.funkin.graphics.FunkinSprite;
@@ -151,7 +151,7 @@ class ModConstants
    */
   public static function getDefaultStrumPosition(strumLine:Strumline, lane:Int):Vector3D
   {
-    final wasHereOriginally:Vector3D = new Vector3D(strumLine.strumNotes.members[lane].formerPosition.x, strumLine.strumNotes.members[lane].formerPosition.x, 0);
+    final wasHereOriginally:Vector3D = new Vector3D(strumLine.getByColumn(lane).formerPosition.x, strumLine.getByColumn(lane).formerPosition.x, 0);
     return wasHereOriginally;
   }
 

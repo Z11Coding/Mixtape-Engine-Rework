@@ -118,84 +118,70 @@ class CustomPathMod extends Modifier
   public function loadPath()
   {
     // scan for the path.txt file
-    var songna:String = (PlayState.instance?.currentSong?.id ?? '').toLowerCase();
-    var firstCheckTest:String = 'assets/data/modchart/' + PlayState.instance?.currentChart.songName.toLowerCase() + "/";
-    var secondCheckTest:String = 'assets/data/modchart/' + songna + "/";
-    var foldersToCheck:Array<String> = [firstCheckTest, secondCheckTest];
+    var songna:String = PlayState.instance?.songName.toLowerCase();
+    var firstCheckTest:String = 'assets/data/modchart/' + PlayState.instance?.songName.toLowerCase() + "/";
+    var secondCheckTest:String = 'data/modchart/' + PlayState.instance?.songName.toLowerCase() + "/";
 
     customArrowPathModTest = null;
 
-    // fuck it, we just check every mod lmfao
-    for (modid in PolymodHandler.loadedModIds)
-    {
-      var lmfao:String = 'mods/' + modid + '/data/modchart/' + songna + "/";
-      foldersToCheck.insert(0, lmfao);
-      lmfao = 'mods/' + modid + '/data/modchart/' + PlayState.instance?.currentChart.songName.toLowerCase() + "/";
-      foldersToCheck.insert(0, lmfao);
-    }
+    var pathfiles = Paths.crawlDirectoryAlt(firstCheckTest, '.txt').concat(Paths.crawlDirectoryAlt('mods/$secondCheckTest', '.txt'));
 
-    for (folder in foldersToCheck)
-    {
-      trace("Looking into - " + folder);
-      if (FileSystem.exists(folder))
+    for (folders in pathfiles) {
+      for (file in FileSystem.readDirectory(folders))
       {
-        trace("Folder exists...");
-        for (file in FileSystem.readDirectory(folder))
+        trace("file : " + file);
+        if (file == pathToLoad && customArrowPathModTest == null)
         {
-          trace("file : " + file);
-          if (file == pathToLoad && customArrowPathModTest == null)
+          customArrowPathModTest = folders + file;
+          trace("Oh shit, we found somethin? " + customArrowPathModTest);
+          // var file = sys.io.File.getContent(customArrowPathModTest);
+          var file_part1 = backend.util.FileUtil.readStringFromPath(customArrowPathModTest);
+
+          var filePath:Array<String> = [];
+          filePath = file_part1.trim().split('\n');
+
+          for (i in 0...filePath.length)
           {
-            customArrowPathModTest = folder + file;
-            trace("Oh shit, we found somethin? " + customArrowPathModTest);
-            // var file = sys.io.File.getContent(customArrowPathModTest);
-            var file_part1 = funkin.util.FileUtil.readStringFromPath(customArrowPathModTest);
+            filePath[i] = filePath[i].trim();
+          }
+          filePath.reverse(); // lmao, the points are reversed when used in my system
 
-            var filePath:Array<String> = [];
-            filePath = file_part1.trim().split('\n');
-
-            for (i in 0...filePath.length)
+          if (filePath != null)
+          {
+            var path = new List<TimeVector>();
+            var _g = 0;
+            while (_g < filePath.length)
             {
-              filePath[i] = filePath[i].trim();
-            }
-            filePath.reverse(); // lmao, the points are reversed when used in my system
+              var line = filePath[_g];
+              // trace("line: " + line);
+              _g++;
+              var coords = line.split(";");
+              // trace((_g - 1) + "split: " + coords);
+              var vec = new TimeVector(
+                Std.parseFloat(coords[0]),
+                Std.parseFloat(coords[1]) * (ClientPrefs.data.downScroll ? -1 : 1),
+                Std.parseFloat(coords[2]),
+                Std.parseFloat(coords[3])
+              );
+              vec.x *= 200;
+              vec.y *= 200;
+              vec.z *= 200;
+              path.add(vec);
 
-            if (filePath != null)
-            {
-              var path = new List<TimeVector>();
-              var _g = 0;
-              while (_g < filePath.length)
-              {
-                var line = filePath[_g];
-                // trace("line: " + line);
-                _g++;
-                var coords = line.split(";");
-                // trace((_g - 1) + "split: " + coords);
-                var vec = new TimeVector(
-                  Std.parseFloat(coords[0]),
-                  Std.parseFloat(coords[1]) * (ClientPrefs.data.downScroll ? -1 : 1),
-                  Std.parseFloat(coords[2]),
-                  Std.parseFloat(coords[3])
-                );
-                vec.x *= 200;
-                vec.y *= 200;
-                vec.z *= 200;
-                path.add(vec);
-
-                //  trace("x: " + vec.x);
-                // trace("y: " + vec.y);
-                // trace("z: " + vec.z);
-                // trace("-------");
-              }
-
-              _pathDistance = calculatePathDistances(path);
-              _path = path;
-              return; // We done here
+              //  trace("x: " + vec.x);
+              // trace("y: " + vec.y);
+              // trace("z: " + vec.z);
+              // trace("-------");
             }
-            else
-            {
-              trace("nvm, file is fucked");
-              customArrowPathModTest == null;
-            }
+
+            _pathDistance = calculatePathDistances(path);
+            _path = path;
+            return; // We done here
+          }
+          else
+          {
+            trace("nvm, file is fucked");
+            customArrowPathModTest == null;
           }
         }
       }
@@ -476,84 +462,70 @@ class OldCustomPathMod extends Modifier
   public function loadPath()
   {
     // scan for the path.txt file
-    var songna:String = (PlayState.instance?.currentSong?.id ?? '').toLowerCase();
-    var firstCheckTest:String = 'assets/data/modchart/' + PlayState.instance?.currentChart.songName.toLowerCase() + "/";
-    var secondCheckTest:String = 'assets/data/modchart/' + songna + "/";
-    var foldersToCheck:Array<String> = [firstCheckTest, secondCheckTest];
+    var songna:String = PlayState.instance?.songName.toLowerCase();
+    var firstCheckTest:String = 'assets/data/modchart/' + PlayState.instance?.songName.toLowerCase() + "/";
+    var secondCheckTest:String = 'data/modchart/' + PlayState.instance?.songName.toLowerCase() + "/";
 
     customArrowPathModTest = null;
 
-    // fuck it, we just check every mod lmfao
-    for (modid in PolymodHandler.loadedModIds)
-    {
-      var lmfao:String = 'mods/' + modid + '/data/modchart/' + songna + "/";
-      foldersToCheck.insert(0, lmfao);
-      lmfao = 'mods/' + modid + '/data/modchart/' + PlayState.instance?.currentChart.songName.toLowerCase() + "/";
-      foldersToCheck.insert(0, lmfao);
-    }
+    var pathfiles = Paths.crawlDirectoryAlt(firstCheckTest, '.txt').concat(Paths.crawlDirectoryAlt('mods/$secondCheckTest', '.txt'));
 
-    for (folder in foldersToCheck)
-    {
-      trace("Looking into - " + folder);
-      if (FileSystem.exists(folder))
+    for (folders in pathfiles) {
+      for (file in FileSystem.readDirectory(folders))
       {
-        trace("Folder exists...");
-        for (file in FileSystem.readDirectory(folder))
+        trace("file : " + file);
+        if (file == pathToLoad && customArrowPathModTest == null)
         {
-          trace("file : " + file);
-          if (file == pathToLoad && customArrowPathModTest == null)
+          customArrowPathModTest = folders + file;
+          trace("Oh shit, we found somethin? " + customArrowPathModTest);
+          // var file = sys.io.File.getContent(customArrowPathModTest);
+          var file_part1 = backend.util.FileUtil.readStringFromPath(customArrowPathModTest);
+
+          var filePath:Array<String> = [];
+          filePath = file_part1.trim().split('\n');
+
+          for (i in 0...filePath.length)
           {
-            customArrowPathModTest = folder + file;
-            trace("Oh shit, we found somethin? " + customArrowPathModTest);
-            // var file = sys.io.File.getContent(customArrowPathModTest);
-            var file_part1 = funkin.util.FileUtil.readStringFromPath(customArrowPathModTest);
+            filePath[i] = filePath[i].trim();
+          }
+          filePath.reverse(); // lmao, the points are reversed when used in my system
 
-            var filePath:Array<String> = [];
-            filePath = file_part1.trim().split('\n');
-
-            for (i in 0...filePath.length)
+          if (filePath != null)
+          {
+            var path = new List<TimeVector>();
+            var _g = 0;
+            while (_g < filePath.length)
             {
-              filePath[i] = filePath[i].trim();
-            }
-            filePath.reverse(); // lmao, the points are reversed when used in my system
+              var line = filePath[_g];
+              // trace("line: " + line);
+              _g++;
+              var coords = line.split(";");
+              // trace((_g - 1) + "split: " + coords);
+              var vec = new TimeVector(
+                Std.parseFloat(coords[0]),
+                Std.parseFloat(coords[1]) * (ClientPrefs.data.downScroll ? -1 : 1),
+                Std.parseFloat(coords[2]),
+                Std.parseFloat(coords[3])
+              );
+              vec.x *= 200;
+              vec.y *= 200;
+              vec.z *= 200;
+              path.add(vec);
 
-            if (filePath != null)
-            {
-              var path = new List<TimeVector>();
-              var _g = 0;
-              while (_g < filePath.length)
-              {
-                var line = filePath[_g];
-                // trace("line: " + line);
-                _g++;
-                var coords = line.split(";");
-                // trace((_g - 1) + "split: " + coords);
-                var vec = new TimeVector(
-                  Std.parseFloat(coords[0]),
-                  Std.parseFloat(coords[1]) * (ClientPrefs.data.downScroll ? -1 : 1),
-                  Std.parseFloat(coords[2]),
-                  Std.parseFloat(coords[3])
-                );
-                vec.x *= 200;
-                vec.y *= 200;
-                vec.z *= 200;
-                path.add(vec);
-
-                //  trace("x: " + vec.x);
-                // trace("y: " + vec.y);
-                // trace("z: " + vec.z);
-                // trace("-------");
-              }
-
-              _pathDistance = calculatePathDistances(path);
-              _path = path;
-              return; // We done here
+              //  trace("x: " + vec.x);
+              // trace("y: " + vec.y);
+              // trace("z: " + vec.z);
+              // trace("-------");
             }
-            else
-            {
-              trace("nvm, file is fucked");
-              customArrowPathModTest == null;
-            }
+
+            _pathDistance = calculatePathDistances(path);
+            _path = path;
+            return; // We done here
+          }
+          else
+          {
+            trace("nvm, file is fucked");
+            customArrowPathModTest == null;
           }
         }
       }

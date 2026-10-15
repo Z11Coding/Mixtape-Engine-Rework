@@ -481,7 +481,7 @@ class LegacyFunkinLua {
 			if(value != null && value.bitmap != null)
 			{
 				// trace('Found bitmapdata. Width: ${value.bitmap.width} Height: ${value.bitmap.height}');
-				shader.setSampler2D(prop, value.bitmap);
+				shader.setBitmapData(prop, value.bitmap);
 			}
 			#else
 			luaTrace("setShaderSampler2D: Platform unsupported for Runtime Shaders!", false, false, FlxColor.RED);
@@ -1229,7 +1229,14 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "noteTweenX", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			cancelTween(tag);
 			if(note < 0) note = 0;
-			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+			var globalStrumGroup:Array<StrumNote> = [];
+			for (line in PlayState.instance.strumLineNotes) {
+				for (strum in line.strumLineNotes.members) {
+					globalStrumGroup.push(strum);
+				}
+			}
+
+			var testicle:StrumNote = globalStrumGroup[note % globalStrumGroup.length];
 
 			if(testicle != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {x: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1243,7 +1250,14 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "noteTweenY", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			cancelTween(tag);
 			if(note < 0) note = 0;
-			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+			var globalStrumGroup:Array<StrumNote> = [];
+			for (line in PlayState.instance.strumLineNotes) {
+				for (strum in line.strumLineNotes.members) {
+					globalStrumGroup.push(strum);
+				}
+			}
+
+			var testicle:StrumNote = globalStrumGroup[note % globalStrumGroup.length];
 
 			if(testicle != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {y: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1257,7 +1271,14 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "noteTweenAngle", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			cancelTween(tag);
 			if(note < 0) note = 0;
-			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+			var globalStrumGroup:Array<StrumNote> = [];
+			for (line in PlayState.instance.strumLineNotes) {
+				for (strum in line.strumLineNotes.members) {
+					globalStrumGroup.push(strum);
+				}
+			}
+
+			var testicle:StrumNote = globalStrumGroup[note % globalStrumGroup.length];
 
 			if(testicle != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {angle: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1271,7 +1292,14 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "noteTweenDirection", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			cancelTween(tag);
 			if(note < 0) note = 0;
-			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+			var globalStrumGroup:Array<StrumNote> = [];
+			for (line in PlayState.instance.strumLineNotes) {
+				for (strum in line.strumLineNotes.members) {
+					globalStrumGroup.push(strum);
+				}
+			}
+
+			var testicle:StrumNote = globalStrumGroup[note % globalStrumGroup.length];
 
 			if(testicle != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {direction: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1317,7 +1345,14 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "noteTweenAngle", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			cancelTween(tag);
 			if(note < 0) note = 0;
-			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+			var globalStrumGroup:Array<StrumNote> = [];
+			for (line in PlayState.instance.strumLineNotes) {
+				for (strum in line.strumLineNotes.members) {
+					globalStrumGroup.push(strum);
+				}
+			}
+
+			var testicle:StrumNote = globalStrumGroup[note % globalStrumGroup.length];
 
 			if(testicle != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {angle: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1331,7 +1366,14 @@ class LegacyFunkinLua {
 		Lua_helper.add_callback(lua, "noteTweenAlpha", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			cancelTween(tag);
 			if(note < 0) note = 0;
-			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
+			var globalStrumGroup:Array<StrumNote> = [];
+			for (line in PlayState.instance.strumLineNotes) {
+				for (strum in line.strumLineNotes.members) {
+					globalStrumGroup.push(strum);
+				}
+			}
+
+			var testicle:StrumNote = globalStrumGroup[note % globalStrumGroup.length];
 
 			if(testicle != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {alpha: value}, duration, {ease: getFlxEaseByString(ease),

@@ -592,7 +592,7 @@ class LoadingState extends MusicBeatState
 		var folder:String = Paths.formatToSongPath(Song.loadedSongName);
 		new Future<Bool>(() -> {
 			// LOAD NOTE IMAGE
-			var noteSkin:String = Note.defaultNoteSkin;
+			var noteSkin:String = BaseNote.defaultNoteSkin;
 			if(PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 1) noteSkin = PlayfieldManager.SONG.arrowSkin;
 
 			var customSkin:String = noteSkin + Note.getNoteSkinPostfix();

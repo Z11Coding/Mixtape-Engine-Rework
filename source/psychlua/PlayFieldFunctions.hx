@@ -1,35 +1,13 @@
 package psychlua;
 
+import backend.modchartSystem.ModConstants;
 import backend.modchartSystem.ModHandler;
 import backend.modchartSystem.NoteData;
 import backend.modchartSystem.modifiers.BaseModifier;
-import flixel.FlxBasic;
-import flixel.FlxCamera;
-import flixel.FlxG;
-import flixel.FlxGame;
-import flixel.FlxObject;
-import flixel.FlxSprite;
-import flixel.FlxState;
-import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
-import flixel.math.FlxMath;
-// import flixel.system.FlxSound;
-import flixel.text.FlxText;
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxColor;
-import flixel.util.FlxTimer;
-import funkin.data.song.SongData.SongNoteData;
-import funkin.graphics.ZSprite;
-import hscript.Expr;
-import hscript.Interp;
-import hscript.Parser;
-import llua.Convert;
-import llua.Lua;
-import llua.LuaL;
-import llua.State;
+import objects.funkin.data.SongNoteData;
+import objects.funkin.graphics.ZSprite;
 import objects.notes.StrumNote;
 import objects.notes.Strumline;
-import objects.notes.notestyle.NoteStyle;
 import openfl.display.BlendMode;
 import openfl.display.TriangleCulling;
 
@@ -37,41 +15,45 @@ using StringTools;
 
 class PlayFieldFunctions
 {
-	// Any strumlines added to here will be ignored by the any uses of "all" when picking targets. Useful if you know you are never going to use opponentStrumline for example.
-  var allTargetExlusions:Array<Strumline> = [];
+	// Any strumlines added to here will be ignored by the any uses of "all" when picking targets. Useful if you know you are never going to use opponentStrums for example.
+  static var allTargetExlusions:Array<Strumline> = [];
 
 	public static function implement(funk:FunkinLua)
 	{
 		//TODO: use this when the modchart system actually gets added
 		var lua = funk.lua;
 
-		set('curBpm', MegaManager.conductor.bpm);
-    set('startingBPM', MegaManager.conductor.startingBPM);
-    set('songPos', MegaManager.conductor.songPosition);
-    set('beatPos', MegaManager.conductor.currentBeatTime);
+    allTargetExlusions = [];
 
-    set('measureLength', MegaManager.conductor.measureLengthMs);
-    set('beatLength', MegaManager.conductor.beatLengthMs);
-    set('stepLength', MegaManager.conductor.stepLengthMs);
+		funk.set('curBpm', MegaManager.conductor.currentBpm);
+    funk.set('startingBPM', MegaManager.conductor.startBpm);
+    funk.set('songPos', MegaManager.conductor.musicPosition);
+    funk.set('beatPos', MegaManager.conductor.currentBeatTime);
 
-    set('stepsPerBeat', Constants.STEPS_PER_BEAT);
+    funk.set('measureLength', MegaManager.conductor.measureLengthMs);
+    funk.set('beatLength', MegaManager.conductor.beatLengthMs);
+    funk.set('stepLength', MegaManager.conductor.stepLengthMs);
 
-    set('strumSize', ModConstants.strumSize);
+    funk.set('stepsPerBeat', Constants.STEPS_PER_BEAT);
 
-    set('modchartVersion', ModConstants.MODCHART_VERSION);
-    set('witfVersion', ModConstants.MODCHART_VERSION);
+    funk.set('strumSize', ModConstants.strumSize);
 
-    set('sw', FlxG.width);
-    set('sh', FlxG.height);
-    set('downScroll', ClientPrefs.data.downScroll);
-    set('upscroll', !ClientPrefs.data.downScroll);
-    set('upScroll', !ClientPrefs.data.downScroll);
+    funk.set('modchartVersion', ModConstants.MODCHART_VERSION);
+    funk.set('witfVersion', ModConstants.MODCHART_VERSION);
 
-    set('invertStrumlineTarget', ModConstants.invertStrumlineTarget); // For swap chart mod
+    funk.set('sw', FlxG.width);
+    funk.set('sh', FlxG.height);
+    funk.set('downScroll', ClientPrefs.data.downScroll);
+    funk.set('upscroll', !ClientPrefs.data.downScroll);
+    funk.set('upScroll', !ClientPrefs.data.downScroll);
 
-		Lua_helper.add_callback(lua, "getBeatTimeInMs", MegaManager.conductor.getBeatTimeInMs);
-    Lua_helper.add_callback(lua, "getStepTimeInMs", MegaManager.conductor.getStepTimeInMs);
-    Lua_helper.add_callback(lua, "getTimeInSteps", MegaManager.conductor.getTimeInSteps);
+    funk.set('invertStrumlineTarget', ModConstants.invertStrumlineTarget); // For swap chart mod
+
+    Lua_helper.add_callback(lua, "getTypeLengthAtMS", MegaManager.conductor.getTypeLengthAtMs);
+		Lua_helper.add_callback(lua, "getBeatTimeInMs", MegaManager.conductor.getCumulativeBeats);
+    Lua_helper.add_callback(lua, "getStepTimeInMs", MegaManager.conductor.getCumulativeSteps);
+    Lua_helper.add_callback(lua, "getTimeInSteps", MegaManager.conductor.getCumulativeMeasures);
+
 
     Lua_helper.add_callback(lua, "targetExclude", function(who:String):Void
     {
@@ -139,7 +121,7 @@ class PlayFieldFunctions
         for (customStrummer in MegaManager.playfield.allStrumLines)
         {
           // DO NOT ASLEEP BF!
-          if (!(customStrummer == MegaManager.playfield.playerStrums || customStrummer == MegaManager.playfield.opponentStrumline))
+          if (!(customStrummer == MegaManager.playfield.playerStrums || customStrummer == MegaManager.playfield.opponentStrums))
           {
             MegaManager.playfield.modchartEventHandler.funcModEvent(customStrummer.mods, time, function()
             {
@@ -152,9 +134,9 @@ class PlayFieldFunctions
       {
         var modsTarget = ModConstants.grabStrumModTarget(playerTarget);
 
-        if (modsTarget.strum == MegaManager.playfield.opponentStrumline || modsTarget.strum == MegaManager.playfield.playerStrums)
+        if (modsTarget.strum == MegaManager.playfield.opponentStrums || modsTarget.strum == MegaManager.playfield.playerStrums)
         {
-          MegaManager.playfield.addTextToDebug("Changing player control only works for custom strumlines!", FlxColor.ORANGE);
+          MegaManager.scriptManager.addTextToDebug("Changing player control only works for custom strumlines!", FlxColor.ORANGE);
         }
         else
         {
@@ -544,14 +526,14 @@ class PlayFieldFunctions
     {
       trace("set percentage mode to: " + newval);
       MegaManager.playfield.modchartEventHandler.percentageMods = newval;
-      luaTrace("'percentageMode' is not available!", FlxColor.RED);
+      FunkinLua.luaTrace("'percentageMode' is not available!", FlxColor.RED);
     });
 
-    Lua_helper.add_callback(lua, "hideNotifs", function(newval:Bool = false)
+    /*Lua_helper.add_callback(lua, "hideNotifs", function(newval:Bool = false)
     {
       MegaManager.playfield.hideNotifs = newval;
       trace(MegaManager.playfield.hideNotifs ? "Will no longer display notifs..." : "Showing notifs!");
-    });
+    });*/
 
     Lua_helper.add_callback(lua, "invertForDad", function(newval:Bool = false)
     {
@@ -672,13 +654,13 @@ class PlayFieldFunctions
     // legacy function, just use the grain mod
     Lua_helper.add_callback(lua, "setGrain", function(newGrainValue:Float = 80, playerTarget:String = "all")
     {
-      luaTrace("'setGrain' is obsolete! Use the 'grain' modifier instead!", FlxColor.RED);
+      FunkinLua.luaTrace("'setGrain' is obsolete! Use the 'grain' modifier instead!", FlxColor.RED);
     });
 
     // legacy function, use createNewPlayer
     Lua_helper.add_callback(lua, "customStrumAmount", function(newval:Int = 0)
     {
-      luaTrace("'customStrumAmount' is obsolete! Use 'createNewPlayer()' instead!", true, FlxColor.RED);
+      FunkinLua.luaTrace("'customStrumAmount' is obsolete! Use 'createNewPlayer()' instead!", true, FlxColor.RED);
     });
 
     Lua_helper.add_callback(lua, "createNewPlayer", function(playerControlled:Bool, ?noteStyle:String)
@@ -686,26 +668,11 @@ class PlayFieldFunctions
       MegaManager.playfield.constructNewStrumLine(playerControlled, noteStyle);
     });
 
-    Lua_helper.add_callback(lua, "trace", function(text:String, startBeat:Null<Float> = null)
-    {
-      if (startBeat != null)
-      {
-        MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
-        {
-          MegaManager.playfield.addTextToDebug(text);
-        }, false);
-      }
-      else
-      {
-        MegaManager.playfield.addTextToDebug(text);
-      }
-    });
-
     Lua_helper.add_callback(lua, "aftSetup", function(startBeat:Null<Float> = null)
     {
       if (MegaManager.playfield.luaAFT_Capture != null)
       {
-        luaTrace("Only one Lua AFT sprite can exist.", FlxColor.ORANGE);
+        FunkinLua.luaTrace("Only one Lua AFT sprite can exist.", FlxColor.ORANGE);
         return;
       }
       if (startBeat == null)
@@ -723,11 +690,11 @@ class PlayFieldFunctions
 
     Lua_helper.add_callback(lua, "aftCaptureAlpha", function(startBeat:Float, v:Float)
     {
-      luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
+      FunkinLua.luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
       /*
         if (MegaManager.playfield.luaAFT_Capture == null)
         {
-          luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+          FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
           return;
         }
         MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function() {
@@ -741,7 +708,7 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;
       }
       MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
@@ -755,7 +722,7 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;
       }
       MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
@@ -770,7 +737,7 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;
       }
       MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
@@ -782,7 +749,7 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;
       }
       if (trueValue)
@@ -804,7 +771,7 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;
       }
       MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
@@ -816,7 +783,7 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;
       }
       MegaManager.playfield.modchartEventHandler.funcModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, function()
@@ -828,11 +795,11 @@ class PlayFieldFunctions
 
     Lua_helper.add_callback(lua, "aftTweenAlpha", function(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float)
     {
-      luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
+      FunkinLua.luaTrace("aftTweenAlpha NOT SUPPORTED IN V0.8.0a", FlxColor.RED);
       /*
         if (MegaManager.playfield.luaAFT_Capture == null)
         {
-          luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+          FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
           return;
         }
         MegaManager.playfield.modchartEventHandler.funcTweenModEvent(ModConstants.grabStrumModTarget("bf"), startBeat, lengthInBeats,
@@ -848,9 +815,9 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        // MegaManager.playfield.addTextToDebug("No lua aft sprite!");
+        // MegaManager.scriptManager.addTextToDebug("No lua aft sprite!");
         // trace("No lua aft!");
-        luaTrace("Lua AFT sprite not created!", FlxColor.RED);
+        FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;
       }
       MegaManager.playfield.modchartEventHandler.funcTweenModEvent(
@@ -868,64 +835,9 @@ class PlayFieldFunctions
         "luaAFT_scale"
       );
     });
-
-    // Stolen from Funkin Lua
-    Lua_helper.add_callback(lua, "addHaxeLibrary", function(libName:String, ?libPackage:String = '')
-    {
-      #if hscript
-      initHaxeModule();
-      try
-      {
-        var full:String = (libPackage.length > 0 ? libPackage + '.' : '') + libName;
-
-        if (isBlacklisted(full))
-        {
-          luaTrace("Cannot use '" + full + "' as it is blacklisted.", false, false, FlxColor.RED);
-          return;
-        }
-
-        hscript.variables.set(libName, Type.resolveClass(full));
-      }
-      catch (e:Dynamic)
-      {
-        luaTrace(scriptName + ":" + lastCalledFunction + " - " + e, false, false, FlxColor.RED);
-      }
-      #else
-      luaTrace("HScript isn't supported on this platform!", false, false, FlxColor.RED);
-      #end
-    });
-
-    Lua_helper.add_callback(lua, "runHaxeCode", function(codeToRun:String)
-    {
-      var retVal:Dynamic = null;
-
-      #if hscript
-      initHaxeModule();
-      try
-      {
-        retVal = hscript.execute(codeToRun);
-      }
-      catch (e:Dynamic)
-      {
-        luaTrace(scriptName + ":" + lastCalledFunction + " - " + e, false, false, FlxColor.RED);
-      }
-      #else
-      luaTrace("runHaxeCode: HScript isn't supported on this platform!", false, false, FlxColor.RED);
-      #end
-
-      if (retVal != null && !isOfTypes(retVal, [
-        Bool,
-        Int,
-        Float,
-        String,
-        Array
-      ])) retVal = null;
-      if (retVal == null) Lua.pushnil(lua);
-      return retVal;
-    });
   }
 
-  function multiFuncParse(data:String, type:String):Void
+  static function multiFuncParse(data:String, type:String):Void
   {
     // format: adds("[4, 6, 8.5, 9], [0.75, 1, 1.5], [sineInOut, bounce, sineInOut], [100, drunk, 200, tipsy], [bf, 3] ")
     // startBeat = [4, 6, 8.5, 9]. Loops through each one and adds it as an event
@@ -1020,7 +932,7 @@ class PlayFieldFunctions
     multiFunc(startBeats, lengthBeats, eases, modValues, modNames, targets, type);
   }
 
-  function multiFunc(startBeats:Array<Float>, lengthBeats:Array<Float>, eases:Array<String>, modValues:Array<Float>, modNames:Array<String>, targets:Array<String>, type:String):Void
+  static function multiFunc(startBeats:Array<Float>, lengthBeats:Array<Float>, eases:Array<String>, modValues:Array<Float>, modNames:Array<String>, targets:Array<String>, type:String):Void
   {
     if (targets.length < 1)
     { // if empty, default to targetting all
@@ -1124,7 +1036,7 @@ class PlayFieldFunctions
     }
   }
 
-  function valueFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, startingValue:Float, endingValue:Float, modName:String, playerTarget:String = "all"):Void
+  static function valueFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, startingValue:Float, endingValue:Float, modName:String, playerTarget:String = "all"):Void
   {
     // trace("WOW! WE NEED TWEEN: " + modName);
     modName = ModConstants.modAliasCheck(modName);
@@ -1164,7 +1076,7 @@ class PlayFieldFunctions
     }
   }
 
-  function formaterTargets(targetsRaw:Any):Array<String>
+  static function formaterTargets(targetsRaw:Any):Array<String>
   {
     var targets:Array<String> = [];
     if (Std.isOfType(targetsRaw, Array))
@@ -1182,7 +1094,7 @@ class PlayFieldFunctions
     return targets;
   }
 
-  function setDefaultFunc_parser(modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  static function setDefaultFunc_parser(modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
   {
     var targets_raw:Any = _playerTarget;
 
@@ -1225,7 +1137,7 @@ class PlayFieldFunctions
     }
   }
 
-  function setFunc_parser(startBeat:Float, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  static function setFunc_parser(startBeat:Float, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
   {
     var targets_raw:Any = _playerTarget;
 
@@ -1268,7 +1180,7 @@ class PlayFieldFunctions
     }
   }
 
-  function addFunc_parser(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  static function addFunc_parser(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
   {
     var targets_raw:Any = _playerTarget;
 
@@ -1316,7 +1228,7 @@ class PlayFieldFunctions
   // tween(0, 4, "linear", {1, "beat", 1, "drunk"}, {3,1})
   // Work In Progress replacement to allow users to input multiple mod values into the same function without needing to convert it all to a string like for tweens func
 
-  function tweenFunc_parser(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
+  static function tweenFunc_parser(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Any, modName:Any, _playerTarget:Any = "all"):Void
   {
     var targets_raw:Any = _playerTarget;
     var modArray:Bool = false;
@@ -1358,7 +1270,7 @@ class PlayFieldFunctions
     }
   }
 
-  function tweenFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float, modName:String, playerTarget:String = "all"):Void
+  static function tweenFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float, modName:String, playerTarget:String = "all"):Void
   {
     // trace("WOW! WE NEED TWEEN: " + modName);
     modName = ModConstants.modAliasCheck(modName);
@@ -1397,7 +1309,7 @@ class PlayFieldFunctions
     }
   }
 
-  function setDefaultFunc(modValue:Float, modName:String, playerTarget:String = "all"):Void
+  static function setDefaultFunc(modValue:Float, modName:String, playerTarget:String = "all"):Void
   {
     modName = ModConstants.modAliasCheck(modName);
 
@@ -1416,7 +1328,7 @@ class PlayFieldFunctions
     }
   }
 
-  function setFunc(startBeat:Float, modValue:Float, modName:String, playerTarget:String = "all"):Void
+  static function setFunc(startBeat:Float, modValue:Float, modName:String, playerTarget:String = "all"):Void
   {
     // trace("WOW! WE NEED SET: " + modName);
     modName = ModConstants.modAliasCheck(modName);
@@ -1436,7 +1348,7 @@ class PlayFieldFunctions
     }
   }
 
-  function addFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float, modName:String, playerTarget:String = "all"):Void
+  static function addFunc(startBeat:Float, lengthInBeats:Float, easeToUse:String, modValue:Float, modName:String, playerTarget:String = "all"):Void
   {
     // trace("WOW! WE NEED ADD: " + modName);
     modName = ModConstants.modAliasCheck(modName);

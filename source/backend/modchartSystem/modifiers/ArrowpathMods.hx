@@ -20,7 +20,7 @@ class ArrowpathMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.arrowPathAlpha = currentValue;
   }
 
@@ -152,7 +152,7 @@ class ArrowpathBackLengthMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.arrowpathBackwardsLength = currentValue;
   }
 }
@@ -170,7 +170,7 @@ class ArrowpathFrontLengthMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.arrowpathLength = currentValue;
   }
 }

@@ -206,7 +206,7 @@ class MathCutOffMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.mathCutOff = currentValue;
   }
 }
@@ -223,7 +223,7 @@ class NoteSplashCopyStrumScaleMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.splashCopyStrumScale = currentValue >= 0.5;
   }
 }
@@ -240,7 +240,7 @@ class HoldCoverCopyStrumScaleMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.holdCoverCopyStrumScale = currentValue >= 0.5;
   }
 }
@@ -257,7 +257,7 @@ class DisableHoldMathShortCutMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.noHoldMathShortcut = currentValue;
   }
 }
@@ -274,7 +274,7 @@ class DrawDistanceBackMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum = strumLine.getByIndex(lane);
+    final whichStrum = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.drawdistanceBack = currentValue;
   }
 }
@@ -291,7 +291,7 @@ class DrawDistanceMod extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum = strumLine.getByIndex(lane);
+    final whichStrum = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.drawdistanceForward = currentValue;
   }
 }

@@ -1,8 +1,8 @@
 package states;
 // import lime.ui.DropFileEvent;
 import lime.ui.Window;
-import objects.FunkinCamera;
 import objects.VideoSprite;
+import objects.funkin.FunkinCamera;
 import openfl.Lib;
 import states.stages.objects.*;
 import yutautil.ExtendedDate;
@@ -158,22 +158,22 @@ class SplashScreen extends MusicBeatState
                         engineTA = FlxTween.tween(engine, {alpha: 0}, Conductor.stepCrochet*0.001*4, {ease: FlxEase.expoInOut});
                     case 9:
                         FlxG.camera.zoom = 3;
-                        FlxG.camera.scrollAngle = (360*2);
+                        FlxG.camera.angle = (360*2);
                     case 10:
                         mixtapeLogo.alpha = 1;
-                        camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*2, {ease: FlxEase.sineInOut});
+                        camTween = FlxTween.tween(FlxG.camera, {zoom: 1, angle: 0}, Conductor.stepCrochet*0.001*2, {ease: FlxEase.sineInOut});
                     case 12:
                         mix.alpha = 1;
                         tape.alpha = 1;
                         FlxG.camera.zoom = 1.2;
-                        FlxG.camera.scrollAngle = 15;
-                        camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});
+                        FlxG.camera.angle = 15;
+                        camTween = FlxTween.tween(FlxG.camera, {zoom: 1, angle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});
                         mixTA = FlxTween.tween(mix, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
                         tapeTA = FlxTween.tween(tape, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
                     case 14:
                         FlxG.camera.zoom = 1.2;
-                        FlxG.camera.scrollAngle = -15;
-                        camTween = FlxTween.tween(FlxG.camera, {zoom: 1, scrollAngle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});
+                        FlxG.camera.angle = -15;
+                        camTween = FlxTween.tween(FlxG.camera, {zoom: 1, angle: 0}, Conductor.stepCrochet*0.001*1, {ease: FlxEase.sineInOut});
                         engine.alpha = 1;
                         engineTA = FlxTween.tween(engine, {alpha: 0}, Conductor.stepCrochet*0.001*3, {ease: FlxEase.expoInOut});
                     case 16:

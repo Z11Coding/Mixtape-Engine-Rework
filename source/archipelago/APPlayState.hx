@@ -3035,7 +3035,7 @@ class APPlayState extends PlayState {
                 }
                 else
                 {
-                    var spr = playerStrums.strumNotes.members[note.noteData];
+                    var spr = playerStrums.getByColumn(note.noteData);
     				if(spr != null) spr.playAnim('confirm', true);
                 }
             }
@@ -3172,15 +3172,17 @@ class APPlayState extends PlayState {
     //Adjust the note's alpha
     public function adjustSight() {
         if (APInfo.blindness) {
-            for (strum in strumLineNotes.members) {
-                strum.multAlpha = 0.3;
+            for (line in strumLineNotes) {
+                for (strum in line.strumLineNotes.members)
+                    strum.multAlpha = 1;
             }
             for (note in notes.members) {
                 note.multAlpha = 0.3;
             }
         } else {
-            for (strum in strumLineNotes.members) {
-                strum.multAlpha = 1;
+            for (line in strumLineNotes) {
+                for (strum in line.strumLineNotes.members)
+                    strum.multAlpha = 1;
             }
             for (note in notes.members) {
                 note.multAlpha = 1;

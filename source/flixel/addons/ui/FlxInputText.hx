@@ -1,12 +1,12 @@
 package flixel.addons.ui;
 
-import lime.system.Clipboard;
 import flash.errors.Error;
 import flash.events.KeyboardEvent;
 import flash.geom.Rectangle;
 import flixel.addons.ui.FlxUI.NamedString;
 import flixel.math.FlxRect;
 import flixel.util.FlxDestroyUtil;
+import lime.system.Clipboard;
 
 /**
  * FlxInputText v1.11, ported to Haxe
@@ -20,7 +20,7 @@ import flixel.util.FlxDestroyUtil;
  * Copyright (c) 2009 Martín Sebastián Wain
  * License: Creative Commons Attribution 3.0 United States
  * @link http://creativecommons.org/licenses/by/3.0/us/
- * 
+ *
  */
 class FlxInputText extends FlxText
 {
@@ -320,7 +320,7 @@ class FlxInputText extends FlxText
 		}
 		#end
 	}
-	
+
 
 	/**
 	 * Handles keypresses generated on the stage.
@@ -748,7 +748,7 @@ class FlxInputText extends FlxText
 					caret.makeGraphic(cw, ch, caretC, false, caretKey);
 					caret.offset.x = caret.offset.y = 0;
 
-				case SHADOW:
+				case SHADOW | SHADOW_XY:
 					// Shadow offset to the lower-right
 					cw += Std.int(borderSize);
 					ch += Std.int(borderSize); // expand canvas on one side for shadow

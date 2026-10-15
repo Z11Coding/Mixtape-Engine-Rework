@@ -92,7 +92,7 @@ class ChartingStrumNote extends FlxSprite
 
 		var skin:String = null;
 		if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 1) skin = PlayfieldManager.SONG.arrowSkin;
-		else skin = Note.defaultNoteSkin;
+		else skin = BaseNote.defaultNoteSkin;
 
 		if (Note.getNoteSkinPostfix() != '')
 		{

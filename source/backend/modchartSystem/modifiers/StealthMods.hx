@@ -28,7 +28,7 @@ class UseOldStealthHoldsModifier extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByColumn(data.direction);
     whichStrum.strumExtraModData.useOldStealthGlowStyle = currentValue >= 0.5;
   }
 }
@@ -228,7 +228,7 @@ class SuddenMod extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByColumn(data.direction);
     whichStrum.strumExtraModData.suddenModAmount = currentValue;
     whichStrum.strumExtraModData.suddenStart = start.value + offset.value;
     whichStrum.strumExtraModData.suddenEnd = end.value + offset.value;
@@ -305,7 +305,7 @@ class HiddenMod extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByColumn(data.direction);
     whichStrum.strumExtraModData.hiddenModAmount = currentValue;
     whichStrum.strumExtraModData.hiddenStart = start.value + offset.value;
     whichStrum.strumExtraModData.hiddenEnd = end.value + offset.value;
@@ -384,7 +384,7 @@ class VanishMod extends Modifier
   override function strumMath(data:NoteData, strumLine:Strumline):Void
   {
     if (data.inOrientPass) return;
-    final whichStrum:StrumNote = strumLine.getByIndex(data.direction);
+    final whichStrum:StrumNote = strumLine.getByColumn(data.direction);
     whichStrum.strumExtraModData.vanishModAmount = currentValue;
 
     final sizeThingy:Float = size.value / 2;
@@ -646,7 +646,7 @@ class AlphaNoteSplashModifier extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.alphaSplashMod = currentValue;
     // strumLine.alphaSplashMod[lane] = currentValue;
   }
@@ -663,7 +663,7 @@ class AlphaHoldCoverModifier extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.alphaHoldCoverMod = currentValue;
     // strumLine.alphaHoldCoverMod[lane] = currentValue;
   }

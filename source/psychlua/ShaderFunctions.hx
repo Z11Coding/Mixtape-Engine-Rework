@@ -20,7 +20,7 @@ class ShaderFunctions
 			#end
 			return false;
 		});
-		
+
 		funk.addLocalCallback("setSpriteShader", function(obj:String, shader:String) {
 			if(!ClientPrefs.data.shaders) return false;
 
@@ -254,7 +254,7 @@ class ShaderFunctions
 			if(value != null && value.bitmap != null)
 			{
 				// trace('Found bitmapdata. Width: ${value.bitmap.width} Height: ${value.bitmap.height}');
-				shader.setSampler2D(prop, value.bitmap);
+				shader.setBitmapData(prop, value.bitmap);
 				return true;
 			}
 			return false;
@@ -264,7 +264,7 @@ class ShaderFunctions
 			#end
 		});
 	}
-	
+
 	#if (!flash && MODS_ALLOWED && sys)
 	public static function getShader(obj:String):FlxRuntimeShader
 	{

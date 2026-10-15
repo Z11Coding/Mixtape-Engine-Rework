@@ -6,6 +6,7 @@ import flixel.addons.display.FlxRuntimeShader;
 import flixel.animation.FlxAnimationController;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxBitmapFont;
 import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.FlxRect;
@@ -1787,4 +1788,11 @@ class Paths
 		if (parts.length < 2) return path;
 		return parts[1];
 	}
+
+	// Added by WITF v1.0.2
+  // Use this application to generate the bitmap font: https://www.angelcode.com/products/bmfont/
+  public static function getFlxBitmapFontFromAngelCode(key:String, ?library:String):FlxBitmapFont
+  {
+    return FlxBitmapFont.fromAngelCode(image(key + "_0", library), file('images/$key.fnt', library));
+  }
 }

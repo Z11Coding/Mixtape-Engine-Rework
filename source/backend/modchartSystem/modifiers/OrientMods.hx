@@ -89,7 +89,7 @@ class OrientModBase extends Modifier
 
   override function specialMath(lane:Int, strumLine:Strumline):Void
   {
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.orientExtraMath[index] = currentValue;
   }
 

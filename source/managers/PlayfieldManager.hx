@@ -60,6 +60,8 @@ class PlayfieldManager {
 	public var totalNotes:Float = 0;
   public var jackingtime:Float = 0;
 
+  public var notesAboveHUD:Bool = true;
+
   public var splashesPerFrame:Array<Int> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   var multiChangeEvents:Array<Array<Float>> = [[], []];
 
@@ -112,6 +114,7 @@ class PlayfieldManager {
 
   public var manualInputChecks:Bool = false;
 
+// HAZARD MODCHART VARS
   public var perframeFunctions:Array<Float->Void> = [];
   public var allStrumSprites:FlxTypedSpriteGroup<ZSprite>;
   public var customZspritesGroup:FlxTypedSpriteGroup<ZSprite>;
@@ -223,7 +226,7 @@ class PlayfieldManager {
         if (strumLine.asleep) continue; // Skip this strumline if it's asleep lol
         strumLine.notes.visible = !v;
         strumLine.sustainNotes.visible = !v;
-        strumLine.strumNotes.visible = !v;
+        strumLine.strumLineNotes.visible = !v;
         strumLine.arrowPaths.visible = !v;
         strumLine.noteSplashes.visible = !v;
         strumLine.holdSplashes.visible = !v;
@@ -231,7 +234,7 @@ class PlayfieldManager {
         // Grab everything and throw it into the spritegroup!
         if (noteRenderMode)
         {
-          strumLine.strumNotes.forEach(function(note:ZSprite)
+          strumLine.strumLineNotes.forEach(function(note:ZSprite)
           {
             allStrumSprites.add(note);
           });
@@ -365,7 +368,6 @@ class PlayfieldManager {
 
     if (playerStrums != null) playerStrums.strumNotes.clear();
     if (opponentStrums != null) opponentStrums.strumNotes.clear();
-    if (grpNoteSplashes != null) grpNoteSplashes.clear();
     if (playfield.grpHoldSplashes != null) playfield.grpHoldSplashes.clear();
 
     if (MusicBeatState.getState() == PlayState.instance)
@@ -391,12 +393,12 @@ class PlayfieldManager {
     generateStaticArrows(1);
 
     for (i in 0...opponentStrums.length) {
-      PlayState.instance?.setOnScripts('defaultOpponentStrumX' + i, opponentStrums.members[i].x);
-      PlayState.instance?.setOnScripts('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
+      PlayState.instance?.setOnScripts('defaultOpponentStrumX' + i, opponentStrums.getByColumn(i).x);
+      PlayState.instance?.setOnScripts('defaultOpponentStrumY' + i, opponentStrums.getByColumn(i).y);
     }
     for (i in 0...playerStrums.length) {
-      PlayState.instance?.setOnScripts('defaultPlayerStrumX' + i, playerStrums.strumNotes.members[i].x);
-      PlayState.instance?.setOnScripts('defaultPlayerStrumY' + i, playerStrums.strumNotes.members[i].y);
+      PlayState.instance?.setOnScripts('defaultPlayerStrumX' + i, playerStrums.getByColumn(i).x);
+      PlayState.instance?.setOnScripts('defaultPlayerStrumY' + i, playerStrums.getByColumn(i).y);
     }
 
     if (MusicBeatState.getState() == PlayState.instance) {
@@ -630,17 +632,10 @@ class PlayfieldManager {
   public function addNotes() {
     sustainNotes = new FlxTypedGroup<Note>();
 
-		//strumLineNotes = new FlxTypedGroup<StrumNote>();
-
 		notes = new FlxTypedGroup<Note>();
 		notes.visible = sustainNotes.visible = ClientPrefs.data.showNotes; //that was easier than expected
 
     grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
-		grpNoteSplashes = new FlxTypedGroup<NoteSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
-
-    var splash:NoteSplash = new NoteSplash(100, 100, 0);
-		grpNoteSplashes.add(splash);
-		splash.alpha = 0.0001;
 
 		SustainSplash.startCrochet = Conductor.stepCrochet;
 		SustainSplash.frameRate = Math.floor(24 / 100 * SONG.bpm);
@@ -665,7 +660,6 @@ class PlayfieldManager {
 
     sustainNotes.cameras = [camNotes];
 		notes.cameras = [camNotes];
-    grpNoteSplashes.cameras = [camNotes];
 		grpHoldSplashes.cameras = [camNotes];
   }
 
@@ -2523,7 +2517,7 @@ class PlayfieldManager {
             if (canMiss) PlayState.instance?.noteMissPress(key);
           }
 
-          var spr:StrumNote = playerStrums.strumNotes.members[key];
+          var spr:StrumNote = playerStrums.getByColumn(key);
           if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
           {
             spr.playAnim('pressed');
@@ -2604,7 +2598,7 @@ class PlayfieldManager {
 			if (canMiss) PlayState.instance?.noteMissPress(key);
 		}
 
-		var spr:StrumNote = playerStrums.strumNotes.members[key];
+		var spr:StrumNote = playerStrums.getByColumn(key);
 		if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
 		{
 			spr.playAnim('pressed');
@@ -2721,7 +2715,7 @@ class PlayfieldManager {
             if (canMiss) PlayState.instance?.noteMissPress(keyDirection);
           }
 
-          var spr:StrumNote = playerStrums.strumNotes.members[keyDirection];
+          var spr:StrumNote = playerStrums.getByColumn(keyDirection);
           if(strumsBlocked[keyDirection] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
           {
             spr.playAnim('pressed');
@@ -2818,7 +2812,7 @@ class PlayfieldManager {
             if (canMiss) PlayState.instance?.noteMissPress(direction);
           }
 
-          var spr:StrumNote = playerStrums.strumNotes.members[direction];
+          var spr:StrumNote = playerStrums.getByColumn(direction);
           if(strumsBlocked[direction] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
           {
             spr.playAnim('pressed');
@@ -2928,7 +2922,7 @@ class PlayfieldManager {
             if (canMiss) PlayState.instance?.noteMissPress(key);
           }
 
-          var spr:StrumNote = playerStrums.strumNotes.members[key];
+          var spr:StrumNote = playerStrums.getByColumn(key);
           if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
           {
             spr.playAnim('pressed');
@@ -2965,7 +2959,7 @@ class PlayfieldManager {
   		if(ret == LuaUtils.Function_Stop) return;
     }
 
-		var spr:StrumNote = playerStrums.strumNotes.members[key];
+		var spr:StrumNote = playerStrums.getByColumn(key);
 		if (spr != null)
 		{
 			spr.playAnim('static');
@@ -3137,7 +3131,7 @@ class PlayfieldManager {
 		splashesPerFrame[(isDad ? 2 : 3)] += 1;
 
 		if (note != null) {
-			var strum:StrumNote = (isDad ? playerStrums : opponentStrums).strumNotes.members[note.noteData];
+			var strum:StrumNote = (isDad ? playerStrums : opponentStrums).getByColumn(note.noteData);
 			final susLength:Float = (!note.isSustainNote ? note.sustainLength : note.parentSL);
 			final tailLength:Int = Math.floor(susLength / Conductor.stepCrochet);
 
@@ -3150,23 +3144,17 @@ class PlayfieldManager {
 		var end:Note = note;
 		var splash:SustainSplash = grpHoldSplashes.recycle(SustainSplash);
     final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
-		splash.setupSusSplash((note.mustPress ? playerStrums : opponentStrums).strumNotes.members[note.noteData], note, playbackRate);
+		splash.setupSusSplash((note.mustPress ? playerStrums : opponentStrums).getByColumn(note.noteData), note, playbackRate);
 		grpHoldSplashes.add(end.noteHoldSplash = splash);
 	}
 
 	public function spawnNoteSplashOnNote(note:Note, ?isDad:Bool) {
 		if(ClientPrefs.data.noteSplashes && note != null) {
 			splashesPerFrame[(isDad ? 0 : 1)] += 1;
-			final strum:StrumNote = !isDad ? playerStrums.strumNotes.members[note.noteData] : opponentStrums.strumNotes.members[note.noteData];
+			final strum:Strumline = !isDad ? playerStrums : opponentStrums;
 			if(strum != null)
-				spawnNoteSplash(strum.x, strum.y, note.noteData);
+				strum.constructNoteSplash(note.noteData);
 		}
-	}
-
-	public function spawnNoteSplash(x:Float, y:Float, data:Int, ?splashSkin:String) {
-		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
-		splash.setupNoteSplash(x, y, data, splashSkin);
-		grpNoteSplashes.add(splash);
 	}
 
   //General
@@ -3176,14 +3164,14 @@ class PlayfieldManager {
 
     // Clear strum note references
 		if (playerStrums != null) {
-			playerStrums.strumNotes.forEachAlive(function(strum:StrumNote) {
+			playerStrums.strumLineNotes.forEachAlive(function(strum:StrumNote) {
 				if (strum != null) strum.destroy();
 			});
 			playerStrums.clear();
 		}
 
 		if (opponentStrums != null) {
-			opponentStrums.strumNotes.forEachAlive(function(strum:StrumNote) {
+			opponentStrums.strumLineNotes.forEachAlive(function(strum:StrumNote) {
 				if (strum != null) strum.destroy();
 			});
 			opponentStrums.clear();
@@ -3408,13 +3396,15 @@ class PlayfieldManager {
     */
   public function constructNewStrumLine(playerControlled:Bool, ?noteStyleName:String):Strumline
   {
-    var newStrummer:Strumline = new Strumline({strumlinePos: strumline, player: allStrumLines.length}, playerControlled ? !isBotPlayMode : false, currentChart?.scrollSpeed, isModchartSong);
+    final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50);
+
+    var newStrummer:Strumline = new Strumline({strumlinePos: strumLine, player: allStrumLines.length}, playerControlled ? !cpuControlled : false, songSpeed, isModchartSong);
     newStrummer.onNoteIncoming.add(onStrumlineNoteIncoming);
     newStrummer.defaultPlayerControl = playerControlled;
     add(newStrummer);
 
     // Create in center of the screen
-    newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2) + noteStyle.getInitialStrumlineOffsets()[0];
+    newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2) + 0;
     newStrummer.heightWas = newStrummer.height;
     newStrummer.y = getStrumlineY(newStrummer);
 
@@ -3433,18 +3423,18 @@ class PlayfieldManager {
 
   public static function getStrumlineY(strummy:Strumline, invertDownscrollCheck:Bool = false):Float
   {
-    var isDownscroll:Bool = Preferences.downscroll;
+    var isDownscroll:Bool = ClientPrefs.data.downScroll;
     if (invertDownscrollCheck)
     {
-      isDownscroll = !Preferences.downscroll;
+      isDownscroll = !ClientPrefs.data.downScroll;
     }
     return
-      strummy.noteStyle.getInitialStrumlineOffsets()[1]
+      0
       + (
         isDownscroll ? FlxG.height
         - strummy.heightWas
         - Constants.STRUMLINE_Y_OFFSET
-        - strummy.noteStyle.getStrumlineOffsets()[1]
+        - 0
         : Constants.STRUMLINE_Y_OFFSET);
   }
 

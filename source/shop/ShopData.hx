@@ -2,6 +2,7 @@ package shop;
 
 import shop.*;
 
+@:access(flixel.FlxCamera)
 class MoneyPopup extends FlxSpriteGroup {
 	public var onFinish:Void->Void = null;
 	var alphaTween:FlxTween;
@@ -51,7 +52,7 @@ class MoneyPopup extends FlxSpriteGroup {
             FlxG.sound.play(Paths.sound('confirmMenu'), 0.9);
         });
 
-		var cam:Array<FlxCamera> = FlxCamera.defaultCameras;
+		var cam:Array<FlxCamera> = FlxCamera._defaultCameras;
 		if(camera != null) {
 			cam = [camera];
 		}

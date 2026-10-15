@@ -370,7 +370,7 @@ class Drive2Mod extends Modifier
     if (currentValue == 0) return;
     final scrollSpeed:Float = MegaManager.playfield.songSpeed;
     final funny:Float = scrollSpeed * -1 * currentValue;
-    final whichStrum:StrumNote = strumLine.getByIndex(lane);
+    final whichStrum:StrumNote = strumLine.getByColumn(lane);
     whichStrum.strumExtraModData.strumPos = funny;
   }
 }

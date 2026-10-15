@@ -143,7 +143,7 @@ class ModHandler
 
     for (i in 0...(ExtraKeys.mania+1))
     {
-      strum.StrumNotes.members[i].strumExtraModData.reset();
+      strum.getByColumn(i).strumExtraModData.reset();
     }
 
     strum.debugNeedsUpdate = true;
@@ -675,7 +675,7 @@ class ModHandler
   @:deprecated("this function will be removed") @:noCompletion
   public function makeHoldCopyStrum_sample(note:ZSprite, strumTime:Float, direction:Int, strumLine:Strumline, notePos:Float, isArrowPath:Bool = false, graphicWidth:Float = 0):Float
   {
-    final whichStrumNote = strumLine.getByIndex(direction % (ExtraKeys.mania+1));
+    final whichStrumNote = strumLine.getByColumn(direction % (ExtraKeys.mania+1));
     var scrollMult:Float = 1.0;
     for (mod in mods_speed)
     {
@@ -702,7 +702,7 @@ class ModHandler
 
   public function mathCutOffCheck(notePos:Float, lane:Int = 0):Bool
   {
-    final whichStrumNote:StrumNote = strum.getByIndex(lane % (ExtraKeys.mania+1));
+    final whichStrumNote:StrumNote = strum.getByColumn(lane % (ExtraKeys.mania+1));
     return (whichStrumNote.strumExtraModData.mathCutOff > 0 && !(whichStrumNote.strumExtraModData.mathCutOff >= Math.abs(notePos)));
   }
 
@@ -753,11 +753,10 @@ class ModHandler
     note.noteModData.height = note.height;
     note.noteModData.strumTime = note.strumTime + (orientPass ? ModConstants.orientTimeOffset : 0);
     note.noteModData.noteType = "note";
-    note.noteModData.noteKind = note.kind;
-    note.noteModData.noteStyleName = note.noteStyleName;
-    note.noteModData.direction = note.direction;
+    note.noteModData.noteKind = note.noteType;
+    note.noteModData.direction = note.noteData;
     note.color = FlxColor.WHITE;
-    note.noteModData.whichStrumNote = strum.getByIndex(note.noteModData.direction);
+    note.noteModData.whichStrumNote = strum.getByColumn(note.noteModData.direction);
     var timmy:Float = note.noteModData.strumTime - note.noteModData.whichStrumNote.strumExtraModData.strumPos;
 
     note.noteModData.curPos_unscaled = strum.calculateNoteYPos(timmy);
@@ -885,7 +884,7 @@ class ModHandler
     pos[1] = strum.y;
     pos[2] = 0;
 
-    final offsets:Array<Float> = strum.noteStyle.getStrumlineOffsets();
+    final offsets:Array<Float> = [0, 0];
     pos[0] += offsets[0];
     pos[1] += offsets[1];
 
@@ -897,7 +896,7 @@ class ModHandler
    */
   function setStrumPos(note:StrumNote):Void
   {
-    var p:Array<Float> = getDefaultStrumPos(note.direction);
+    var p:Array<Float> = getDefaultStrumPos(note.noteData);
     note.x = p[0];
     note.y = p[1];
     note.z = p[2];
@@ -920,11 +919,10 @@ class ModHandler
     note.resetStealthGlow(true);
     note.noteModData.defaultValues();
     note.noteModData.setValuesFromZSprite(note);
-    note.noteModData.direction = note.direction;
+    note.noteModData.direction = note.noteData;
     note.noteModData.whichStrumNote = note;
     note.noteModData.noteType = "receptor";
     note.noteModData.noteKind = "";
-    note.noteModData.noteStyleName = note.noteStyleName;
     note.noteModData.width = note.width;
     note.noteModData.height = note.height;
     note.noteModData.inOrientPass = false;
@@ -1035,7 +1033,7 @@ class ModHandler
    */
   public function updateStrums():Void
   {
-    strum.StrumNotes.forEach(function(note:StrumNote)
+    strum.strumLineNotes.forEach(function(note:StrumNote)
     {
       setStrumPos(note);
 

@@ -276,7 +276,7 @@ class MazeEnemy extends FlxSprite {
         }
 
         // Check if player is within vision cone
-        var angleToPlayer = enemyCenter.angleBetween(playerCenter);
+        var angleToPlayer = enemyCenter.degreesBetween(playerCenter);
         var angleDiff = Math.abs(angleToPlayer - facingDirection);
         if (angleDiff > 180) angleDiff = 360 - angleDiff;
 
@@ -342,7 +342,7 @@ class MazeEnemy extends FlxSprite {
             }
         } else {
             // Move towards patrol point
-            var direction = myCenter.angleBetween(targetPoint);
+            var direction = myCenter.degreesBetween(targetPoint);
             velocity.set(
                 Math.cos(direction * Math.PI / 180) * currentSpeed,
                 Math.sin(direction * Math.PI / 180) * currentSpeed
@@ -382,7 +382,7 @@ class MazeEnemy extends FlxSprite {
 
             // Move towards investigation target
             if (myCenter.distanceTo(investigationTarget) > 12) {
-                var direction = myCenter.angleBetween(investigationTarget);
+                var direction = myCenter.degreesBetween(investigationTarget);
                 velocity.set(
                     Math.cos(direction * Math.PI / 180) * currentSpeed,
                     Math.sin(direction * Math.PI / 180) * currentSpeed
@@ -425,7 +425,7 @@ class MazeEnemy extends FlxSprite {
 
         // Move towards last known position
         if (myCenter.distanceTo(lastKnownPlayerPosition) > 16) {
-            var direction = myCenter.angleBetween(lastKnownPlayerPosition);
+            var direction = myCenter.degreesBetween(lastKnownPlayerPosition);
             velocity.set(
                 Math.cos(direction * Math.PI / 180) * currentSpeed,
                 Math.sin(direction * Math.PI / 180) * currentSpeed
@@ -473,7 +473,7 @@ class MazeEnemy extends FlxSprite {
                 });
             } else {
                 // Move towards search point
-                var direction = myCenter.angleBetween(target);
+                var direction = myCenter.degreesBetween(target);
                 velocity.set(
                     Math.cos(direction * Math.PI / 180) * currentSpeed,
                     Math.sin(direction * Math.PI / 180) * currentSpeed
@@ -504,7 +504,7 @@ class MazeEnemy extends FlxSprite {
 
         // Move towards nearest patrol point
         if (myCenter.distanceTo(targetPoint) > 16) {
-            var direction = myCenter.angleBetween(targetPoint);
+            var direction = myCenter.degreesBetween(targetPoint);
             velocity.set(
                 Math.cos(direction * Math.PI / 180) * currentSpeed,
                 Math.sin(direction * Math.PI / 180) * currentSpeed

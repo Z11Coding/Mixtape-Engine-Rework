@@ -364,8 +364,6 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
 
-  // if true, then this will have the arrowpath logic applied to this sustain!
-  public var isArrowPath:Bool = false;
   // Makes the mesh all wobbly! Taken from ZProjectSprite_Note.hx
   public var vibrateEffect:Float = 0.0;
 
@@ -375,10 +373,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
    * @param SustainLength Length in milliseconds.
    * @param fileName
    */
-  public function new(?newStrumTime:Float, ?newNoteData:Int, ?sustainLength:Float, ?isArrowPath:Bool = false, ?parentStrum:Strumline)
+  public function new(?newStrumTime:Float, ?newNoteData:Int, ?sustainLength:Float, ?parentStrum:Strumline)
   {
     super(0, 0);
-    this.isArrowPath = isArrowPath;
     this.parentStrumline = parentStrum;
 
     // BASIC SETUP
@@ -950,16 +947,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
   function resetFakeNote():Void
   {
-    if (isArrowPath)
-    {
-      fakeNote.alpha = 0;
-      fakeNote.scale.set(ModConstants.arrowPathScale, ModConstants.arrowPathScale);
-    }
-    else
-    {
-      fakeNote.alpha = 1;
-      fakeNote.scale.set(ModConstants.noteScale, ModConstants.noteScale);
-    }
+    fakeNote.alpha = 1;
+    fakeNote.scale.set(ModConstants.noteScale, ModConstants.noteScale);
     return;
   }
 
@@ -1012,12 +1001,6 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
      * This bitmap data is then forwarded into the shader to then be used to apply to the texture.
      * Make sure this bitmap data is on another separate channel to avoid overwriting our base graphic.
      */
-
-    if (isArrowPath)
-    {
-      this.hsvShader.setFloat('_holdHeight', holdResolution);
-      return;
-    }
 
     this.hsvShader.setFloat('_stealthSustainSuddenAmount', 0.0);
     this.hsvShader.setFloat('_stealthSustainHiddenAmount', 0.0);
@@ -1136,7 +1119,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteModData.direction = noteData % (ExtraKeys.mania+1);
     noteModData.curPos_unscaled = notePos;
     noteModData.whichStrumNote = whichStrumNote;
-    noteModData.noteType = isArrowPath ? "path" : "hold";
+    noteModData.noteType = "hold";
     noteModData.width = graphicWidth;
     noteModData.height = 0;
 
@@ -1164,9 +1147,6 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     final xDif:Float = whichStrumNote.x - defaultPosition[0];
     noteModData.x += xDif;
 
-    // The old method with jank
-    // noteModData.x = whichStrumNote.x + parentStrumline.mods.getHoldOffsetX(isArrowPath, graphicWidth);
-
     var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime) * scrollMult;
     if (flipY)
     {
@@ -1183,16 +1163,16 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteModData.z = whichStrumNote.z;
     noteModData.curPos = sillyPos;
 
-    for (mod in (isArrowPath ? parentStrumline.mods.mods_arrowpath : parentStrumline.mods.mods_notes))
+    for (mod in (parentStrumline.mods.mods_notes))
     {
       if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
-      mod.noteMath(noteModData, parentStrumline, true, isArrowPath);
+      mod.noteMath(noteModData, parentStrumline, true, false);
     }
 
     for (mod in noteModData.noteMods)
     {
       if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
-      mod.noteMath(noteModData, parentStrumline, true, isArrowPath);
+      mod.noteMath(noteModData, parentStrumline, true, false);
     }
 
     noteModData.funnyOffMyself();
@@ -1223,8 +1203,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     perspectiveShift.x = fakeNote.x - tempVec2.x;
     perspectiveShift.y = fakeNote.y - tempVec2.y;
 
-    var scaleX = FlxMath.remapToRange(fakeNote.scale.x, 0, isArrowPath ? ModConstants.arrowPathScale : ModConstants.noteScale, 0, 1);
-    var scaleY = FlxMath.remapToRange(fakeNote.scale.y, 0, isArrowPath ? ModConstants.arrowPathScale : ModConstants.noteScale, 0, 1);
+    var scaleX = FlxMath.remapToRange(fakeNote.scale.x, 0, ModConstants.noteScale, 0, 1);
+    var scaleY = FlxMath.remapToRange(fakeNote.scale.y, 0, ModConstants.noteScale, 0, 1);
 
     final forwardHolds:Bool = noteModData.usingForwardHolds();
     final straightHoldsModAmount:Float = noteModData.straightHolds;
@@ -1417,7 +1397,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     this.y = ModConstants.holdNoteJankY;
     if (fakeNote == null) fakeNote = new ZSprite();
     var songTimmy:Float = (ModConstants.getSongPosition());
-    whichStrumNote = parentStrumline.getByIndex(noteData);
+    whichStrumNote = parentStrumline.getByColumn(noteData);
 
     // Moved the first susSample point to be much earlier so that we can also get the current mod values for how we should render he rest of this hold
     // (such as are we using spiral holds for example?)
@@ -1429,19 +1409,16 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     // Long hold logic:
     var longHolds:Float = noteModData?.longHolds ?? 0;
-    if (!isArrowPath)
+    // longHolds = parentStrumline?.mods?.longHolds[noteData % 4] ?? 0;
+    if (longHolds != 0)
     {
-      // longHolds = parentStrumline?.mods?.longHolds[noteData % 4] ?? 0;
-      if (longHolds != 0)
-      {
-        var percentageTillCompletion_part:Float = 0;
-        if (songTimmy >= strumTime) percentageTillCompletion_part = songTimmy - strumTime;
-        if (percentageTillCompletion_part < 0) percentageTillCompletion_part = 0;
-        var percentageTillCompletion:Float = percentageTillCompletion_part / fullSustainLength;
-        percentageTillCompletion = FlxMath.bound(percentageTillCompletion, 0, 1); // clamp
-        percentageTillCompletion = 1 - percentageTillCompletion;
-        longHolds *= percentageTillCompletion;
-      }
+      var percentageTillCompletion_part:Float = 0;
+      if (songTimmy >= strumTime) percentageTillCompletion_part = songTimmy - strumTime;
+      if (percentageTillCompletion_part < 0) percentageTillCompletion_part = 0;
+      var percentageTillCompletion:Float = percentageTillCompletion_part / fullSustainLength;
+      percentageTillCompletion = FlxMath.bound(percentageTillCompletion, 0, 1); // clamp
+      percentageTillCompletion = 1 - percentageTillCompletion;
+      longHolds *= percentageTillCompletion;
     }
     longHolds += 1;
 
@@ -1501,14 +1478,10 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteIndices.push(highestNumSoFar_ + 2 + 2);
 
     var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
-    if (clipHeight <= 0.05 && !isArrowPath)
+    if (clipHeight <= 0.05)
     {
       visible = false;
       return;
-    }
-    else
-    {
-      visible = true;
     }
 
     final holdWidth = graphicWidth;
