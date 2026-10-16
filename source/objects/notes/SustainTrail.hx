@@ -139,7 +139,6 @@ class SustainTrail extends ZSprite
   public var customVertexData:Bool = false;
 
   public var isPixel:Bool;
-  public var noteStyleOffsets:Array<Float>;
 
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
@@ -324,12 +323,9 @@ class SustainTrail extends ZSprite
     height = graphicHeight;
 
     offset.set(0, 0);
-    if (noteStyleOffsets != null)
+    if (!usingHazModHolds || parentStrumline == null || parentStrumline.mods == null)
     {
-      if (!usingHazModHolds || parentStrumline == null || parentStrumline.mods == null)
-      {
-        offset.set(noteStyleOffsets[0], noteStyleOffsets[1]);
-      }
+      offset.set(0, 0);
     }
 
     origin.set(width * 0.5, height * 0.5);
@@ -534,8 +530,8 @@ class SustainTrail extends ZSprite
     // old3Dholds = (whichStrumNote.strumExtraModData?.old3Dholds ?? false);
     old3Dholds = noteModData?.old3Dholds ?? false;
 
-    noteModData.x -= noteStyleOffsets[0]; // apply notestyle offset here for z math reasons
-    noteModData.y -= noteStyleOffsets[1];
+    noteModData.x -= 0; // apply notestyle offset here for z math reasons
+    noteModData.y -= 0;
 
     fakeNote.applyNoteData(noteModData, !is3D);
 

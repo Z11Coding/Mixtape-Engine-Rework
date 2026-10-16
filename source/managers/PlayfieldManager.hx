@@ -384,8 +384,7 @@ class PlayfieldManager {
     MegaManager.scriptManager.callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
     MegaManager.scriptManager.callOnScripts('onReceptorGeneration');
 
-    generateStaticArrows(0);
-    generateStaticArrows(1);
+
 
     for (i in 0...opponentStrums.length) {
       MegaManager.scriptManager.setOnScripts('defaultOpponentStrumX' + i, opponentStrums.getByColumn(i).x);
@@ -561,64 +560,6 @@ class PlayfieldManager {
     }
   }
 
-  public function generateStaticArrows(player:Int):Void
-	{
-    #if ALLOW_DEPRECATION
-    MegaManager.scriptManager.callOnScripts('prePlayerReceptorGeneration'); // backwards compat, deprecated
-    #end
-    MegaManager.scriptManager.callOnScripts('onPlayerReceptorGeneration');
-
-		final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50);
-		for (i in 0...(ExtraKeys.mania+1))
-		{
-			var targetAlpha:Float = 1;
-			if (player < 1)
-			{
-				if(!ClientPrefs.data.opponentStrums) targetAlpha = 0;
-				else if(ClientPrefs.data.middleScroll) targetAlpha = ClientPrefs.data.oppNoteAlpha;
-			}
-
-			var babyArrow:StrumNote = new StrumNote(strumLine.x, strumLine.y, i, player);
-			babyArrow.downScroll = ClientPrefs.data.downScroll;
-			if (!skipArrowStartTween)
-			{
-				babyArrow.y -= 150;
-				babyArrow.alpha = 0;
-				babyArrow.angle = 360;
-        final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
-				FlxTween.tween(babyArrow, {y: babyArrow.y + 150, alpha: targetAlpha, angle: 0}, 1/(Conductor.bpm/240) / playbackRate, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * i) / (Conductor.bpm/240) / playbackRate});
-			}
-			else
-			{
-				babyArrow.alpha = targetAlpha;
-			}
-
-			if (player == 1)
-        playerStrums.add(babyArrow);
-			else
-			{
-				if(ClientPrefs.data.middleScroll)
-				{
-					babyArrow.x += 310;
-					if(i > 1) { //Up and Right
-						babyArrow.x += FlxG.width / 2 + 25;
-					}
-				}
-				opponentStrums.add(babyArrow);
-			}
-
-			//strumLineNotes.add(babyArrow);
-			babyArrow.postAddedToGroup();
-		}
-    #if ALLOW_DEPRECATION
-    MusicBeatState.getState()?.callOnScripts('postPlayerReceptorGeneration'); // deprecated
-    #end
-    MusicBeatState.getState()?.callOnScripts('onPlayerReceptorGenerationPost');
-
-		strumLine.put();
-    trace("Finished Note Generation!");
-	}
-
   public function addNotes() {
     sustainNotes = new FlxTypedGroup<Note>();
 
@@ -650,7 +591,7 @@ class PlayfieldManager {
 
     sustainNotes.cameras = [camNotes];
 		notes.cameras = [camNotes];
-		grpHoldSplashes.cameras = [camNotes];
+		allStrumSprites.cameras = [camNotes];
   }
 
   public function setStrumAlpha() {
@@ -1184,6 +1125,7 @@ class PlayfieldManager {
           swagNote.row = Conductor.secsToRow(daStrumTime);
 
 					unspawnNotes.push(swagNote);
+          (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(swagNote);
 
 					if (jackingtime > 0) {
 						for (j in 0...Std.int(jackingtime)) {
@@ -1209,6 +1151,7 @@ class PlayfieldManager {
 								ignoreNote: swagNote.ignoreNote
 							};
 							unspawnNotes.push(jackNote);
+              (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(jackNote);
 						}
 					}
 
@@ -1241,6 +1184,7 @@ class PlayfieldManager {
 								ignoreNote: songNotes[3] == 'Hurt Note' && swagNote.mustPress
 							};
 							unspawnNotes.push(sustainNote);
+              (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(sustainNote);
 						}
 					}
 				} else {

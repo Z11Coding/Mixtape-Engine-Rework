@@ -424,7 +424,7 @@ class Strumline extends FlxSpriteGroup
     {
       setupNoteGroup("holdSplashes", 10);
     }
-    setupNoteGroup("strumNotes", 11);
+    setupNoteGroup("strumLineNotes", 11);
 
     if (!holdsBehindStrums)
     {
@@ -505,6 +505,64 @@ class Strumline extends FlxSpriteGroup
     return value;
   }
 
+  public function generateStaticArrows():Void
+	{
+    #if ALLOW_DEPRECATION
+    MegaManager.scriptManager.callOnScripts('prePlayerReceptorGeneration'); // backwards compat, deprecated
+    #end
+    MegaManager.scriptManager.callOnScripts('onPlayerReceptorGeneration');
+
+		final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.data.middleScroll ? PlayfieldManager.STRUM_X_MIDDLESCROLL : PlayfieldManager.STRUM_X, (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50);
+		for (i in 0...(ExtraKeys.mania+1))
+		{
+			var targetAlpha:Float = 1;
+			if (playerNum < 1)
+			{
+				if(!ClientPrefs.data.opponentStrums) targetAlpha = 0;
+				else if(ClientPrefs.data.middleScroll) targetAlpha = ClientPrefs.data.oppNoteAlpha;
+			}
+
+			var babyArrow:StrumNote = new StrumNote(strumLine.x, strumLine.y, i, playerNum);
+			babyArrow.downScroll = ClientPrefs.data.downScroll;
+			if (!skipArrowStartTween)
+			{
+				babyArrow.y -= 150;
+				babyArrow.alpha = 0;
+				babyArrow.angle = 360;
+        final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
+				FlxTween.tween(babyArrow, {y: babyArrow.y + 150, alpha: targetAlpha, angle: 0}, 1/(Conductor.bpm/240) / playbackRate, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * i) / (Conductor.bpm/240) / playbackRate});
+			}
+			else
+			{
+				babyArrow.alpha = targetAlpha;
+			}
+
+			if (playerNum == 1)
+        playerStrums.add(babyArrow);
+			else
+			{
+				if(ClientPrefs.data.middleScroll)
+				{
+					babyArrow.x += 310;
+					if(i > 1) { //Up and Right
+						babyArrow.x += FlxG.width / 2 + 25;
+					}
+				}
+				opponentStrums.add(babyArrow);
+			}
+
+			//strumLineNotes.add(babyArrow);
+			babyArrow.postAddedToGroup();
+		}
+    #if ALLOW_DEPRECATION
+    MusicBeatState.getState()?.callOnScripts('postPlayerReceptorGeneration'); // deprecated
+    #end
+    MusicBeatState.getState()?.callOnScripts('onPlayerReceptorGenerationPost');
+
+		strumLine.put();
+    trace("Finished Note Generation!");
+	}
+
   public function setupModStuff():Void
   {
     if (mods == null)
@@ -515,7 +573,7 @@ class Strumline extends FlxSpriteGroup
 
     if (this.txtActiveMods == null)
     {
-      this.txtActiveMods = new FlxBitmapText(this.x, this.y, 'wtf', Paths.getFlxBitmapFontFromAngelCode("vcr"));
+      this.txtActiveMods = new FlxText(this.x, this.y, 0, 'wtf');
       this.txtActiveMods.borderStyle = FlxTextBorderStyle.OUTLINE;
       this.txtActiveMods.borderColor = FlxColor.BLACK;
       this.txtActiveMods.alignment = FlxTextAlign.CENTER;
@@ -738,9 +796,11 @@ class Strumline extends FlxSpriteGroup
 
     if (!doUpdateClipsInDraw)
     {
-      for (note in sustainNotes)
-      {
-        note.updateClipping();
+      if (sustainNotes?.members?.length > 0) {
+        for (note in sustainNotes)
+        {
+          note.updateClipping();
+        }
       }
     }
   }
@@ -755,7 +815,7 @@ class Strumline extends FlxSpriteGroup
   /**
    * The FlxText which displays the current active mods
    */
-  public var txtActiveMods:FlxBitmapText;
+  public var txtActiveMods:FlxText;
 
   public var hideZeroValueMods:Bool = true;
   public var hideSubMods:Bool = true;
@@ -1196,7 +1256,6 @@ class Strumline extends FlxSpriteGroup
 					//spawnedNote.noteIndex = notesAddedCount;
 
           onNoteIncoming.dispatch(spawnedNote);
-					MegaManager.scriptManager.callOnScripts('onSpawnNote', [(!spawnedNote.isSustainNote ? notes.members.indexOf(spawnedNote) : sustainNotes.members.indexOf(cast (spawnedNote, SustainNote))), targetNote.noteData, targetNote.noteType, targetNote.isSustainNote]);
 					notesAddedCount++; limitNC++;
 					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
 					else break;
@@ -1476,11 +1535,12 @@ class Strumline extends FlxSpriteGroup
 
   public function sortNotes():Void
   {
-    if (notes.members.length > 1) notes.members.insertionSort(compareNotes.bind(FlxSort.ASCENDING));
+    if (notes?.members?.length > 1)
+      notes.members.insertionSort(compareNotes.bind(FlxSort.ASCENDING));
 
-    if (sustainNotes.members.length > 1) sustainNotes.members.insertionSort(compareHoldNotes.bind(FlxSort.ASCENDING));
+    if (sustainNotes?.members?.length > 1) sustainNotes.members.insertionSort(compareHoldNotes.bind(FlxSort.ASCENDING));
 
-    if (strumLineNotes.members.length > 1 && mods != null) strumLineNotes.members.insertionSort(compareStrums.bind(FlxSort.ASCENDING));
+    if (strumLineNotes?.members?.length > 1 && mods != null) strumLineNotes.members.insertionSort(compareStrums.bind(FlxSort.ASCENDING));
 
     // if (StrumNotes_Visual.members.length > 1) StrumNotes_Visual.members.insertionSort(compareNotes.bind(FlxSort.ASCENDING));
   }

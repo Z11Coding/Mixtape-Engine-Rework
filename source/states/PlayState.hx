@@ -4970,59 +4970,6 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	//This function handles note spawning.
-	var NOTE_SPAWN_TIME:Float = 0;
-	var targetNote:PreloadNotes = null;
-	var spawnedNote:Note;
-	function spawnNotes()
-	{
-		if (unspawnNotes[notesAddedCount] != null)
-		{
-			//notesAddedCount = 0;
-			NOTE_SPAWN_TIME = (ClientPrefs.data.dynamicSpawnTime ? (1600 / songSpeed) : 1600 * ClientPrefs.data.noteSpawnTime);
-			targetNote = unspawnNotes[notesAddedCount];
-			limitNC = (notes.countLiving() + sustainNotes.countLiving());
-
-			if (targetNote != null && !targetNote.wasHit)
-			{
-				while (targetNote.strumTime <= conductor.musicPosition - ClientPrefs.data.noteOffset) {
-					targetNote.wasHit = true;
-					targetNote.mustPress ? goodNoteHit(null, targetNote) : opponentNoteHit(null, targetNote);
-					notesAddedCount++;
-					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
-					else break;
-					skippedCount++;
-					if (skippedCount > maxSkipped) maxSkipped = skippedCount;
-				}
-			}
-			if (ClientPrefs.data.showNotes || !ClientPrefs.data.showNotes && !cpuControlled)
-			{
-				while (limitNC < noteLimit && targetNote.strumTime - conductor.musicPosition < (NOTE_SPAWN_TIME / targetNote.multSpeed)) {
-					spawnedNote = (targetNote.isSustainNote ? sustainNotes : notes).recycle(Note);
-					spawnedNote.setupNoteData(targetNote);
-
-					if (targetNote.isSustainNote) {
-						var animToPlay:String = '';
-						animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[targetNote.noteData] + (targetNote.isSustainEnd ? ' tail' : ' hold');
-						if (!spawnedNote.animation.exists(animToPlay))
-							animToPlay = ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[targetNote.noteData]] + (targetNote.isSustainEnd ? ' holdend' : ' hold');
-						spawnedNote.animation.play(animToPlay);
-					}
-
-					//spawnedNote.prevNote = (targetNote.isSustainNote ? sustainNotes : notes.members[notesAddedCount-1];
-					//spawnedNote.nextNote = unspawnNotes[notesAddedCount+1];
-
-					//spawnedNote.noteIndex = notesAddedCount;
-
-					callOnLuas('onSpawnNote', [(!spawnedNote.isSustainNote ? notes.members.indexOf(spawnedNote) : sustainNotes.members.indexOf(spawnedNote)), targetNote.noteData, targetNote.noteType, targetNote.isSustainNote]);
-					notesAddedCount++; limitNC++;
-					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
-					else break;
-				}
-			}
-		}
-	}
-
 	function updateLiveNote(daNote:Note):Void
 	{
 		if (daNote != null && daNote.exists)

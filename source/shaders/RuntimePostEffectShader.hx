@@ -100,7 +100,7 @@ class RuntimePostEffectShader extends FlxRuntimeShader
   public function new(fragmentSource:String = null)
   {
     super(fragmentSource, null);
-    uScreenResolution.value = [FlxG.width, FlxG.height];
+    //uScreenResolution.value = [FlxG.width, FlxG.height];
     uCameraBounds.value = [0, 0, FlxG.width, FlxG.height];
     uFrameBounds.value = [0, 0, FlxG.width, FlxG.height];
   }

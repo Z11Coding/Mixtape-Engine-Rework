@@ -347,7 +347,8 @@ class SplashScreen extends MusicBeatState
                 tmr.active = true);
             FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
                 twn.active = true);
-            splashSound.resume();
+            if (splashSound != null)
+                splashSound.resume();
         }
         super.onFocus();
     }
@@ -359,7 +360,8 @@ class SplashScreen extends MusicBeatState
                 tmr.active = false);
             FlxTween.globalManager.forEach(function(twn:FlxTween) if (!twn.finished)
                 twn.active = false);
-            splashSound.pause();
+            if (splashSound != null)
+                splashSound.pause();
         }
         super.onFocusLost();
     }
