@@ -237,14 +237,14 @@ class Strumline extends FlxSpriteGroup
    * This group iterates over this every frame to update note positions.
    * The PlayState also iterates over this to calculate user inputs.
    */
-  public var notes:FlxTypedSpriteGroup<Note>;
+  public var notes:FlxTypedGroup<Note>;
 
   /**
    * The sustain notes currently being rendered on the strumline.
    * This group iterates over this every frame to update sustain note positions.
    * The PlayState also iterates over this to calculate user inputs.
    */
-  public var sustainNotes:FlxTypedSpriteGroup<SustainTrail>;
+  public var sustainNotes:FlxTypedGroup<SustainNote>;
 
   /**
    * A signal that is dispatched when a note is spawned and heading towards the strumline.
@@ -273,7 +273,7 @@ class Strumline extends FlxSpriteGroup
    */
   public var notesVwoosh:FlxTypedSpriteGroup<Note>;
 
-  public var sustainNotesVwoosh:FlxTypedSpriteGroup<SustainTrail>;
+  public var sustainNotesVwoosh:FlxTypedSpriteGroup<SustainNote>;
 
   var noteSpacingScale:Float = 1;
 
@@ -362,10 +362,10 @@ class Strumline extends FlxSpriteGroup
     switch (groupStr)
     {
       case "sustainNotesVwoosh":
-        group = new FlxTypedSpriteGroup<SustainTrail>();
+        group = new FlxTypedSpriteGroup<SustainNote>();
         this.sustainNotesVwoosh = group;
       case "sustainNotes":
-        group = new FlxTypedSpriteGroup<SustainTrail>();
+        group = new FlxTypedSpriteGroup<SustainNote>();
         this.sustainNotes = group;
       case "notesVwoosh":
         group = new FlxTypedSpriteGroup<Note>();
@@ -889,11 +889,11 @@ class Strumline extends FlxSpriteGroup
 
   /**
    * Return hold notes that are within `Constants.HIT_WINDOW` ms of the strumline.
-   * @return An array of `SustainTrail` objects.
+   * @return An array of `SustainNote` objects.
    */
-  public function getHoldNotesHitOrMissed():Array<SustainTrail>
+  public function getHoldNotesHitOrMissed():Array<SustainNote>
   {
-    return sustainNotes.members.filter(function(holdNote:SustainTrail)
+    return sustainNotes.members.filter(function(holdNote:SustainNote)
     {
       return holdNote != null && holdNote.alive && (holdNote.hitNote || holdNote.missedNote);
     });
@@ -1083,7 +1083,7 @@ class Strumline extends FlxSpriteGroup
   /**
    * Custom recycling behavior for note splashes.
    */
-  function constructNoteSplash(data:Int, ?splashSkin:String):NoteSplash
+  public function constructNoteSplash(data:Int, ?splashSkin:String):NoteSplash
   {
     var splash:NoteSplash = null;
 
@@ -1093,14 +1093,14 @@ class Strumline extends FlxSpriteGroup
       // Recycle the first one
       splash = noteSplashes.recycle(NoteSplash);
       splash.setupNoteSplash(getByColumn(data).x, getByColumn(data).y, data, splashSkin);
-      this.noteSplashes.add(result);
+      this.noteSplashes.add(splash);
       splash.weBelongTo = this;
 
       if (MegaManager.playfield != null)
       {
-        if (MegaManager.playfield.allStrumSprites != null && PlayState.instance.noteRenderMode)
+        if (MegaManager.playfield.allStrumSprites != null && MegaManager.playfield.noteRenderMode)
         {
-          MegaManager.playfield.allStrumSprites.add(result);
+          MegaManager.playfield.allStrumSprites.add(splash);
         }
       }
     }
@@ -1109,7 +1109,7 @@ class Strumline extends FlxSpriteGroup
       // Else, find a note splash which is inactive so we can revive it.
       splash = this.noteSplashes.getFirstAvailable();
 
-      if (result != null)
+      if (splash != null)
       {
         // Recycle it again
         splash = noteSplashes.recycle(NoteSplash);
@@ -1119,11 +1119,11 @@ class Strumline extends FlxSpriteGroup
       {
         // The note splash pool is full and all note splashes are active,
         // so we just pick one at random to destroy and restart.
-        result = FlxG.random.getObject(this.noteSplashes.members);
+        splash = FlxG.random.getObject(this.noteSplashes.members);
       }
     }
 
-    return result;
+    return splash;
   }
 
   /**
@@ -1145,7 +1145,7 @@ class Strumline extends FlxSpriteGroup
     if (unspawnNotes[notesAddedCount] != null)
 		{
 			//notesAddedCount = 0;
-			NOTE_SPAWN_TIME = (ClientPrefs.data.dynamicSpawnTime ? (1600 / playfield.songSpeed) : 1600 * ClientPrefs.data.noteSpawnTime);
+			NOTE_SPAWN_TIME = (ClientPrefs.data.dynamicSpawnTime ? (1600 / MegaManager.playfield.songSpeed) : 1600 * ClientPrefs.data.noteSpawnTime);
 			targetNote = unspawnNotes[notesAddedCount];
 			limitNC = (notes.countLiving() + sustainNotes.countLiving());
 
@@ -1164,16 +1164,25 @@ class Strumline extends FlxSpriteGroup
 			if (ClientPrefs.data.showNotes || !ClientPrefs.data.showNotes && !PlayState.instance.cpuControlled)
 			{
 				while (limitNC < noteLimit && targetNote.strumTime - conductorInUse.musicPosition < (NOTE_SPAWN_TIME / targetNote.multSpeed)) {
+          var drawDistanceForward:Float = 1;
+           if (mods != null)
+          {
+            var whichStrumNote:StrumNote = getByColumn(targetNote.noteData % (ExtraKeys.mania+1));
+            drawDistanceForward = 1 + (whichStrumNote?.strumExtraModData?.drawdistanceForward ?? 0);
+          }
           var renderWindowStart_EDITED:Float = conductorInUse.musicPosition + (renderDistanceMs * drawDistanceForward);
 
           if (targetNote.strumTime > renderWindowStart_EDITED) break; // Note is too far ahead to render
 
-					spawnedNote = (targetNote.isSustainNote ? sustainNotes : notes).recycle(Note);
+          if (targetNote.isSustainNote)
+            spawnedNote = cast sustainNotes.recycle(SustainNote);
+          else
+            spawnedNote = notes.recycle(Note);
 					spawnedNote.setupNoteData(targetNote);
           spawnedNote.cullMode = getByColumn(targetNote.noteData).strumExtraModData?.cullModeNotes ?? "none";
 
 
-					if (targetNote.isSustain) {
+					if (targetNote.isSustainNote) {
 						var animToPlay:String = '';
 						animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[targetNote.noteData] + (targetNote.isSustainEnd ? ' tail' : ' hold');
 						if (!spawnedNote.animation.exists(animToPlay))
@@ -1186,7 +1195,8 @@ class Strumline extends FlxSpriteGroup
 
 					//spawnedNote.noteIndex = notesAddedCount;
 
-					callOnLuas('onSpawnNote', [(!spawnedNote.isSustainNote ? notes.members.indexOf(spawnedNote) : sustainNotes.members.indexOf(spawnedNote)), targetNote.noteData, targetNote.noteType, targetNote.isSustainNote]);
+          onNoteIncoming.dispatch(spawnedNote);
+					MegaManager.scriptManager.callOnScripts('onSpawnNote', [(!spawnedNote.isSustainNote ? notes.members.indexOf(spawnedNote) : sustainNotes.members.indexOf(cast (spawnedNote, SustainNote))), targetNote.noteData, targetNote.noteType, targetNote.isSustainNote]);
 					notesAddedCount++; limitNC++;
 					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
 					else break;
@@ -1242,10 +1252,10 @@ class Strumline extends FlxSpriteGroup
 
       if (conductorInUse.musicPosition > holdNote.strumTime && holdNote.hitNote && !holdNote.missedNote)
       {
-        if ((isPlayerControlled && !PlayState.instance?.cpuControlled ?? false) && !isKeyHeld(holdNote.noteDirection))
+        if ((isPlayerControlled && !PlayState.instance?.cpuControlled ?? false) && !isKeyHeld(holdNote.noteData))
         {
           // Stopped pressing the hold note.
-          playStatic(holdNote.noteDirection);
+          playStatic(holdNote.noteData);
           holdNote.missedNote = true;
           holdNote.visible = true;
           holdNote.alpha = 0.0; // Completely hide the dropped hold note.
@@ -1275,13 +1285,13 @@ class Strumline extends FlxSpriteGroup
       else if (holdNote.hitNote && holdNote.sustainLength <= 0)
       {
         // Hold note is completed, kill it.
-        if (isKeyHeld(holdNote.noteDirection))
+        if (isKeyHeld(holdNote.noteData))
         {
-          playPress(holdNote.noteDirection);
+          playPress(holdNote.noteData);
         }
         else
         {
-          playStatic(holdNote.noteDirection);
+          playStatic(holdNote.noteData);
         }
 
         if (holdNote.cover != null && isPlayerControlled)
@@ -1347,7 +1357,7 @@ class Strumline extends FlxSpriteGroup
       else if (conductorInUse.musicPosition > holdNote.strumTime && holdNote.hitNote)
       {
         // Hold note is currently being hit, clip it off.
-        holdConfirm(holdNote.noteDirection);
+        holdConfirm(holdNote.noteData);
         holdNote.visible = true;
 
         holdNote.sustainLength = (holdNote.strumTime + holdNote.fullSustainLength) - conductorInUse.musicPosition;
@@ -1961,7 +1971,7 @@ class Strumline extends FlxSpriteGroup
    * @param b The second hold note sprite.
    * @return The comparison result, based on the time of the notes.
    */
-  function compareHoldNotes(order:Int, a:SustainTrail, b:SustainTrail):Int
+  function compareHoldNotes(order:Int, a:SustainNote, b:SustainNote):Int
   {
     if (mods != null && zSortMode)
     {

@@ -10,7 +10,7 @@ class RuntimeCustomBlendShader extends RuntimePostEffectShader
 
   function set_sourceSwag(value:BitmapData):BitmapData
   {
-    this.setBitmapData('sourceSwag', value);
+    this.setSampler2D('sourceSwag', value);
     return sourceSwag = value;
   }
 
@@ -18,7 +18,7 @@ class RuntimeCustomBlendShader extends RuntimePostEffectShader
 
   function set_backgroundSwag(value:BitmapData):BitmapData
   {
-    this.setBitmapData('backgroundSwag', value);
+    this.setSampler2D('backgroundSwag', value);
     return backgroundSwag = value;
   }
 

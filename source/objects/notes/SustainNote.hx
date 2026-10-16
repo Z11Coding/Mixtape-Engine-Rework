@@ -58,6 +58,19 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 	public var isSustainEnd:Bool = false;
 	public var noteType(default, set):String = null;
 
+	private function set_noteType(value:String):String {
+		noteSplashData.texture = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.splashSkin : 'noteSplashes';
+		if (ClientPrefs.data.noteColorStyle == 'Normal' && rgbShader != null && useRGBShader) defaultRGB();
+
+		if(noteData > -1 && noteType != value) {
+			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(cast this, value);
+      if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound);
+			noteType = value;
+			reloadNote();
+		}
+		return value;
+	}
+
 	public var eventName:String = '';
 	public var eventLength:Int = 0;
 	public var eventVal1:String = '';
@@ -241,19 +254,6 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 				rgbShader.b = 0xFF0000FF;
 			}
 		}
-	}
-
-	private function set_noteType(value:String):String {
-		noteSplashData.texture = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.splashSkin : 'noteSplashes';
-		if (ClientPrefs.data.noteColorStyle == 'Normal' && rgbShader != null && useRGBShader) defaultRGB();
-
-		if(noteData > -1 && noteType != value) {
-			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(cast this, value);
-      if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound);
-			noteType = value;
-			reloadNote();
-		}
-		return value;
 	}
 
   /**
@@ -2236,7 +2236,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteData = 0;
     sustainLength = 0;
     fullSustainLength = 0;
-    noteData = null;
+    noteData = -1;
 
     hitNote = false;
     missedNote = false;
@@ -2256,7 +2256,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteData = 0;
     sustainLength = 0;
     fullSustainLength = 0;
-    noteData = null;
+    noteData = -1;
 
     hitNote = false;
     missedNote = false;
@@ -2274,7 +2274,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     previousPiece = null;
     whichStrumNote = null;
     parentStrumline = null;
-    noteData = null;
+    noteData = -1;
     noteModData = null;
     hsvShader = null;
 

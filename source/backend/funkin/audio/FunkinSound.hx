@@ -11,9 +11,11 @@ import flixel.util.FlxSignal.FlxTypedSignal;
 import lime.app.Promise;
 import lime.media.AudioSource;
 import openfl.events.Event;
+import openfl.media.Sound;
 import openfl.media.SoundChannel;
 import openfl.media.SoundMixer;
 
+using backend.funkin.util.tools.FloatTools;
 using backend.funkin.util.tools.IntTools;
 using backend.funkin.util.tools.IteratorTools;
 
@@ -263,6 +265,7 @@ class FunkinSound extends FlxSound implements ICloneable<FunkinSound>
    *   Data should be at `music/<key>/<key>-metadata.json`.
    * @return Whether the music was started. `false` if music was already playing or could not be started
    */
+  @:nullSafety(Off)
   @:access(openfl.media.Sound)
   public static function playMusic(key:String, params:FunkinSoundPlayMusicParams):Bool {
 		if(params.pathsFunction == INST){

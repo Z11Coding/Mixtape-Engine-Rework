@@ -1,19 +1,19 @@
 package shaders;
 
 import flixel.addons.display.FlxRuntimeShader;
-import flixel.system.debug.watch.Tracker.TrackerProfile;
-import lime.utils.Assets;
 
+@:nullSafety
 class HSVShader extends FlxRuntimeShader
 {
-  public var hue(default, set):Float;
-  public var saturation(default, set):Float;
-  public var value(default, set):Float;
+  public var hue(default, set):Float = 1;
+  public var saturation(default, set):Float = 1;
+  public var value(default, set):Float = 1;
+  public var path:String = "hsv";
 
-  public function new(h:Float = 1, s:Float = 1, v:Float = 1)
+  public function new(h:Float = 1, s:Float = 1, v:Float = 1, shaderPath:String = "hsv")
   {
-    super(Assets.getText(Paths.getPath('shaders/hsv.frag', TEXT, null,false)));
-    FlxG.debugger.addTrackerProfile(new TrackerProfile(HSVShader, ['hue', 'saturation', 'value']));
+    this.path = shaderPath;
+    super(Assets.getText(Paths.shaderFragment(shaderPath)));
     hue = h;
     saturation = s;
     value = v;

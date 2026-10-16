@@ -360,22 +360,19 @@ class PlayfieldManager {
 
   public function changeMania(newValue:Int, skipStrumFadeOut:Bool = false)
 	{
-    if (MusicBeatState.getState() == PlayState.instance)
-      MegaManager.scriptManager.callOnScripts('preChangeMania', [ExtraKeys.mania, newValue, skipStrumFadeOut]);
+    MegaManager.scriptManager.callOnScripts('preChangeMania', [ExtraKeys.mania, newValue, skipStrumFadeOut]);
 
     var daOldMania = ExtraKeys.mania;
     ExtraKeys.mania = newValue;
 
-    if (playerStrums != null) playerStrums.strumNotes.clear();
-    if (opponentStrums != null) opponentStrums.strumNotes.clear();
-    if (playfield.grpHoldSplashes != null) playfield.grpHoldSplashes.clear();
+    if (playerStrums != null) playerStrums.strumLineNotes.clear();
+    if (opponentStrums != null) opponentStrums.strumLineNotes.clear();
+    if (grpHoldSplashes != null) grpHoldSplashes.clear();
 
-    if (MusicBeatState.getState() == PlayState.instance)
-      MegaManager.scriptManager.callOnScripts('onChangeMania', [ExtraKeys.mania, daOldMania]);
+    MegaManager.scriptManager.callOnScripts('onChangeMania', [ExtraKeys.mania, daOldMania]);
 
 
-    if (MusicBeatState.getState() == PlayState.instance)
-      PlayState.instance?.setOnScripts('mania', ExtraKeys.mania);
+    MegaManager.scriptManager.setOnScripts('mania', ExtraKeys.mania);
 
     for (strum in allStrumLines) {
       strum.notes.forEachAlive(function(note:Note)
@@ -384,35 +381,30 @@ class PlayfieldManager {
       });
     }
 
-    if (MusicBeatState.getState() == PlayState.instance) {
-      MegaManager.scriptManager.callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
-      MegaManager.scriptManager.callOnScripts('onReceptorGeneration');
-    }
+    MegaManager.scriptManager.callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
+    MegaManager.scriptManager.callOnScripts('onReceptorGeneration');
 
     generateStaticArrows(0);
     generateStaticArrows(1);
 
     for (i in 0...opponentStrums.length) {
-      PlayState.instance?.setOnScripts('defaultOpponentStrumX' + i, opponentStrums.getByColumn(i).x);
-      PlayState.instance?.setOnScripts('defaultOpponentStrumY' + i, opponentStrums.getByColumn(i).y);
+      MegaManager.scriptManager.setOnScripts('defaultOpponentStrumX' + i, opponentStrums.getByColumn(i).x);
+      MegaManager.scriptManager.setOnScripts('defaultOpponentStrumY' + i, opponentStrums.getByColumn(i).y);
     }
     for (i in 0...playerStrums.length) {
-      PlayState.instance?.setOnScripts('defaultPlayerStrumX' + i, playerStrums.getByColumn(i).x);
-      PlayState.instance?.setOnScripts('defaultPlayerStrumY' + i, playerStrums.getByColumn(i).y);
+      MegaManager.scriptManager.setOnScripts('defaultPlayerStrumX' + i, playerStrums.getByColumn(i).x);
+      MegaManager.scriptManager.setOnScripts('defaultPlayerStrumY' + i, playerStrums.getByColumn(i).y);
     }
 
-    if (MusicBeatState.getState() == PlayState.instance) {
-      MegaManager.scriptManager.callOnScripts('postReceptorGeneration'); // deprecated
-      MegaManager.scriptManager.callOnScripts('onReceptorGenerationPost');
-      MegaManager.scriptManager.callOnScripts('onChangeMania', [ExtraKeys.mania, newValue, skipStrumFadeOut]);
-    }
+    MegaManager.scriptManager.callOnScripts('postReceptorGeneration'); // deprecated
+    MegaManager.scriptManager.callOnScripts('onReceptorGenerationPost');
+    MegaManager.scriptManager.callOnScripts('onChangeMania', [ExtraKeys.mania, newValue, skipStrumFadeOut]);
 
     setStrumAlpha();
 
     singAnimations = ExtraKeys.keysShit.get(ExtraKeys.mania).get('singAnims');
 
-    if (MusicBeatState.getState() == PlayState.instance)
-      MegaManager.scriptManager.callOnScripts('postChangeMania', [ExtraKeys.mania, newValue, skipStrumFadeOut]);
+    MegaManager.scriptManager.callOnScripts('postChangeMania', [ExtraKeys.mania, newValue, skipStrumFadeOut]);
 	}
 
   function updateNote(note:Note)
@@ -571,12 +563,10 @@ class PlayfieldManager {
 
   public function generateStaticArrows(player:Int):Void
 	{
-    if (MusicBeatState.getState() == PlayState.instance) {
-      #if ALLOW_DEPRECATION
-      MegaManager.scriptManager.callOnScripts('prePlayerReceptorGeneration'); // backwards compat, deprecated
-      #end
-      MegaManager.scriptManager.callOnScripts('onPlayerReceptorGeneration');
-    }
+    #if ALLOW_DEPRECATION
+    MegaManager.scriptManager.callOnScripts('prePlayerReceptorGeneration'); // backwards compat, deprecated
+    #end
+    MegaManager.scriptManager.callOnScripts('onPlayerReceptorGeneration');
 
 		final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50);
 		for (i in 0...(ExtraKeys.mania+1))
@@ -2384,8 +2374,7 @@ class PlayfieldManager {
     curEvents.push(subEvent);
     if (!preload) {
       eventPushed(subEvent);
-      if (MusicBeatState.getState() == PlayState.instance)
-        MegaManager.scriptManager.callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
+      MegaManager.scriptManager.callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
 		}
 	}
 
@@ -2456,8 +2445,7 @@ class PlayfieldManager {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
-        if (MusicBeatState.getState() == PlayState.instance)
-          if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
+        if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
 
 				if (key > -1)
 				{
@@ -2469,11 +2457,9 @@ class PlayfieldManager {
           if (strumsBlocked[key]) return;
 
           // Early script callback optimization - only call if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance) {
-              var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
-              if(ret == LuaUtils.Function_Stop) return;
-            }
+          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+            var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
+            if(ret == LuaUtils.Function_Stop) return;
           }
 
           //more accurate hit time for the ratings?
@@ -2531,9 +2517,8 @@ class PlayfieldManager {
 
 
           // Final script callback - only if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance)
-              MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
+          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+            MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
           }
 				}
 			}
@@ -2551,10 +2536,8 @@ class PlayfieldManager {
 
 		// Early script callback optimization - only call if scripts exist
 		if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-      if (MusicBeatState.getState() == PlayState.instance) {
-        var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
-        if(ret == LuaUtils.Function_Stop) return;
-      }
+      var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
+      if(ret == LuaUtils.Function_Stop) return;
 		}
 
     //more accurate hit time for the ratings?
@@ -2612,9 +2595,8 @@ class PlayfieldManager {
 
 
 		// Final script callback - only if scripts exist
-		if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-      if (MusicBeatState.getState() == PlayState.instance)
-        MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
+		if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+      MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
 		}
 	}
 
@@ -2654,8 +2636,7 @@ class PlayfieldManager {
 			}
 			else {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
-				if (MusicBeatState.getState() == PlayState.instance)
-          if (MegaManager.scriptManager.callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
+				if (MegaManager.scriptManager.callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
 
 				if (keyDirection > -1)
 				{
@@ -2667,11 +2648,9 @@ class PlayfieldManager {
           if (strumsBlocked[keyDirection]) return;
 
           // Early script callback optimization - only call if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance) {
-              var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [keyDirection]);
-              if(ret == LuaUtils.Function_Stop) return;
-            }
+          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+            var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [keyDirection]);
+            if(ret == LuaUtils.Function_Stop) return;
           }
 
           //more accurate hit time for the ratings?
@@ -2729,9 +2708,8 @@ class PlayfieldManager {
 
 
           // Final script callback - only if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance)
-              MegaManager.scriptManager.callOnScripts('onKeyPress', [keyDirection]);
+          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+            MegaManager.scriptManager.callOnScripts('onKeyPress', [keyDirection]);
           }
 				}
 			}
@@ -2751,8 +2729,7 @@ class PlayfieldManager {
 			}
 			else {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
-				if (MusicBeatState.getState() == PlayState.instance)
-          if (MegaManager.scriptManager.callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
+				if (MegaManager.scriptManager.callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
 
 				if (direction > -1)
 				{
@@ -2764,11 +2741,9 @@ class PlayfieldManager {
           if (strumsBlocked[direction]) return;
 
           // Early script callback optimization - only call if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance) {
-              var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [direction]);
-              if(ret == LuaUtils.Function_Stop) return;
-            }
+          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+            var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [direction]);
+            if(ret == LuaUtils.Function_Stop) return;
           }
 
           //more accurate hit time for the ratings?
@@ -2826,9 +2801,8 @@ class PlayfieldManager {
 
 
           // Final script callback - only if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance)
-              MegaManager.scriptManager.callOnScripts('onKeyPress', [direction]);
+          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+            MegaManager.scriptManager.callOnScripts('onKeyPress', [direction]);
           }
 				}
 			}
@@ -3283,8 +3257,7 @@ class PlayfieldManager {
 		eventNotes.push(subEvent);
 		curEvents.push(subEvent);
 		eventPushed(subEvent);
-    if (MusicBeatState.getState() == PlayState.instance)
-      MegaManager.scriptManager.callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
+    MegaManager.scriptManager.callOnScripts('onEventPushed', [subEvent.event, subEvent.value1 != null ? subEvent.value1 : '', subEvent.value2 != null ? subEvent.value2 : '', subEvent.strumTime]);
 	}
 
   // called only once per different event (Used for precaching)
@@ -3363,11 +3336,9 @@ class PlayfieldManager {
 	}
 
 	function eventEarlyTrigger(event:EventNote):Float {
-    if (MusicBeatState.getState() == PlayState.instance) {
-      var returnedValue:Null<Float> = PlayState.instance.callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true);
-      if(returnedValue != null && returnedValue != 0) {
-        return returnedValue;
-      }
+    var returnedValue:Null<Float> = MegaManager.scriptManager.callOnScripts('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true);
+    if(returnedValue != null && returnedValue != 0) {
+      return returnedValue;
     }
 
 		switch(event.event) {

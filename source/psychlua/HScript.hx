@@ -2,6 +2,7 @@ package psychlua;
 
 import animate.internal.elements.FlxSpriteElement;
 import backend.modchartSystem.ModConstants;
+import backend.modchartSystem.ModEventHandler;
 import backend.modchartSystem.ModHandler;
 import backend.modchartSystem.NoteData;
 import backend.modchartSystem.modifiers.BaseModifier.CustomModifier;
@@ -698,7 +699,7 @@ class HScript extends Iris
 		set('getSpr', function(name:String)
 		{
 			var result:FlxSprite = null;
-			if (PlayState.instance.customLuaSprites.exists(name)) result = PlayState.instance.customLuaSprites.get(name);
+			if (PlayState.instance.variables.exists(name)) result = PlayState.instance.variables.get(name);
 			return result;
 		});
 

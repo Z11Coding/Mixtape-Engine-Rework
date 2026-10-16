@@ -138,7 +138,7 @@ class StrumNote extends ZSpriteProjected
 
 		var skin:String = null;
 		if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 1) skin = PlayfieldManager.SONG.arrowSkin;
-		else skin = Note.defaultNoteSkin;
+		else skin = BaseNote.defaultNoteSkin;
 
 		var customSkin:String = skin + Note.getNoteSkinPostfix();
 		if (skin == null || skin == '') {
@@ -303,7 +303,7 @@ class StrumNote extends ZSpriteProjected
 		switch (ExtraKeys.mania)
 		{
 			case 0 | 1 | 2: x += width * noteData;
-			case 3: x += (Note.swagWidth * noteData);
+			case 3: x += (BaseNote.swagWidth * noteData);
 			default: x += ((width - ExtraKeys.lessX[ExtraKeys.mania]) * noteData);
 		}
 		x += 50;

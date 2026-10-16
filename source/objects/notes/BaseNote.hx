@@ -48,7 +48,6 @@ class BaseNote extends ZSpriteProjected
 	public var sustainLength:Float = 0;
 	public var isSustainNote:Bool = false;
 	public var isSustainEnd:Bool = false;
-	public var noteType(default, set):String = null;
 
 	public var eventName:String = '';
 	public var eventLength:Int = 0;

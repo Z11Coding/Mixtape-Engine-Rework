@@ -112,19 +112,6 @@ class Note extends BaseNote
 		}
 	}
 
-	private function set_noteType(value:String):String {
-		noteSplashData.texture = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.splashSkin : 'noteSplashes';
-		if (ClientPrefs.data.noteColorStyle == 'Normal' && rgbShader != null && useRGBShader) defaultRGB();
-
-		if(noteData > -1 && noteType != value) {
-			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
-      if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound);
-			noteType = value;
-			reloadNote();
-		}
-		return value;
-	}
-
 	public function toJson(){
 		return Json.stringify({
 			type:"Note",
@@ -142,6 +129,21 @@ class Note extends BaseNote
 			noteType:noteType,
 			mustPress:mustPress
 		});
+	}
+
+	public var noteType(default, set):String = null;
+
+	private function set_noteType(value:String):String {
+		noteSplashData.texture = PlayfieldManager.SONG != null ? PlayfieldManager.SONG.splashSkin : 'noteSplashes';
+		if (ClientPrefs.data.noteColorStyle == 'Normal' && rgbShader != null && useRGBShader) defaultRGB();
+
+		if(noteData > -1 && noteType != value) {
+			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
+      if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound);
+			noteType = value;
+			reloadNote();
+		}
+		return value;
 	}
 
 	//Base Game Stuff
@@ -200,10 +202,10 @@ class Note extends BaseNote
 	{
 		if (note == null)
 		{
-			if(globalRgbShaders[noteData] == null)
+			if(BaseNote.globalRgbShaders[noteData] == null)
 			{
 				var newRGB:RGBPalette = new RGBPalette();
-				globalRgbShaders[noteData] = newRGB;
+				BaseNote.globalRgbShaders[noteData] = newRGB;
 
 				var arr:Array<FlxColor> = ClientPrefs.data.noteColorStyle != 'Quant-Based' ? (!PlayState.isPixelStage) ? ClientPrefs.data.arrowRGBExtra[noteData] : ClientPrefs.data.arrowRGBPixelExtra[noteData] : ClientPrefs.data.quantRGB[noteData];
 				if (arr != null && noteData > -1 && noteData <= arr.length)
@@ -213,15 +215,15 @@ class Note extends BaseNote
 					newRGB.b = arr[2];
 				}
 			}
-			return globalRgbShaders[noteData];
+			return BaseNote.globalRgbShaders[noteData];
 		}
 		else switch(ClientPrefs.data.noteColorStyle)
 		{
 			case 'Quant-Based':
-			if(globalRgbShaders[0] == null)
+			if(BaseNote.globalRgbShaders[0] == null)
 			{
 				var newRGB:RGBPalette = new RGBPalette();
-				globalRgbShaders[0] = newRGB;
+				BaseNote.globalRgbShaders[0] = newRGB;
 
 				var arr:Array<FlxColor> = (!note.pixelNote) ? ClientPrefs.data.arrowRGBExtra[3] : ClientPrefs.data.arrowRGBPixelExtra[3];
 				if (noteData > -1)
@@ -231,12 +233,12 @@ class Note extends BaseNote
 					newRGB.b = arr[2];
 				}
 			}
-			return globalRgbShaders[0];
+			return BaseNote.globalRgbShaders[0];
 			case 'Grayscale', 'Rainbow', 'Char-Based':
-			if(globalRgbShaders[0] == null)
+			if(BaseNote.globalRgbShaders[0] == null)
 			{
 				var newRGB:RGBPalette = new RGBPalette();
-				globalRgbShaders[0] = newRGB;
+				BaseNote.globalRgbShaders[0] = newRGB;
 
 				if (noteData > -1)
 				{
@@ -245,12 +247,12 @@ class Note extends BaseNote
 					newRGB.b = 0xFF424242;
 				}
 			}
-			return globalRgbShaders[0];
+			return BaseNote.globalRgbShaders[0];
 			default:
-			if(globalRgbShaders[noteData] == null)
+			if(BaseNote.globalRgbShaders[noteData] == null)
 			{
 				var newRGB:RGBPalette = new RGBPalette();
-				globalRgbShaders[noteData] = newRGB;
+				BaseNote.globalRgbShaders[noteData] = newRGB;
 
 				var arr:Array<FlxColor> = (!note.pixelNote) ? ClientPrefs.data.arrowRGBExtra[noteData] : ClientPrefs.data.arrowRGBPixelExtra[noteData];
 				if (noteData > -1 && noteData <= arr.length)
@@ -260,7 +262,7 @@ class Note extends BaseNote
 					newRGB.b = arr[2];
 				}
 			}
-			return globalRgbShaders[noteData];
+			return BaseNote.globalRgbShaders[noteData];
 		}
 	}
 

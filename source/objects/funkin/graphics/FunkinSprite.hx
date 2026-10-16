@@ -27,6 +27,7 @@ import openfl.display3D.textures.TextureBase;
 import openfl.filters.BitmapFilter;
 
 using StringTools;
+using backend.funkin.util.tools.IteratorTools;
 
 typedef AtlasSpriteSettings =
 {
@@ -361,6 +362,7 @@ class FunkinSprite extends FlxAnimate
    * @param key The key of the texture to load.
    * @return This sprite, for chaining.
    */
+  @:nullSafety(Off)
   public function loadSparrow(key:String):FunkinSprite
   {
     var graphicKey:String = Paths.imagePath(key);
@@ -376,6 +378,7 @@ class FunkinSprite extends FlxAnimate
    * @param key The key of the texture to load.
    * @return This sprite, for chaining.
    */
+  @:nullSafety(Off)
   public function loadPacker(key:String):FunkinSprite
   {
     var graphicKey:String = Paths.imagePath(key);
