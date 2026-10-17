@@ -499,7 +499,7 @@ class ScriptManager {
 		}
 		catch(e:Dynamic)
 		{
-			trace("Error initializing HScript: " + e);
+			trace("Error initializing \""+file+"\": " + e);
 			var newScript:HScript = cast (Iris.instances.get(file), HScript);
 			if(newScript != null)
 				newScript.destroy();

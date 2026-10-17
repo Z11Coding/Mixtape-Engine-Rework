@@ -20,6 +20,10 @@ class RuntimePostEffectShader extends FlxRuntimeShader
 			openfl_TextureCoord.y > 0.0 ? 1.0 : 0.0
 		);
 	') @:glFragmentHeader('
+		screenCoord = vec2(
+			openfl_TextureCoord.x > 0.0 ? 1.0 : 0.0,
+			openfl_TextureCoord.y > 0.0 ? 1.0 : 0.0
+		);
 		// normalized screen coord
 		//   (0, 0) is the top left of the window
 		//   (1, 1) is the bottom right of the window
@@ -101,22 +105,22 @@ class RuntimePostEffectShader extends FlxRuntimeShader
   {
     super(fragmentSource, null);
     //uScreenResolution.value = [FlxG.width, FlxG.height];
-    uCameraBounds.value = [0, 0, FlxG.width, FlxG.height];
-    uFrameBounds.value = [0, 0, FlxG.width, FlxG.height];
+    //uCameraBounds.value = [0, 0, FlxG.width, FlxG.height];
+    //uFrameBounds.value = [0, 0, FlxG.width, FlxG.height];
   }
 
   // basically `updateViewInfo(FlxG.width, FlxG.height, FlxG.camera)` is good
 
   public function updateViewInfo(screenWidth:Float, screenHeight:Float, camera:FlxCamera):Void
   {
-    uScreenResolution.value = [screenWidth, screenHeight];
-    uCameraBounds.value = [camera.viewLeft, camera.viewTop, camera.viewRight, camera.viewBottom];
+    //uScreenResolution.value = [screenWidth, screenHeight];
+    //uCameraBounds.value = [camera.viewLeft, camera.viewTop, camera.viewRight, camera.viewBottom];
   }
 
   public function updateFrameInfo(frame:FlxFrame)
   {
     // NOTE: uv.right is actually the right pos and uv.bottom is the bottom pos
-    uFrameBounds.value = [frame.uv.left, frame.uv.top, frame.uv.right, frame.uv.bottom];
+    //uFrameBounds.value = [frame.uv.left, frame.uv.top, frame.uv.right, frame.uv.bottom];
   }
 
   override function __createGLProgram(vertexSource:String, fragmentSource:String):GLProgram

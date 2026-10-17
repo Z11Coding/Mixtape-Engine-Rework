@@ -935,6 +935,7 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+
 		// Cache frequently used values for performance
 		_cachedSongName = SONG?.song?.toLowerCase();
 
@@ -1092,7 +1093,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 		#end
-		endCallback = endSong;
+		/*endCallback = endSong;
 
 		//trace("Setting Up Mod Manager");
 		//trace("Mod Manager Now Loaded!");
@@ -2114,7 +2115,7 @@ class PlayState extends MusicBeatState
 					ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
 					ticTacToeSpr.cameras = [camOther];
 					add(ticTacToeSpr);
-			}*/
+			}/
 
 			var mouseList:Array<String> = ['mouse_follower', 'click_time'];
 
@@ -2148,7 +2149,7 @@ class PlayState extends MusicBeatState
 
 		trace("Adding last-minute manager things");
 		doMegaManagerStuff(); // do it at the END
-		trace("State is now fully loaded!");
+		trace("State is now fully loaded!");*/
 	}
 
 	public function doMegaManagerStuff() {
@@ -3172,10 +3173,6 @@ class PlayState extends MusicBeatState
 			if (skipCountdown || startOnTime > 0)
 				playfield.skipArrowStartTween = true;
 
-			trace("Generating Strums");
-			playfield.generateStaticArrows(0);
-		  playfield.generateStaticArrows(1);
-
 			#if ALLOW_DEPRECATION
 			callOnScripts('preModifierRegister'); // deprecated
 			#end
@@ -4183,6 +4180,7 @@ class PlayState extends MusicBeatState
 	public var forceModSyncOff:Bool = false;
 	override public function update(elapsed:Float)
 	{
+		/*
 		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
 		_updateFrameCounter++;
 		var shouldBatchUpdate = _batchUIUpdates && (_updateFrameCounter % _batchedUpdateThreshold != 0);
@@ -4313,7 +4311,7 @@ class PlayState extends MusicBeatState
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 0);
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 			}
-		}*/
+		}/
 
 		if (allowSkip)
 		{
@@ -4471,11 +4469,9 @@ class PlayState extends MusicBeatState
 
 		skippedCount = 0;
 
-		spawnNotes();
-
 		if (generatedMusic)
 		{
-			if(!inCutscene)
+			if (!inCutscene)
 			{
 				@:privateAccess
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) playfield.keysCheck();
@@ -4729,7 +4725,7 @@ class PlayState extends MusicBeatState
 									}
 								});
 							}
-						}*/
+						}/
 					}
 				});
 			}
@@ -4896,7 +4892,7 @@ class PlayState extends MusicBeatState
 		setOnScripts('cameraX', camFollow.x);
 		setOnScripts('cameraY', camFollow.y);
 		setOnScripts('botPlay', cpuControlled);
-		callOnScripts('onUpdatePost', [elapsed]);
+		callOnScripts('onUpdatePost', [elapsed]);*/
 	}
 
 	public static function formatNumber(number:Float, ?decimals:Bool = false):String //simplified number formatting

@@ -591,7 +591,7 @@ class PlayfieldManager {
 
     sustainNotes.cameras = [camNotes];
 		notes.cameras = [camNotes];
-		allStrumSprites.cameras = [camNotes];
+    initHazardModchart();
   }
 
   public function setStrumAlpha() {
@@ -3080,6 +3080,23 @@ class PlayfieldManager {
     unspawnNotes = [];
     curChart = [];
 
+    // cleanup
+    isModchartSong = false;
+    modchartEventHandler = null;
+    if (allStrumSprites != null)
+    {
+      allStrumSprites.clear();
+      allStrumSprites.visible = false;
+      remove(allStrumSprites);
+    }
+
+    if (customZspritesGroup != null)
+    {
+      customZspritesGroup.clear();
+      customZspritesGroup.visible = false;
+      remove(customZspritesGroup);
+    }
+
     // Clear strum note references
 		if (playerStrums != null) {
 			playerStrums.strumLineNotes.forEachAlive(function(strum:StrumNote) {
@@ -3305,6 +3322,25 @@ class PlayfieldManager {
     updateHazModchartSystem(elapsed);
   }
 
+  function initHazardModchart():Void
+  {
+    if (isModchartSong)
+    {
+      customZspritesGroup = new FlxTypedSpriteGroup<ZSprite>();
+      customZspritesGroup.zIndex = -500;
+      customZspritesGroup.cameras = [camNotes];
+      add(customZspritesGroup);
+
+      allStrumSprites = new FlxTypedSpriteGroup<ZSprite>();
+
+      allStrumSprites.zIndex = 69;
+      allStrumSprites.cameras = [camNotes];
+      add(allStrumSprites);
+      allStrumSprites.visible = false;
+      allStrumSprites.active = false;
+    }
+  }
+
   /* Call this to construct a newStrumLine!
     * @param playerControlled If true, then the player can control this strumLine
     * @param noteStyle The notestyle this new strumline should use.
@@ -3431,6 +3467,10 @@ class PlayfieldManager {
 
   function add(obj:FlxBasic) {
     MusicBeatState.getState().add(obj);
+  }
+
+  function remove(obj:FlxBasic) {
+    MusicBeatState.getState().remove(obj);
   }
 }
 

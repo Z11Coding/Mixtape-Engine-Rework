@@ -524,23 +524,22 @@ class Strumline extends FlxSpriteGroup
 
 			var babyArrow:StrumNote = new StrumNote(strumLine.x, strumLine.y, i, playerNum);
 			babyArrow.downScroll = ClientPrefs.data.downScroll;
-			if (!skipArrowStartTween)
+			if (!MegaManager.playfield.skipArrowStartTween)
 			{
 				babyArrow.y -= 150;
 				babyArrow.alpha = 0;
 				babyArrow.angle = 360;
         final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
-				FlxTween.tween(babyArrow, {y: babyArrow.y + 150, alpha: targetAlpha, angle: 0}, 1/(Conductor.bpm/240) / playbackRate, {ease: FlxEase.circOut, startDelay: 0.5 + (0.2 * i) / (Conductor.bpm/240) / playbackRate});
 			}
 			else
 			{
 				babyArrow.alpha = targetAlpha;
 			}
 
-			if (playerNum == 1)
-        playerStrums.add(babyArrow);
-			else
-			{
+			if (playerNum == 1) {
+        this.strumLineNotes.add(babyArrow);
+        this.strumLineNotesAlt.push(babyArrow);
+      } else {
 				if(ClientPrefs.data.middleScroll)
 				{
 					babyArrow.x += 310;
@@ -548,7 +547,8 @@ class Strumline extends FlxSpriteGroup
 						babyArrow.x += FlxG.width / 2 + 25;
 					}
 				}
-				opponentStrums.add(babyArrow);
+				this.strumLineNotes.add(babyArrow);
+        this.strumLineNotesAlt.push(babyArrow);
 			}
 
 			//strumLineNotes.add(babyArrow);
@@ -668,7 +668,8 @@ class Strumline extends FlxSpriteGroup
 
       mods.updateSpecialMods();
       mods.updateStrums();
-      updateNotes();
+      if ((notes?.length + sustainNotes?.length) > 0)
+        updateNotes();
       #if FEATURE_GHOST_TAPPING
       updateGhostTapTimer(elapsed);
       #end
@@ -1914,6 +1915,7 @@ class Strumline extends FlxSpriteGroup
    */
   function fadeInArrow(index:Int, arrow:StrumNote):Void
   {
+    final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
     if (mods != null)
     {
       arrow.strumExtraModData.introTweenPercentage = 0;
@@ -1921,19 +1923,21 @@ class Strumline extends FlxSpriteGroup
         introTweenPercentage: 1
       }, 1, {
         ease: FlxEase.circOut,
-        startDelay: 0.5 + (0.2 * index)
+        startDelay: 0.5 + (0.2 * index) / (Conductor.bpm/240) / playbackRate
       });
     }
     else
     {
-      arrow.y -= 10;
-      arrow.alpha = 0.0;
+      arrow.y -= 150;
+      arrow.alpha = 0;
+      arrow.angle = 360;
       FlxTween.tween(arrow, {
         y: arrow.y + 10,
-        alpha: 1
+        alpha: 1,
+        angle: 0
       }, 1, {
         ease: FlxEase.circOut,
-        startDelay: 0.5 + (0.2 * index)
+        startDelay: 0.5 + (0.2 * index) / (Conductor.bpm/240) / playbackRate
       });
     }
   }
