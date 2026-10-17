@@ -5837,7 +5837,13 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 			{
 				note.offsetX += note.width / 2;
 
-				note.animation.play(Note.keysShit.get(mania).get('letters')[noteData] + ' tail');
+				var animToPlay:String = '';
+				animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' tail';
+				if (!note.hasAnimation(animToPlay))
+				{
+					animToPlay = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'holdend';
+				}
+				note.animation.play(animToPlay);
 
 				note.updateHitbox();
 
@@ -5845,7 +5851,13 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 
 				if (note != null && prevNote != null && prevNote.isSustainNote && prevNote.animation != null)
 				{ // haxe flixel
-					prevNote.animation.play(Note.keysShit.get(mania).get('letters')[noteData % tMania] + ' hold');
+					var animToPlay2:String = '';
+					animToPlay2 = Note.keysShit.get(PlayState.mania).get('letters')[noteData] + ' hold';
+					if (!prevNote.hasAnimation(animToPlay2))
+					{
+						animToPlay2 = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]] + 'hold';
+					}
+					prevNote.animation.play(animToPlay2);
 
 					prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
 					prevNote.scale.y *= songSpeed;
@@ -5860,7 +5872,7 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 					// trace(prevNote.scale.y);
 				}
 
-				if (isPixelStage && prevNote != null)
+				if (isPixelStage && prevNote != null && !prevNote.isParent)
 				{
 					prevNote.scale.y *= daPixelZoom * (Note.pixelScales[mania]); // Fuck urself
 					prevNote.updateHitbox();
@@ -5871,15 +5883,17 @@ var swagNote:Note = preload ? new Note(spawnTime, noteColumn, oldNote) :
 				if (note.changeAnim)
 				{
 					var animToPlay:String = '';
-
-					animToPlay = Note.keysShit.get(mania).get('letters')[noteData % tMania];
-
-					note.animation.play(animToPlay);
+					animToPlay = Note.keysShit.get(PlayState.mania).get('letters')[noteData];
+					if (note.hasAnimation(animToPlay))
+						note.animation.play(animToPlay);
+					else
+					{
+						animToPlay = Note.colArray[Note.keysShit.get(PlayState.mania).get('colArray')[noteData]];
+						note.animation.play(animToPlay + 'Scroll');
+					}
 				}
 			}
-
 			note.defaultRGB();
-
 			// Like set_noteType()
 		}
 	}
