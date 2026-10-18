@@ -1093,7 +1093,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 		#end
-		/*endCallback = endSong;
+		endCallback = endSong;
 
 		//trace("Setting Up Mod Manager");
 		//trace("Mod Manager Now Loaded!");
@@ -1179,23 +1179,6 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = 0;
 		camOther.bgColor.alpha = 0;
 		camCOD.bgColor.alpha = 0;
-		if (playfield.isModchartSong && !playfield.notesAboveHUD)
-    {
-      FlxG.cameras.add(playfield.camNotes, false);
-      FlxG.cameras.add(playfield.camAFT, false);
-    }
-		FlxG.cameras.add(camHUD, false);
-		if (playfield.isModchartSong && playfield.notesAboveHUD)
-    {
-      FlxG.cameras.add(playfield.camNotes, false);
-      FlxG.cameras.add(playfield.camAFT, false);
-    }
-		FlxG.cameras.add(camCredit, false);
-		FlxG.cameras.add(camOther, false);
-		FlxG.cameras.add(camCOD, false);
-
-		if (ClientPrefs.data.startHidden)
-			camHUD.alpha = 0;
 
 
 		try
@@ -1449,7 +1432,7 @@ class PlayState extends MusicBeatState
 		add(noteGroup);
 
 		// Counter
-		judgementCounter = new JudCounter(10, (FlxG.height / 2) - 100);
+		/*judgementCounter = new JudCounter(10, (FlxG.height / 2) - 100);
 		judgementCounter.setCameras([camHUD]);
 		add(judgementCounter);
 
@@ -1476,7 +1459,7 @@ class PlayState extends MusicBeatState
 		timeBar.alpha = 0;
 		timeBar.visible = showTime;
 		uiGroup.add(timeBar);
-		uiGroup.add(timeTxt);
+		uiGroup.add(timeTxt);*/
 
 		// Generate playfields so you can actually, well, play the game
 		trace("Setting Up Playfields!");
@@ -1486,7 +1469,6 @@ class PlayState extends MusicBeatState
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
 		playfield.addNotes();
-		//noteGroup.add(playfield.strumLineNotes);
 		noteGroup.add(playfield.sustainNotes);
 		noteGroup.add(playfield.notes);
 		noteGroup.add(playfield.grpHoldSplashes);
@@ -1509,7 +1491,25 @@ class PlayState extends MusicBeatState
 			timeTxt.y += 3;
 		}
 
-		trace("Generating Chart");
+		if (playfield.isModchartSong && !playfield.notesAboveHUD)
+    {
+      FlxG.cameras.add(playfield.camNotes, false);
+      FlxG.cameras.add(playfield.camAFT, false);
+    }
+		FlxG.cameras.add(camHUD, false);
+		if (playfield.isModchartSong && playfield.notesAboveHUD)
+    {
+      FlxG.cameras.add(playfield.camNotes, false);
+      FlxG.cameras.add(playfield.camAFT, false);
+    }
+		FlxG.cameras.add(camCredit, false);
+		FlxG.cameras.add(camOther, false);
+		FlxG.cameras.add(camCOD, false);
+
+		if (ClientPrefs.data.startHidden)
+			camHUD.alpha = 0;
+
+		/*trace("Generating Chart");
 		var prevTime = Sys.time();
 		playfield.loadChart();
 		loadSongAudio();

@@ -575,7 +575,7 @@ class PlayfieldManager {
 		splash.visible = true;
 		splash.alpha = 0.0001;
 
-		initStrumlines();
+		//initStrumlines();
 
     if (isModchartSong)
     {
@@ -585,9 +585,6 @@ class PlayfieldManager {
       camAFT = new FlxCamera();
       camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
     }
-
-    FlxG.cameras.add(camNotes, false);
-    FlxG.cameras.add(camAFT, false);
 
     sustainNotes.cameras = [camNotes];
 		notes.cameras = [camNotes];
@@ -3457,7 +3454,7 @@ class PlayfieldManager {
       customStrummer.fadeInArrows();
     }
     playerStrums.fadeInArrows();
-    playerStrums.fadeInArrows();
+    opponentStrums.fadeInArrows();
   }
 
   function onStrumlineNoteIncoming(noteSprite:Note):Void
