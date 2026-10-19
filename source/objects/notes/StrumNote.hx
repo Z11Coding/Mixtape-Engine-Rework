@@ -316,6 +316,9 @@ class StrumNote extends ZSpriteProjected
 	}
 
 	override function update(elapsed:Float) {
+		if (this.alpha <= 0 || !this.visible || !this.alive)
+			return;
+		super.update(elapsed);
 		if(resetAnim > 0) {
 			resetAnim -= elapsed;
 			if(resetAnim <= 0) {
@@ -326,7 +329,6 @@ class StrumNote extends ZSpriteProjected
 
     alpha *= multAlpha;
     alpha *= hardAlpha;
-		super.update(elapsed);
 	}
 
 	public function playAnim(anim:String, ?force:Bool = false, ?r:FlxColor, ?g:FlxColor, ?b:FlxColor) {

@@ -400,10 +400,10 @@ class Strumline extends FlxSpriteGroup
   {
     super();
 
+    this.playerNum = strumlineObj.player;
     this.isPlayer = isPlayer;
     this.isPlayerControlled = isPlayer;
     this.defaultPlayerControl = isPlayer;
-
     this.StrumlineObj = strumlineObj;
 
     var holdsBehindStrums:Bool = false;
@@ -463,7 +463,7 @@ class Strumline extends FlxSpriteGroup
     this.onNoteIncoming = new FlxTypedSignal<Note->Void>();
     resetScrollSpeed(scrollSpeed);
 
-    for (i in 0...(ExtraKeys.mania+1))
+    /*for (i in 0...(ExtraKeys.mania+1))
     {
       var child:StrumNote = new StrumNote(strumlineObj.strumlinePos.x, strumlineObj.strumlinePos.y, i, strumlineObj.player);
       child.downScroll = ClientPrefs.data.downScroll;
@@ -472,7 +472,9 @@ class Strumline extends FlxSpriteGroup
       this.strumLineNotesAlt.push(child);
 
       child.weBelongTo = this;
-    }
+    }*/
+
+    generateStaticArrows();
 
     this.heldKeys = [];
     for (i in 0...(ExtraKeys.mania+1))
@@ -537,8 +539,7 @@ class Strumline extends FlxSpriteGroup
 			}
 
 			if (playerNum == 1) {
-        this.strumLineNotes.add(babyArrow);
-        this.strumLineNotesAlt.push(babyArrow);
+        // Do nothing and win
       } else {
 				if(ClientPrefs.data.middleScroll)
 				{
@@ -547,11 +548,11 @@ class Strumline extends FlxSpriteGroup
 						babyArrow.x += FlxG.width / 2 + 25;
 					}
 				}
-				this.strumLineNotes.add(babyArrow);
-        this.strumLineNotesAlt.push(babyArrow);
 			}
 
-			//strumLineNotes.add(babyArrow);
+			this.strumLineNotes.add(babyArrow);
+      this.strumLineNotesAlt.push(babyArrow);
+      babyArrow.weBelongTo = this;
 			babyArrow.postAddedToGroup();
 		}
     #if ALLOW_DEPRECATION
@@ -707,7 +708,7 @@ class Strumline extends FlxSpriteGroup
   var generatedArrowPaths:Bool = false;
 
   // if set to false, will skip arrowpath update logic
-  public var drawArrowPaths:Bool = true;
+  public var drawArrowPaths:Bool = false;
 
   function updateArrowPaths():Void
   {
@@ -1055,7 +1056,8 @@ class Strumline extends FlxSpriteGroup
     for (i in 0...ExtraKeys.mania)
     {
       var note = getByColumn(i);
-      note.postAddedToGroup();
+      if (note != null)
+        note.postAddedToGroup();
     }
   }
 

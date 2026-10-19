@@ -83,9 +83,11 @@ class ModEventHandler
     for (strum in MegaManager.playfield.allStrumLines)
     {
       strum.asleep = false;
-      strum.mods.resetModValues();
-      strum.mods.clearMods();
-      // strum.mods.addMod('speedmod', 1); // Every strum ALWAYS has this modifier by default.
+      if (strum.mods != null) {
+        strum.mods.resetModValues();
+        strum.mods.clearMods();
+        // strum.mods.addMod('speedmod', 1); // Every strum ALWAYS has this modifier by default.
+      }
     }
   }
 
@@ -130,7 +132,8 @@ class ModEventHandler
     {
       for (customStrummer in MegaManager.playfield.allStrumLines)
       {
-        customStrummer.mods.addCustomMod(mod, makeCopy);
+        if (customStrummer.mods != null)
+          customStrummer.mods.addCustomMod(mod, makeCopy);
       }
     }
     else
@@ -187,9 +190,11 @@ class ModEventHandler
 
     for (strumLine in MegaManager.playfield.allStrumLines)
     {
-      strumLine.mods.sortMods();
+      if (strumLine.mods != null) {
+        strumLine.mods.sortMods();
 
-      trace('\nSTRUM-' + strumLine.mods.customTweenerName + ' mods list: \n' + strumLine.mods.modifiers);
+        trace('\nSTRUM-' + strumLine.mods.customTweenerName + ' mods list: \n' + strumLine.mods.modifiers);
+      }
     }
   }
 
@@ -563,14 +568,16 @@ class ModEventHandler
 
       strum.isPlayerControlled = strum.defaultPlayerControl;
 
-      strum.mods.resetModValues();
-      if (modChartHasResort)
-      {
-        for (m in strum.mods.mods_all)
+      if (strum.mods != null) {
+        strum.mods.resetModValues();
+        if (modChartHasResort)
         {
-          m.modPriority_additive = 0;
+          for (m in strum.mods.mods_all)
+          {
+            m.modPriority_additive = 0;
+          }
+          resortMods_ForTarget(strum.mods);
         }
-        resortMods_ForTarget(strum.mods);
       }
 
       strum.strumLineNotes.forEach(function(note:StrumNote)

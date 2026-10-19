@@ -575,7 +575,7 @@ class PlayfieldManager {
 		splash.visible = true;
 		splash.alpha = 0.0001;
 
-		//initStrumlines();
+		initStrumlines();
 
     if (isModchartSong)
     {
@@ -614,7 +614,7 @@ class PlayfieldManager {
     final startTime = haxe.Timer.stamp();
 
     var songData = SONG;
-
+    songName = Paths.formatToSongPath(SONG.song).toLowerCase();
     final noteData:Array<SwagSection> = songData.notes;
 
     try
@@ -654,7 +654,6 @@ class PlayfieldManager {
       trace('in-chart events DOESN\'T EXSIST FOR SONG ${this.songName}!');
     }
 
-    songName = Paths.formatToSongPath(SONG.song).toLowerCase();
     var currentBPMLol:Float = Conductor.bpm = songData.bpm;
 		var stepCrochet:Float = 15000 / currentBPMLol;
 		var currentMultiplier:Float = 1;
@@ -3352,7 +3351,7 @@ class PlayfieldManager {
     add(newStrummer);
 
     // Create in center of the screen
-    newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2) + 0;
+    //newStrummer.x = (FlxG.width / 2 - newStrummer.width / 2) + 0;
     newStrummer.heightWas = newStrummer.height;
     newStrummer.y = getStrumlineY(newStrummer);
 
@@ -3387,13 +3386,13 @@ class PlayfieldManager {
   }
 
   /**
-     * Constructs the strumlines for each player.
-     */
+   * Constructs the strumlines for each player.
+   */
   function initStrumlines():Void
   {
     final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50);
 
-    playerStrums = new Strumline({strumlinePos: strumLine, player: 1}, !cpuControlled, songSpeed, isModchartSong);
+    playerStrums = new Strumline({strumlinePos: strumLine, player: 0}, !cpuControlled, songSpeed, isModchartSong);
     playerStrums.onNoteIncoming.add(onStrumlineNoteIncoming);
     playerStrums.defaultPlayerControl = true;
     opponentStrums = new Strumline({strumlinePos: strumLine, player: 1}, false, songSpeed, isModchartSong);
@@ -3425,10 +3424,14 @@ class PlayfieldManager {
 
     if (isModchartSong)
     {
-      opponentStrums.mods.customTweenerName = "opponent";
-      playerStrums.mods.customTweenerName = "player";
-      playerStrums.cameras = [camNotes];
+      if (opponentStrums.mods != null) {
+        opponentStrums.mods.customTweenerName = "opponent";
+      }
+      if (playerStrums.mods != null) {
+        playerStrums.mods.customTweenerName = "player";
+      }
       opponentStrums.cameras = [camNotes];
+      playerStrums.cameras = [camNotes];
 
       modchartEventHandler = new ModEventHandler();
       customStrumLines = [];
@@ -3439,7 +3442,8 @@ class PlayfieldManager {
       {
         if (!strumLine.defaultPlayerControl)
         {
-          strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
+          if (strumLine.mods != null)
+            strumLine.mods.invertValues = modchartEventHandler.invertForOpponent;
         }
       }
 

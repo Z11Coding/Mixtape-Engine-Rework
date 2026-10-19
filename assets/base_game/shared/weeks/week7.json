@@ -1,6 +1,6 @@
 {
 	"storyName": "Tankman",
-	"difficulties": "Easy.Normal,Hard",
+	"difficulties": "Easy,Normal,Hard",
 	"hideFreeplay": false,
 	"weekBackground": "tank",
 	"freeplayColor": [

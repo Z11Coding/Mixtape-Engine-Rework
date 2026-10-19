@@ -1432,7 +1432,7 @@ class PlayState extends MusicBeatState
 		add(noteGroup);
 
 		// Counter
-		/*judgementCounter = new JudCounter(10, (FlxG.height / 2) - 100);
+		judgementCounter = new JudCounter(10, (FlxG.height / 2) - 100);
 		judgementCounter.setCameras([camHUD]);
 		add(judgementCounter);
 
@@ -1459,7 +1459,7 @@ class PlayState extends MusicBeatState
 		timeBar.alpha = 0;
 		timeBar.visible = showTime;
 		uiGroup.add(timeBar);
-		uiGroup.add(timeTxt);*/
+		uiGroup.add(timeTxt);
 
 		// Generate playfields so you can actually, well, play the game
 		trace("Setting Up Playfields!");
@@ -1469,12 +1469,6 @@ class PlayState extends MusicBeatState
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
 		playfield.addNotes();
-		noteGroup.add(playfield.sustainNotes);
-		noteGroup.add(playfield.notes);
-		noteGroup.add(playfield.grpHoldSplashes);
-		noteGroup.add(playfield.grpNoteSplashes);
-		noteGroup.add(playfield.playerStrums);
-		noteGroup.add(playfield.opponentStrums);
 		playfield.manualInputChecks = true;
 
 		#if ALLOW_DEPRECATION
@@ -1509,7 +1503,7 @@ class PlayState extends MusicBeatState
 		if (ClientPrefs.data.startHidden)
 			camHUD.alpha = 0;
 
-		/*trace("Generating Chart");
+		trace("Generating Chart");
 		var prevTime = Sys.time();
 		playfield.loadChart();
 		loadSongAudio();
@@ -1517,7 +1511,7 @@ class PlayState extends MusicBeatState
 		generatedMusic = true;
 		trace('Chart Generation took ${Sys.time() - prevTime} seconds');
 
-		noteGroup.add(grpNoteSplashes);
+		//noteGroup.add(grpNoteSplashes);
 
 		camFollow = new FlxObject();
 		camFollow.setPosition(camPos.x, camPos.y);
@@ -2115,7 +2109,7 @@ class PlayState extends MusicBeatState
 					ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
 					ticTacToeSpr.cameras = [camOther];
 					add(ticTacToeSpr);
-			}/
+			}*/
 
 			var mouseList:Array<String> = ['mouse_follower', 'click_time'];
 
@@ -2149,7 +2143,7 @@ class PlayState extends MusicBeatState
 
 		trace("Adding last-minute manager things");
 		doMegaManagerStuff(); // do it at the END
-		trace("State is now fully loaded!");*/
+		trace("State is now fully loaded!");
 	}
 
 	public function doMegaManagerStuff() {
@@ -3178,6 +3172,8 @@ class PlayState extends MusicBeatState
 			#end
 
 			if (callOnScripts('onModifierRegister') != LuaUtils.Function_Stop) {
+				playerStrums.fadeInArrows();
+				opponentStrums.fadeInArrows();
 				playfield.setStrumAlpha();
 			}
 
@@ -4180,7 +4176,7 @@ class PlayState extends MusicBeatState
 	public var forceModSyncOff:Bool = false;
 	override public function update(elapsed:Float)
 	{
-		/*
+
 		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
 		_updateFrameCounter++;
 		var shouldBatchUpdate = _batchUIUpdates && (_updateFrameCounter % _batchedUpdateThreshold != 0);
@@ -4286,7 +4282,6 @@ class PlayState extends MusicBeatState
 				health -= 0.001 * _cachedFramerateMultiplier;
 			}
 		}
-
 		super.update(elapsed);
 		if (vocals != null) vocals.volume *= (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 		FlxG.sound.music.volume = 1 * (instVolumeMultiplier * instVolumeMultiplierHardMode);
@@ -4311,7 +4306,7 @@ class PlayState extends MusicBeatState
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 0);
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 			}
-		}/
+		}*/
 
 		if (allowSkip)
 		{
@@ -4725,7 +4720,7 @@ class PlayState extends MusicBeatState
 									}
 								});
 							}
-						}/
+						}*/
 					}
 				});
 			}
@@ -4892,7 +4887,7 @@ class PlayState extends MusicBeatState
 		setOnScripts('cameraX', camFollow.x);
 		setOnScripts('cameraY', camFollow.y);
 		setOnScripts('botPlay', cpuControlled);
-		callOnScripts('onUpdatePost', [elapsed]);*/
+		callOnScripts('onUpdatePost', [elapsed]);
 	}
 
 	public static function formatNumber(number:Float, ?decimals:Bool = false):String //simplified number formatting
