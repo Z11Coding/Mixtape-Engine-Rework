@@ -3464,6 +3464,7 @@ class PlayfieldManager {
   function onStrumlineNoteIncoming(noteSprite:Note):Void
   {
     MegaManager.scriptManager.callOnScripts('onSpawnNote', [noteSprite]);
+    trace("Spawned Note!");
   }
 
   function add(obj:FlxBasic) {
