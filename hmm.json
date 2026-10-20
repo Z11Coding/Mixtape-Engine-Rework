@@ -23,7 +23,13 @@
     { "name": "haxe-concurrent", "type": "haxelib", "version": "5.1.3" },
     { "name": "actuate", "type": "haxelib", "version": "1.9.0" },
     { "name": "deflatex", "type": "haxelib", "version": "1.0.0" },
-
+    {
+      "name": "json2object",
+      "type": "git",
+      "dir": null,
+      "ref": "dc945d58c1239a6ab6e37e0a6c128387193c9af5",
+      "url": "https://github.com/FunkinCrew/json2object"
+    },
     {
       "name": "flixel-animate",
       "type": "git",

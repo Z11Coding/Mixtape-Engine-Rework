@@ -1856,7 +1856,7 @@ class PlayState extends MusicBeatState
 		playfield.addInput();
 
 		if (ClientPrefs.data.showRenderText)
-			renderedTxt.text = 'Rendered Notes: ' + notes.length;
+			//renderedTxt.text = 'Rendered Notes: ' + notes.length;
 
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
 		if(ClientPrefs.data.hitsoundVolume > 0) Paths.sound('hitsound');
@@ -2106,9 +2106,9 @@ class PlayState extends MusicBeatState
 
 			/*if (MechanicManager.mechanics['tictactoe'].points > 0)
 			{
-					ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
-					ticTacToeSpr.cameras = [camOther];
-					add(ticTacToeSpr);
+				ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
+				ticTacToeSpr.cameras = [camOther];
+				add(ticTacToeSpr);
 			}*/
 
 			var mouseList:Array<String> = ['mouse_follower', 'click_time'];
@@ -3172,8 +3172,10 @@ class PlayState extends MusicBeatState
 			#end
 
 			if (callOnScripts('onModifierRegister') != LuaUtils.Function_Stop) {
-				playerStrums.fadeInArrows();
-				opponentStrums.fadeInArrows();
+				if (playerStrums != null)
+					playerStrums.fadeInArrows();
+				if (opponentStrums != null)
+					opponentStrums.fadeInArrows();
 				playfield.setStrumAlpha();
 			}
 
@@ -3193,13 +3195,17 @@ class PlayState extends MusicBeatState
 			callOnScripts('onModifierRegisterPost');
 
 			trace("Setting Strum Base Positions");
-			for (i in 0...opponentStrums.length) {
-				setOnScripts('defaultOpponentStrumX' + i, opponentStrums.members[i].x);
-				setOnScripts('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
+			if (opponentStrums != null) {
+				for (i in 0...opponentStrums.length) {
+					setOnScripts('defaultOpponentStrumX' + i, opponentStrums.members[i].x);
+					setOnScripts('defaultOpponentStrumY' + i, opponentStrums.members[i].y);
+				}
 			}
-			for (i in 0...playerStrums.length) {
-				setOnScripts('defaultPlayerStrumX' + i, playerStrums.members[i].x);
-				setOnScripts('defaultPlayerStrumY' + i, playerStrums.members[i].y);
+			if (playerStrums != null) {
+				for (i in 0...playerStrums.length) {
+					setOnScripts('defaultPlayerStrumX' + i, playerStrums.members[i].x);
+					setOnScripts('defaultPlayerStrumY' + i, playerStrums.members[i].y);
+				}
 			}
 
 
@@ -4176,7 +4182,6 @@ class PlayState extends MusicBeatState
 	public var forceModSyncOff:Bool = false;
 	override public function update(elapsed:Float)
 	{
-
 		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
 		_updateFrameCounter++;
 		var shouldBatchUpdate = _batchUIUpdates && (_updateFrameCounter % _batchedUpdateThreshold != 0);

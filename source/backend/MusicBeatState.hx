@@ -712,7 +712,7 @@ class MusicBeatState extends FlxState
 		}
 
 
-		//super.update(elapsed);
+		super.update(elapsed);
 		conductor.update(null);
 
 		// Handle substate queue - open the most recent substate if one exists

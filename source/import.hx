@@ -52,6 +52,7 @@ import backend.Rating;
 import backend.Song;
 import backend.TransitionState;
 import backend.WeekData;
+import backend.funkin.FunkinMemory;
 import backend.funkin.audio.FunkinSound;
 import backend.pslice.FreeplayThings;
 import backend.pslice.ScaleMode as MobileScaleMode; // too lazy + its 3 in the morning lol

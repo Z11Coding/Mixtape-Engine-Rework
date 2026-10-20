@@ -164,24 +164,6 @@ class FirstCheckState extends MusicBeatState
 			Language.reloadPhrases();
 			AudioSwitchFix.init();
 
-			var registryWork:ASync<Void -> yutautil.typeregistry.RuntimeFunctionRegistry> = ASyncHelper.async0(function() {
-				yutautil.typeregistry.BuildDataLoader.initialize();
-				var r = yutautil.typeregistry.RuntimeFunctionRegistry.getFresh();
-
-				while (!r.isReady()) {
-					// Wait for the registry to be ready
-					Sys.sleep(0.13);
-				}
-				trace("RuntimeFunctionRegistry is ready: " + yutautil.typeregistry.RuntimeFunctionRegistry.get().toString());
-
-				yutautil.typeregistry.RuntimeFunctionRegistry.get().edit("states.PlayState.create", function() {
-					trace("PlayState.create() called");
-				});
-				return r;
-			});
-
-			var registry:AResult<yutautil.typeregistry.RuntimeFunctionRegistry> = registryWork();
-
 			if (ClientPrefs.data.playLists == null) {
 				ClientPrefs.loadPrefs();
 				//load it again just to be sure
@@ -233,11 +215,6 @@ class FirstCheckState extends MusicBeatState
 			#end
 		}
 
-		// if (AprilFools.allowAF)
-			// ClientPrefs.data.ultratrashMode = true;
-
-			ClientPrefs.data.ultratrashMode = ClientPrefs.data.ogultratrashMode;
-
 		if(Main.fpsVar != null) {
 			Main.fpsVar.visible = ClientPrefs.data.showFPS && (ClientPrefs.data.performanceCounter == "fps" || ClientPrefs.data.performanceCounter == "fps-mem" || ClientPrefs.data.performanceCounter == "fps-mem-peak");
 		}
@@ -252,49 +229,8 @@ class FirstCheckState extends MusicBeatState
 
 		NativeFileSystem.openFlAssets = Assets.list();
 		openfl.utils.Assets.cache.enabled = false;
-
+		FunkinMemory.initialCache();
 		FlxG.scaleMode = new MobileScaleMode(ClientPrefs.data.wideScreen);
-
-		// // Colored Text Test
-		// // var text = new MarkdownFlxText(0, 0, FlxG.width, "This is a **bold** text with _italic_ and {#FF0000}color{#0000FF} formatting.");
-
-		// // Test for combining text with different formats, using normal FlxText.
-		// var text2 = new FlxText(0, 0, FlxG.width, "This is a normal text with bold, italic, and color formatting.");
-		// text2.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		// text2.text += "\n\n";
-		// text2.text += "This is a ";
-		// text2.text += "<b>bold</b>";
-		// text2.text += " text with ";
-		// text2.text += "<i>italic</i>";
-		// text2.text += " and ";
-		// text2.text += "<color=#" + StringTools.hex(FlxColor.RED, 6) + ">color</color>";
-		// text2.text += " formatting.";
-
-		// // add(text);
-		// add(text2);
-
-		// // Now, to test a second one below that, but with all of the text in separate FlxText objects, then using the combine() function.
-		// var text3 = new FlxText(0, 0, FlxG.width, "This is a");
-		// text3.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		// var text4 = new FlxText(0, 0, FlxG.width, "bold");
-		// text4.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		// text4.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, true);
-		// var text5 = new FlxText(0, 0, FlxG.width, "text with");
-		// text5.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		// var text6 = new FlxText(0, 0, FlxG.width, "italic");
-		// text6.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		// text6.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, null, true);
-		// var text7 = new FlxText(0, 0, FlxG.width, "and");
-		// text7.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		// var text8 = new FlxText(0, 0, FlxG.width, "color");
-		// text8.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-		// text8.color = FlxColor.RED;
-		// var text9 = new FlxText(0, 0, FlxG.width, "formatting.");
-		// text9.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
-
-		// var combinedText = yutautil.MarkdownFlxText.combine([text3, text4, text5, text6, text7, text8, text9]);
-		// combinedText.y = 200;
-		// add(combinedText);
 
 		if (AprilFools.allowAF)
 		{

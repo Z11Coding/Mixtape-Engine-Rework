@@ -1253,11 +1253,6 @@ class Strumline extends FlxSpriteGroup
 						spawnedNote.animation.play(animToPlay);
 					}
 
-					//spawnedNote.prevNote = (targetNote.isSustainNote ? sustainNotes : notes.members[notesAddedCount-1];
-					//spawnedNote.nextNote = unspawnNotes[notesAddedCount+1];
-
-					//spawnedNote.noteIndex = notesAddedCount;
-
           onNoteIncoming.dispatch(spawnedNote);
 					notesAddedCount++; limitNC++;
 					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];

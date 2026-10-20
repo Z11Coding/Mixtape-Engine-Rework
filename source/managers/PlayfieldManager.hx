@@ -1121,7 +1121,8 @@ class PlayfieldManager {
           swagNote.row = Conductor.secsToRow(daStrumTime);
 
 					unspawnNotes.push(swagNote);
-          (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(swagNote);
+          if (playerStrums != null && opponentStrums != null)
+            (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(swagNote);
 
 					if (jackingtime > 0) {
 						for (j in 0...Std.int(jackingtime)) {
@@ -1147,7 +1148,8 @@ class PlayfieldManager {
 								ignoreNote: swagNote.ignoreNote
 							};
 							unspawnNotes.push(jackNote);
-              (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(jackNote);
+              if (playerStrums != null && opponentStrums != null)
+                (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(jackNote);
 						}
 					}
 
@@ -1180,7 +1182,8 @@ class PlayfieldManager {
 								ignoreNote: songNotes[3] == 'Hurt Note' && swagNote.mustPress
 							};
 							unspawnNotes.push(sustainNote);
-              (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(sustainNote);
+              if (playerStrums != null && opponentStrums != null)
+                (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(sustainNote);
 						}
 					}
 				} else {
@@ -2382,6 +2385,7 @@ class PlayfieldManager {
 				}
 			}
 			else {
+        if (playerStrums != null && opponentStrums != null) return; // No reason to worry about it if it aint there lol
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
@@ -2407,7 +2411,7 @@ class PlayfieldManager {
           var canMiss:Bool = !ClientPrefs.data.ghostTapping;
 
           // obtain notes that the player can hit
-          var plrInputNotes:Array<Note> = notes.members.filter(function(n:Note):Bool {
+          var plrInputNotes:Array<Note> = playerStrums.notes.members.filter(function(n:Note):Bool {
             var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
             // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
             return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
@@ -3077,7 +3081,7 @@ class PlayfieldManager {
     curChart = [];
 
     // cleanup
-    isModchartSong = false;
+    isModchartSong = true;
     modchartEventHandler = null;
     if (allStrumSprites != null)
     {
