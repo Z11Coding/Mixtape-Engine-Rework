@@ -423,10 +423,10 @@ class FunkinMemory
    * @param key The key of the sound to check.
    * @return Whether the sound is cached.
    */
-   public static function isSoundCached(key:String):Bool
-    {
-      return (permanentCachedSounds.exists(key) || currentCachedSounds.exists(key) || previousCachedSounds.exists(key));
-    }
+  public static function isSoundCached(key:String):Bool
+  {
+    return (permanentCachedSounds.exists(key) || currentCachedSounds.exists(key) || previousCachedSounds.exists(key));
+  }
 
   ///// MISC /////
 

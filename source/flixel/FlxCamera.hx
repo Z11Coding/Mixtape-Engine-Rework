@@ -577,62 +577,69 @@ class FlxCamera extends FlxBasic
   @:noCompletion
   public function startQuadBatch(graphic:FlxGraphic, colored:Bool, hasColorOffsets:Bool = false, ?blend:BlendMode, smooth:Bool = false, ?shader:FlxShader)
   {
-    #if FLX_RENDER_TRIANGLE
-    return startTrianglesBatch(graphic, smooth, colored, blend);
-    #else
-    var itemToReturn = null;
+    try {
+      #if FLX_RENDER_TRIANGLE
+      return startTrianglesBatch(graphic, smooth, colored, blend);
+      #else
+      var itemToReturn = null;
 
-    if (_currentDrawItem != null
-      && _currentDrawItem.type == FlxDrawItemType.TILES
-      && _headTiles.graphics == graphic
-      && _headTiles.colored == colored
-      && _headTiles.hasColorOffsets == hasColorOffsets
-      && _headTiles.blend == blend
-      && _headTiles.antialiasing == smooth
-      && _headTiles.shader == shader)
-    {
-      return _headTiles;
-    }
+      if (_currentDrawItem != null
+        && _currentDrawItem.type == FlxDrawItemType.TILES
+        && _headTiles.graphics == graphic
+        && _headTiles.colored == colored
+        && _headTiles.hasColorOffsets == hasColorOffsets
+        && _headTiles.blend == blend
+        && _headTiles.antialiasing == smooth
+        && _headTiles.shader == shader)
+      {
+        return _headTiles;
+      }
 
-    if (_storageTilesHead != null)
-    {
-      itemToReturn = _storageTilesHead;
-      var newHead = _storageTilesHead.nextTyped;
-      itemToReturn.reset();
-      _storageTilesHead = newHead;
-    }
-    else
-    {
+      if (_storageTilesHead != null)
+      {
+        itemToReturn = _storageTilesHead;
+        var newHead = _storageTilesHead.nextTyped;
+        itemToReturn.reset();
+        _storageTilesHead = newHead;
+      }
+      else
+      {
+        itemToReturn = new FlxDrawQuadsItem();
+      }
+
+      // TODO: catch this error when the dev actually messes up, not in the draw phase
+      if (graphic.isDestroyed) throw 'Cannot queue ${graphic.key}. This sprite was destroyed.';
+
+      itemToReturn.graphics = graphic;
+      itemToReturn.antialiasing = smooth;
+      itemToReturn.colored = colored;
+      itemToReturn.hasColorOffsets = hasColorOffsets;
+      itemToReturn.blend = blend;
+      itemToReturn.shader = shader;
+
+      itemToReturn.nextTyped = _headTiles;
+      _headTiles = itemToReturn;
+
+      if (_headOfDrawStack == null)
+      {
+        _headOfDrawStack = itemToReturn;
+      }
+
+      if (_currentDrawItem != null)
+      {
+        _currentDrawItem.next = itemToReturn;
+      }
+
+      _currentDrawItem = itemToReturn;
+
+      return itemToReturn;
+      #end
+    } catch(e) {
+      trace('Cannot queue ${graphic?.key}. This sprite was destroyed.');
+      var itemToReturn = null;
       itemToReturn = new FlxDrawQuadsItem();
+      return itemToReturn;
     }
-
-    // TODO: catch this error when the dev actually messes up, not in the draw phase
-    if (graphic.isDestroyed) throw 'Cannot queue ${graphic.key}. This sprite was destroyed.';
-
-    itemToReturn.graphics = graphic;
-    itemToReturn.antialiasing = smooth;
-    itemToReturn.colored = colored;
-    itemToReturn.hasColorOffsets = hasColorOffsets;
-    itemToReturn.blend = blend;
-    itemToReturn.shader = shader;
-
-    itemToReturn.nextTyped = _headTiles;
-    _headTiles = itemToReturn;
-
-    if (_headOfDrawStack == null)
-    {
-      _headOfDrawStack = itemToReturn;
-    }
-
-    if (_currentDrawItem != null)
-    {
-      _currentDrawItem.next = itemToReturn;
-    }
-
-    _currentDrawItem = itemToReturn;
-
-    return itemToReturn;
-    #end
   }
 
   @:noCompletion

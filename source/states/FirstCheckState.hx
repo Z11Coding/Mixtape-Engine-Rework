@@ -229,7 +229,7 @@ class FirstCheckState extends MusicBeatState
 
 		NativeFileSystem.openFlAssets = Assets.list();
 		openfl.utils.Assets.cache.enabled = false;
-		FunkinMemory.initialCache();
+		//FunkinMemory.initialCache();
 		FlxG.scaleMode = new MobileScaleMode(ClientPrefs.data.wideScreen);
 
 		if (AprilFools.allowAF)

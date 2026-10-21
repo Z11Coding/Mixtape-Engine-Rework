@@ -64,7 +64,6 @@ import backend.util.*;
 import backend.window.Window;
 import backend.window.WindowUtil;
 import backend.window.WindowUtils;
-import cache.Cache;
 import cutscenes.DialogueBoxPsych;
 import flixel.FlxBasic;
 import flixel.FlxBasic;

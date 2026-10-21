@@ -444,21 +444,9 @@ class FunkinPreloader extends FlxBasePreloader
 				{
 					cachingGraphicsPercent = 0.0;
 					cachingGraphicsStartTime = elapsed;
-					#if !LEGACY_PSYCH
 					// ? P-Slice precache commonly used graphics
-					//* FIles here won't be editable by mods
-					var assetsToCache:Array<String> = [
-						// "images/cursor-default.png",
-						// #if TOUCH_CONTROLS_ALLOWED
-						// 'mobile/images/touchpad/bg.png', 'mobile/images/touchpad/A.png', 'mobile/images/touchpad/B.png', 'mobile/images/touchpad/BACK.png',
-						// 'mobile/images/touchpad/PAUSE.png', 'mobile/images/touchpad/X.png', 'mobile/images/touchpad/Y.png', 'mobile/images/touchpad/UP.png',
-						// 'mobile/images/touchpad/DOWN.png', 'mobile/images/touchpad/LEFT.png', 'mobile/images/touchpad/RIGHT.png',
-						// #end
-						// "images/fonts/capsule-text.png",
-						// "images/fonts/freeplay-clear.png",
-						// "images/charSelect/lockedChill/spritemap1.png",
-						// "images/freeplay/albumRoll/volume4.png" // "images/ui/cursor.png"
-					]; // Assets.listGraphics('core');
+					// * FIles here won't be editable by mods
+					var assetsToCache:Array<String> = Assets.list(AssetType.IMAGE);
 
 					var promise = new Promise<Any>();
 					new Future(() ->
@@ -467,7 +455,10 @@ class FunkinPreloader extends FlxBasePreloader
 						{
 							try
 							{
-								Paths.excludeAsset(item);
+								if (!item.endsWith(".png"))
+									continue;
+								@:privateAccess
+								FunkinMemory.permanentCacheTexture(item);
 							}
 							catch (x:Exception)
 								trace("Exception when caching: " + x.message);
@@ -485,11 +476,6 @@ class FunkinPreloader extends FlxBasePreloader
 						cachingGraphicsComplete = true;
 						trace('Completed caching graphics.');
 					});
-					#else
-
-					cachingGraphicsComplete = true;
-					cachingGraphicsPercent = 1.0;
-					#end
 
 					return 0.0;
 				}
@@ -534,22 +520,35 @@ class FunkinPreloader extends FlxBasePreloader
 					cachingAudioPercent = 0.0;
 					cachingAudioStartTime = elapsed;
 
-					var assetsToCache:Array<String> = []; // Assets.listSound('core');
+					var assetsToCache:Array<String> = Assets.list(AssetType.SOUND); // Assets.listSound('core');
 
-					/*
-						var future:Future<Array<String>> = []; // Assets.cacheAssets(assetsToCache);
+					var promise = new Promise<Any>();
+					new Future(() ->
+					{
+						for (index => item in assetsToCache)
+						{
+							try
+							{
+								if (!item.endsWith(".ogg"))
+									continue;
+								@:privateAccess
+								FunkinMemory.permanentCacheSound(item);
+							}
+							catch (x:Exception)
+								trace("Exception when caching: " + x.message);
+							promise.progress(index + 1, assetsToCache.length);
+						}
+						promise.complete(null);
+					}, #if mac false #else true #end);
 
-						future.onProgress((loaded:Int, total:Int) -> {
-						  cachingAudioPercent = loaded / total;
-						});
-						future.onComplete((_result) -> {
-						  trace('Completed caching audio.');
-						});
-					 */
+					promise.future.onProgress((loaded:Int, total:Int) -> {
+						cachingAudioPercent = loaded / total;
+					});
+					promise.future.onComplete((_result) -> {
+						cachingAudioComplete = true;
+						trace('Completed caching audio.');
+					});
 
-					// TODO: Reimplement this.
-					cachingAudioPercent = 1.0;
-					cachingAudioComplete = true;
 					return 0.0;
 				}
 				else if (0.0 > 0)

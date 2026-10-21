@@ -1,6 +1,8 @@
 package shapeEx;
 
 import flixel.graphics.FlxGraphic;
+
+@:access(backend.funkin.FunkinMemory)
 class Rect extends FlxSprite
 {
 	public var mainRound:Float;
@@ -10,8 +12,8 @@ class Rect extends FlxSprite
 
 		this.mainRound = roundWidth;
 
-		if (Paths.currentTrackedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight)) == null) addCache(width, height, roundWidth, roundHeight, lineStyle, lineColor);
-		frames = Paths.currentTrackedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight));
+		if (FunkinMemory.currentCachedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight)) == null) addCache(width, height, roundWidth, roundHeight, lineStyle, lineColor);
+		frames = FunkinMemory.currentCachedFrames.get('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight));
 		antialiasing = ClientPrefs.data.antialiasing;
 		color = Color;
 		alpha = Alpha;
@@ -22,7 +24,7 @@ class Rect extends FlxSprite
 		newGraphic.persist = true;
 		newGraphic.destroyOnNoUse = false;
 
-		Paths.currentTrackedFrames.set('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight), newGraphic.imageFrame);
+		FunkinMemory.currentCachedFrames.set('rect-w'+Std.int(width)+'-h:'+Std.int(height)+'-rw:'+Std.int(roundWidth)+'-rh:'+Std.int(roundHeight), newGraphic.imageFrame);
 	}
 
 	function drawRect(width:Float, height:Float, roundWidth:Float, roundHeight:Float, lineStyle:Int, lineColor:FlxColor):BitmapData

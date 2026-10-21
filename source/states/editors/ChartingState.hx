@@ -2694,7 +2694,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		if(killAudio)
 		{
 			var sndsToKill:Array<String> = [];
-			for (key => snd in Paths.currentTrackedSounds)
+			@:privateAccess
+			for (key => snd in FunkinMemory.currentCachedSounds)
 			{
 				//trace(key, snd);
 				if(key.contains('/songs/${Paths.formatToSongPath(PlayfieldManager.SONG.song)}/') && snd != null)
@@ -2707,8 +2708,8 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			for (key in sndsToKill)
 			{
 				Assets.cache.clear(key);
-				Paths.currentTrackedSounds.remove(key);
-				Paths.localTrackedAssets.remove(key);
+				@:privateAccess
+				FunkinMemory.currentCachedSounds.remove(key);
 			}
 		}
 
