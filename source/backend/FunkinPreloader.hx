@@ -121,6 +121,7 @@ class FunkinPreloader extends FlxBasePreloader
 
 	var dspText:TextField;
 	var fnfText:TextField;
+	var mixtapeText:TextField;
 	var enhancedText:TextField;
 	var stereoText:TextField;
 
@@ -201,6 +202,7 @@ class FunkinPreloader extends FlxBasePreloader
 		progressLeftText = new TextField();
 		dspText = new TextField();
 		fnfText = new TextField();
+		mixtapeText = new TextField();
 		enhancedText = new TextField();
 		stereoText = new TextField();
 
@@ -219,7 +221,7 @@ class FunkinPreloader extends FlxBasePreloader
 		// Create the progress %.
 		progressRightText = new TextField();
 
-		var progressRightTextFormat = new TextFormat("DS-Digital", 16, 0xFF6C11FF, true);
+		var progressRightTextFormat = new TextFormat("DS-Digital", 32, 0xFF6C11FF, true);
 		progressRightTextFormat.align = TextFormatAlign.RIGHT;
 		progressRightText.defaultTextFormat = progressRightTextFormat;
 
@@ -259,6 +261,15 @@ class FunkinPreloader extends FlxBasePreloader
 		fnfText.y = -7;
 		fnfText.text = 'FNF';
 		box.addChild(fnfText);
+
+		mixtapeText.selectable = false;
+		mixtapeText.textColor = 0x000000;
+		mixtapeText.width = this._width;
+		mixtapeText.height = 30;
+		mixtapeText.x = 146;
+		mixtapeText.y = -7;
+		mixtapeText.text = 'MIXTAPE';
+		box.addChild(mixtapeText);
 
 		enhancedText.selectable = false;
 		enhancedText.textColor = 0xFF6C11FF;
@@ -1013,6 +1024,10 @@ class FunkinPreloader extends FlxBasePreloader
 				fnfText.text = 'FNF';
 				fnfText.textColor = 0x000000;
 
+				mixtapeText.defaultTextFormat = new TextFormat("Quantico", 20, 0x000000, false);
+				mixtapeText.text = 'MIXTAPE';
+				mixtapeText.textColor = 0x000000;
+
 				enhancedText.defaultTextFormat = new TextFormat("Inconsolata Black", 16, 0xFFA4FF11, false);
 				enhancedText.text = 'ENHANCED';
 				enhancedText.textColor = 0xFFA4FF11;
@@ -1051,6 +1066,7 @@ class FunkinPreloader extends FlxBasePreloader
 		box.alpha = logo.alpha;
 		dspText.alpha = logo.alpha;
 		fnfText.alpha = logo.alpha;
+		mixtapeText.alpha = logo.alpha;
 		enhancedText.alpha = logo.alpha;
 		stereoText.alpha = logo.alpha;
 		progressLines.alpha = logo.alpha;
