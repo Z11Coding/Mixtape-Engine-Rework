@@ -646,7 +646,7 @@ class Paths
 		// 	return null;
 		// }
 		//trace('songKey test: $songKey');
-		return returnSound(songKey, 'songs', modsAllowed);
+		return returnSound(songKey, 'songs', modsAllowed, false);
 	}
 
 	inline static public function instPath(song:String, ?modsAllowed:Bool = true):String
@@ -1380,8 +1380,7 @@ class Paths
 	{
 		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
 		//trace('precaching sound: $file');
-		@:privateAccess
-		if(!FunkinMemory.currentCachedSounds.exists(file))
+		if(!FunkinMemory.isSoundCached(file))
 		{
 			#if sys
 			if(FileSystem.exists(file))
@@ -1399,7 +1398,7 @@ class Paths
 		}
 
 		@:privateAccess
-		return FunkinMemory.currentCachedSounds.get(file);
+		return FunkinMemory.getCachedSound(file);
 	}
 
 	inline public static function soundPath(path:String, ?key:String, ?library:String)

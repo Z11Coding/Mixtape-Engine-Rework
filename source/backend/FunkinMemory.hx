@@ -341,7 +341,12 @@ class FunkinMemory
   {
     if (permanentCachedSounds.exists(key)) return;
 
-    var sound:Null<Sound> = Assets.getSound(key, true);
+    var sound:Null<Sound> = null;
+    #if sys
+    sound = Sound.fromFile(key);
+    #else
+    sound = OpenFlAssets.getSound(key);
+    #end
     if (sound == null)
     {
       return;

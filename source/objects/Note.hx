@@ -1075,7 +1075,7 @@ class Note extends NoteObject
 			}
 			animation.play(animToPlay);
 
-			//scale.y = 0.7;
+			scale.y = 0.7;
 			updateHitbox();
     	centerOffsets();
 
@@ -1110,7 +1110,7 @@ class Note extends NoteObject
 
 			if(PlayState.isPixelStage)
 			{
-				scale.y *= PlayState.daPixelZoom;
+				//scale.y *= PlayState.daPixelZoom;
 				updateHitbox();
 				centerOffsets();
 			}
@@ -1361,6 +1361,9 @@ class Note extends NoteObject
 		}
 		else skinPostfix = '';
 
+		publicTexture = skin;
+		publicTextureSus = skin;
+
 		defaultWidth = 157;
 		defaultHeight = 154;
 
@@ -1381,11 +1384,11 @@ class Note extends NoteObject
 					publicTexture = 'pixelUI/' + skinPixel + skinPostfix;
 					publicTextureSus = 'pixelUI/' + skinPixel + 'ENDS' + skinPostfix;
 					if(isSustainNote) {
-						var graphic = Paths.image('pixelUI/' + skinPixel + 'ENDS' + skinPostfix);
+						var graphic = Paths.image(publicTextureSus);
 						loadGraphic(graphic, true, Math.floor(graphic.width / pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0]), Math.floor(graphic.height / 2));
 						originalHeight = graphic.height / 2;
 					} else {
-						var graphic = Paths.image('pixelUI/' + skinPixel + skinPostfix);
+						var graphic = Paths.image(publicTexture);
 						loadGraphic(graphic, true, Math.floor(graphic.width / pixelNotesDivisionValue[graphic.width == 306 ? 1 : 0]), Math.floor(graphic.height / 5));
 					}
 					setGraphicSize(Std.int(width * PlayState.daPixelZoom * pixelScales[PlayState.mania]));
@@ -1406,18 +1409,17 @@ class Note extends NoteObject
 				case 'Fake Heal Note':
 					loadGraphic(Paths.image("streamervschat/fakehealnote"), false);
 				default:
-					frames = Paths.getSparrowAtlas(skin);
+					frames = Paths.getSparrowAtlas(publicTexture);
 					loadNoteAnims();
-					if (!isSustainNote) {
-						centerOffsets();
-						centerOrigin();
-					}
+					centerOffsets();
+					centerOrigin();
 			}
 		}
 
-		if(isSustainNote) {
+		if(isSustainNote && !isParent) {
 			scale.y = lastScaleY;
 		}
+
 		if (inEditor)
 			setGraphicSize(ChartingState.GRID_SIZE, ChartingState.GRID_SIZE);
 
@@ -1495,6 +1497,7 @@ class Note extends NoteObject
 				animation.add(animName + ' tail', [colorIndex + (pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0] * 2)]);
 			}
 		}
+
 	}
 
 	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
@@ -1601,68 +1604,6 @@ class Note extends NoteObject
 		// Clear pool reference
 
 		notePool = null;
-	}
-
-	public function followStrumNote(myStrum:StrumNote, fakeCrochet:Float, songSpeed:Float = 1)
-	{
-		var strumX:Float = myStrum.x;
-		var strumY:Float = myStrum.y;
-		var strumAngle:Float = myStrum.angle;
-		var strumAlpha:Float = myStrum.alpha;
-		var strumDirection:Float = myStrum.direction;
-
-		distance = (0.45 * (Conductor.songPosition - strumTime) * songSpeed * multSpeed);
-		if (!myStrum.downScroll) distance *= -1;
-
-		var angleDir = strumDirection * Math.PI / 180;
-		if (copyAngle)
-			angle = strumDirection - 90 + strumAngle + offsetAngle;
-
-		if(copyAlpha)
-			alpha = strumAlpha * multAlpha;
-
-		if(copyX)
-			x = strumX + offsetX + Math.cos(angleDir) * distance;
-
-		if(copyY)
-		{
-			y = strumY + offsetY + correctionOffset + Math.sin(angleDir) * distance;
-			if(myStrum.downScroll && isSustainNote)
-			{
-				if(PlayState.isPixelStage)
-				{
-					y -= PlayState.daPixelZoom * 9.5;
-				}
-				y -= (frameHeight * scale.y) - (Note.swagWidth / 2);
-			}
-		}
-	}
-
-	public function clipToStrumNote(myStrum:StrumNote)
-	{
-		var center:Float = myStrum.y + offsetY + Note.swagWidth / 2;
-		if((mustPress || !ignoreNote) && (wasGoodHit || (prevNote.wasGoodHit && !canBeHit)))
-		{
-			var swagRect:FlxRect = clipRect;
-			if(swagRect == null) swagRect = new FlxRect(0, 0, frameWidth, frameHeight);
-
-			if (myStrum.downScroll)
-			{
-				if(y - offset.y * scale.y + height >= center)
-				{
-					swagRect.width = frameWidth;
-					swagRect.height = (center - y) / scale.y;
-					swagRect.y = frameHeight - swagRect.height;
-				}
-			}
-			else if (y + offset.y * scale.y <= center)
-			{
-				swagRect.y = (center - y) / scale.y;
-				swagRect.width = width / scale.x;
-				swagRect.height = (height / scale.y) - swagRect.y;
-			}
-			clipRect = swagRect;
-		}
 	}
 
 	@:noCompletion
