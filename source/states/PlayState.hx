@@ -935,7 +935,6 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
-
 		// Cache frequently used values for performance
 		_cachedSongName = SONG?.song?.toLowerCase();
 
@@ -1095,9 +1094,6 @@ class PlayState extends MusicBeatState
 		#end
 		endCallback = endSong;
 
-		//trace("Setting Up Mod Manager");
-		//trace("Mod Manager Now Loaded!");
-
 		switch(ClientPrefs.data.skipWhen) {
 			case "Freeplay": allowSkip = !isStoryMode;
 			case "Story": allowSkip = isStoryMode;
@@ -1181,7 +1177,7 @@ class PlayState extends MusicBeatState
 		camCOD.bgColor.alpha = 0;
 
 
-		try
+		/*try
 		{
 			metadata = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(_cachedSongName) + '/meta')));
 			trace(File.getContent(Paths.json(Paths.formatToSongPath(_cachedSongName) + '/meta')));
@@ -1468,7 +1464,9 @@ class PlayState extends MusicBeatState
 		// TODO: add deprecation messages to function callbacks somehow
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
+		trace("Setting Up Mod Manager");
 		playfield.addNotes();
+		trace("Mod Manager Now Loaded!");
 		playfield.manualInputChecks = true;
 
 		#if ALLOW_DEPRECATION
@@ -2109,7 +2107,7 @@ class PlayState extends MusicBeatState
 				ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
 				ticTacToeSpr.cameras = [camOther];
 				add(ticTacToeSpr);
-			}*/
+			}/
 
 			var mouseList:Array<String> = ['mouse_follower', 'click_time'];
 
@@ -2143,7 +2141,7 @@ class PlayState extends MusicBeatState
 
 		trace("Adding last-minute manager things");
 		doMegaManagerStuff(); // do it at the END
-		trace("State is now fully loaded!");
+		trace("State is now fully loaded!");*/
 	}
 
 	public function doMegaManagerStuff() {
@@ -4182,6 +4180,8 @@ class PlayState extends MusicBeatState
 	public var forceModSyncOff:Bool = false;
 	override public function update(elapsed:Float)
 	{
+		super.update(elapsed);
+		/*
 		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
 		_updateFrameCounter++;
 		var shouldBatchUpdate = _batchUIUpdates && (_updateFrameCounter % _batchedUpdateThreshold != 0);
@@ -4311,7 +4311,7 @@ class PlayState extends MusicBeatState
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 0);
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 			}
-		}*/
+		}/
 
 		if (allowSkip)
 		{
@@ -4725,7 +4725,7 @@ class PlayState extends MusicBeatState
 									}
 								});
 							}
-						}*/
+						}/
 					}
 				});
 			}
@@ -4892,7 +4892,7 @@ class PlayState extends MusicBeatState
 		setOnScripts('cameraX', camFollow.x);
 		setOnScripts('cameraY', camFollow.y);
 		setOnScripts('botPlay', cpuControlled);
-		callOnScripts('onUpdatePost', [elapsed]);
+		callOnScripts('onUpdatePost', [elapsed]);*/
 	}
 
 	public static function formatNumber(number:Float, ?decimals:Bool = false):String //simplified number formatting

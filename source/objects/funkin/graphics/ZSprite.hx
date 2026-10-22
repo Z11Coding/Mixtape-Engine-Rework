@@ -66,7 +66,7 @@ class ZSprite extends FunkinSkewedSprite
   // The value provided to the applyPerspective function for noteHeight parameter.
   public var perspectiveHeight:Null<Float> = null;
   // If set to true, will automatically calculate this sprites perspective to emulate 3D in every draw() call
-  public var autoCalculatePerspective:Bool = true;
+  public var autoCalculatePerspective:Bool = false;
 
   /*
    * Due to angle being overridden every frame (if the modchart system is using this sprite), angular velocity won't work properly.

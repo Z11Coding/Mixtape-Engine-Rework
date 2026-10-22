@@ -15,9 +15,9 @@ import openfl.events.MouseEvent;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
 import openfl.text.TextFormatAlign;
+import openfl.utils.AssetType;
 import openfl.utils.Promise;
 import shaders.VFDOverlay;
-import states.freeplay.vslice.DifficultyStars;
 
 
 // Annotation embeds the asset in the executable for faster loading.
@@ -446,7 +446,7 @@ class FunkinPreloader extends FlxBasePreloader
 					cachingGraphicsStartTime = elapsed;
 					// ? P-Slice precache commonly used graphics
 					// * FIles here won't be editable by mods
-					var assetsToCache:Array<String> = Assets.list(AssetType.IMAGE);
+					/*var assetsToCache:Array<String> = Assets.list(AssetType.IMAGE);
 
 					var promise = new Promise<Any>();
 					new Future(() ->
@@ -475,8 +475,10 @@ class FunkinPreloader extends FlxBasePreloader
 					{
 						cachingGraphicsComplete = true;
 						trace('Completed caching graphics.');
-					});
+					});*/
 
+					cachingGraphicsPercent = 1.0;
+					cachingGraphicsComplete = true;
 					return 0.0;
 				}
 				else if (0.0 > 0)
@@ -520,8 +522,7 @@ class FunkinPreloader extends FlxBasePreloader
 					cachingAudioPercent = 0.0;
 					cachingAudioStartTime = elapsed;
 
-					var assetsToCache:Array<String> = Assets.list(AssetType.SOUND); // Assets.listSound('core');
-
+					/*var assetsToCache:Array<String> = Assets.list(AssetType.SOUND); // Assets.listSound('core');
 					var promise = new Promise<Any>();
 					new Future(() ->
 					{
@@ -540,15 +541,15 @@ class FunkinPreloader extends FlxBasePreloader
 						}
 						promise.complete(null);
 					}, #if mac false #else true #end);
-
 					promise.future.onProgress((loaded:Int, total:Int) -> {
 						cachingAudioPercent = loaded / total;
 					});
 					promise.future.onComplete((_result) -> {
 						cachingAudioComplete = true;
 						trace('Completed caching audio.');
-					});
-
+					});*/
+					cachingAudioPercent = 1.0;
+					cachingAudioComplete = true;
 					return 0.0;
 				}
 				else if (0.0 > 0)

@@ -30,13 +30,13 @@ class ZSpriteProjected extends ZSprite
   public var vertOffsetZ:Array<Float> = [];
 
   // If enabled, will apply 3D projection to this sprite. If disabled, renders like a normal sprite.
-  public var projectionEnabled:Bool = true;
+  public var projectionEnabled:Bool = false;
 
   // If true, will correct the texture distortion created when transforming in 3D
-  public var doPerspectiveCorrection:Bool = true;
+  public var doPerspectiveCorrection:Bool = false;
 
   // If set to true, will set this sprite to be culled if all the subdivision points are considered "too close" to the camera.
-  public var cullIfTooClose:Bool = true;
+  public var cullIfTooClose:Bool = false;
 
   // If true, will repeat the texture in the draw call. Otherwise texture will be clamped
   public var textureRepeat:Bool = false;
@@ -330,149 +330,151 @@ class ZSpriteProjected extends ZSprite
         }
     }
 
-    var w:Float = this.frame.frame.width;
-    var h:Float = this.frame.frame.height;
+    if (this.frame?.frame != null) {
+      var w:Float = this.frame.frame.width;
+      var h:Float = this.frame.frame.height;
 
-    var offsetX:Float = this.frame.offset.x * scaleX;
-    var offsetScaledX:Float = (frameWidth - w) * (scaleX - 1) / 2;
+      var offsetX:Float = this.frame.offset.x * scaleX;
+      var offsetScaledX:Float = (frameWidth - w) * (scaleX - 1) / 2;
 
-    var offsetY:Float = this.frame.offset.y * scaleY;
-    var offsetScaledY:Float = (frameHeight - h) * (scaleY - 1) / 2;
+      var offsetY:Float = this.frame.offset.y * scaleY;
+      var offsetScaledY:Float = (frameHeight - h) * (scaleY - 1) / 2;
 
-    culled = false;
-    cullCounter = 0; // If every point triggers the "too close to camera" check, then we cull this sprite.
-    var cullCounterCap:Int = (subdivisions + 2) * (subdivisions + 2);
+      culled = false;
+      cullCounter = 0; // If every point triggers the "too close to camera" check, then we cull this sprite.
+      var cullCounterCap:Int = (subdivisions + 2) * (subdivisions + 2);
 
-    var i:Int = 0;
-    for (x in 0...subdivisions + 2) // x
-    {
-      for (y in 0...subdivisions + 2) // y
+      var i:Int = 0;
+      for (x in 0...subdivisions + 2) // x
       {
-        curRotationAmount = 0;
-
-        // Setup point
-        var point3D:Vector3D = new Vector3D(0, 0, 0);
-        point3D.x = (w / (subdivisions + 1)) * x;
-        point3D.y = (h / (subdivisions + 1)) * y;
-
-        // Animation frame offset stuff
-        point3D.x += offsetX - offsetScaledX;
-        point3D.y += offsetY - offsetScaledY;
-
-        var xPercent:Float = x / (subdivisions + 1);
-        var yPercent:Float = y / (subdivisions + 1);
-
-        // Apply vibrate effect
-        if (vibrateEffect != 0)
+        for (y in 0...subdivisions + 2) // y
         {
-          point3D.x += FlxG.random.float(-1, 1) * vibrateEffect;
-          point3D.y += FlxG.random.float(-1, 1) * vibrateEffect;
-          point3D.z += FlxG.random.float(-1, 1) * vibrateEffect;
+          curRotationAmount = 0;
+
+          // Setup point
+          var point3D:Vector3D = new Vector3D(0, 0, 0);
+          point3D.x = (w / (subdivisions + 1)) * x;
+          point3D.y = (h / (subdivisions + 1)) * y;
+
+          // Animation frame offset stuff
+          point3D.x += offsetX - offsetScaledX;
+          point3D.y += offsetY - offsetScaledY;
+
+          var xPercent:Float = x / (subdivisions + 1);
+          var yPercent:Float = y / (subdivisions + 1);
+
+          // Apply vibrate effect
+          if (vibrateEffect != 0)
+          {
+            point3D.x += FlxG.random.float(-1, 1) * vibrateEffect;
+            point3D.y += FlxG.random.float(-1, 1) * vibrateEffect;
+            point3D.z += FlxG.random.float(-1, 1) * vibrateEffect;
+          }
+
+          // Apply curVertOffsets
+          var curVertOffsetX:Float = 0;
+          var curVertOffsetY:Float = 0;
+          var curVertOffsetZ:Float = 0;
+
+          if (i < vertOffsetX.length)
+          {
+            curVertOffsetX = vertOffsetX[i];
+          }
+          if (i < vertOffsetY.length)
+          {
+            curVertOffsetY = vertOffsetY[i];
+          }
+          if (i < vertOffsetZ.length)
+          {
+            curVertOffsetZ = vertOffsetZ[i];
+          }
+
+          point3D.x += curVertOffsetX;
+          point3D.y += curVertOffsetY;
+          point3D.z += curVertOffsetZ;
+
+          if (spinAngle != 0)
+          {
+            point3D = applyRotZ(point3D, xPercent, yPercent, frameWidth, frameHeight, spinAngle);
+          }
+
+          point3D = applyCrop(point3D, w, h);
+
+          point3D = applyScale(point3D, xPercent, yPercent, w, h, false);
+
+          point3D = applyFlip(point3D, xPercent, yPercent);
+          point3D = applyRotation(point3D, xPercent, yPercent);
+
+          point3D = applySkew(point3D, xPercent, yPercent, w, h);
+
+          // scale2
+          point3D = applyScale(point3D, xPercent, yPercent, w, h, true);
+
+          // Apply offset here before it gets affected by z projection!
+          point3D.x -= offset.x;
+          point3D.y -= offset.y;
+          point3D = applyPerspective(point3D, xPercent, yPercent);
+          if (cullCounter >= cullCounterCap) culled = true;
+
+          vertices[i * 2] = point3D.x;
+          vertices[i * 2 + 1] = point3D.y;
+
+          if (culled) return; // Just stop if we are culled.
+
+          if (needsFlipX)
+          {
+            xPercent = 1 - xPercent;
+          }
+          if (needsFlipY)
+          {
+            yPercent = 1 - yPercent;
+          }
+
+          /* Updating the UV mapping! */
+          var uvX:Float = xPercent;
+          var uvY:Float = yPercent;
+
+          var curFrame = this.frame;
+          uvX = FlxMath.remapToRange(xPercent, 0, 1, curFrame.uv.left, curFrame.uv.right);
+          uvY = FlxMath.remapToRange(yPercent, 0, 1, curFrame.uv.top, curFrame.uv.bottom);
+
+          // todo: add repeat texture to here (using %) instead so that we can use frameBorderCut to determine if we repeat the entire atlas, or just the current frame
+          // 2026 me here, idk if this is possible cuz will need a vert for every time the texture repeats. Would have to be handled via shader instead :(
+
+          // crop
+          uvX *= (1 - cropLeft);
+
+          uvX -= 1 * (1 - cropLeft);
+          uvX *= (1.0 - cropRight / (1.0 - cropLeft));
+          uvX += 1 * (1 - cropLeft);
+
+          uvY *= (1 - cropTop);
+
+          uvY -= 1 * (1 - cropTop);
+          uvY *= (1.0 - cropBottom / (1.0 - cropTop));
+          uvY += 1 * (1 - cropTop);
+
+          // uv scale
+          uvX -= uvScaleOffset.x;
+          uvY -= uvScaleOffset.y;
+
+          uvX *= uvScale.x;
+          uvY *= uvScale.y;
+
+          uvX += uvScaleOffset.x;
+          uvY += uvScaleOffset.y;
+
+          // uv offset
+          uvX += uvOffset.x;
+          uvY += uvOffset.y;
+
+          // map it
+          uvtData[i * 3] = uvX; // u
+          uvtData[i * 3 + 1] = uvY; // v
+          uvtData[i * 3 + 2] = (doPerspectiveCorrection ? 1 / Math.max(0.0001, -point3D.z) : 1.0); // t
+
+          i++;
         }
-
-        // Apply curVertOffsets
-        var curVertOffsetX:Float = 0;
-        var curVertOffsetY:Float = 0;
-        var curVertOffsetZ:Float = 0;
-
-        if (i < vertOffsetX.length)
-        {
-          curVertOffsetX = vertOffsetX[i];
-        }
-        if (i < vertOffsetY.length)
-        {
-          curVertOffsetY = vertOffsetY[i];
-        }
-        if (i < vertOffsetZ.length)
-        {
-          curVertOffsetZ = vertOffsetZ[i];
-        }
-
-        point3D.x += curVertOffsetX;
-        point3D.y += curVertOffsetY;
-        point3D.z += curVertOffsetZ;
-
-        if (spinAngle != 0)
-        {
-          point3D = applyRotZ(point3D, xPercent, yPercent, frameWidth, frameHeight, spinAngle);
-        }
-
-        point3D = applyCrop(point3D, w, h);
-
-        point3D = applyScale(point3D, xPercent, yPercent, w, h, false);
-
-        point3D = applyFlip(point3D, xPercent, yPercent);
-        point3D = applyRotation(point3D, xPercent, yPercent);
-
-        point3D = applySkew(point3D, xPercent, yPercent, w, h);
-
-        // scale2
-        point3D = applyScale(point3D, xPercent, yPercent, w, h, true);
-
-        // Apply offset here before it gets affected by z projection!
-        point3D.x -= offset.x;
-        point3D.y -= offset.y;
-        point3D = applyPerspective(point3D, xPercent, yPercent);
-        if (cullCounter >= cullCounterCap) culled = true;
-
-        vertices[i * 2] = point3D.x;
-        vertices[i * 2 + 1] = point3D.y;
-
-        if (culled) return; // Just stop if we are culled.
-
-        if (needsFlipX)
-        {
-          xPercent = 1 - xPercent;
-        }
-        if (needsFlipY)
-        {
-          yPercent = 1 - yPercent;
-        }
-
-        /* Updating the UV mapping! */
-        var uvX:Float = xPercent;
-        var uvY:Float = yPercent;
-
-        var curFrame = this.frame;
-        uvX = FlxMath.remapToRange(xPercent, 0, 1, curFrame.uv.left, curFrame.uv.right);
-        uvY = FlxMath.remapToRange(yPercent, 0, 1, curFrame.uv.top, curFrame.uv.bottom);
-
-        // todo: add repeat texture to here (using %) instead so that we can use frameBorderCut to determine if we repeat the entire atlas, or just the current frame
-        // 2026 me here, idk if this is possible cuz will need a vert for every time the texture repeats. Would have to be handled via shader instead :(
-
-        // crop
-        uvX *= (1 - cropLeft);
-
-        uvX -= 1 * (1 - cropLeft);
-        uvX *= (1.0 - cropRight / (1.0 - cropLeft));
-        uvX += 1 * (1 - cropLeft);
-
-        uvY *= (1 - cropTop);
-
-        uvY -= 1 * (1 - cropTop);
-        uvY *= (1.0 - cropBottom / (1.0 - cropTop));
-        uvY += 1 * (1 - cropTop);
-
-        // uv scale
-        uvX -= uvScaleOffset.x;
-        uvY -= uvScaleOffset.y;
-
-        uvX *= uvScale.x;
-        uvY *= uvScale.y;
-
-        uvX += uvScaleOffset.x;
-        uvY += uvScaleOffset.y;
-
-        // uv offset
-        uvX += uvOffset.x;
-        uvY += uvOffset.y;
-
-        // map it
-        uvtData[i * 3] = uvX; // u
-        uvtData[i * 3 + 1] = uvY; // v
-        uvtData[i * 3 + 2] = (doPerspectiveCorrection ? 1 / Math.max(0.0001, -point3D.z) : 1.0); // t
-
-        i++;
       }
     }
   }

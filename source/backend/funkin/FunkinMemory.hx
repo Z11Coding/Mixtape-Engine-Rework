@@ -324,6 +324,7 @@ class FunkinMemory
     #end
     if (sound == null)
     {
+      FlxG.log.warn('Failed to cache sound: $key');
       return;
     }
     else
@@ -356,6 +357,7 @@ class FunkinMemory
       permanentCachedSounds.set(key, sound);
     }
 
+    log('Cached sound $key');
     if (sound != null) currentCachedSounds.set(key, sound);
   }
 

@@ -159,6 +159,8 @@ class StrumNote extends ZSpriteProjected
 		this.hsvShader = new HSVNotesShader();
 
 		scrollFactor.set();
+
+		trace('STRUM $leData CREATED!');
 	}
 
   override function toString()
@@ -227,7 +229,7 @@ class StrumNote extends ZSpriteProjected
 		{
       var skin:String = texture;
 			//trace("Skin: " + skin);
-			skin = (PlayfieldManager.SONG != null && (PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 0) ? PlayfieldManager.SONG.arrowSkin : (texture + postfix));
+			skin = (PlayfieldManager.SONG != null && (PlayfieldManager.SONG.arrowSkin != null && PlayfieldManager.SONG.arrowSkin.length > 0) ? PlayfieldManager.SONG.arrowSkin : texture);
 			if (skin == 'noteSkins/NOTE_assets' || skin == null) {
 				skin = "noteSkins/strums";
 			}

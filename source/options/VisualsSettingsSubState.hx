@@ -20,11 +20,12 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		// for note skins and splash skins
 		notes = new FlxTypedGroup<StrumNote>();
 		splashes = new FlxTypedGroup<NoteSplash>();
-		for (i in 0...3)
+		for (i in 0...4)
 		{
 			var note:StrumNote = new StrumNote(370 + (560 / ExtraKeys.colArray.length) * i, -200, i, 0);
 			changeNoteSkin(note);
 			notes.add(note);
+			note.postAddedToGroup();
 
 			var splash:NoteSplash = new NoteSplash(0, 0, NoteSplash.defaultNoteSplash + NoteSplash.getSplashSkinPostfix());
 			splash.inEditor = true;
@@ -229,8 +230,8 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
 
 		note.texture = skin; //Load texture and anims
-		note.reloadNote();
 		note.playAnim('static');
+
 	}
 
 	function onChangeSplashSkin()
