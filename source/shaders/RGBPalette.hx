@@ -65,7 +65,7 @@ class RGBShaderReference
 	public var b(default, set):FlxColor;
 	public var mult(default, set):Float;
 	public var enabled(default, set):Bool = true;
-	public var forceDisabled:Bool = false; // im ngl I dont know why I didn't start with this lmao
+	public var forceDisabled(default, set):Bool = false; // im ngl I dont know why I didn't start with this lmao
 
 	public var parent:RGBPalette;
 	private var _owner:FlxSprite;
@@ -117,6 +117,12 @@ class RGBShaderReference
 
 		_owner.shader = value ? parent.shader : null;
 		return (enabled = value);
+	}
+
+	private function set_forceDisabled(value:Bool)
+	{
+		enabled = value;
+		return value;
 	}
 
 	public var allowNew = true;

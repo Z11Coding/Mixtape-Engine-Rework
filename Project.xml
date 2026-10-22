@@ -152,7 +152,7 @@
 	<!-- <haxelib name="codename" /> -->
 
 	<!--Mixtape stuff needed-->
-	<haxelib name="openfl" version="9.4.1"/> <!-- Game engine backend -->
+	<lime version="8.3.2"/> <haxelib name="openfl" version="9.4.1"/> <!-- Game engine backend -->
 	<!--haxelib name="openflCamera" />
 	<haxelib name="openflMicrophone" /-->
 	<haxelib name="haxeui-core" version="1.7.0"/> <!-- UI framework -->

@@ -455,8 +455,6 @@ class FunkinPreloader extends FlxBasePreloader
 						{
 							try
 							{
-								if (!item.endsWith(".png"))
-									continue;
 								@:privateAccess
 								FunkinMemory.permanentCacheTexture(item);
 							}
@@ -522,7 +520,7 @@ class FunkinPreloader extends FlxBasePreloader
 					cachingAudioPercent = 0.0;
 					cachingAudioStartTime = elapsed;
 
-					/*var assetsToCache:Array<String> = Assets.list(AssetType.SOUND); // Assets.listSound('core');
+					/*var assetsToCache:Array<String> = Assets.list(AssetType.SOUND);
 					var promise = new Promise<Any>();
 					new Future(() ->
 					{

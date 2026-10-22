@@ -102,7 +102,7 @@ class StrumNote extends ZSpriteProjected
 	}
 
 	public function new(x:Float, y:Float, leData:Int, player:Int, ?inEditor:Bool = false) {
-    animation = new PsychAnimationController(this);
+    //animation = new PsychAnimationController(this);
 
 		rgbShader = new RGBShaderReference(this, Note.initializeGlobalRGBShader(leData));
 
@@ -114,7 +114,7 @@ class StrumNote extends ZSpriteProjected
 
 		noteModData = new NoteData();
 		strumExtraModData = new StrumExtraData(this);
-		this.applyAngularVelocityOffset = true;
+		//this.applyAngularVelocityOffset = true;
 
     var colorIndex:Int = (PlayState.instance != null && PlayState.isPixelStage) ?
 			ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex')[leData] :
@@ -394,7 +394,7 @@ class StrumNote extends ZSpriteProjected
     this.playfieldSkewCenterY = strumExtraModData.playfieldY;
     this.playfieldSkewCenterZ = strumExtraModData.playfieldZ;
 
-    projectionEnabled = strumExtraModData?.threeD ?? false;
+    //projectionEnabled = strumExtraModData?.threeD ?? false;
     super.draw();
   }
 

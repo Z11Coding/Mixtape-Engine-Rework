@@ -809,7 +809,7 @@ class ModHandler
     }
     note.noteModData.funnyOffMyself();
 
-    note.applyNoteData(note.noteModData);
+    //note.applyNoteData(note.noteModData);
 
     note.alpha *= note.weBelongTo?.alpha ?? 1.0; // Fix for notes not respecting their parents alpha.
 

@@ -935,6 +935,7 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+		super.create();
 		// Cache frequently used values for performance
 		_cachedSongName = SONG?.song?.toLowerCase();
 
@@ -990,16 +991,18 @@ class PlayState extends MusicBeatState
 		nextReloadAll = false;
 
 		#if MECHANICS_MOD_ALLOWED
-		var fiveMechanicsAtMixtape:Int = 0;
-		for (mechanic in MechanicManager.mechanics) {
-			if (inArchipelagoMode && APInfo.fivenightsatmechanicsmod) {
-				if (FlxG.random.bool(25)) {
-					mechanic.points = FlxG.random.int(0, 30);
-					fiveMechanicsAtMixtape++;
+		if (inArchipelagoMode) {
+			var fiveMechanicsAtMixtape:Int = 0;
+			for (mechanic in MechanicManager.mechanics) {
+				if (APInfo.fivenightsatmechanicsmod) {
+					if (FlxG.random.bool(25)) {
+						mechanic.points = FlxG.random.int(0, 30);
+						fiveMechanicsAtMixtape++;
+					}
+					if (fiveMechanicsAtMixtape == 4) break; //We only want 5 mechanics max at one time
+				} else if (inArchipelagoMode) {
+					mechanic.points = 0; //Reset it so that no mechanics are active
 				}
-				if (fiveMechanicsAtMixtape == 4) break; //We only want 5 mechanics max at one time
-			} else if (inArchipelagoMode) {
-				mechanic.points = 0; //Reset it so that no mechanics are active
 			}
 		}
 
@@ -1177,7 +1180,7 @@ class PlayState extends MusicBeatState
 		camCOD.bgColor.alpha = 0;
 
 
-		/*try
+		try
 		{
 			metadata = cast Json.parse(File.getContent(Paths.json(Paths.formatToSongPath(_cachedSongName) + '/meta')));
 			trace(File.getContent(Paths.json(Paths.formatToSongPath(_cachedSongName) + '/meta')));
@@ -1466,6 +1469,8 @@ class PlayState extends MusicBeatState
 		callOnScripts("onPlayfieldCreation"); // you should use this
 		trace("Setting Up Mod Manager");
 		playfield.addNotes();
+		playfield.opponentStrums.visible = false;
+		playfield.playerStrums.visible = false;
 		trace("Mod Manager Now Loaded!");
 		playfield.manualInputChecks = true;
 
@@ -2107,7 +2112,7 @@ class PlayState extends MusicBeatState
 				ticTacToeSpr = new TicTacToe(FlxG.width * 0.05, FlxG.height * 0.6);
 				ticTacToeSpr.cameras = [camOther];
 				add(ticTacToeSpr);
-			}/
+			}*/
 
 			var mouseList:Array<String> = ['mouse_follower', 'click_time'];
 
@@ -2141,7 +2146,7 @@ class PlayState extends MusicBeatState
 
 		trace("Adding last-minute manager things");
 		doMegaManagerStuff(); // do it at the END
-		trace("State is now fully loaded!");*/
+		trace("State is now fully loaded!");
 	}
 
 	public function doMegaManagerStuff() {

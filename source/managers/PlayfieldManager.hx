@@ -30,19 +30,19 @@ class PlayfieldManager {
   public static var curChart:Array<Note> = [];
   public var singAnimations:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
 
-  public var notes:FlxTypedGroup<Note>;
-	public var sustainNotes:FlxTypedGroup<Note>;
-	public var killNotes:Array<Note> = [];
-	public var unspawnNotes:Array<PreloadNotes> = [];
-  public var eventNotes:Array<EventNote> = [];
-	public var curEvents:Array<EventNote> = [];
+  public var notes:FlxTypedGroup<Note>; // Contains all the notes (spawned) (notes only)
+	public var sustainNotes:FlxTypedGroup<Note>; // Contains all the notes (spawned) (sustains only)
+	public var killNotes:Array<Note> = []; // Notes that shouldn't be there
+	public var unspawnNotes:Array<PreloadNotes> = []; // Contains all the notes (unspawned)
+  public var eventNotes:Array<EventNote> = []; // All Events for the current charts (actively used list)
+	public var curEvents:Array<EventNote> = []; // All Events for the current charts (used for song looping)
 
   /**
    * an array containg every strumline! Used for easy reference to different players!
   */
-  public var allStrumLines:Array<Strumline> = [];
-	public var opponentStrums:Strumline;
-	public var playerStrums:Strumline;
+  public var allStrumLines:Array<Strumline> = []; // All strums currently active
+	public var opponentStrums:Strumline; // Strums for the Opponent
+	public var playerStrums:Strumline; // Strums for the Player
 	public var grpHoldSplashes:FlxTypedGroup<SustainSplash>;
 	public var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
 
@@ -586,9 +586,20 @@ class PlayfieldManager {
       camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
     }
 
-    sustainNotes.cameras = [camNotes];
-		notes.cameras = [camNotes];
+    opponentStrums.cameras = [camNotes];
+		playerStrums.cameras = [camNotes];
     initHazardModchart();
+
+    /*opponentStrums.sustainNotes.visible = false;
+    opponentStrums.holdSplashes.visible = false;
+    opponentStrums.strumLineNotes.visible = false;
+    opponentStrums.notes.visible = false;
+    opponentStrums.noteSplashes.visible = false;
+    playerStrums.sustainNotes.visible = false;
+    playerStrums.holdSplashes.visible = false;
+    playerStrums.strumLineNotes.visible = false;
+    playerStrums.notes.visible = false;
+    playerStrums.noteSplashes.visible = false;*/
   }
 
   public function setStrumAlpha() {

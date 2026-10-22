@@ -160,10 +160,10 @@ class Note extends BaseNote
 
     noteModData = new NoteData();
 
-		animation = new PsychAnimationController(this);
+		//animation = new PsychAnimationController(this);
 
 		vwooshing = false;
-		this.applyAngularVelocityOffset = true;
+		//this.applyAngularVelocityOffset = true;
 
 		pixelNote = PlayState.isPixelStage;
 
@@ -664,7 +664,7 @@ class Note extends BaseNote
 		}
 
 		var strumExtraModData = noteModData?.whichStrumNote?.strumExtraModData ?? null;
-    projectionEnabled = strumExtraModData?.threeD ?? false;
+    //projectionEnabled = strumExtraModData?.threeD ?? false;
     playfieldSkewCenterX = (strumExtraModData?.playfieldX ?? FlxG.width / 2);
     playfieldSkewCenterY = (strumExtraModData?.playfieldY ?? FlxG.height / 2);
     playfieldSkewCenterZ = (strumExtraModData?.playfieldZ ?? 0);
