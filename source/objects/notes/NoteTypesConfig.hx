@@ -92,7 +92,7 @@ class NoteTypesConfig
 					note.ignoreNote = note.mustPress;
 					note.texture = 'noteSkins/mechanicsmod/KILLNOTE_assets';
 					note.noteSplashData.texture = 'noteSplashes/HURTnoteSplashes';
-					note.rgbShader.enabled = false;
+					note.useRGBShader = false;
 					note.missHealth = FlxMath.MAX_VALUE_FLOAT;
 					note.lowPriority = true;
 					note.hitCausesMiss = true;
@@ -100,7 +100,7 @@ class NoteTypesConfig
 					note.ignoreNote = note.mustPress;
 					note.texture = 'noteSkins/mechanicsmod/BURSTNOTE_assets';
 					note.noteSplashData.disabled = true;
-					note.rgbShader.enabled = false;
+					note.useRGBShader = false;
 					if (note.isSustainNote)
 					{
 						note.missHealth = 0.0475 / 2;
@@ -115,7 +115,7 @@ class NoteTypesConfig
 					note.ignoreNote = note.mustPress;
 					note.texture = 'noteSkins/mechanicsmod/SLEEPYNOTE_assets';
 					note.noteSplashData.disabled = true;
-					note.rgbShader.enabled = false;
+					note.useRGBShader = false;
 					if (note.isSustainNote)
 					{
 						note.missHealth = 0.0475 / 2;
@@ -136,12 +136,12 @@ class NoteTypesConfig
 					{
 						note.missHealth = 0.0475;
 					}
-					note.rgbShader.enabled = false;
+					note.useRGBShader = false;
 				case 'Fake Note':
 					note.ignoreNote = note.mustPress;
 					note.texture = 'noteSkins/mechanicsmod/FAKENOTE_assets';
 					note.noteSplashData.texture = 'HURTnoteSplashes';
-					note.rgbShader.enabled = false;
+					note.useRGBShader = false;
 					if (note.isSustainNote)
 					{
 						note.missHealth = 0.0475 / 2;
@@ -153,7 +153,7 @@ class NoteTypesConfig
 					note.hitCausesMiss = true;
 				case 'Swap Note':
 					note.texture = 'noteSkins/mechanicsmod/SWAPNOTE_assets';
-					note.rgbShader.enabled = false;
+					note.useRGBShader = false;
 					if (note.isSustainNote)
 					{
 						note.missHealth = 0.0475 / 2;

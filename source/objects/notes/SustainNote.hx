@@ -5,6 +5,7 @@ import backend.modchartSystem.ModHandler;
 import backend.modchartSystem.NoteData;
 import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
+import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
 import flixel.math.FlxAngle;
 import flixel.math.FlxMath;
@@ -363,6 +364,16 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
+  var holdFrameUVLeft:Float = 0;
+  var holdFrameUVTop:Float = 0;
+  var holdFrameUVRight:Float = 0.125;
+  var holdFrameUVBottom:Float = 1;
+  var tailFrameUVLeft:Float = 0.125;
+  var tailFrameUVTop:Float = 0;
+  var tailFrameUVRight:Float = 0.25;
+  var tailFrameUVBottom:Float = 0.9;
+  var tailFrameHeight:Float = 0;
+  var noteSkinUVs:Bool = false;
 
   // Makes the mesh all wobbly! Taken from ZProjectSprite_Note.hx
   public var vibrateEffect:Float = 0.0;
@@ -893,29 +904,76 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
   function setupHoldNoteGraphic():Void
   {
-    loadGraphic(Paths.image('NOTE_ArrowPath'));
-    antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
+    var letters:Array<String> = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters');
+    var direction:Int = ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData];
+    var noteFrame:FlxFrame = getAnimationFrame(letters[noteData]);
+    var holdFrame:FlxFrame = getAnimationFrame(letters[noteData] + ' hold');
+    var tailFrame:FlxFrame = getAnimationFrame(letters[noteData] + ' tail');
+    var colorName:String = ExtraKeys.colArray[direction];
 
-    if (PlayState.isPixelStage)
+    if (noteFrame == null) noteFrame = getAnimationFrame(colorName);
+    if (holdFrame == null) holdFrame = getAnimationFrame(colorName + ' hold');
+    if (tailFrame == null) tailFrame = getAnimationFrame(colorName + ' tail');
+
+    zoom = 0.7;
+    var noteScale:Float = ExtraKeys.scales[ExtraKeys.mania];
+    if (holdFrame != null && tailFrame != null && holdFrame.parent == tailFrame.parent)
     {
-      endOffset = bottomClip = 1;
+      graphic = holdFrame.parent;
+      noteSkinUVs = true;
+      holdFrameUVLeft = holdFrame.uv.left;
+      holdFrameUVTop = holdFrame.uv.top;
+      holdFrameUVRight = holdFrame.uv.right;
+      holdFrameUVBottom = holdFrame.uv.bottom;
+      tailFrameUVLeft = tailFrame.uv.left;
+      tailFrameUVTop = tailFrame.uv.top;
+      tailFrameUVRight = tailFrame.uv.right;
+      tailFrameUVBottom = tailFrame.uv.bottom;
+      graphicWidth = holdFrame.frame.width * zoom * noteScale;
+      tailFrameHeight = tailFrame.frame.height * zoom * noteScale;
     }
     else
     {
-      endOffset = 0.5;
-      bottomClip = 0.9;
+      loadGraphic(Paths.image('NOTE_ArrowPath'));
+      noteSkinUVs = false;
+      antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
+      graphicWidth = graphic.width / 8 * zoom;
+      tailFrameHeight = graphic.height * zoom;
+      if (PlayState.isPixelStage)
+      {
+        endOffset = bottomClip = 1;
+      }
+      else
+      {
+        endOffset = 0.5;
+        bottomClip = 0.9;
+      }
     }
 
-    zoom = 0.7;
-    graphicWidth = graphic.width / 8 * zoom;
+    antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     flipY = ClientPrefs.data.downScroll;
+
+    var noteWidth:Float = noteFrame != null ? noteFrame.frame.width * zoom * noteScale : BaseNote.swagWidth * noteScale;
+    offsetX = (noteWidth - graphicWidth) / 2;
 
     var initialData:Array<Float> = [];
     for (_ in 0...16) initialData.push(0);
     setVertices(initialData);
     setUVTData(initialData.copy());
     updateClipping();
+  }
+
+  function getAnimationFrame(name:String):FlxFrame
+  {
+    if (frames == null) return null;
+
+    var noteAnimation = animation.getByName(name);
+    if (noteAnimation == null || noteAnimation.frames.length == 0) return null;
+
+    var frameIndex:Int = noteAnimation.frames[0];
+    if (frameIndex < 0 || frameIndex >= frames.frames.length) return null;
+    return frames.frames[frameIndex];
   }
 
   override public function updateHitbox():Void
@@ -1449,7 +1507,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     longHolds += 1;
 
-    final endPixelSize:Float = graphic.height * endOffset * zoom;
+    final endPixelSize:Float = tailFrameHeight * endOffset;
     final scroll:Float = parentStrumline?.scrollSpeed ?? 1.0;
     final endCapTime:Float = endPixelSize / (Constants.PIXELS_PER_MS * scroll);
 
@@ -1531,10 +1589,22 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     if (uvSetup)
     {
-      uvtData[0 * 2] = (1 / 4) * (noteData % 4); // 0%/25%/50%/75% of the way through the image
-      uvtData[0 * 2 + 1] = uvClip;
-      uvtData[1 * 2] = uvtData[0 * 2] + (1 / 8); // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
-      uvtData[1 * 2 + 1] = uvClip;
+      if (noteSkinUVs)
+      {
+        var clippedUV:Float = FlxMath.bound(uvClip / holdResolution, 0, 1);
+        var topUV:Float = holdFrameUVTop + (holdFrameUVBottom - holdFrameUVTop) * clippedUV;
+        uvtData[0 * 2] = holdFrameUVLeft;
+        uvtData[0 * 2 + 1] = topUV;
+        uvtData[1 * 2] = holdFrameUVRight;
+        uvtData[1 * 2 + 1] = topUV;
+      }
+      else
+      {
+        uvtData[0 * 2] = (1 / 4) * (noteData % 4);
+        uvtData[0 * 2 + 1] = uvClip;
+        uvtData[1 * 2] = uvtData[0 * 2] + (1 / 8);
+        uvtData[1 * 2 + 1] = uvClip;
+      }
     }
 
     // grab left vert
@@ -1717,7 +1787,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         // Bottom left
         uvtData[i * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
         final originalV:Float = 1 * (k + 1);
-        uvtData[i * 2 + 1] = Math.max(originalV, uvClip);
+        uvtData[i * 2 + 1] = noteSkinUVs ? holdFrameUVBottom : Math.max(originalV, uvClip);
 
         // Bottom right
         uvtData[(i + 1) * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
@@ -1840,22 +1910,24 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
         // === END CAP UVs ===
         // Top left
-        uvtData[highestNumSoFar * 2] = uvtData[2 * 2] + (1 / 8); // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
-        uvtData[highestNumSoFar * 2 + 1] = capTopV;
+        uvtData[highestNumSoFar * 2] = noteSkinUVs ? tailFrameUVLeft : uvtData[2 * 2] + (1 / 8);
+        uvtData[highestNumSoFar * 2 + 1] = noteSkinUVs
+          ? tailFrameUVTop + (tailFrameUVBottom - tailFrameUVTop) * endClipAmount
+          : capTopV;
 
         // Top right
         uvtData[(
           highestNumSoFar
           + 1
-        ) * 2] = uvtData[highestNumSoFar * 2] + (1 / 8); // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
-        uvtData[(highestNumSoFar + 1) * 2 + 1] = capTopV;
+        ) * 2] = noteSkinUVs ? tailFrameUVRight : uvtData[highestNumSoFar * 2] + (1 / 8);
+        uvtData[(highestNumSoFar + 1) * 2 + 1] = uvtData[highestNumSoFar * 2 + 1];
 
         // Bottom left
         uvtData[(
           highestNumSoFar
           + 2
         ) * 2] = uvtData[highestNumSoFar * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
-        uvtData[(highestNumSoFar + 2) * 2 + 1] = bottomClip; // bottom bound
+        uvtData[(highestNumSoFar + 2) * 2 + 1] = noteSkinUVs ? tailFrameUVBottom : bottomClip;
 
         // Bottom right
         uvtData[(
@@ -1949,7 +2021,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       visible = true;
     }
 
-    var bottomHeight:Float = graphic.height * zoom * endOffset;
+    var bottomHeight:Float = tailFrameHeight * endOffset;
     var partHeight:Float = renderEnd ? clipHeight - bottomHeight : clipHeight;
 
     // ===HOLD VERTICES==
@@ -1983,17 +2055,25 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // UV coordinates are normalized, so they range from 0 to 1.
     // We are expecting an image containing 8 horizontal segments, each representing a different colored hold note followed by its end cap.
 
-    uvtData[0 * 2] = 1 / 4 * (noteData % 4); // 0%/25%/50%/75% of the way through the image
-    uvtData[0 * 2 + 1] = (-partHeight) / graphic.height / zoom; // top bound
+    if (noteSkinUVs)
+    {
+      uvtData[0 * 2] = holdFrameUVLeft;
+      uvtData[0 * 2 + 1] = holdFrameUVTop + (holdFrameUVBottom - holdFrameUVTop) * (1 - clipHeight / graphicHeight);
+    }
+    else
+    {
+      uvtData[0 * 2] = 1 / 4 * (noteData % 4);
+      uvtData[0 * 2 + 1] = (-partHeight) / graphic.height / zoom;
+    }
     // Top left
 
     // Top right
-    uvtData[1 * 2] = uvtData[0 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
+    uvtData[1 * 2] = noteSkinUVs ? holdFrameUVRight : uvtData[0 * 2] + 1 / 8;
     uvtData[1 * 2 + 1] = uvtData[0 * 2 + 1]; // top bound
 
     // Bottom left
     uvtData[2 * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
-    uvtData[2 * 2 + 1] = 0.0; // bottom bound
+    uvtData[2 * 2 + 1] = noteSkinUVs ? holdFrameUVBottom : 0.0;
 
     // Bottom right
     uvtData[3 * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
@@ -2011,7 +2091,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // Bottom left
     vertices[6 * 2] = vertices[2 * 2]; // Inline with left side
     vertices[6 * 2 + 1] = renderEnd
-      ? (flipY ? (graphic.height * (-bottomClip + endOffset) * zoom) : (graphicHeight + graphic.height * (bottomClip - endOffset) * zoom))
+      ? (flipY ? (tailFrameHeight * (-bottomClip + endOffset)) : (graphicHeight + tailFrameHeight * (bottomClip - endOffset)))
       : vertices[4 * 2 + 1];
 
     // Bottom right
@@ -2020,23 +2100,25 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     // === END CAP UVs ===
     // Top left
-    uvtData[4 * 2] = uvtData[2 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
+    uvtData[4 * 2] = noteSkinUVs ? tailFrameUVLeft : uvtData[2 * 2] + 1 / 8;
     uvtData[4 * 2 + 1] = if (partHeight > 0)
     {
-      0;
+      tailFrameUVTop;
     }
     else
     {
-      (bottomHeight - clipHeight) / zoom / graphic.height;
+      noteSkinUVs
+        ? tailFrameUVTop + (tailFrameUVBottom - tailFrameUVTop) * FlxMath.bound((bottomHeight - clipHeight) / bottomHeight, 0, 1)
+        : (bottomHeight - clipHeight) / zoom / graphic.height;
     };
 
     // Top right
-    uvtData[5 * 2] = uvtData[4 * 2] + 1 / 8; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
+    uvtData[5 * 2] = noteSkinUVs ? tailFrameUVRight : uvtData[4 * 2] + 1 / 8;
     uvtData[5 * 2 + 1] = uvtData[4 * 2 + 1]; // top bound
 
     // Bottom left
     uvtData[6 * 2] = uvtData[4 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
-    uvtData[6 * 2 + 1] = bottomClip; // bottom bound
+    uvtData[6 * 2 + 1] = noteSkinUVs ? tailFrameUVBottom : bottomClip;
 
     // Bottom right
     uvtData[7 * 2] = uvtData[5 * 2]; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
@@ -2207,7 +2289,6 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 			animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData] + (chartNoteData.isSustainEnd ? ' tail' : ' hold');
 			if (!animation.exists(animToPlay))
 				reloadNote(texture);
-			offsetX += width / 2;
 			copyAngle = false;
 			if (!animation.exists(animToPlay))
 			{
@@ -2215,7 +2296,6 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 			}
 			animation.play(animToPlay);
 			updateHitbox();
-			offsetX -= width / 2;
 
 			if (!PlayState.isPixelStage)
 				sustainScale = BaseNote.SUSTAIN_SIZE / frameHeight;
