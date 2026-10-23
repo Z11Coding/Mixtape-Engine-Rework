@@ -4185,8 +4185,6 @@ class PlayState extends MusicBeatState
 	public var forceModSyncOff:Bool = false;
 	override public function update(elapsed:Float)
 	{
-		super.update(elapsed);
-		/*
 		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
 		_updateFrameCounter++;
 		var shouldBatchUpdate = _batchUIUpdates && (_updateFrameCounter % _batchedUpdateThreshold != 0);
@@ -4316,7 +4314,7 @@ class PlayState extends MusicBeatState
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0.8, 'sineInOut', 0);
 				modManager.queueEase(conductor.currentStep, conductor.currentStep + 4, 'alpha', 0, 'sineInOut', 1);
 			}
-		}/
+		}*/
 
 		if (allowSkip)
 		{
@@ -4730,7 +4728,7 @@ class PlayState extends MusicBeatState
 									}
 								});
 							}
-						}/
+						}*/
 					}
 				});
 			}
@@ -4897,7 +4895,7 @@ class PlayState extends MusicBeatState
 		setOnScripts('cameraX', camFollow.x);
 		setOnScripts('cameraY', camFollow.y);
 		setOnScripts('botPlay', cpuControlled);
-		callOnScripts('onUpdatePost', [elapsed]);*/
+		callOnScripts('onUpdatePost', [elapsed]);
 	}
 
 	public static function formatNumber(number:Float, ?decimals:Bool = false):String //simplified number formatting

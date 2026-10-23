@@ -120,7 +120,7 @@ class PlayfieldManager {
   public var customZspritesGroup:FlxTypedSpriteGroup<ZSprite>;
 
   // If true, will enable the modchart logic. If false, the game should act identical to Vanilla.
-  public var isModchartSong:Bool = true;
+  public var isModchartSong:Bool = false;
 
   // basic flxSprite that can be used by lua for AFT purposes.
   public var luaAFT_sprite:HazardAFTSpriteTest;

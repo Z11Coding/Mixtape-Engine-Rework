@@ -690,7 +690,7 @@ class Strumline extends FlxSpriteGroup
           noteSplashSetPos(splash, splash.noteData);
         }
       }
-      updatePerspective();
+      //updatePerspective();
     }
     else
     {
@@ -1053,11 +1053,13 @@ class Strumline extends FlxSpriteGroup
   {
     noteSpacingScale = multiplier;
 
-    for (i in 0...ExtraKeys.mania)
+    for (i in 0...(ExtraKeys.mania+1))
     {
       var note = getByColumn(i);
-      if (note != null)
+      if (note != null) {
+        note.y = this.strumLineNotes.y;
         note.postAddedToGroup();
+      }
     }
   }
 
@@ -1194,7 +1196,8 @@ class Strumline extends FlxSpriteGroup
    */
   public function updateNotes():Void
   {
-    if (unspawnNotes.length == 0) return;
+    if (notes == null || sustainNotes == null) return; // if it's null, don't bother
+    if (unspawnNotes.length + (notes?.countLiving() + sustainNotes?.countLiving()) == 0) return; // if it's empty, don't bother
 
     // Ensure note data gets reset if the song happens to loop.
     // NOTE: I had to remove this line because it was causing notes visible during the countdown to be placed multiple times.
@@ -1210,7 +1213,7 @@ class Strumline extends FlxSpriteGroup
 			//notesAddedCount = 0;
 			NOTE_SPAWN_TIME = (ClientPrefs.data.dynamicSpawnTime ? (1600 / MegaManager.playfield.songSpeed) : 1600 * ClientPrefs.data.noteSpawnTime);
 			targetNote = unspawnNotes[notesAddedCount];
-			limitNC = (notes.countLiving() + sustainNotes.countLiving());
+			limitNC = (notes?.countLiving() + sustainNotes?.countLiving());
 
 			if (targetNote != null && !targetNote.wasHit)
 			{

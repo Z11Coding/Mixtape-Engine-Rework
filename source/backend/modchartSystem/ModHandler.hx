@@ -878,9 +878,17 @@ class ModHandler
   {
     var pos:Array<Float> = [0, 0, 0]; // x,y,z
 
-    pos[0] = strum.getXPos(direction);
-    pos[0] += strum.x;
-    pos[0] += Strumline.INITIAL_OFFSET;
+    pos[0] = strum.getByColumn(direction).x;
+    switch (ExtraKeys.mania)
+		{
+			case 0 | 1 | 2: pos[0] += strum.getByColumn(direction).width * direction;
+			case 3: pos[0] += (BaseNote.swagWidth * direction);
+			default: pos[0] += ((strum.getByColumn(direction).width - ExtraKeys.lessX[ExtraKeys.mania]) * direction);
+		}
+		pos[0] += 50;
+		pos[0] += ExtraKeys.xtra[ExtraKeys.mania];
+		pos[0] += ((FlxG.width / 2) * strum.playerNum);
+		pos[0] -= ExtraKeys.posRest[ExtraKeys.mania];
     pos[1] = strum.y;
     pos[2] = 0;
 
