@@ -7,6 +7,7 @@ import backend.modchartSystem.ModConstants;
 import backend.modchartSystem.ModHandler;
 import backend.modchartSystem.NoteData;
 import flixel.FlxG;
+import flixel.FlxSprite;
 import flixel.graphics.tile.FlxDrawTrianglesItem;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 import flixel.group.FlxSpriteGroup;
@@ -237,19 +238,19 @@ class Strumline extends FlxSpriteGroup
    * This group iterates over this every frame to update note positions.
    * The PlayState also iterates over this to calculate user inputs.
    */
-  public var notes:FlxTypedGroup<Note>;
+  public var notes:FlxTypedSpriteGroup<Note>;
 
   /**
    * The sustain notes currently being rendered on the strumline.
    * This group iterates over this every frame to update sustain note positions.
    * The PlayState also iterates over this to calculate user inputs.
    */
-  public var sustainNotes:FlxTypedGroup<SustainNote>;
+  public var sustainNotes:FlxTypedSpriteGroup<SustainNote>;
 
   /**
    * A signal that is dispatched when a note is spawned and heading towards the strumline.
    */
-  public var onNoteIncoming:FlxTypedSignal<Note->Void>;
+  public var onNoteIncoming:FlxTypedSignal<FlxSprite->Void>;
 
   var background:FunkinSprite;
 
@@ -275,7 +276,7 @@ class Strumline extends FlxSpriteGroup
 
   public var sustainNotesVwoosh:FlxTypedSpriteGroup<SustainNote>;
 
-  var noteSpacingScale:Float = 1;
+  var noteSpacingScale:Float = 0.7;
 
   /**
    * The scale of the strumline. Use this to resize it rather than setting the scale directly.
@@ -317,7 +318,7 @@ class Strumline extends FlxSpriteGroup
 
 
   // JS-Engine stuff
-  var noteLimit = ClientPrefs.data.maxNotes;
+  var noteLimit:Int = ClientPrefs.data.maxNotes == 0 ? 2147483647 : ClientPrefs.data.maxNotes;
 	public var renderedTxt:FlxText;
 	var limitNC = 0;
 	public var amountOfRenderedNotes:Float = 0;
@@ -379,6 +380,10 @@ class Strumline extends FlxSpriteGroup
       case "holdSplashes":
         group = new FlxTypedSpriteGroup<SustainSplash>(0, 0, 4);
         this.holdSplashes = group;
+        var splash:SustainSplash = new SustainSplash();
+    		splash.alpha = 0.0001;
+        splash.visible = false;
+        this.holdSplashes.add(splash);
       case "noteSplashes":
         var splash:NoteSplash = new NoteSplash(100, 100, 0);
         group = new FlxTypedSpriteGroup<NoteSplash>(0, 0, NOTE_SPLASH_CAP);
@@ -460,7 +465,7 @@ class Strumline extends FlxSpriteGroup
 
     this.refresh();
 
-    this.onNoteIncoming = new FlxTypedSignal<Note->Void>();
+    this.onNoteIncoming = new FlxTypedSignal<FlxSprite->Void>();
     resetScrollSpeed(scrollSpeed);
 
     /*for (i in 0...(ExtraKeys.mania+1))
@@ -486,6 +491,7 @@ class Strumline extends FlxSpriteGroup
 
     // This MUST be true for children to update!
     this.active = true;
+
   }
 
   override function set_y(value:Float):Float
@@ -551,8 +557,8 @@ class Strumline extends FlxSpriteGroup
 			}
 
 			this.strumLineNotes.add(babyArrow);
-      this.strumLineNotesAlt.push(babyArrow);
-      babyArrow.weBelongTo = this;
+			this.strumLineNotesAlt.push(babyArrow);
+			babyArrow.weBelongTo = this;
 			babyArrow.postAddedToGroup();
 		}
     #if ALLOW_DEPRECATION
@@ -669,8 +675,7 @@ class Strumline extends FlxSpriteGroup
 
       mods.updateSpecialMods();
       mods.updateStrums();
-      if ((notes?.length + sustainNotes?.length) > 0)
-        updateNotes();
+      updateNotes();
       #if FEATURE_GHOST_TAPPING
       updateGhostTapTimer(elapsed);
       #end
@@ -1039,7 +1044,7 @@ class Strumline extends FlxSpriteGroup
   {
     strumLineNotes.forEach(function(note:StrumNote):Void
     {
-      var styleScale = 1;
+      var styleScale = 0.7;
       note.scale.set(styleScale * scale.x, styleScale * scale.y);
     });
     setNoteSpacing(noteSpacingScale);
@@ -1058,6 +1063,7 @@ class Strumline extends FlxSpriteGroup
       var note = getByColumn(i);
       if (note != null) {
         note.y = this.strumLineNotes.y;
+        note.x = 0;
         note.postAddedToGroup();
       }
     }
@@ -1240,23 +1246,29 @@ class Strumline extends FlxSpriteGroup
 
           if (targetNote.strumTime > renderWindowStart_EDITED) break; // Note is too far ahead to render
 
+          var spawnedSprite:FlxSprite;
           if (targetNote.isSustainNote)
-            spawnedNote = cast sustainNotes.recycle(SustainNote);
+          {
+            var spawnedSustain:SustainNote = sustainNotes.recycle(SustainNote);
+            spawnedSustain.parentStrumline = this;
+            spawnedSustain.setupNoteData(targetNote);
+            spawnedSustain.cameras = cameras;
+            spawnedSprite = spawnedSustain;
+          }
           else
+          {
             spawnedNote = notes.recycle(Note);
-					spawnedNote.setupNoteData(targetNote);
-          spawnedNote.cullMode = getByColumn(targetNote.noteData).strumExtraModData?.cullModeNotes ?? "none";
+            spawnedNote.setupNoteData(targetNote);
+            spawnedNote.cameras = cameras;
+            spawnedNote.cullMode = getByColumn(targetNote.noteData)?.strumExtraModData?.cullModeNotes ?? "none";
+            spawnedSprite = spawnedNote;
+          }
 
+          //trace('Note StrumTime: ${targetNote.strumTime}');
+          //trace('Note wasHit: ${targetNote.wasHit}');
+          //trace('Note Spawn Timing: music=${conductorInUse.musicPosition}, precise=${conductorInUse.getTimeWithDelta()}, delta=${targetNote.strumTime - conductorInUse.getTimeWithDelta()}, scrollSpeed=$scrollSpeed');
 
-					if (targetNote.isSustainNote) {
-						var animToPlay:String = '';
-						animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[targetNote.noteData] + (targetNote.isSustainEnd ? ' tail' : ' hold');
-						if (!spawnedNote.animation.exists(animToPlay))
-							animToPlay = ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[targetNote.noteData]] + (targetNote.isSustainEnd ? ' holdend' : ' hold');
-						spawnedNote.animation.play(animToPlay);
-					}
-
-          onNoteIncoming.dispatch(spawnedNote);
+          onNoteIncoming.dispatch(spawnedSprite);
 					notesAddedCount++; limitNC++;
 					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
 					else break;
@@ -1290,11 +1302,23 @@ class Strumline extends FlxSpriteGroup
       else
       {
         // Set the note's position.
+        if (!customPositionData)
+        {
+          var strum:StrumNote = getByColumn(note.noteData);
+          if (strum != null) note.x = strum.x + note.offsetX;
+        }
         if (!customPositionData) note.y =
           this.y
           - INITIAL_OFFSET
           + GRhythmUtil.getNoteY(note.strumTime, scrollSpeed, isDownscroll, conductorInUse)
           + note.yOffset;
+
+        var timeUntilHit:Float = note.strumTime - conductorInUse.getTimeWithDelta();
+        if (Math.abs(timeUntilHit) <= 20)
+        {
+          var strum:StrumNote = getByColumn(note.noteData);
+          //trace('Note Approach: lane=${note.noteData}, timeUntilHit=$timeUntilHit, note=(${note.x}, ${note.y}, ${note.width}x${note.height}), receptor=(${strum?.x}, ${strum?.y}), screen=(${FlxG.width}x${FlxG.height}), visible=${note.visible}, alpha=${note.alpha}, HUDCamera=${note.cameras != null && note.cameras.length > 0 && note.cameras[0] == PlayState.instance?.camHUD}');
+        }
 
         // If the note is miss
         var isOffscreen = ClientPrefs.data.downScroll ? note.y > FlxG.height : note.y < -note.height;
@@ -1309,6 +1333,11 @@ class Strumline extends FlxSpriteGroup
     for (holdNote in sustainNotes.members)
     {
       if (holdNote == null || !holdNote.alive) continue;
+      if (mods == null && !customPositionData)
+      {
+        var strum:StrumNote = getByColumn(holdNote.noteData);
+        if (strum != null) holdNote.x = strum.x + holdNote.offsetX;
+      }
 
       if (conductorInUse.musicPosition > holdNote.strumTime && holdNote.hitNote && !holdNote.missedNote)
       {
@@ -1928,11 +1957,8 @@ class Strumline extends FlxSpriteGroup
     }
     else
     {
-      arrow.y -= 150;
-      arrow.alpha = 0;
-      arrow.angle = 360;
       FlxTween.tween(arrow, {
-        y: arrow.y + 10,
+        y: (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50,
         alpha: 1,
         angle: 0
       }, 1, {

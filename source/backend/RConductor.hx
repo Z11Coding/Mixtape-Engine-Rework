@@ -34,7 +34,7 @@ class RConductor extends FlxRhythmConductor {
    */
   public function getTimeWithDelta():Float
   {
-    return this.musicPosition + this.frameMusicPosition;
+    return this.frameMusicPosition;
   }
 
   override public function new() {

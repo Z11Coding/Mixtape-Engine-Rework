@@ -251,7 +251,7 @@ class EditorPlayStateMixtape extends MusicBeatSubstate
 								noAnimation: songNotes[3] == 'No Animation',
 								isSustainNote: true,
 								isSustainEnd: susNote == floorSus,
-								sustainLength: 0,
+								sustainLength: Conductor.stepCrochet,
 								parentST: swagNote.strumTime,
 								parentSL: swagNote.sustainLength,
 								hitHealth: 0.023,

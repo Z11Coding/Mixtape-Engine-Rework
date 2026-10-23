@@ -891,6 +891,33 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     updateHitbox();
   }
 
+  function setupHoldNoteGraphic():Void
+  {
+    loadGraphic(Paths.image('NOTE_ArrowPath'));
+    antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
+
+    if (PlayState.isPixelStage)
+    {
+      endOffset = bottomClip = 1;
+    }
+    else
+    {
+      endOffset = 0.5;
+      bottomClip = 0.9;
+    }
+
+    zoom = 0.7;
+    graphicWidth = graphic.width / 8 * zoom;
+    graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
+    flipY = ClientPrefs.data.downScroll;
+
+    var initialData:Array<Float> = [];
+    for (_ in 0...16) initialData.push(0);
+    setVertices(initialData);
+    setUVTData(initialData.copy());
+    updateClipping();
+  }
+
   override public function updateHitbox():Void
   {
     width = graphicWidth;
@@ -952,7 +979,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     return;
   }
 
-  public var renderEnd:Bool = true; // test
+  public var renderEnd:Bool = false; // test
   public var piece:Int = 0; // test
   public var previousPiece:SustainNote = null;
   public var cullMode = TriangleCulling.NONE;
@@ -1923,7 +1950,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
 
     var bottomHeight:Float = graphic.height * zoom * endOffset;
-    var partHeight:Float = clipHeight - bottomHeight;
+    var partHeight:Float = renderEnd ? clipHeight - bottomHeight : clipHeight;
 
     // ===HOLD VERTICES==
     // Top left
@@ -1939,7 +1966,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     vertices[2 * 2 + 1] = if (partHeight > 0)
     {
       // flipY makes the sustain render upside down.
-      flipY ? 0.0 + bottomHeight : vertices[1] + partHeight;
+      flipY ? (renderEnd ? bottomHeight : 0.0) : vertices[1] + partHeight;
     }
     else
     {
@@ -1983,7 +2010,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     // Bottom left
     vertices[6 * 2] = vertices[2 * 2]; // Inline with left side
-    vertices[6 * 2 + 1] = flipY ? (graphic.height * (-bottomClip + endOffset) * zoom) : (graphicHeight + graphic.height * (bottomClip - endOffset) * zoom);
+    vertices[6 * 2 + 1] = renderEnd
+      ? (flipY ? (graphic.height * (-bottomClip + endOffset) * zoom) : (graphicHeight + graphic.height * (bottomClip - endOffset) * zoom))
+      : vertices[4 * 2 + 1];
 
     // Bottom right
     vertices[7 * 2] = vertices[3 * 2]; // Inline with right side
@@ -2033,7 +2062,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		}
 
     // Update tris if modchart system
-    if (usingHazModHolds && parentStrumline.doUpdateClipsInDraw)
+    if (usingHazModHolds && parentStrumline != null && parentStrumline.doUpdateClipsInDraw)
     {
       updateClipping_mods();
 
@@ -2119,11 +2148,14 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		gfNote = chartNoteData.gfNote;
 		isSustainNote = chartNoteData.isSustainNote;
 		isSustainEnd = chartNoteData.isSustainEnd;
+		renderEnd = isSustainEnd;
 		lowPriority = chartNoteData.lowPriority;
 		multAlpha = chartNoteData.multAlpha;
 		if (isSustainNote) {
 			parentST = chartNoteData.parentST;
 			parentSL = chartNoteData.parentSL;
+			sustainLength = chartNoteData.sustainLength;
+			fullSustainLength = chartNoteData.sustainLength;
 		}
 
 		hitHealth = chartNoteData.hitHealth;
@@ -2171,10 +2203,12 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		}
 
 		if (isSustainNote) {
-			offsetX += width / 2;
-			copyAngle = false;
 			var animToPlay:String = '';
 			animToPlay = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData] + (chartNoteData.isSustainEnd ? ' tail' : ' hold');
+			if (!animation.exists(animToPlay))
+				reloadNote(texture);
+			offsetX += width / 2;
+			copyAngle = false;
 			if (!animation.exists(animToPlay))
 			{
 				animToPlay = ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + (chartNoteData.isSustainEnd ? ' holdend' : ' hold');
@@ -2186,7 +2220,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 			if (!PlayState.isPixelStage)
 				sustainScale = BaseNote.SUSTAIN_SIZE / frameHeight;
 
-			updateHitbox();
+			setupHoldNoteGraphic();
+			triggerRedraw();
 		}
 		else {
 			var animToPlay:String = '';

@@ -610,6 +610,12 @@ class PauseSubState extends MusicBeatSubstate
 
 	override function destroy()
 	{
+		for (member in members)
+		{
+			if (member != null)
+				FlxTween.cancelTweensOf(member);
+		}
+
 		pauseMusic.destroy();
 		super.destroy();
 	}

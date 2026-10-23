@@ -1469,8 +1469,8 @@ class PlayState extends MusicBeatState
 		callOnScripts("onPlayfieldCreation"); // you should use this
 		trace("Setting Up Mod Manager");
 		playfield.addNotes();
-		playfield.opponentStrums.visible = false;
-		playfield.playerStrums.visible = false;
+		//playfield.opponentStrums.visible = false;
+		//playfield.playerStrums.visible = false;
 		trace("Mod Manager Now Loaded!");
 		playfield.manualInputChecks = true;
 
@@ -3970,6 +3970,40 @@ class PlayState extends MusicBeatState
 		{
 			mechanicsMod.dodgeWant = FlxG.random.float(6, 18);
 		}
+
+		/*trace('PlayerStrum First Receptor: ${playerStrums.strumLineNotes.members[0]}');
+		trace('PlayerStrum First Receptor X: ${playerStrums.strumLineNotes.members[0].x}');
+		trace('PlayerStrum First Receptor Y: ${playerStrums.strumLineNotes.members[0].y}');
+		if (playerStrums.notes != null) {
+			var playerFirstAliveNote:Note = playerStrums.notes.getFirstAlive();
+			if (playerFirstAliveNote != null) {
+				trace('PlayerStrum First Alive Note: $playerFirstAliveNote');
+				trace('PlayerStrum First Alive Note X: ${playerFirstAliveNote.x}');
+				trace('PlayerStrum First Alive Note Y: ${playerFirstAliveNote.y}');
+				trace('PlayerStrum First Alive Note Timing: time=${conductor.musicPosition}, precise=${conductor.getTimeWithDelta()}, scrollSpeed=${playerStrums.scrollSpeed}, downscroll=${playerStrums.isDownscroll}, strumTime=${playerFirstAliveNote.strumTime}');
+			} else {
+				trace("Plr Note Doesn't Exist Yet!");
+			}
+		} else {
+			trace("Plr Note Group Was null!");
+		}
+
+		trace('OpponentStrum First Receptor: ${opponentStrums.strumLineNotes.members[0]}');
+		trace('OpponentStrum First Receptor X: ${opponentStrums.strumLineNotes.members[0].x}');
+		trace('OpponentStrum First Receptor Y: ${opponentStrums.strumLineNotes.members[0].y}');
+		if (opponentStrums.notes != null) {
+			var opponentFirstAliveNote:Note = opponentStrums.notes.getFirstAlive();
+			if (opponentFirstAliveNote != null) {
+				trace('OpponentStrum First Alive Note: $opponentFirstAliveNote');
+				trace('OpponentStrum First Alive Note X: ${opponentFirstAliveNote.x}');
+				trace('OpponentStrum First Alive Note Y: ${opponentFirstAliveNote.y}');
+				trace('OpponentStrum Note Timing: time=${conductor.musicPosition}, precise=${conductor.getTimeWithDelta()}, scrollSpeed=${opponentStrums.scrollSpeed}, downscroll=${opponentStrums.isDownscroll}, strumTime=${opponentFirstAliveNote.strumTime}');
+			} else {
+				trace("Opp Note Doesn't Exist Yet!");
+			}
+		} else {
+			trace("Opp Note Group was null!");
+		}*/
 	}
 
 	function postGen() {

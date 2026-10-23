@@ -2,6 +2,7 @@ package managers;
 import backend.Song.SwagSong;
 import backend.modchartSystem.*;
 import backend.pslice.ScaleMode;
+import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.graphics.frames.FlxBitmapFont;
 import flixel.input.keyboard.FlxKey;
@@ -568,12 +569,12 @@ class PlayfieldManager {
 
     grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
 
-		SustainSplash.startCrochet = Conductor.stepCrochet;
+    SustainSplash.startCrochet = Conductor.stepCrochet;
 		SustainSplash.frameRate = Math.floor(24 / 100 * SONG.bpm);
-		var splash:SustainSplash = new SustainSplash();
-		grpHoldSplashes.add(splash);
-		splash.visible = true;
-		splash.alpha = 0.0001;
+    var splash:SustainSplash = new SustainSplash();
+    grpHoldSplashes.add(splash);
+    splash.visible = true;
+    splash.alpha = 0.0001;
 
 		initStrumlines();
 
@@ -584,22 +585,12 @@ class PlayfieldManager {
 
       camAFT = new FlxCamera();
       camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
+
+      opponentStrums.cameras = [camNotes];
+      playerStrums.cameras = [camNotes];
     }
 
-    opponentStrums.cameras = [camNotes];
-		playerStrums.cameras = [camNotes];
     initHazardModchart();
-
-    /*opponentStrums.sustainNotes.visible = false;
-    opponentStrums.holdSplashes.visible = false;
-    opponentStrums.strumLineNotes.visible = false;
-    opponentStrums.notes.visible = false;
-    opponentStrums.noteSplashes.visible = false;
-    playerStrums.sustainNotes.visible = false;
-    playerStrums.holdSplashes.visible = false;
-    playerStrums.strumLineNotes.visible = false;
-    playerStrums.notes.visible = false;
-    playerStrums.noteSplashes.visible = false;*/
   }
 
   public function setStrumAlpha() {
@@ -1132,8 +1123,9 @@ class PlayfieldManager {
           swagNote.row = Conductor.secsToRow(daStrumTime);
 
 					unspawnNotes.push(swagNote);
-          if (playerStrums != null && opponentStrums != null)
+          if (playerStrums != null && opponentStrums != null) {
             (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(swagNote);
+          }
 
 					if (jackingtime > 0) {
 						for (j in 0...Std.int(jackingtime)) {
@@ -1159,8 +1151,9 @@ class PlayfieldManager {
 								ignoreNote: swagNote.ignoreNote
 							};
 							unspawnNotes.push(jackNote);
-              if (playerStrums != null && opponentStrums != null)
+              if (playerStrums != null && opponentStrums != null) {
                 (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(jackNote);
+              }
 						}
 					}
 
@@ -1181,6 +1174,7 @@ class PlayfieldManager {
 								noAnimation: songNotes[3] == 'No Animation',
 								isSustainNote: true,
 								isSustainEnd: susNote == roundSus,
+								sustainLength: stepCrochet,
 								parentST: swagNote.strumTime,
 								parentSL: swagNote.sustainLength,
 								hitHealth: 0.023,
@@ -1193,8 +1187,9 @@ class PlayfieldManager {
 								ignoreNote: songNotes[3] == 'Hurt Note' && swagNote.mustPress
 							};
 							unspawnNotes.push(sustainNote);
-              if (playerStrums != null && opponentStrums != null)
+              if (playerStrums != null && opponentStrums != null) {
                 (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(sustainNote);
+              }
 						}
 					}
 				} else {
@@ -3092,7 +3087,7 @@ class PlayfieldManager {
     curChart = [];
 
     // cleanup
-    isModchartSong = true;
+    isModchartSong = false;
     modchartEventHandler = null;
     if (allStrumSprites != null)
     {
@@ -3472,14 +3467,41 @@ class PlayfieldManager {
     {
       customStrummer.fadeInArrows();
     }
-    playerStrums.fadeInArrows();
-    opponentStrums.fadeInArrows();
   }
 
-  function onStrumlineNoteIncoming(noteSprite:Note):Void
+  function onStrumlineNoteIncoming(noteSprite:FlxSprite):Void
   {
     MegaManager.scriptManager.callOnScripts('onSpawnNote', [noteSprite]);
-    trace("Spawned Note!");
+    /*trace("Spawned Note!");
+    var playerFirstAliveNote:Note = playerStrums.notes.getFirstAlive();
+    if (playerFirstAliveNote != null) {
+			trace('PlayerStrum First Alive Note: $playerFirstAliveNote');
+			trace('PlayerStrum First Alive Note X: ${playerFirstAliveNote.x}');
+			trace('PlayerStrum First Alive Note Y: ${playerFirstAliveNote.y}');
+			trace('PlayerStrum First Alive Note Alpha: ${playerFirstAliveNote.alpha}');
+			trace('PlayerStrum First Alive Note Visible: ${playerFirstAliveNote.visible}');
+			trace('PlayerStrum First Alive Note Alive: ${playerFirstAliveNote.alive}');
+			trace('PlayerStrum First Alive Note Anim Name: ${playerFirstAliveNote.animation.curAnim?.name}');
+      var playerNoteCameras = playerFirstAliveNote.cameras;
+			trace('PlayerStrum First Alive Note Camera is HUD: ${playerNoteCameras != null && playerNoteCameras.length > 0 && playerNoteCameras[0] == PlayState.instance?.camHUD}');
+		} else {
+			trace("Plr Note Doesn't Exist Yet!");
+		}
+
+    var opponentFirstAliveNote:Note = opponentStrums.notes.getFirstAlive();
+    if (opponentFirstAliveNote != null) {
+			trace('OpponentStrum First Alive Note: $opponentFirstAliveNote');
+			trace('OpponentStrum First Alive Note X: ${opponentFirstAliveNote.x}');
+			trace('OpponentStrum First Alive Note Y: ${opponentFirstAliveNote.y}');
+			trace('OpponentStrum First Alive Note Alpha: ${opponentFirstAliveNote.alpha}');
+			trace('OpponentStrum First Alive Note Visible: ${opponentFirstAliveNote.visible}');
+			trace('OpponentStrum First Alive Note Alive: ${opponentFirstAliveNote.alive}');
+			trace('OpponentStrum First Alive Note Anim Name: ${opponentFirstAliveNote.animation.curAnim?.name}');
+      var opponentNoteCameras = opponentFirstAliveNote.cameras;
+			trace('OpponentStrum First Alive Note Camera is HUD: ${opponentNoteCameras != null && opponentNoteCameras.length > 0 && opponentNoteCameras[0] == PlayState.instance?.camHUD}');
+		} else {
+			trace("Opp Note Doesn't Exist Yet!");
+		}*/
   }
 
   function add(obj:FlxBasic) {
