@@ -64,7 +64,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		if (ClientPrefs.data.noteColorStyle == 'Normal' && rgbShader != null && useRGBShader) defaultRGB();
 
 		if(noteData > -1 && noteType != value) {
-			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(cast this, value);
+			if (value != null && value.length > 1) NoteTypesConfig.applyNoteTypeData(this, value);
       if (hitsound != 'hitsound' && hitsoundVolume > 0) Paths.sound(hitsound);
 			noteType = value;
 			reloadNote();

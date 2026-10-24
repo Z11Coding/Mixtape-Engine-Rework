@@ -231,7 +231,7 @@ class Strumline extends FlxSpriteGroup
   /**
    * Whether the game should auto position notes.
    */
-  public var customPositionData:Bool = false;
+  public var customPositionData:Bool = true;
 
   /**
    * The notes currently being rendered on the strumline.
@@ -1529,7 +1529,6 @@ class Strumline extends FlxSpriteGroup
     });
   }
 
-  #if FEATURE_GHOST_TAPPING
   function updateGhostTapTimer(elapsed:Float):Void
   {
     // If it's still our turn, don't update the ghost tap timer.
@@ -1542,7 +1541,6 @@ class Strumline extends FlxSpriteGroup
       ghostTapTimer = 0;
     }
   }
-  #end
 
   /**
    * Called when the PlayState skips a large amount of time forward or backward.
@@ -1648,9 +1646,43 @@ class Strumline extends FlxSpriteGroup
 
     resetScrollSpeed();
 
-    #if FEATURE_GHOST_TAPPING
     ghostTapTimer = 0;
-    #end
+  }
+
+   /**
+   * Hit a note.
+   * @param note The note to hit.
+   * @param removeNote True to remove the note immediately, false to make it transparent and let it move offscreen.
+   */
+  public function hitNote(note:Dynamic, removeNote:Bool = true):Void
+  {
+    playConfirm(note.noteData);
+    note.hasBeenHit = true;
+
+    if (removeNote)
+    {
+      killNote(note);
+    }
+    else
+    {
+      note.alpha = 0.5;
+      note.desaturate();
+    }
+
+    if (note is SustainNote)
+    {
+      note.hitNote = true;
+      note.missedNote = false;
+      note.visible = true;
+      note.sustainLength = Math.min(
+        note.fullSustainLength,
+        (note.strumTime + note.fullSustainLength) - conductorInUse.songPosition
+      );
+    }
+
+    ghostTapTimer = Constants.GHOST_TAP_DELAY;
+
+    if (note.)
   }
 
   /**
@@ -1687,6 +1719,15 @@ class Strumline extends FlxSpriteGroup
   public function playPress(direction:Int):Void
   {
     getByColumn(direction).playPress();
+  }
+
+  /**
+   * Play a confirm animation for a given direction.
+   * @param direction The direction of the note to play the confirm animation for.
+   */
+  public function playConfirm(direction:Int):Void
+  {
+    getByColumn(direction).playConfirm();
   }
 
   /**

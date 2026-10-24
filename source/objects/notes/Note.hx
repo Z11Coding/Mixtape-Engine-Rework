@@ -152,10 +152,10 @@ class Note extends BaseNote
    */
   public var sustainNote:SustainNote;
 
-	public function new(?newStrumTime:Float, ?newNoteData:Int)
+	public function new(?newStrumTime:Float, ?newNoteData:Int, ?parentStrum:Strumline)
 	{
 		super();
-
+		this.parentStrumline = parentStrum;
 		this.hsvShader = new HSVNotesShader();
 
     noteModData = new NoteData();
@@ -269,6 +269,7 @@ class Note extends BaseNote
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
+	public var parentStrumline:Strumline;
 	private function reloadNote(?texture:String = '', ?postfix:String = '') {
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';

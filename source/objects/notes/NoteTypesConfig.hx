@@ -66,7 +66,7 @@ class NoteTypesConfig
 		return parsed;
 	}
 
-	public static function applyNoteTypeData(note:Note, name:String)
+	public static function applyNoteTypeData(note:Dynamic, name:String)
 	{
 		var data:Array<NoteTypeProperty> = loadNoteTypeData(name);
 		if(data == null || data.length < 1) {
