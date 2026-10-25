@@ -2595,8 +2595,8 @@ class APPlayState extends PlayState {
         super.update(elapsed);
     }
 
-    override function opponentNoteHit(note:Note, noteAlt:PreloadNotes = null):Void {
-        super.opponentNoteHit(note);
+    override function opponentNoteHit(note:Note, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void {
+        super.opponentNoteHit(note, noteAlt, customStrummer);
 
         if (releasethebeast) {
             if (FlxG.sound.music.time > (FlxG.sound.music.length/2))
@@ -2908,7 +2908,7 @@ class APPlayState extends PlayState {
     }
 
     public var check:Int = 0;
-    override function goodNoteHit(note:Note, noteAlt:PreloadNotes = null):Void
+    override function goodNoteHit(note:Dynamic, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void
     {
         if (note.specialNote)
 		{
@@ -2927,7 +2927,7 @@ class APPlayState extends PlayState {
             trace("\"NOTE CHECK\" CHECK FAILED!\n"+e);
         }
 
-        super.goodNoteHit(note, noteAlt);
+        super.goodNoteHit(note, noteAlt, customStrummer);
 
         if (releasethebeast && !note.gfNote) {
             if (resistanceAmount > 0) resistanceAmount -= 0.0080;
@@ -3339,5 +3339,4 @@ class APSongLockedInfoState extends backend.MusicBeatState
 		}));
 	}
 }
-
 

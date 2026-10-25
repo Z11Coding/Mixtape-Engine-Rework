@@ -1,5 +1,6 @@
 package states;
 
+import backend.funkin.util.GRhythmUtil;
 import objects.notes.BaseNote;
 import objects.notes.Strumline;
 import yutautil.PyScript;
@@ -1159,15 +1160,6 @@ class PlayState extends MusicBeatState
 
 		trace("Gameplay Changers Loaded!");
 
-		if (playfield.isModchartSong)
-    {
-      playfield.camNotes = new FlxCamera();
-      playfield.camNotes.bgColor.alpha = 0; // Show the game scene behind the camera.
-
-      playfield.camAFT = new FlxCamera();
-      playfield.camAFT.bgColor.alpha = 0; // Show the game scene behind the camera.
-    }
-
 		// var gameCam:FlxCamera = FlxG.camera;
 		camGame = initPsychCamera();
 		camHUD = new FlxCamera();
@@ -1467,6 +1459,7 @@ class PlayState extends MusicBeatState
 		// TODO: add deprecation messages to function callbacks somehow
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
+    playfield.isModchartSong = playfield.isModchartSong || scripts.startModcharts();
 		trace("Setting Up Mod Manager");
 		playfield.addNotes();
 		//playfield.opponentStrums.visible = false;
@@ -4219,6 +4212,8 @@ class PlayState extends MusicBeatState
 	public var forceModSyncOff:Bool = false;
 	override public function update(elapsed:Float)
 	{
+		amountOfRenderedNotes = 0;
+
 		// === PERFORMANCE OPTIMIZATION: Frame counter and batching ===
 		_updateFrameCounter++;
 		var shouldBatchUpdate = _batchUIUpdates && (_updateFrameCounter % _batchedUpdateThreshold != 0);
@@ -4514,15 +4509,19 @@ class PlayState extends MusicBeatState
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) playfield.keysCheck();
 				else playerDance();
 
-				// === OPTIMIZED NOTE PROCESSING ===
-				amountOfRenderedNotes = 0;
+				if (playfield.isModchartSong) processNotesCUSTOM(elapsed);
+				processSustainNotes(opponentStrums, false, dad);
+				processSustainNotes(playerStrums, !cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false));
 
-				notes.forEach(updateLiveNote);
-				if (notes.length > 1)
-					notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
-				sustainNotes.forEach(updateLiveNote);
-				if (sustainNotes.length > 1)
-					sustainNotes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+				// === OPTIMIZED NOTE PROCESSING ===
+				for (strum in playfield.allStrumLines) {
+					strum.notes.forEachExists(updateLiveNote);
+					if (strum.notes.countLiving() > 1)
+						strum.notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+					strum.sustainNotes.forEachExists(updateLiveNote);
+					if (strum.sustainNotes.countLiving() > 1)
+						strum.sustainNotes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+				}
 
 				if (mechanicsMod != null) {
 					if (MechanicManager.mechanics['burst_note'].points > 0 && mechanicsMod.burstTime != null)
@@ -5003,27 +5002,28 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function updateLiveNote(daNote:Note):Void
+	function updateLiveNote(daNote:Dynamic):Void
 	{
 		if (daNote != null && daNote.exists)
 		{
 			//first, process whether or not the note should be hit. this prevents pointless strum following
 			if (!daNote.mustPress && !daNote.hitByOpponent && !daNote.ignoreNote && daNote.strumTime <= conductor.musicPosition)
-				opponentNoteHit(daNote);
+				opponentNoteHit(daNote, null, daNote.parentStrumline);
 
 			if(daNote.mustPress) {
 				if(cpuControlled && !daNote.wasGoodHit && daNote.strumTime <= conductor.musicPosition && !daNote.ignoreNote)
-					goodNoteHit(daNote);
+					goodNoteHit(daNote, null, daNote.parentStrumline);
 			}
 			if (!daNote.exists) return;
 
 			amountOfRenderedNotes += daNote.noteDensity;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
-			if (playerStrums.members.length >= (ExtraKeys.mania+1) && playerStrums.strumLineNotes.members.length >= (ExtraKeys.mania+1))
-				daNote.followStrum((daNote.mustPress ? playerStrums : opponentStrums).getByColumn(daNote.noteData), songSpeed);
-			if (daNote.isSustainNote)
+			final noteStrumline:Strumline = daNote.parentStrumline ?? (daNote.mustPress ? playerStrums : opponentStrums);
+			if (noteStrumline != null && noteStrumline.members.length >= (ExtraKeys.mania+1) && noteStrumline.strumLineNotes.members.length >= (ExtraKeys.mania+1))
+				daNote.followStrum(noteStrumline.getByColumn(daNote.noteData), songSpeed);
+			if (daNote.isSustainNote && noteStrumline != null)
 			{
-				final strum = (daNote.mustPress ? playerStrums : opponentStrums).getByColumn(daNote.noteData);
+				final strum = noteStrumline.getByColumn(daNote.noteData);
 				if (strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);
 			}
 
@@ -5564,6 +5564,8 @@ class PlayState extends MusicBeatState
 	public function loopCallback(startingPoint:Float = 0) // this took so much effort to get working I really hope people use this
 	{
 		playfield.killDaNotes(); // kill any existing notes...except there should be any
+		amountOfRenderedNotes = 0;
+		maxRenderedNotes = 0;
 		conductor.target.time = startingPoint;
 		if (SONG.needsVoices) setVocalsTime(startingPoint);
 		lastUpdateTime = startingPoint;
@@ -8437,8 +8439,26 @@ class PlayState extends MusicBeatState
 	}
 
 	/**
- * A copy of the processNotes() function but for custom strumlines.
+ * A copy of the processNotes() function but for the stupid fricking sustains that I hate.
  */
+  function processSustainNotes(strummer:Strumline, isControlled:Bool, ?missCharacter:Character):Void
+  {
+    for (holdNote in strummer.sustainNotes.members)
+    {
+      if (holdNote == null || !holdNote.alive) continue;
+      var result = GRhythmUtil.processWindow(holdNote, isControlled);
+      if (result.botplayHit || (isControlled && result.cont && holdNote.mayHit && strummer.isKeyHeld(holdNote.noteData)))
+        strummer.hitNote(holdNote, false);
+
+      if (holdNote.missedNote && !holdNote.handledMiss)
+      {
+        holdNote.handledMiss = true;
+        if (!isControlled && missCharacter != null && holdNote.scoreable)
+          playAnim(holdNote, missCharacter);
+      }
+    }
+  }
+
   function processNotesCUSTOM(elapsed:Float):Void
   {
     for (strummer in playfield.customStrumLines)
@@ -8460,21 +8480,13 @@ class PlayState extends MusicBeatState
 
             if (note is SustainNote)
             {
-              strummer.playNoteHoldCover(note.holdNoteSprite);
+              strummer.playNoteHoldCover(cast (note, SustainNote));
             }
           }
         }
 
         // Process hold notes on the opponent's side.
-        for (holdNote in strummer.holdNotes.members)
-        {
-          if (holdNote == null || !holdNote.alive) continue;
-          if (holdNote.missedNote && !holdNote.handledMiss)
-          {
-            // When the opponent drops a hold note.
-            holdNote.handledMiss = true;
-          }
-        }
+        processSustainNotes(strummer, false);
       }
       else // if IS player controlled...
       {
@@ -8489,32 +8501,22 @@ class PlayState extends MusicBeatState
             // NOTE: This is what handles the strumline and cleaning up the note itself!
             strummer.hitNote(note);
 
-            if (note.holdNoteSprite != null)
+            if (note is SustainNote)
             {
-              strummer.playNoteHoldCover(note.holdNoteSprite);
+              strummer.playNoteHoldCover(cast (note, SustainNote));
             }
           }
           if (!r.cont) continue;
 
           // This becomes true when the note leaves the hit window.
           // It might still be on screen.
-          if (note.hasMissed && !note.handledMiss)
+          if (note.tooLate && !note.handledMiss)
           {
            note.handledMiss = true;
           }
         }
 
-        // Process hold notes on the player's side.
-        for (holdNote in strummer.holdNotes.members)
-        {
-          if (holdNote == null || !holdNote.alive) continue;
-
-          if (holdNote.missedNote && !holdNote.handledMiss)
-          {
-            // The player dropped a hold note.
-            holdNote.handledMiss = true;
-          }
-        }
+        processSustainNotes(strummer, !cpuControlled);
       }
     }
   }
@@ -8526,7 +8528,7 @@ class PlayState extends MusicBeatState
   {
     if (playerStrums.notes?.members == null || opponentStrums.notes?.members == null) return;
 
-    if (isModchartSong)
+    if (playfield.isModchartSong)
     {
       processNotesCUSTOM(elapsed);
     }
@@ -8542,31 +8544,14 @@ class PlayState extends MusicBeatState
         // NOTE: This is what handles the strumline and cleaning up the note itself!
         opponentStrums.hitNote(note);
 
-        if (note.holdNoteSprite != null)
+        if (note is SustainNote)
         {
-          opponentStrums.playNoteHoldCover(note.holdNoteSprite);
+          opponentStrums.playNoteHoldCover(cast (note, SustainNote));
         }
       }
     }
 
-    // Process hold notes on the opponent's side.
-    for (holdNote in opponentStrums.holdNotes.members)
-    {
-      if (holdNote == null || !holdNote.alive || holdNote.noteData == null) continue;
-
-      if (holdNote.missedNote && !holdNote.handledMiss)
-      {
-        // When the opponent drops a hold note.
-        holdNote.handledMiss = true;
-
-        if (holdNote.scoreable)
-        {
-          // We dropped a hold note.
-          // Play miss animation, but don't penalize.
-          playAnim(holdNote, dad);
-        }
-      }
-    }
+    processSustainNotes(opponentStrums, false, dad);
 
     // Process notes on the player's side.
     for (note in playerStrums.notes.members)
@@ -8577,16 +8562,16 @@ class PlayState extends MusicBeatState
       {
         playerStrums.hitNote(note);
 
-        if (note.holdNoteSprite != null)
+        if (note is SustainNote)
         {
-          playerStrums.playNoteHoldCover(note.holdNoteSprite);
+          playerStrums.playNoteHoldCover(cast (note, SustainNote));
         }
       }
       if (!r.cont) continue;
 
       // This becomes true when the note leaves the hit window.
       // It might still be on screen.
-      if (note.hasMissed && !note.handledMiss)
+      if (note.tooLate && !note.handledMiss)
       {
         // Skip handling the miss in botplay!
         if (!cpuControlled)
@@ -8601,13 +8586,12 @@ class PlayState extends MusicBeatState
       }
     }
 
-    // Process hold notes on the player's side.
-    // This handles scoring so we don't need it on the opponent's side.
-    for (holdNote in playerStrums.holdNotes.members)
+    processSustainNotes(playerStrums, !cpuControlled);
+    for (holdNote in playerStrums.sustainNotes.members)
     {
       if (holdNote == null || !holdNote.alive) continue;
 
-      if (holdNote.missedNote && !holdNote.handledMiss)
+      if (holdNote.tooLate && !holdNote.handledMiss)
       {
         // The player dropped a hold note.
         holdNote.handledMiss = true;
@@ -8623,10 +8607,10 @@ class PlayState extends MusicBeatState
   {
     for (note in playerStrums.notes.members)
     {
-      if (note == null || note.hasBeenHit) continue;
+      if (note == null || note.wasGoodHit) continue;
       var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
 
-      if (Conductor.instance.songPosition > hitWindowEnd)
+      if (conductor.musicPosition > hitWindowEnd)
       {
         // We have passed this note.
         // Flag the note for deletion without actually penalizing the player.
@@ -8637,7 +8621,7 @@ class PlayState extends MusicBeatState
     // Respawns notes that were between the previous time and the current time when skipping backward, or destroy notes between the previous time and the current time when skipping forward.
     playerStrums.handleSkippedNotes();
     opponentStrums.handleSkippedNotes();
-    for (customStrummer in customStrumLines)
+    for (customStrummer in playfield.customStrumLines)
     {
       customStrummer.handleSkippedNotes();
     }
@@ -8647,156 +8631,36 @@ class PlayState extends MusicBeatState
  * A copy of goodNote() function...
  * but instead has no scoring functionality as custom strums should not contribute towards the final score!
  */
-  public function goodNoteCustom(targetNote:NoteSprite, customStrummer:Strumline, input:PreciseInputEvent):Void
+  public function goodNoteCustom(targetNote:Dynamic, customStrummer:Strumline):Void
   {
-    // all this shit, just to figure out if the note was a combo break note (to be removed or to be desaturated?)
-    var inputLatencyNs:Int64 = PreciseInputManager.getCurrentTimestamp() - input.timestamp;
-    var inputLatencyMs:Float = inputLatencyNs.toFloat() / Constants.NS_PER_MS;
-    var noteDiff:Int = Std.int(Conductor.instance.songPosition - targetNote.noteData.time - inputLatencyMs);
-
-    var daRating = Scoring.judgeNote(noteDiff, PBOT1);
+    var noteDiff:Int = Std.int(conductor.musicPosition - targetNote.strumTime);
+    var daRating = Conductor.judgeNote(comboManager.ratingsData, noteDiff / playbackRate);
     var isComboBreak = false;
-    switch (daRating)
-    {
-      case 'sick':
-        isComboBreak = Constants.JUDGEMENT_SICK_COMBO_BREAK;
-      case 'good':
-        isComboBreak = Constants.JUDGEMENT_GOOD_COMBO_BREAK;
-      case 'bad':
-        isComboBreak = Constants.JUDGEMENT_BAD_COMBO_BREAK;
-      case 'shit':
-        isComboBreak = Constants.JUDGEMENT_SHIT_COMBO_BREAK;
-      default:
-        FlxG.log.error('Wuh? Buh? Guh? Note hit judgement was $daRating!');
-    }
-
-    // Send the note hit event.
-    var event:HitNoteScriptEvent = new HitNoteScriptEvent(targetNote, 0, 0, daRating, isComboBreak, Highscore.tallies.combo, noteDiff, daRating == 'sick');
-    dispatchEvent(event);
-
-    // Calling event.cancelEvent() skips all the other logic! Neat!
-    if (event.eventCanceled) return;
 
     // Display the hit on the strums
-    customStrummer.hitNote(targetNote, !event.isComboBreak);
-    if (event.doesNotesplash)
-    {
-      customStrummer.playNoteSplash(targetNote.noteData.getDirection(), targetNote);
-    }
+		if ((ClientPrefs.data.badShitBreakCombo && (daRating.name == 'bad' || daRating.name == 'shit')) || daRating.name == 'shit') isComboBreak = true;
+    customStrummer.hitNote(targetNote, !isComboBreak);
+    customStrummer.constructNoteSplash(targetNote.noteData);
 
-    if (targetNote.isHoldNote && targetNote.holdNoteSprite != null)
+    if (targetNote.isHoldNote && targetNote is SustainNote)
     {
-      customStrummer.playNoteHoldCover(targetNote.holdNoteSprite);
+      customStrummer.playNoteHoldCover(targetNote);
     }
   }
 
-  /**
-     * PreciseInputEvents are put into a queue between update() calls,
-     * and then processed here.
-     */
-  function processInputQueue():Void
-  {
-    if (inputPressQueue.length + inputReleaseQueue.length == 0) return;
-
-    // Ignore inputs during cutscenes.
-    if (isInCutscene || disableKeys)
-    {
-      inputPressQueue = [];
-      inputReleaseQueue = [];
-      return;
-    }
-
-    if (isModchartSong)
-    {
-      // Forward the inputs to custom strumlines first before we process it here (this function doesn't remove the input)
-      processInputQueueCustom();
-    }
-
-    // Generate a list of notes within range.
-    var notesInRange:Array<NoteSprite> = playerStrums.getNotesMayHit();
-
-    var notesByDirection:Array<Array<NoteSprite>> = [[], [], [], []];
-
-    for (note in notesInRange) notesByDirection[note.direction].push(note);
-
-    while (inputPressQueue.length > 0)
-    {
-      var input:Null<PreciseInputEvent> = inputPressQueue.shift();
-      if (input == null) continue;
-
-      // Whether this direction is already held by another key.
-      playerStrums.pressKey(input.noteDirection, input.keyCode);
-
-      // Don't credit or penalize inputs in Bot Play.
-      if (cpuControlled) continue;
-
-      var notesInDirection:Array<NoteSprite> = notesByDirection[input.noteDirection];
-
-      #if FEATURE_GHOST_TAPPING
-      if ((!playerStrums.mayGhostTap()) && notesInDirection.length == 0)
-      #else
-      if (notesInDirection.length == 0)
-      #end
-      {
-        // Pressed a wrong key with no notes nearby.
-        // Perform a ghost miss (anti-spam).
-        ghostNoteMiss(input.noteDirection, notesInRange.length > 0);
-
-        // Play the strumline animation.
-        playerStrums.playPress(input.noteDirection);
-        trace('PENALTY Score: ${songScore}');
-      }
-    else if (notesInDirection.length == 0)
-    {
-      // Press a key with no penalty.
-
-      // Play the strumline animation.
-      playerStrums.playPress(input.noteDirection);
-      trace('NO PENALTY Score: ${songScore}');
-    }
-    else
-    {
-      var targetNote:Null<NoteSprite> = notesInDirection.find((note) -> !note.lowPriority);
-      if (targetNote == null) targetNote = notesInDirection[0];
-      if (targetNote == null) continue;
-
-      // Judge and hit the note.
-      goodNoteHit(targetNote, input);
-
-      notesInDirection.remove(targetNote);
-
-      // Play the strumline animation.
-      playerStrums.playConfirm(input.noteDirection);
-    }
-    }
-
-    while (inputReleaseQueue.length > 0)
-    {
-      var input:Null<PreciseInputEvent> = inputReleaseQueue.shift();
-      if (input == null) continue;
-
-      // Play the strumline animation.
-      playerStrums.playStatic(input.noteDirection);
-
-      playerStrums.releaseKey(input.noteDirection, input.keyCode);
-    }
-
-    playerStrums.noteVibrations.tryNoteVibration();
-  }
-
-	public function opponentNoteHit(note:Note, noteAlt:PreloadNotes = null):Void
+	public function opponentNoteHit(note:Note, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void
 	{
 		if (note != null) {
 			var result:Dynamic;
 			if (opponentmode)
 			{
-				result = callOnLuas('goodNoteHitPre', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
+				result = callOnLuas('goodNoteHitPre', [(customStrummer ?? (note.parentStrumline ?? opponentStrums)).notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
 				if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHitPre', [note]);
 				if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHitPre', [note]);
 			}
 			else
 			{
-				result = callOnLuas('opponentNoteHitPre', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
+				result = callOnLuas('opponentNoteHitPre', [(customStrummer ?? (note.parentStrumline ?? opponentStrums)).notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
 				if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) result = callOnHScript('opponentNoteHitPre', [note]);
 				if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('opponentNoteHitPre', [note]);
 			}
@@ -8891,14 +8755,14 @@ class PlayState extends MusicBeatState
 			}
 
 			if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
-			strumPlayAnim(playerStrums, note.noteData, conductor.currentStepTime * 1.25 / 1000 / playbackRate);
+			strumPlayAnim(customStrummer ?? (note.parentStrumline ?? opponentStrums), note.noteData, conductor.currentStepTime * 1.25 / 1000 / playbackRate);
 			note.hitByOpponent = true;
 
 			if (ClientPrefs.data.oppNoteSplashes && note.isSustainNote && playfield.splashesPerFrame[2] <= 4)
 				playfield.spawnHoldSplashOnNote(note, true);
 
 			stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
-			var result:Dynamic = callOnLuas('opponentNoteHit', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
+			var result:Dynamic = callOnLuas('opponentNoteHit', [(customStrummer ?? (note.parentStrumline ?? opponentStrums)).notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnHScript('opponentNoteHit', [note]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('opponentNoteHit', [note]);
 
@@ -8998,7 +8862,7 @@ class PlayState extends MusicBeatState
 		return;
 	}
 
-	public function goodNoteHit(note:Note, noteAlt:PreloadNotes = null):Void
+	public function goodNoteHit(note:Dynamic, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void
 	{
 		if (note != null)
 		{
@@ -9009,7 +8873,7 @@ class PlayState extends MusicBeatState
 			var leData:Int = Math.round(Math.abs(note.noteData));
 			var leType:String = note.noteType;
 
-			var result:Dynamic = callOnLuas('goodNoteHitPre', [notes.members.indexOf(note), leData, leType, isSus]);
+			var result:Dynamic = callOnLuas('goodNoteHitPre', [(customStrummer ?? (note.parentStrumline ?? playerStrums)).notes.members.indexOf(note), leData, leType, isSus]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHitPre', [note]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHitPre', [note]);
 
@@ -9089,7 +8953,7 @@ class PlayState extends MusicBeatState
 
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && !note.botNote)
 				{
-					var spr = playerStrums.getByColumn(note.noteData);
+					var spr = (customStrummer ?? (note.parentStrumline ?? playerStrums)).getByColumn(note.noteData);
 					if(spr != null) spr.playAnim('confirm', true);
 				}
 				else strumPlayAnim(playerStrums, note.noteData + (ExtraKeys.mania+1), conductor.stepLengthMs * 1.25 / 1000 / playbackRate);
@@ -9245,7 +9109,7 @@ class PlayState extends MusicBeatState
 			bfkilledcheck = false;
 
 			stagesFunc(function(stage:BaseStage) stage.goodNoteHit(note));
-			var result:Dynamic = callOnLuas('goodNoteHit', [notes.members.indexOf(note), leData, leType, isSus]);
+			var result:Dynamic = callOnLuas('goodNoteHit', [(customStrummer ?? (note.parentStrumline ?? playerStrums)).notes.members.indexOf(note), leData, leType, isSus]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHit', [note]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHit', [note]);
 			if(!note.isSustainNote) invalidateNote(note);
@@ -9511,12 +9375,13 @@ class PlayState extends MusicBeatState
 		while (iterator.hasNext())
 		{
 			noteKill = iterator.next();
-			noteKill.kill();
+			if (noteKill != null)
+				noteKill.kill();
 		}
 		playfield.killNotes = [];
 	}
 
-	public function playAnim(note:Dynamic, char:Character, animToPlay:String, ?forceAnim:Bool = false) {
+	public function playAnim(note:Dynamic, char:Character, ?animToPlay:String, ?forceAnim:Bool = false) {
 		if(char != null && note != null)
 		{
 			char.holdTimer = 0;

@@ -150,7 +150,7 @@ class MechanicsPlaystate {
 				daNote.noteType = null;
 
 				if (MechanicManager.mechanics['flashlight'].points > 0 && daNote.canBeHit && daNote.mustPress)
-					PlayState.instance.goodNoteHit(daNote);
+					PlayState.instance?.goodNoteHit(daNote, null, daNote.parentStrumline);
 			}
 		});
 

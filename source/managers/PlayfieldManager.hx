@@ -121,7 +121,7 @@ class PlayfieldManager {
   public var customZspritesGroup:FlxTypedSpriteGroup<ZSprite>;
 
   // If true, will enable the modchart logic. If false, the game should act identical to Vanilla.
-  public var isModchartSong:Bool = false;
+  public var isModchartSong:Bool = true;
 
   // basic flxSprite that can be used by lua for AFT purposes.
   public var luaAFT_sprite:HazardAFTSpriteTest;
@@ -1124,7 +1124,7 @@ class PlayfieldManager {
 
 					unspawnNotes.push(swagNote);
           if (playerStrums != null && opponentStrums != null) {
-            (gottaHitNote ? opponentStrums : playerStrums).unspawnNotes.push(swagNote);
+            (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(swagNote);
           }
 
 					if (jackingtime > 0) {
@@ -1152,7 +1152,7 @@ class PlayfieldManager {
 							};
 							unspawnNotes.push(jackNote);
               if (playerStrums != null && opponentStrums != null) {
-                (gottaHitNote ? opponentStrums : playerStrums).unspawnNotes.push(jackNote);
+                (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(jackNote);
               }
 						}
 					}
@@ -1188,7 +1188,7 @@ class PlayfieldManager {
 							};
 							unspawnNotes.push(sustainNote);
               if (playerStrums != null && opponentStrums != null) {
-                (gottaHitNote ? opponentStrums : playerStrums).unspawnNotes.push(sustainNote);
+                (gottaHitNote ? playerStrums : opponentStrums).unspawnNotes.push(sustainNote);
               }
 						}
 					}
@@ -1219,6 +1219,8 @@ class PlayfieldManager {
 		}
 		// trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCleared');
 		unspawnNotes.sort(sortByTime);
+		if (playerStrums != null) playerStrums.unspawnNotes.sort(sortByTime);
+		if (opponentStrums != null) opponentStrums.unspawnNotes.sort(sortByTime);
 		eventNotes.sort(sortByTime);
 
     trace('["${songData.song.toUpperCase()}" CHART INFO]: Total Notes: ${unspawnNotes.length}');
@@ -2391,7 +2393,7 @@ class PlayfieldManager {
 				}
 			}
 			else {
-        if (playerStrums != null && opponentStrums != null) return; // No reason to worry about it if it aint there lol
+        if (playerStrums == null || opponentStrums == null) return;
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
@@ -2441,11 +2443,11 @@ class PlayfieldManager {
                   funnyNote = doubleNote;
                 }
               }
-              else PlayState.instance?.goodNoteHit(doubleNote); //otherwise, hit doubleNote instead of killing it
+              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
             }
-            PlayState.instance?.goodNoteHit(funnyNote);
+            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
             if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i]);
+              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
             }
           }
           else {
@@ -2524,11 +2526,11 @@ class PlayfieldManager {
                     funnyNote = doubleNote;
                   }
                 }
-                else PlayState.instance?.goodNoteHit(doubleNote); //otherwise, hit doubleNote instead of killing it
+                else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
               }
-              PlayState.instance?.goodNoteHit(funnyNote);
+              PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
               if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-                for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i]);
+                for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
               }
             }
             else {
@@ -2603,11 +2605,11 @@ class PlayfieldManager {
 						funnyNote = doubleNote;
 					}
 				}
-				else PlayState.instance?.goodNoteHit(doubleNote); //otherwise, hit doubleNote instead of killing it
+				else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
 			}
-			PlayState.instance?.goodNoteHit(funnyNote);
+			PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
 			if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-				for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i]);
+				for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
 			}
 		}
 		else {
@@ -2716,11 +2718,11 @@ class PlayfieldManager {
                   funnyNote = doubleNote;
                 }
               }
-              else PlayState.instance?.goodNoteHit(doubleNote); //otherwise, hit doubleNote instead of killing it
+              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
             }
-            PlayState.instance?.goodNoteHit(funnyNote);
+            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
             if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i]);
+              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
             }
           }
           else {
@@ -2809,11 +2811,11 @@ class PlayfieldManager {
                   funnyNote = doubleNote;
                 }
               }
-              else PlayState.instance?.goodNoteHit(doubleNote); //otherwise, hit doubleNote instead of killing it
+              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
             }
-            PlayState.instance?.goodNoteHit(funnyNote);
+            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
             if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i]);
+              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
             }
           }
           else {
@@ -2918,11 +2920,11 @@ class PlayfieldManager {
                   funnyNote = doubleNote;
                 }
               }
-              else PlayState.instance?.goodNoteHit(doubleNote); //otherwise, hit doubleNote instead of killing it
+              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
             }
-            PlayState.instance?.goodNoteHit(funnyNote);
+            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
             if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i]);
+              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
             }
           }
           else {
@@ -3002,11 +3004,11 @@ class PlayfieldManager {
                     funnyNote = doubleNote;
                   }
                 }
-                else PlayState.instance?.goodNoteHit(doubleNote); //otherwise, hit doubleNote instead of killing it
+                else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
               }
-              PlayState.instance?.goodNoteHit(funnyNote);
+              PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
               if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-                for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i]);
+                for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
               }
             }
             else {
@@ -3138,6 +3140,7 @@ class PlayfieldManager {
 				pressArray[i] = Controls.instance.justPressed(key);
 				releaseArray[i] = Controls.instance.justReleased(key);
 			}
+      pressedGameplayKeys = holdArray;
 
 			// Optimize controller input handling
 			if(Controls.instance.controllerMode) {
@@ -3235,7 +3238,7 @@ class PlayfieldManager {
 		splashesPerFrame[(isDad ? 2 : 3)] += 1;
 
 		if (note != null) {
-			var strum:StrumNote = (isDad ? playerStrums : opponentStrums).getByColumn(note.noteData);
+			var strum:StrumNote = (note.parentStrumline ?? (isDad ? playerStrums : opponentStrums)).getByColumn(note.noteData);
 			final susLength:Float = (!note.isSustainNote ? note.sustainLength : note.parentSL);
 			final tailLength:Int = Math.floor(susLength / Conductor.stepCrochet);
 
@@ -3246,10 +3249,10 @@ class PlayfieldManager {
 
 	public function spawnHoldSplash(note:Note) {
 		var end:Note = note;
-		var splash:SustainSplash = grpHoldSplashes.recycle(SustainSplash);
+		var splash:SustainSplash = note.parentStrumline.holdSplashes.recycle(SustainSplash);
     final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
-		splash.setupSusSplash((note.mustPress ? playerStrums : opponentStrums).getByColumn(note.noteData), note, playbackRate);
-		grpHoldSplashes.add(end.noteHoldSplash = splash);
+		splash.setupSusSplash((note.parentStrumline ?? (note.mustPress ? playerStrums : opponentStrums)).getByColumn(note.noteData), note, playbackRate);
+		(note.parentStrumline ?? (note.mustPress ? playerStrums : opponentStrums)).holdSplashes.add(end.noteHoldSplash = splash);
 	}
 
 	public function spawnNoteSplashOnNote(note:Note, ?isDad:Bool) {
@@ -3319,6 +3322,7 @@ class PlayfieldManager {
 		if (keysPressedSet != null) {
 			keysPressedSet.clear();
 		}
+		pressedGameplayKeys = [];
 		_cachedHoldArray = [];
 		_cachedPressArray = [];
 		_cachedReleaseArray = [];
@@ -3375,6 +3379,12 @@ class PlayfieldManager {
 
   public function killDaNotes()
 	{
+    for (strumLine in allStrumLines)
+    {
+      if (strumLine != null)
+        strumLine.resetSongNotes();
+    }
+
 		for (group in [notes, sustainNotes]){
 			if (group != null){
 				while (group.length > 0) {
@@ -3385,6 +3395,8 @@ class PlayfieldManager {
 
 		unspawnNotes = [];
 		eventNotes = [];
+    killNotes = [];
+    noteRows = [[], []];
 	}
 
   function svSort(Obj1:SpeedEvent, Obj2:SpeedEvent):Int
@@ -3582,10 +3594,10 @@ class PlayfieldManager {
   {
     final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50);
 
-    playerStrums = new Strumline({strumlinePos: strumLine, player: 0}, !cpuControlled, songSpeed, isModchartSong);
+    playerStrums = new Strumline({strumlinePos: strumLine, player: 1}, !cpuControlled, songSpeed, isModchartSong);
     playerStrums.onNoteIncoming.add(onStrumlineNoteIncoming);
     playerStrums.defaultPlayerControl = true;
-    opponentStrums = new Strumline({strumlinePos: strumLine, player: 1}, false, songSpeed, isModchartSong);
+    opponentStrums = new Strumline({strumlinePos: strumLine, player: 0}, false, songSpeed, isModchartSong);
     opponentStrums.onNoteIncoming.add(onStrumlineNoteIncoming);
     opponentStrums.defaultPlayerControl = false;
     add(playerStrums);

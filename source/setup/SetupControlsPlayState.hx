@@ -118,8 +118,8 @@ class SetupControlsPlayState extends PlayState {
         }
     }
 
-    override function goodNoteHit(note:Note, noteAlt:PreloadNotes = null) {
-        super.goodNoteHit(note, noteAlt);
+    override function goodNoteHit(note:Dynamic, noteAlt:PreloadNotes = null, customStrummer:Strumline) {
+        super.goodNoteHit(note, noteAlt, customStrummer);
         notesHit++;
     }
 

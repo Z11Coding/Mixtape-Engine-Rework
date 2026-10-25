@@ -311,7 +311,7 @@ class StrumNote extends ZSpriteProjected
 		x += 50;
 		x += ExtraKeys.xtra[ExtraKeys.mania];
 		x += ((FlxG.width / 2) * player);
-		x -= ExtraKeys.posRest[ExtraKeys.mania];
+		x += ExtraKeys.posRest[ExtraKeys.mania];
 		ID = noteData;
 		formerPosition.set(x, y);
 		targetScale = this.scale.x;

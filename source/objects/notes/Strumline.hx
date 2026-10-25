@@ -28,6 +28,7 @@ import objects.notes.Note;
 import objects.notes.NoteSplash;
 import objects.notes.SustainSplash;
 import objects.notes.SustainTrail;
+import managers.PlayfieldManager;
 
 using backend.funkin.util.tools.ArraySortTools;
 using thx.Arrays;
@@ -165,13 +166,14 @@ class Strumline extends FlxSpriteGroup
   public var isPlayer(get, default):Bool;
   function get_isPlayer():Bool
   {
-    return playerNum == 0; // Make sure its the player position
+    return playerNum == 1; // Make sure its the player position
   }
 
   /**
-   * Whether this strumline is controlled by the player's inputs.
-   * False means it's controlled by the opponent or Bot Play.
-   * For WITF, this variable exists just for script parity with base game.
+   * Which player this strum belongs to.
+   * 0 = Player, 1 = Opponent, anything higher is deemed custom.
+   * For WITF, this variable decides what effect goes to what strum.
+   * For Mixtape, this determins weither to count it as a player hit, opponent hit, a custom hit, or to ignore it
    */
   public var playerNum:Int;
 
@@ -380,10 +382,6 @@ class Strumline extends FlxSpriteGroup
       case "holdSplashes":
         group = new FlxTypedSpriteGroup<SustainSplash>(0, 0, 4);
         this.holdSplashes = group;
-        var splash:SustainSplash = new SustainSplash();
-    		splash.alpha = 0.0001;
-        splash.visible = false;
-        this.holdSplashes.add(splash);
       case "noteSplashes":
         var splash:NoteSplash = new NoteSplash(100, 100, 0);
         group = new FlxTypedSpriteGroup<NoteSplash>(0, 0, NOTE_SPLASH_CAP);
@@ -524,7 +522,7 @@ class Strumline extends FlxSpriteGroup
 		for (i in 0...(ExtraKeys.mania+1))
 		{
 			var targetAlpha:Float = 1;
-			if (playerNum < 1)
+			if (playerNum == 0)
 			{
 				if(!ClientPrefs.data.opponentStrums) targetAlpha = 0;
 				else if(ClientPrefs.data.middleScroll) targetAlpha = ClientPrefs.data.oppNoteAlpha;
@@ -1194,6 +1192,9 @@ class Strumline extends FlxSpriteGroup
       }
     }
 
+    if (mods != null)
+      noteSplashSetPos(splash, data);
+
     return splash;
   }
 
@@ -1221,11 +1222,11 @@ class Strumline extends FlxSpriteGroup
 			targetNote = unspawnNotes[notesAddedCount];
 			limitNC = (notes?.countLiving() + sustainNotes?.countLiving());
 
-			if (targetNote != null && !targetNote.wasHit)
+			if (PlayState.instance.startedSong && targetNote != null && !targetNote.wasHit)
 			{
 				while (targetNote.strumTime <= conductorInUse.musicPosition - ClientPrefs.data.noteOffset) {
 					targetNote.wasHit = true;
-					targetNote.mustPress ? PlayState.instance.goodNoteHit(null, targetNote) : PlayState.instance.opponentNoteHit(null, targetNote);
+					targetNote.mustPress ? PlayState.instance.goodNoteHit(null, targetNote, null) : PlayState.instance.opponentNoteHit(null, targetNote, null);
 					notesAddedCount++;
 					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
 					else break;
@@ -1258,6 +1259,7 @@ class Strumline extends FlxSpriteGroup
           else
           {
             spawnedNote = notes.recycle(Note);
+            spawnedNote.parentStrumline = this;
             spawnedNote.setupNoteData(targetNote);
             spawnedNote.cameras = cameras;
             spawnedNote.cullMode = getByColumn(targetNote.noteData)?.strumExtraModData?.cullModeNotes ?? "none";
@@ -1608,7 +1610,9 @@ class Strumline extends FlxSpriteGroup
    */
   public function isKeyHeld(dir:Int):Bool
   {
-    return heldKeys[dir].length > 0;
+    if (dir >= 0 && dir < PlayfieldManager.pressedGameplayKeys.length && PlayfieldManager.pressedGameplayKeys[dir])
+      return true;
+    return dir >= 0 && dir < heldKeys.length && heldKeys[dir].length > 0;
   }
 
   /**
@@ -1649,6 +1653,18 @@ class Strumline extends FlxSpriteGroup
     ghostTapTimer = 0;
   }
 
+  public function resetSongNotes():Void
+  {
+    clean();
+    unspawnNotes = [];
+    notesAddedCount = 0;
+    nextNoteIndex = -1;
+    amountOfRenderedNotes = 0;
+    maxRenderedNotes = 0;
+    skippedCount = 0;
+    maxSkipped = 0;
+  }
+
    /**
    * Hit a note.
    * @param note The note to hit.
@@ -1659,11 +1675,11 @@ class Strumline extends FlxSpriteGroup
     playConfirm(note.noteData);
     note.hasBeenHit = true;
 
-    if (removeNote)
+    if (removeNote && !(note is SustainNote))
     {
       killNote(note);
     }
-    else
+    else if (!(note is SustainNote))
     {
       note.alpha = 0.5;
       note.desaturate();
@@ -1676,13 +1692,73 @@ class Strumline extends FlxSpriteGroup
       note.visible = true;
       note.sustainLength = Math.min(
         note.fullSustainLength,
-        (note.strumTime + note.fullSustainLength) - conductorInUse.songPosition
+        (note.strumTime + note.fullSustainLength) - conductorInUse.musicPosition
       );
     }
 
     ghostTapTimer = Constants.GHOST_TAP_DELAY;
 
-    if (note.)
+    if (note.parentStrumline != null) {
+      if (note.parentStrumline.defaultPlayerControl)
+        PlayState.instance?.goodNoteHit(note, null, this);
+      else if (note.parentStrumline.playerNum == 0)
+        PlayState.instance?.opponentNoteHit(note, null, this);
+      else
+        PlayState.instance?.goodNoteCustom(note, this);
+    }
+  }
+
+  /**
+   * Play a note hold cover for a given hold note.
+   * @param holdNote The hold note to play the cover animation for.
+   */
+   public function playNoteHoldCover(holdNote:SustainNote):Void
+  {
+    if (!showNotesplash) return;
+
+    var cover:SustainSplash = null;
+    if (this.holdSplashes.length == 0) {
+      cover = new SustainSplash();
+      cover.alpha = 0.0001;
+      cover.visible = false;
+    } else this.holdSplashes.recycle(SustainSplash);
+
+    if (cover != null)
+    {
+      cover.sustainNote = holdNote;
+      holdNote.cover = cover;
+      cover.visible = true;
+
+      cover.setupSusSplash(holdNote.parentStrumline.getByColumn(holdNote.noteData), holdNote, ClientPrefs.getGameplaySetting('songspeed'));
+
+      /*if (holdNote != null)
+      {
+        cover.setHSV(holdNote.hsvShader.hue, holdNote.hsvShader.saturation, holdNote.hsvShader.value);
+      }*/
+
+      cover.holdPositioned = false;
+
+      // todo: fix holdPositioned covers for non WITF songs.
+      if (mods != null || cover.holdPositioned)
+      {
+        noteCoverSetPos(cover);
+      }
+      else
+      {
+        cover.x = this.x;
+        cover.x += getXPos(holdNote.noteData);
+        cover.x += STRUMLINE_SIZE / 2;
+        cover.x -= cover.width / 2;
+        cover.x += 0 * cover.scale.x;
+        cover.x += -12; // hardcoded adjustment, because we are evil.
+
+        cover.y = this.y;
+        cover.y += INITIAL_OFFSET;
+        cover.y += STRUMLINE_SIZE / 2;
+        cover.y += 0 * cover.scale.y;
+        cover.y += -96; // hardcoded adjustment, because we are evil.
+      }
+    }
   }
 
   /**
@@ -1690,16 +1766,16 @@ class Strumline extends FlxSpriteGroup
    * Kill a note heading towards the strumline.
    * @param note The note to kill. Gets recycled and reused for performance.
    */
-  public function killNote(note:Note):Void
+  public function killNote(note:Dynamic):Void
   {
     if (note == null) return;
     note.visible = false;
     note.kill();
 
-    if (note.sustainNote != null)
+    if (note is SustainNote)
     {
-      note.sustainNote.missedNote = true;
-      note.sustainNote.visible = false;
+      note.missedNote = true;
+      note.visible = false;
     }
   }
 
@@ -1901,16 +1977,6 @@ class Strumline extends FlxSpriteGroup
     splash.scale.set(1, 1);
 
     // default notesplash positioning
-    splash.x = this.x;
-    splash.x += getXPos(direction);
-    splash.x += INITIAL_OFFSET;
-
-    splash.y = this.y;
-    splash.y -= INITIAL_OFFSET;
-
-    splash.x += 0 * splash.scale.x;
-    splash.y += 0 * splash.scale.y;
-
     var whichStrumNote:StrumNote = getByColumn(direction % (ExtraKeys.mania+1));
     if (whichStrumNote.strumExtraModData.splashCopyStrumScale)
     {

@@ -35,4 +35,6 @@ class Constants {
      */
     public static final HIT_WINDOW_MS:Float = 160.0;
 
+    public static final GHOST_TAP_DELAY:Float = 3 / 8;
+
 }

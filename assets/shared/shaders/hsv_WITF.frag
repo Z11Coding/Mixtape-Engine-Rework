@@ -13,6 +13,11 @@ uniform float _hue2;
 uniform float _sat2;
 uniform float _val2;
 
+uniform vec3 _rgbR;
+uniform vec3 _rgbG;
+uniform vec3 _rgbB;
+uniform float _rgbMult;
+
 uniform float _stealthGlow;
 uniform float _stealthR;
 uniform float _stealthG;
@@ -79,6 +84,11 @@ vec3 hsv2rgb(vec3 c)
 
 void main() {
 	vec4 color = flixel_texture2D(bitmap, openfl_TextureCoordv);
+
+	if (hasTransform && color.a != 0.0 && _rgbMult != 0.0) {
+		vec3 rgbColor = min(color.r * _rgbR + color.g * _rgbG + color.b * _rgbB, vec3(1.0));
+		color.rgb = mix(color.rgb, rgbColor, clamp(_rgbMult, 0.0, 1.0));
+	}
 
 	//color[3] = 1.0; //SET ALPHA TO 1 FOR NOW
 

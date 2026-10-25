@@ -70,12 +70,15 @@ class RGBShaderReference
 	public var parent:RGBPalette;
 	private var _owner:FlxSprite;
 	private var _original:RGBPalette;
-	public function new(owner:FlxSprite, ref:RGBPalette)
+	private var _onChange:Void->Void;
+	public function new(owner:FlxSprite, ref:RGBPalette, ?onChange:Void->Void)
 	{
 		parent = ref;
 		_owner = owner;
 		_original = ref;
-		owner.shader = ref.shader;
+		_onChange = onChange;
+		if (_onChange == null)
+			owner.shader = ref.shader;
 
 		@:bypassAccessor
 		{
@@ -89,39 +92,62 @@ class RGBShaderReference
 	private function set_r(value:FlxColor)
 	{
 		if(allowNew && value != _original.r) cloneOriginal();
-		return (r = parent.r = value);
+		var result:FlxColor = (r = parent.r = value);
+		if (_onChange != null) _onChange();
+		return result;
 	}
 	private function set_g(value:FlxColor)
 	{
 		if(allowNew && value != _original.g) cloneOriginal();
-		return (g = parent.g = value);
+		var result:FlxColor = (g = parent.g = value);
+		if (_onChange != null) _onChange();
+		return result;
 	}
 	private function set_b(value:FlxColor)
 	{
 		if(allowNew && value != _original.b) cloneOriginal();
-		return (b = parent.b = value);
+		var result:FlxColor = (b = parent.b = value);
+		if (_onChange != null) _onChange();
+		return result;
 	}
 	private function set_mult(value:Float)
 	{
 		if(allowNew && value != _original.mult) cloneOriginal();
-		return (mult = parent.mult = value);
+		var result:Float = (mult = parent.mult = value);
+		if (_onChange != null) _onChange();
+		return result;
 	}
 	private function set_enabled(value:Bool)
 	{
 		// If forceDisabled is enabled, NEVER activate the shader
 		if(forceDisabled)
 		{
-			_owner.shader = null;
-			return (enabled = false);
+			enabled = false;
+			if (_onChange == null)
+				_owner.shader = null;
+			else
+				_onChange();
+			return enabled;
 		}
 
-		_owner.shader = value ? parent.shader : null;
-		return (enabled = value);
+		enabled = value;
+		if (_onChange == null)
+			_owner.shader = value ? parent.shader : null;
+		else
+			_onChange();
+		return enabled;
 	}
 
 	private function set_forceDisabled(value:Bool)
 	{
-		enabled = value;
+		if (_onChange == null)
+			enabled = value;
+		else
+		{
+			forceDisabled = value;
+			enabled = !value;
+			_onChange();
+		}
 		return value;
 	}
 
@@ -138,7 +164,8 @@ class RGBShaderReference
 			parent.g = _original.g;
 			parent.b = _original.b;
 			parent.mult = _original.mult;
-			_owner.shader = parent.shader;
+			if (_onChange == null)
+				_owner.shader = parent.shader;
 			//trace('created new shader');
 		}
 	}

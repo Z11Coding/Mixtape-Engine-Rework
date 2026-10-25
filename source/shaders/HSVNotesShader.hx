@@ -49,6 +49,15 @@ class HSVNotesShader extends HSVShader
     stealthGlow = g;
 
     this.setBool('_isHold', false);
+    setRGBPalette(FlxColor.RED, FlxColor.GREEN, FlxColor.BLUE, 0);
+  }
+
+  public function setRGBPalette(r:FlxColor, g:FlxColor, b:FlxColor, mult:Float):Void
+  {
+    this.setFloatArray('_rgbR', [r.redFloat, r.greenFloat, r.blueFloat]);
+    this.setFloatArray('_rgbG', [g.redFloat, g.greenFloat, g.blueFloat]);
+    this.setFloatArray('_rgbB', [b.redFloat, b.greenFloat, b.blueFloat]);
+    this.setFloat('_rgbMult', FlxMath.bound(mult, 0, 1));
   }
 
   function set_stealthGlowRed(value:Float):Float

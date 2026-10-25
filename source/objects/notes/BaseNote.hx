@@ -36,6 +36,9 @@ class BaseNote extends ZSpriteProjected
 	public var tooLate:Bool = false;
 	public var tooEarly:Bool = true;
 	public var wasGoodHit:Bool = false;
+	public var hasBeenHit:Bool = false;
+	public var hasMissed:Bool = false;
+	public var mayHit:Bool = false;
 	public var missed:Bool = false;
 	public var ignoreNote:Bool = false;
 	public var hitByOpponent:Bool = false; //For Opponent notes
@@ -163,5 +166,31 @@ class BaseNote extends ZSpriteProjected
 		super();
 
 		noteModData = new NoteData();
+	}
+
+	public function unregisterFromNoteRow():Void
+	{
+		var playfield = MegaManager.playfield;
+		if (playfield == null || row < 0) return;
+
+		var rows = playfield.noteRows[mustPress ? 0 : 1];
+		if (row < rows.length && rows[row] != null)
+		{
+			rows[row].remove(this);
+			if (rows[row].length == 0)
+				rows[row] = null;
+		}
+	}
+
+	public function registerInNoteRow():Void
+	{
+		var playfield = MegaManager.playfield;
+		if (playfield == null || row < 0) return;
+
+		var rows = playfield.noteRows[mustPress ? 0 : 1];
+		if (rows[row] == null)
+			rows[row] = [];
+		if (!rows[row].contains(this))
+			rows[row].push(this);
 	}
 }

@@ -45,6 +45,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 	public var tooLate:Bool = false;
 	public var tooEarly:Bool = true;
 	public var wasGoodHit:Bool = false;
+	public var hasBeenHit:Bool = false;
+	public var hasMissed:Bool = false;
+	public var mayHit:Bool = false;
 	public var missed:Bool = false;
 	public var ignoreNote:Bool = false;
 	public var hitByOpponent:Bool = false; //For Opponent notes
@@ -181,7 +184,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 	 * Forces the hitsound to be played even if the user's hitsound volume is set to 0
 	**/
 	public var hitsoundForce:Bool = false;
-	public var hitsoundVolume(get, default):Float = 1.0;
+	public var hitsoundVolume(get, default):Float = 0;
 	function get_hitsoundVolume():Float {
 		if(ClientPrefs.data.hitsoundVolume > 0)
 			return ClientPrefs.data.hitsoundVolume;
@@ -200,6 +203,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		{
 			useRGBShader = value;
 			if (rgbShader != null) rgbShader.enabled = value;
+			syncNoteShader();
 		}
 		return value;
 	}
@@ -232,6 +236,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 	var noteColor:Array<FlxColor>;
 	public function defaultRGB()
 	{
+		if (rgbShader == null) return;
+
 		noteColor = !PlayState.isPixelStage ? ClientPrefs.data.arrowRGBExtra[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] : ClientPrefs.data.arrowRGBPixelExtra[ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex')[noteData]];
 
     if (noteColor != null && noteData > -1 && noteData <= ExtraKeys.mania) {
@@ -388,6 +394,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   {
     super(0, 0);
     this.parentStrumline = parentStrum;
+    this.hsvShader = new HSVNotesShader();
 
     // BASIC SETUP
     if (!Math.isNaN(sustainLength)) {
@@ -408,7 +415,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     if(noteData > -1) {
 			texture = '';
 
-      try{ rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this)); }
+      try{ rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this), syncNoteShader); }
       catch(e) {};
       if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) useRGBShader = false;
 
@@ -417,6 +424,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
       x += BaseNote.swagWidth * (noteData % ExtraKeys.ammo[ExtraKeys.mania]);
 		}
+    syncNoteShader();
 
 		if (isSustainNote)
 		{
@@ -1587,16 +1595,20 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       uvClip = (clippingTimeOffset / (sussyLength * longHolds)) * holdResolution;
       uvClip = Math.max(0, uvClip);
     }
+    var holdUVTop:Float = 0;
+    if (noteSkinUVs)
+    {
+      var clippedUV:Float = FlxMath.bound(uvClip / holdResolution, 0, 1);
+      holdUVTop = holdFrameUVTop + (holdFrameUVBottom - holdFrameUVTop) * clippedUV;
+    }
     if (uvSetup)
     {
       if (noteSkinUVs)
       {
-        var clippedUV:Float = FlxMath.bound(uvClip / holdResolution, 0, 1);
-        var topUV:Float = holdFrameUVTop + (holdFrameUVBottom - holdFrameUVTop) * clippedUV;
         uvtData[0 * 2] = holdFrameUVLeft;
-        uvtData[0 * 2 + 1] = topUV;
+        uvtData[0 * 2 + 1] = holdUVTop;
         uvtData[1 * 2] = holdFrameUVRight;
-        uvtData[1 * 2 + 1] = topUV;
+        uvtData[1 * 2 + 1] = holdUVTop;
       }
       else
       {
@@ -1787,7 +1799,10 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         // Bottom left
         uvtData[i * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
         final originalV:Float = 1 * (k + 1);
-        uvtData[i * 2 + 1] = noteSkinUVs ? holdFrameUVBottom : Math.max(originalV, uvClip);
+        if (noteSkinUVs)
+          uvtData[i * 2 + 1] = holdUVTop + (holdFrameUVBottom - holdUVTop) * ((k + 1) / holdResolution);
+        else
+          uvtData[i * 2 + 1] = Math.max(originalV, uvClip);
 
         // Bottom right
         uvtData[(i + 1) * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
@@ -2191,10 +2206,27 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 	var shouldCenterOffsets:Bool = true;
 	public function setupNoteData(chartNoteData:PreloadNotes):Void
 	{
+    unregisterFromNoteRow();
+    hsvShader.hue = 1;
+    hsvShader.saturation = 1;
+    hsvShader.value = 1;
+    hsvShader.hue2 = 0;
+    hsvShader.saturation2 = 1;
+    hsvShader.value2 = 1;
+    stealthGlow = 0;
+    stealthGlowRed = 1;
+    stealthGlowGreen = 1;
+    stealthGlowBlue = 1;
+    hsvShader.stealthGlow = 0;
+    hsvShader.stealthGlowRed = 1;
+    hsvShader.stealthGlowGreen = 1;
+    hsvShader.stealthGlowBlue = 1;
+
 		var ns = chartNoteData.noteskin ?? "";
 		var tx = chartNoteData.texture ?? "";
 
 		wasGoodHit = hitByOpponent = tooLate = canBeHit = false; // Don't make an update call of this for the note group
+    hasBeenHit = hasMissed = mayHit = false;
 
 		if (ns.length > 0 && ns != texture) {
 			texture = 'noteSkins/' + ns;
@@ -2251,7 +2283,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
 		if (ClientPrefs.data.enableColorShader && useRGBShader)
 		{
-			if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this));
+			if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this), syncNoteShader);
 			updateRGBColors(
 				chartNoteData.rgbShader?.r,
 				chartNoteData.rgbShader?.g,
@@ -2336,14 +2368,13 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		}
 		if (flipY) flipY = false;
 
-		var rowArray = MegaManager.playfield.noteRows[mustPress?0:1];
-		if(rowArray[row]==null)
-			rowArray[row]=[];
-		rowArray[row].push(cast this);
+    registerInNoteRow();
+    syncNoteShader();
 	}
 
   override public function kill():Void
   {
+    unregisterFromNoteRow();
     super.kill();
 
     if (!((cover?.animation?.name ?? '').startsWith('holdCoverEnd'))) cover?.animation.play('end', true, false, 0);
@@ -2355,6 +2386,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     hitNote = false;
     missedNote = false;
+    hasBeenHit = false;
+    hasMissed = false;
+    mayHit = false;
 
     if (cover != null)
     {
@@ -2376,10 +2410,14 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     hitNote = false;
     missedNote = false;
     handledMiss = false;
+    hasBeenHit = false;
+    hasMissed = false;
+    mayHit = false;
   }
 
   public override function destroy():Void
   {
+    unregisterFromNoteRow();
     if (fakeNote != null)
     {
       fakeNote.destroy();
@@ -2409,7 +2447,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 	{
 		if (!useRGBShader) return;
 
-		if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this));
+		if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this), syncNoteShader);
 		else switch(ClientPrefs.data.noteColorStyle)
 		{
 			case 'Rainbow':
@@ -2439,6 +2477,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 			else defaultRGB();
 
 			default:
+				defaultRGB();
 
 		}
 		if (noteType == 'Hurt Note' && rgbShader != null)
@@ -2462,7 +2501,30 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		rgbShader.r = r ?? rgbShader.r;
 		rgbShader.g = g ?? rgbShader.g;
 		rgbShader.b = b ?? rgbShader.b;
+    syncNoteShader();
 	}
+
+  function syncNoteShader():Void
+  {
+    if (hsvShader == null) return;
+
+    if (rgbShader != null)
+    {
+      final paletteEnabled:Bool = ClientPrefs.data.enableColorShader
+        && (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB)
+        && useRGBShader && rgbShader.enabled;
+      hsvShader.setRGBPalette(
+        rgbShader.r,
+        rgbShader.g,
+        rgbShader.b,
+        paletteEnabled ? rgbShader.mult : 0
+      );
+    }
+    else
+      hsvShader.setRGBPalette(FlxColor.RED, FlxColor.GREEN, FlxColor.BLUE, 0);
+
+    shader = hsvShader;
+  }
 
   public function desaturate():Void
   {
@@ -2475,4 +2537,30 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   }
 
   var useHSVShader:Bool = true;
+
+  function unregisterFromNoteRow():Void
+  {
+    var playfield = MegaManager.playfield;
+    if (playfield == null || row < 0) return;
+
+    var rows = playfield.noteRows[mustPress ? 0 : 1];
+    if (row < rows.length && rows[row] != null)
+    {
+      rows[row].remove(cast this);
+      if (rows[row].length == 0)
+        rows[row] = null;
+    }
+  }
+
+  function registerInNoteRow():Void
+  {
+    var playfield = MegaManager.playfield;
+    if (playfield == null || row < 0) return;
+
+    var rows = playfield.noteRows[mustPress ? 0 : 1];
+    if (rows[row] == null)
+      rows[row] = [];
+    if (!rows[row].contains(cast this))
+      rows[row].push(cast this);
+  }
 }

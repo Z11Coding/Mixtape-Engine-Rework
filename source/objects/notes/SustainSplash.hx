@@ -81,7 +81,7 @@ class SustainSplash extends ZSprite
 		}
 	}
 
-	public function setupSusSplash(strum:StrumNote, daNote:Note, ?playbackRate:Float = 1):Void
+	public function setupSusSplash(strum:StrumNote, daNote:Dynamic, ?playbackRate:Float = 1):Void
 	{
 		sustainNote = cast (daNote, SustainNote);
 

@@ -41,7 +41,7 @@ class Note extends BaseNote
 	 * Forces the hitsound to be played even if the user's hitsound volume is set to 0
 	**/
 	public var hitsoundForce:Bool = false;
-	public var hitsoundVolume(get, default):Float = 1.0;
+	public var hitsoundVolume(get, default):Float = 0;
 	function get_hitsoundVolume():Float {
 		if(ClientPrefs.data.hitsoundVolume > 0)
 			return ClientPrefs.data.hitsoundVolume;
@@ -55,6 +55,7 @@ class Note extends BaseNote
 		{
 			useRGBShader = value;
 			if (rgbShader != null) rgbShader.enabled = value;
+			syncNoteShader();
 		}
 		return value;
 	}
@@ -87,6 +88,8 @@ class Note extends BaseNote
 	var noteColor:Array<FlxColor>;
 	public function defaultRGB()
 	{
+		if (rgbShader == null) return;
+
 		noteColor = !PlayState.isPixelStage ? ClientPrefs.data.arrowRGBExtra[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] : ClientPrefs.data.arrowRGBPixelExtra[ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex')[noteData]];
 
     if (noteColor != null && noteData > -1 && noteData <= ExtraKeys.mania) {
@@ -152,6 +155,11 @@ class Note extends BaseNote
    */
   public var sustainNote:SustainNote;
 
+	 /**
+   * Set to `true` after handling additional logic for missing notes.
+   */
+	 public var handledMiss:Bool = false;
+
 	public function new(?newStrumTime:Float, ?newNoteData:Int, ?parentStrum:Strumline)
 	{
 		super();
@@ -182,7 +190,7 @@ class Note extends BaseNote
 		if(noteData > -1) {
 			texture = '';
 
-      try{ rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this)); }
+      try{ rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this), syncNoteShader); }
       catch(e) {};
       if(PlayfieldManager.SONG != null && PlayfieldManager.SONG.disableNoteRGB) useRGBShader = false;
 
@@ -191,6 +199,7 @@ class Note extends BaseNote
 
       x += BaseNote.swagWidth * (noteData % ExtraKeys.ammo[ExtraKeys.mania]);
 		}
+		syncNoteShader();
 
 		if (isSustainNote)
 		{
@@ -583,6 +592,7 @@ class Note extends BaseNote
 
 	public override function destroy()
 	{
+		unregisterFromNoteRow();
 		// This function should ONLY get called as you leave PlayState entirely.
     // Otherwise, we want the game to keep reusing note sprites to save memory.
 		super.destroy();
@@ -596,7 +606,7 @@ class Note extends BaseNote
 	{
 		if (!useRGBShader) return;
 
-		if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this));
+		if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this), syncNoteShader);
 		else switch(ClientPrefs.data.noteColorStyle)
 		{
 			case 'Rainbow':
@@ -626,6 +636,7 @@ class Note extends BaseNote
 			else defaultRGB();
 
 			default:
+				defaultRGB();
 
 		}
 		if (noteType == 'Hurt Note' && rgbShader != null)
@@ -649,6 +660,37 @@ class Note extends BaseNote
 		rgbShader.r = r ?? rgbShader.r;
 		rgbShader.g = g ?? rgbShader.g;
 		rgbShader.b = b ?? rgbShader.b;
+		syncNoteShader();
+	}
+
+	function syncNoteShader():Void
+	{
+		if (hsvShader == null) return;
+
+		#if ARCHIPELAGO_ALLOWED
+		if (this is archipelago.APNote)
+		{
+			shader = null;
+			return;
+		}
+		#end
+
+		if (rgbShader != null)
+		{
+			final paletteEnabled:Bool = ClientPrefs.data.enableColorShader
+				&& (PlayfieldManager.SONG == null || !PlayfieldManager.SONG.disableNoteRGB)
+				&& useRGBShader && rgbShader.enabled;
+			hsvShader.setRGBPalette(
+				rgbShader.r,
+				rgbShader.g,
+				rgbShader.b,
+				paletteEnabled ? rgbShader.mult : 0
+			);
+		}
+		else
+			hsvShader.setRGBPalette(FlxColor.RED, FlxColor.GREEN, FlxColor.BLUE, 0);
+
+		shader = hsvShader;
 	}
 
   override function draw()
@@ -680,10 +722,19 @@ class Note extends BaseNote
 	var shouldCenterOffsets:Bool = true;
 	public function setupNoteData(chartNoteData:PreloadNotes):Void
 	{
+		unregisterFromNoteRow();
+		hsvShader.hue = 1;
+		hsvShader.saturation = 1;
+		hsvShader.value = 1;
+		hsvShader.hue2 = 0;
+		hsvShader.saturation2 = 1;
+		hsvShader.value2 = 1;
+
 		var ns = chartNoteData.noteskin ?? "";
 		var tx = chartNoteData.texture ?? "";
 
 		wasGoodHit = hitByOpponent = tooLate = canBeHit = false; // Don't make an update call of this for the note group
+    hasBeenHit = hasMissed = mayHit = false;
 
 		if (ns.length > 0 && ns != texture) {
 			texture = 'noteSkins/' + ns;
@@ -743,7 +794,7 @@ class Note extends BaseNote
 
 		if (ClientPrefs.data.enableColorShader && useRGBShader)
 		{
-			if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this));
+			if (rgbShader == null) rgbShader = new RGBShaderReference(this, initializeGlobalRGBShader(noteData, this), syncNoteShader);
 			updateRGBColors(
 				chartNoteData.rgbShader?.r,
 				chartNoteData.rgbShader?.g,
@@ -827,10 +878,8 @@ class Note extends BaseNote
 		}
 		if (flipY) flipY = false;
 
-		var rowArray = MegaManager.playfield.noteRows[mustPress?0:1];
-		if(rowArray[row]==null)
-			rowArray[row]=[];
-		rowArray[row].push(this);
+		registerInNoteRow();
+		syncNoteShader();
 
 		targetScale = this.scale.x;
 
@@ -854,14 +903,12 @@ class Note extends BaseNote
     this.hsvShader.stealthGlowBlue = stealthGlowBlue;
     this.hsvShader.stealthGlowGreen = stealthGlowGreen;
     this.hsvShader.stealthGlowRed = stealthGlowRed;
-
-		var rgbConvert = FlxColor.fromRGB(Std.int(stealthGlowRed), Std.int(stealthGlowGreen), Std.int(stealthGlowBlue), Std.int(stealthGlow));
-		this.rgbShader.mult = rgbConvert.alphaFloat;
-		this.updateRGBColors(rgbConvert, rgbConvert, rgbConvert);
+		syncNoteShader();
   }
 
 	override public function kill():Void
   {
+    unregisterFromNoteRow();
     super.kill();
     vwooshing = false;
   }
