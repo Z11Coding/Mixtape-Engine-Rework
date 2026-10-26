@@ -4328,6 +4328,7 @@ class PlayState extends MusicBeatState
 		FlxG.sound.music.volume = 1 * (instVolumeMultiplier * instVolumeMultiplierHardMode);
 		updateSyncedVideos(); // Update synced video system
 		playfield.update(elapsed);
+		processNotes(elapsed);
 
 		// Optimize script calls - only set if scripts exist
 		if (hasLuaScripts || hasHScripts || hasPyScripts || hasYScripts) {
@@ -8613,6 +8614,7 @@ class PlayState extends MusicBeatState
         // if (currentStage != null && currentStage.getBoyfriend() != null) currentStage.getBoyfriend().playSingAnimation(holdNote.noteData.getDirection(), true);
       }
     }
+		handleSkippedNotes();
   }
 
   function handleSkippedNotes():Void
