@@ -406,25 +406,9 @@ class Note extends BaseNote
 			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
 			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
 			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
-
-			if (isSustainNote)
-			{
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
-
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
-
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
-			}
 		}
 
-		if (isSustainNote)
-			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]), Std.int(BaseNote.defaultHeight * ExtraKeys.scales[ExtraKeys.mania] * 5));
-		else
-			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
+		setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
 		updateHitbox();
 	}
 

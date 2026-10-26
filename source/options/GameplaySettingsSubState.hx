@@ -46,7 +46,14 @@ class GameplaySettingsSubState extends BaseOptionsMenu
     addOption(option);
 
 		final option:Option = new Option('Light Botplay Strums',
-		"If this is unchecked, the Player strums won't light when Botplay is active.", 'botLightStrum',
+		"If this is unchecked, the Player strums won't light when Botplay is active.",
+		'botLightStrum',
+    BOOL);
+    addOption(option);
+
+		final option:Option = new Option('Light Player Strums',
+		"If this is unchecked, the Player strums won't light when you hit a note/Ghost Tap.",
+		'playerLightStrum',
     BOOL);
     addOption(option);
 

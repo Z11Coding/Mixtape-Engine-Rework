@@ -9,6 +9,7 @@ import flixel.graphics.frames.FlxFrame;
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
 import flixel.math.FlxAngle;
 import flixel.math.FlxMath;
+import flixel.math.FlxRect;
 import flixel.util.FlxColor;
 import lime.math.Vector2;
 import objects.funkin.data.SongNoteData;
@@ -58,7 +59,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 	public var noteDensity:Float = 1;
 
 	public var sustainLength:Float = 0;
-	public var isSustainNote:Bool = false;
+	public var isSustainNote:Bool = true;
 	public var isSustainEnd:Bool = false;
 	public var noteType(default, set):String = null;
 
@@ -370,16 +371,6 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
   var graphicWidth:Float = 0;
   var graphicHeight:Float = 0;
-  var holdFrameUVLeft:Float = 0;
-  var holdFrameUVTop:Float = 0;
-  var holdFrameUVRight:Float = 0.125;
-  var holdFrameUVBottom:Float = 1;
-  var tailFrameUVLeft:Float = 0.125;
-  var tailFrameUVTop:Float = 0;
-  var tailFrameUVRight:Float = 0.25;
-  var tailFrameUVBottom:Float = 0.9;
-  var tailFrameHeight:Float = 0;
-  var noteSkinUVs:Bool = false;
 
   // Makes the mesh all wobbly! Taken from ZProjectSprite_Note.hx
   public var vibrateEffect:Float = 0.0;
@@ -629,28 +620,17 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   function loadNoteAnims() {
 		for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters').length)
 		{
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
+			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
+      attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
+      attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
+      attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
 
-			if (isSustainNote)
-			{
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
+      attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
+      attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
 
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold end');
-
-				attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
-			}
+      attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + ' hold piece');
 		}
-
-		if (isSustainNote)
-			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]), Std.int(defaultHeight * ExtraKeys.scales[ExtraKeys.mania] * 5));
-		else
-			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
+		setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]), Std.int(defaultHeight * ExtraKeys.scales[ExtraKeys.mania] * 5));
 		updateHitbox();
 	}
 
@@ -928,7 +908,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     zoom = 1.0;
 
-    graphicWidth = graphic.width / ((ExtraKeys.ammo[ExtraKeys.mania])*2) * zoom;
+    graphicWidth = getAnimationFrame(animation?.curAnim?.name).width / ((ExtraKeys.ammo[ExtraKeys.mania])*2) * zoom;
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     if (parentStrumline != null)
     {
@@ -987,7 +967,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
    */
   public function updateClipping(songTime:Float = 0):Void
   {
-    if (graphic == null || customVertexData)
+    if (getAnimationFrame(animation?.curAnim?.name) == null || customVertexData)
     {
       return;
     }
@@ -1492,7 +1472,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     longHolds += 1;
 
-    final endPixelSize:Float = tailFrameHeight * endOffset;
+    final endPixelSize:Float = getAnimationFrame(animation?.curAnim?.name).width * endOffset * zoom;
     final scroll:Float = parentStrumline?.scrollSpeed ?? 1.0;
     final endCapTime:Float = endPixelSize / (Constants.PIXELS_PER_MS * scroll);
 
@@ -1572,28 +1552,13 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       uvClip = (clippingTimeOffset / (sussyLength * longHolds)) * holdResolution;
       uvClip = Math.max(0, uvClip);
     }
-    var holdUVTop:Float = 0;
-    if (noteSkinUVs)
-    {
-      var clippedUV:Float = FlxMath.bound(uvClip / holdResolution, 0, 1);
-      holdUVTop = holdFrameUVTop + (holdFrameUVBottom - holdFrameUVTop) * clippedUV;
-    }
+
     if (uvSetup)
     {
-      if (noteSkinUVs)
-      {
-        uvtData[0 * 2] = holdFrameUVLeft;
-        uvtData[0 * 2 + 1] = holdUVTop;
-        uvtData[1 * 2] = holdFrameUVRight;
-        uvtData[1 * 2 + 1] = holdUVTop;
-      }
-      else
-      {
-        uvtData[0 * 2] = (1 / 4) * (noteData % (ExtraKeys.mania+1));
-        uvtData[0 * 2 + 1] = uvClip;
-        uvtData[1 * 2] = uvtData[0 * 2] + (1 / 8);
-        uvtData[1 * 2 + 1] = uvClip;
-      }
+      uvtData[0 * 2] = (1 / 4) * (noteData % 4); // 0%/25%/50%/75% of the way through the image
+      uvtData[0 * 2 + 1] = uvClip;
+      uvtData[1 * 2] = uvtData[0 * 2] + (1 / 8); // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
+      uvtData[1 * 2 + 1] = uvClip;
     }
 
     // grab left vert
@@ -1776,10 +1741,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         // Bottom left
         uvtData[i * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
         final originalV:Float = 1 * (k + 1);
-        if (noteSkinUVs)
-          uvtData[i * 2 + 1] = holdUVTop + (holdFrameUVBottom - holdUVTop) * ((k + 1) / holdResolution);
-        else
-          uvtData[i * 2 + 1] = Math.max(originalV, uvClip);
+        uvtData[i * 2 + 1] = Math.max(originalV, uvClip);
 
         // Bottom right
         uvtData[(i + 1) * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
@@ -1901,25 +1863,23 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         var capTopV:Float = endClipAmount * bottomClip;
 
         // === END CAP UVs ===
-        // Top left
-        uvtData[highestNumSoFar * 2] = noteSkinUVs ? tailFrameUVLeft : uvtData[2 * 2] + (1 / 8);
-        uvtData[highestNumSoFar * 2 + 1] = noteSkinUVs
-          ? tailFrameUVTop + (tailFrameUVBottom - tailFrameUVTop) * endClipAmount
-          : capTopV;
+         // Top left
+        uvtData[highestNumSoFar * 2] = uvtData[2 * 2] + (1 / 8); // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
+        uvtData[highestNumSoFar * 2 + 1] = capTopV;
 
         // Top right
         uvtData[(
           highestNumSoFar
           + 1
-        ) * 2] = noteSkinUVs ? tailFrameUVRight : uvtData[highestNumSoFar * 2] + (1 / 8);
-        uvtData[(highestNumSoFar + 1) * 2 + 1] = uvtData[highestNumSoFar * 2 + 1];
+        ) * 2] = uvtData[highestNumSoFar * 2] + (1 / 8); // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
+        uvtData[(highestNumSoFar + 1) * 2 + 1] = capTopV;
 
         // Bottom left
         uvtData[(
           highestNumSoFar
           + 2
         ) * 2] = uvtData[highestNumSoFar * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
-        uvtData[(highestNumSoFar + 2) * 2 + 1] = noteSkinUVs ? tailFrameUVBottom : bottomClip;
+        uvtData[(highestNumSoFar + 2) * 2 + 1] = bottomClip; // bottom bound
 
         // Bottom right
         uvtData[(
@@ -2047,25 +2007,17 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // UV coordinates are normalized, so they range from 0 to 1.
     // We are expecting an image containing 8 horizontal segments, each representing a different colored hold note followed by its end cap.
 
-    if (noteSkinUVs)
-    {
-      uvtData[0 * 2] = holdFrameUVLeft;
-      uvtData[0 * 2 + 1] = holdFrameUVTop + (holdFrameUVBottom - holdFrameUVTop) * (1 - clipHeight / graphicHeight);
-    }
-    else
-    {
-      uvtData[0 * 2] = 1 / 4 * (noteData % (ExtraKeys.mania+1));
-      uvtData[0 * 2 + 1] = (-partHeight) / graphic.height / zoom;
-    }
+    uvtData[0 * 2] = 1 / 4 * (noteData % 4); // 0%/25%/50%/75% of the way through the image
+    uvtData[0 * 2 + 1] = (-partHeight) / getAnimationFrame(animation?.curAnim?.name).height / zoom; // top bound
     // Top left
 
     // Top right
-    uvtData[1 * 2] = noteSkinUVs ? holdFrameUVRight : uvtData[0 * 2] + 1 / 8;
+    uvtData[1 * 2] = uvtData[0 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
     uvtData[1 * 2 + 1] = uvtData[0 * 2 + 1]; // top bound
 
     // Bottom left
     uvtData[2 * 2] = uvtData[0 * 2]; // 0%/25%/50%/75% of the way through the image
-    uvtData[2 * 2 + 1] = noteSkinUVs ? holdFrameUVBottom : 0.0;
+    uvtData[2 * 2 + 1] = 0.0; // bottom bound
 
     // Bottom right
     uvtData[3 * 2] = uvtData[1 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left)
@@ -2092,25 +2044,23 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     // === END CAP UVs ===
     // Top left
-    uvtData[4 * 2] = noteSkinUVs ? tailFrameUVLeft : uvtData[2 * 2] + 1 / 8;
+    uvtData[4 * 2] = uvtData[2 * 2] + 1 / 8; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
     uvtData[4 * 2 + 1] = if (partHeight > 0)
     {
-      tailFrameUVTop;
+      0;
     }
     else
     {
-      noteSkinUVs
-        ? tailFrameUVTop + (tailFrameUVBottom - tailFrameUVTop) * FlxMath.bound((bottomHeight - clipHeight) / bottomHeight, 0, 1)
-        : (bottomHeight - clipHeight) / zoom / graphic.height;
+      (bottomHeight - clipHeight) / zoom / getAnimationFrame(animation?.curAnim?.name).height;
     };
 
-    // Top right
-    uvtData[5 * 2] = noteSkinUVs ? tailFrameUVRight : uvtData[4 * 2] + 1 / 8;
+     // Top right
+    uvtData[5 * 2] = uvtData[4 * 2] + 1 / 8; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
     uvtData[5 * 2 + 1] = uvtData[4 * 2 + 1]; // top bound
 
     // Bottom left
     uvtData[6 * 2] = uvtData[4 * 2]; // 12.5%/37.5%/62.5%/87.5% of the way through the image (1/8th past the top left of hold)
-    uvtData[6 * 2 + 1] = noteSkinUVs ? tailFrameUVBottom : bottomClip;
+    uvtData[6 * 2 + 1] = bottomClip; // bottom bound
 
     // Bottom right
     uvtData[7 * 2] = uvtData[5 * 2]; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
@@ -2127,7 +2077,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
-    if (graphic == null || !this.alive || this.alpha <= 0 || !this.visible || (waitTillModUpdate && usingHazModHolds)) return;
+    if (getAnimationFrame(animation?.curAnim?.name) == null || !this.alive || this.alpha <= 0 || !this.visible || (waitTillModUpdate && usingHazModHolds)) return;
 
     if (tooLate && !inEditor)
 		{
@@ -2155,19 +2105,34 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       }
     }
 
-    if (alpha == 0 || vertices == null || visible == false) return;
+    if (alpha == 0 || vertices == null || vertices.length < 2 || visible == false) return;
+
+    var minX:Float = vertices[0];
+    var maxX:Float = vertices[0];
+    var minY:Float = vertices[1];
+    var maxY:Float = vertices[1];
+    for (i in 1...Std.int(vertices.length / 2))
+    {
+      var vertexX:Float = vertices[i * 2];
+      var vertexY:Float = vertices[i * 2 + 1];
+      if (vertexX < minX) minX = vertexX;
+      if (vertexX > maxX) maxX = vertexX;
+      if (vertexY < minY) minY = vertexY;
+      if (vertexY > maxY) maxY = vertexY;
+    }
 
     var alphaMemory:Float = this.alpha;
     for (camera in cameras)
     {
       if (!camera.visible || !camera.exists) continue;
-      // if (!isOnScreen(camera)) continue; // TODO: Update this code to make it work properly.
-
-      alpha = alphaMemory * camera.alpha; // Fix for drawTriangles not fading with camera
-      alpha *= this.parentStrumline?.alpha ?? 1.0; // Fix for notes not respecting their parents alpha.
 
       getScreenPosition(_point, camera).subtractPoint(offset);
 
+      if (!camera.containsRect(FlxRect.get(_point.x + minX, _point.y + minY, maxX - minX, maxY - minY)))
+        continue;
+
+      alpha = alphaMemory * camera.alpha; // Fix for drawTriangles not fading with camera
+      alpha *= this.parentStrumline?.alpha ?? 1.0; // Fix for notes not respecting their parents alpha.
       camera.drawTriangles(graphic, vertices, indices, uvtData, colors, _point, blend, true, antialiasing, colorTransform, shader, cullMode);
     }
     this.alpha = alphaMemory;
@@ -2237,7 +2202,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		mustPress = chartNoteData.mustPress;
 		doOppStuff = chartNoteData.oppNote;
 		gfNote = chartNoteData.gfNote;
-		isSustainNote = chartNoteData.isSustainNote;
+		isSustainNote = true;
 		isSustainEnd = chartNoteData.isSustainEnd;
 		renderEnd = isSustainEnd;
 		lowPriority = chartNoteData.lowPriority;

@@ -3,6 +3,7 @@ package states;
 import backend.funkin.util.GRhythmUtil;
 import objects.notes.BaseNote;
 import objects.notes.Strumline;
+import objects.notes.SustainNote;
 import yutautil.PyScript;
 /**
  * This is where all the Gameplay stuff happens and is managed
@@ -1454,6 +1455,10 @@ class PlayState extends MusicBeatState
 
 		// Generate playfields so you can actually, well, play the game
 		trace("Setting Up Playfields!");
+		if (skipCountdown || startOnTime > 0)  {
+			playfield.skipArrowStartTween = true;
+			countdownFinished = true;
+		}
 		#if ALLOW_DEPRECATION
 		callOnScripts("prePlayfieldCreation"); // backwards compat
 		// TODO: add deprecation messages to function callbacks somehow
@@ -4328,7 +4333,6 @@ class PlayState extends MusicBeatState
 		FlxG.sound.music.volume = 1 * (instVolumeMultiplier * instVolumeMultiplierHardMode);
 		updateSyncedVideos(); // Update synced video system
 		playfield.update(elapsed);
-		processNotes(elapsed);
 
 		// Optimize script calls - only set if scripts exist
 		if (hasLuaScripts || hasHScripts || hasPyScripts || hasYScripts) {
@@ -4523,16 +4527,38 @@ class PlayState extends MusicBeatState
 
 				if (playfield.isModchartSong) processNotesCUSTOM(elapsed);
 				processSustainNotes(opponentStrums, false, dad);
-				processSustainNotes(playerStrums, !cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false));
+				processSustainNotes(playerStrums, !cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false), boyfriend);
 
 				// === OPTIMIZED NOTE PROCESSING ===
 				for (strum in playfield.allStrumLines) {
 					strum.notes.forEachAlive(updateLiveNote);
 					if (strum.notes.countLiving() > 1)
 						strum.notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
-					strum.sustainNotes.forEachAlive(updateLiveNote);
-					if (strum.sustainNotes.countLiving() > 1)
-						strum.sustainNotes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+					var sustainMembers = strum.sustainNotes.members;
+					if (sustainMembers.length > 1)
+					{
+						var sortOrder:Int = ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING;
+						var previousSustain:SustainNote = null;
+						var aliveSustainCount:Int = 0;
+						var needsSustainSort:Bool = false;
+						for (sustain in sustainMembers)
+						{
+							if (sustain == null) continue;
+
+							if (sustain.exists && sustain.alive)
+								updateLiveNote(sustain);
+							if (sustain.exists && sustain.alive)
+								aliveSustainCount++;
+
+							if (previousSustain != null && FlxSort.byY(sortOrder, previousSustain, sustain) > 0)
+								needsSustainSort = true;
+							previousSustain = sustain;
+						}
+						if (aliveSustainCount > 1 && needsSustainSort)
+							strum.sustainNotes.sort(FlxSort.byY, sortOrder);
+					}
+					else
+						strum.sustainNotes.forEachAlive(updateLiveNote);
 				}
 
 				if (mechanicsMod != null) {
@@ -5032,7 +5058,7 @@ class PlayState extends MusicBeatState
 			amountOfRenderedNotes += daNote.noteDensity;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
 			final noteStrumline:Strumline = daNote.parentStrumline ?? (daNote.mustPress ? playerStrums : opponentStrums);
-			if (noteStrumline != null && noteStrumline.members.length >= (ExtraKeys.mania+1) && noteStrumline.strumLineNotes.members.length >= (ExtraKeys.mania+1))
+			if (noteStrumline != null && noteStrumline.strumLineNotes.members.length >= (ExtraKeys.mania+1))
 				daNote.followStrum(noteStrumline.getByColumn(daNote.noteData), songSpeed);
 			if (daNote.isSustainNote && noteStrumline != null)
 			{
@@ -6960,6 +6986,10 @@ class PlayState extends MusicBeatState
 		}
 	}
 
+	function calculateResetTime():Float {
+		if (ClientPrefs.data.strumLitStyle == 'BPM Based') return (conductor.currentStepTime * 1.5 / 1000) / playbackRate;
+		return Math.max(0.15, (conductor.currentStepTime * 1.5 / 1000)) / playbackRate;
+	}
 
 	public var transitioning = false;
 	public function endSong()
@@ -8534,89 +8564,6 @@ class PlayState extends MusicBeatState
     }
   }
 
-  /**
-	 * Handles opponent note hits and player note misses.
-	 */
-  function processNotes(elapsed:Float):Void
-  {
-    if (playerStrums.notes?.members == null || opponentStrums.notes?.members == null) return;
-
-    if (playfield.isModchartSong)
-    {
-      processNotesCUSTOM(elapsed);
-    }
-
-    // Process notes on the opponent's side.
-    for (note in opponentStrums.notes.members)
-    {
-      if (note == null || !note.alive) continue;
-      var r = GRhythmUtil.processWindow(note, false);
-      if (r.botplayHit)
-      {
-        // Command the opponent to hit the note on time.
-        // NOTE: This is what handles the strumline and cleaning up the note itself!
-        opponentStrums.hitNote(note);
-
-        if (note is SustainNote)
-        {
-          opponentStrums.playNoteHoldCover(cast (note, SustainNote));
-        }
-      }
-    }
-
-    processSustainNotes(opponentStrums, false, dad);
-
-    // Process notes on the player's side.
-    for (note in playerStrums.notes.members)
-    {
-      if (note == null || !note.alive) continue;
-      var r = GRhythmUtil.processWindow(note, !cpuControlled);
-      if (r.botplayHit)
-      {
-        playerStrums.hitNote(note);
-
-        if (note is SustainNote)
-        {
-          playerStrums.playNoteHoldCover(cast (note, SustainNote));
-        }
-      }
-      if (!r.cont) continue;
-
-      // This becomes true when the note leaves the hit window.
-      // It might still be on screen.
-      if (note.tooLate && !note.handledMiss)
-      {
-        // Skip handling the miss in botplay!
-        if (!cpuControlled)
-        {
-          // Judge the miss.
-          // NOTE: This is what handles the scoring.
-          // trace('Missed note! ${note.noteData}');
-          noteMiss(note);
-        }
-
-        note.handledMiss = true;
-      }
-    }
-
-    processSustainNotes(playerStrums, !cpuControlled);
-    for (holdNote in playerStrums.sustainNotes.members)
-    {
-      if (holdNote == null || !holdNote.alive) continue;
-
-      if (holdNote.tooLate && !holdNote.handledMiss)
-      {
-        // The player dropped a hold note.
-        holdNote.handledMiss = true;
-
-        // Mute vocals and play miss animation.
-        // vocals.playerVolume = 0;
-        // if (currentStage != null && currentStage.getBoyfriend() != null) currentStage.getBoyfriend().playSingAnimation(holdNote.noteData.getDirection(), true);
-      }
-    }
-		handleSkippedNotes();
-  }
-
   function handleSkippedNotes():Void
   {
     for (note in playerStrums.notes.members)
@@ -8707,7 +8654,7 @@ class PlayState extends MusicBeatState
 				if (!note.exNote && !note.gfNote && note.noteType == 'GF Duet') {
 					if(gf != null)
 					{
-						var canPlay:Bool = true;
+						var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 						if(note.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
@@ -8722,7 +8669,7 @@ class PlayState extends MusicBeatState
 
 				if(char != null)
 				{
-					var canPlay:Bool = true;
+					var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 					if(note.isSustainNote)
 					{
 						var holdAnim:String = animToPlay + '-hold';
@@ -8769,7 +8716,10 @@ class PlayState extends MusicBeatState
 			}
 
 			if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
-			strumPlayAnim(customStrummer ?? (note.parentStrumline ?? opponentStrums), note.noteData, conductor.currentStepTime * 1.25 / 1000 / playbackRate);
+			if (ClientPrefs.data.opponentLightStrum)
+			{
+				strumPlayAnim((customStrummer ?? (note.parentStrumline ?? playerStrums)), note.noteData, calculateResetTime(), note.isSustainNote, (note.rgbShader != null ? [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b] : null));
+			}
 			note.hitByOpponent = true;
 
 			if (ClientPrefs.data.oppNoteSplashes && note.isSustainNote && playfield.splashesPerFrame[2] <= 4)
@@ -8827,7 +8777,7 @@ class PlayState extends MusicBeatState
 				if (!noteAlt.exNote && !noteAlt.gfNote && noteAlt.noteType == 'GF Duet') {
 					if(gf != null)
 					{
-						var canPlay:Bool = true;
+						var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 						if(noteAlt.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
@@ -8842,7 +8792,7 @@ class PlayState extends MusicBeatState
 
 				if(char != null)
 				{
-					var canPlay:Bool = true;
+					var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 					if(noteAlt.isSustainNote)
 					{
 						var holdAnim:String = animToPlay + '-hold';
@@ -8865,8 +8815,7 @@ class PlayState extends MusicBeatState
 			if(opponentVocals.length <= 0) vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 			if (ClientPrefs.data.opponentLightStrum && !ClientPrefs.data.showNotes)
 			{
-				opponentStrums.getByColumn(noteAlt.noteData).playAnim('confirm', true);
-				opponentStrums.getByColumn(noteAlt.noteData).resetAnim = conductor.stepLengthMs * 1.25 / 1000 / playbackRate;
+				strumPlayAnim((customStrummer ?? (note.parentStrumline ?? playerStrums)), noteAlt.noteData, calculateResetTime(), noteAlt.isSustainNote);
 			}
 
 			var result:Dynamic = callOnLuas('opponentNoteHit', [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
@@ -8923,7 +8872,7 @@ class PlayState extends MusicBeatState
 					}
 
 					if (!note.exNote && !note.gfNote && note.noteType == 'GF Duet') {
-						var canPlay:Bool = true;
+						var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 						if(note.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
@@ -8937,7 +8886,7 @@ class PlayState extends MusicBeatState
 
 					if(char != null)
 					{
-						var canPlay:Bool = true;
+						var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 						if(note.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
@@ -8965,12 +8914,11 @@ class PlayState extends MusicBeatState
 					}
 				}
 
-				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false) && !note.botNote)
-				{
-					var spr = (customStrummer ?? (note.parentStrumline ?? playerStrums)).getByColumn(note.noteData);
-					if(spr != null) spr.playAnim('confirm', true);
+				if(cpuControlled && ClientPrefs.data.botLightStrum) {
+					strumPlayAnim((customStrummer ?? (note.parentStrumline ?? playerStrums)), note.noteData, calculateResetTime(), note.isSustainNote, (note.rgbShader != null ? [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b] : null));
+				} else if (ClientPrefs.data.playerLightStrum && !cpuControlled) {
+					strumPlayAnim((customStrummer ?? (note.parentStrumline ?? playerStrums)), note.noteData, 0, note.isSustainNote, (note.rgbShader != null ? [note.rgbShader.r, note.rgbShader.g, note.rgbShader.b] : null));
 				}
-				else strumPlayAnim(playerStrums, note.noteData + (ExtraKeys.mania+1), conductor.stepLengthMs * 1.25 / 1000 / playbackRate);
 				vocals.volume = 1 * (vocalVolumeMultiplier * vocalVolumeMultiplierHardMode);
 
 				if (!note.isSustainNote)
@@ -9172,7 +9120,7 @@ class PlayState extends MusicBeatState
 					}
 
 					if (!noteAlt.exNote && !noteAlt.gfNote && noteAlt.noteType == 'GF Duet') {
-						var canPlay:Bool = true;
+						var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 						if(noteAlt.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
@@ -9186,7 +9134,7 @@ class PlayState extends MusicBeatState
 
 					if(char != null)
 					{
-						var canPlay:Bool = true;
+						var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 						if(noteAlt.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
@@ -9217,8 +9165,7 @@ class PlayState extends MusicBeatState
 				if(cpuControlled && !ClientPrefs.data.showNotes) {
 					if (ClientPrefs.data.botLightStrum)
 					{
-						playerStrums.getByColumn(noteAlt.noteData).playAnim('confirm', true);
-						playerStrums.getByColumn(noteAlt.noteData).resetAnim = conductor.currentStepTime * 1.25 / 1000 / playbackRate;
+						strumPlayAnim((customStrummer ?? (note.parentStrumline ?? playerStrums)), noteAlt.noteData, calculateResetTime(), noteAlt.isSustainNote);
 					}
 				}
 
@@ -9573,13 +9520,16 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function strumPlayAnim(line:Strumline, id:Int, time:Float, ?note:Note) {
+	var strumPlay:Bool = true;
+	function strumPlayAnim(line:Strumline, id:Int, time:Float, ?sustain:Bool = true, ?palette:Array<FlxColor>) {
 		var spr:StrumNote = line.getByColumn(id);
 
-		if(spr != null) {
-			spr.playAnim('confirm', true);
-			spr.resetAnim = time;
-		}
+		strumPlay = (!sustain || ClientPrefs.data.oldSusStyle && sustain);
+
+		if(spr != null && (strumPlay || spr.animation.curAnim.name != 'confirm')) spr.playAnim('confirm', true);
+		if (palette != null) spr.updateRGBColors(palette[0], palette[1], palette[2]);
+
+		if (time > 0) spr.resetAnim = time;
 	}
 
 	#if ACHIEVEMENTS_ALLOWED

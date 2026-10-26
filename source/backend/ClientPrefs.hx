@@ -53,6 +53,8 @@ import states.TitleState;
 	public var rainbowTime:Float = 5.0;
 	public var opponentLightStrum:Bool = true;
 	public var botLightStrum:Bool = true;
+	public var playerLightStrum:Bool = true;
+	public var oldSusStyle:Bool = false;
 
 	// Dynamic Freeplay Loading Settings
 	public var dynamicFreeplayLoading:String = 'Adaptive (Hybrid)'; // Sync Load / Adaptive (Hybrid) / Aggressive (On-Demand)

@@ -112,6 +112,12 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		['Full Anim', 'BPM Based']);
     addOption(option);
 
+		final option:Option = new Option('Old Sustain Note Style',
+		'If checked, sustain notes will react like how they did in OG Mixtape.',
+		'oldSusStyle',
+		BOOL);
+    addOption(option);
+
 		var option:Option = new Option('Hide HUD',
 			'If checked, hides most HUD elements.',
 			'hideHud',

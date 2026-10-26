@@ -456,7 +456,7 @@ class Strumline extends FlxSpriteGroup
       // Convert the percent to a number between 0 and 1.
       this.background.alpha = ClientPrefs.data.strumlineBackgroundOpacity / 100.0;
       this.background.scrollFactor.set(0, 0);
-      this.background.x = this.x;
+      this.background.x = this.x + backgroundWidth + 150;
       this.add(this.background);
     }
     strumlineScale = new FlxCallbackPoint(strumlineScaleCallback);
@@ -530,14 +530,17 @@ class Strumline extends FlxSpriteGroup
 
 			var babyArrow:StrumNote = new StrumNote(strumLine.x, strumLine.y, i, playerNum);
 			babyArrow.downScroll = ClientPrefs.data.downScroll;
-			if (!MegaManager.playfield.skipArrowStartTween && mods == null)
+			if (!MegaManager.playfield.skipArrowStartTween && !MegaManager.playfield.isModchartSong)
 			{
 				babyArrow.y -= 150;
 				babyArrow.alpha = 0;
 				babyArrow.angle = 360;
         final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
 			}
-			else
+			else if (!MegaManager.playfield.skipArrowStartTween && MegaManager.playfield.isModchartSong) {
+        babyArrow.alpha = 0;
+      }
+      else
 			{
 				babyArrow.alpha = targetAlpha;
 			}

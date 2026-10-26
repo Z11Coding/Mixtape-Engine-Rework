@@ -2420,7 +2420,7 @@ class PlayfieldManager {
     if (key > -1)
 		{
 
-      (!opponentmode ? playerStrums : opponentStrums).pressKey(key, eventKey);
+      (!opponentmode ? playerStrums : opponentStrums).pressKey(key, key);
 
       //more accurate hit time for the ratings?
       var lastTime:Float = MegaManager.conductor.musicPosition;
@@ -2542,6 +2542,7 @@ class PlayfieldManager {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (MegaManager.scriptManager.callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
         if (key != -1) keyPressed(keyDirection);
+      }
 		}
 	}
 
@@ -2830,8 +2831,9 @@ class PlayfieldManager {
     curChart = [];
 
     // cleanup
-    isModchartSong = false;
+    isModchartSong = true;
     modchartEventHandler = null;
+    modchartTweenList = null;
     if (allStrumSprites != null)
     {
       allStrumSprites.clear();
@@ -3103,7 +3105,7 @@ class PlayfieldManager {
     * @param playerControlled If true, then the player can control this strumLine
     * @param noteStyle The notestyle this new strumline should use.
     */
-  public function constructNewStrumLine(playerControlled:Bool, ?noteStyleName:String):Strumline
+  public function constructNewStrumLine(playerControlled:Bool):Strumline
   {
     final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.data.middleScroll ? STRUM_X_MIDDLESCROLL : STRUM_X, (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50);
 
