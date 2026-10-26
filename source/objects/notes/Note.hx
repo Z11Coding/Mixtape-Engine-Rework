@@ -733,8 +733,9 @@ class Note extends BaseNote
 		var ns = chartNoteData.noteskin ?? "";
 		var tx = chartNoteData.texture ?? "";
 
-		wasGoodHit = hitByOpponent = tooLate = canBeHit = false; // Don't make an update call of this for the note group
-    hasBeenHit = hasMissed = mayHit = false;
+		wasGoodHit = hitByOpponent = tooLate = false; // Don't make an update call of this for the note group
+    hasBeenHit = hasMissed = false;
+		canBeHit = mayHit = true;
 
 		if (ns.length > 0 && ns != texture) {
 			texture = 'noteSkins/' + ns;

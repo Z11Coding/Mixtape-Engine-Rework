@@ -71,13 +71,34 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
-		var option:Option = new Option('GPU Caching', //Name
-			"If checked, allows the GPU to be used for caching textures, decreasing RAM usage.\nDon't turn this on if you have a shitty Graphics Card.\n(WARNING! THIS TENDS TO BREAK THINGS AND CRASH THE GAME!\nTURN ON AT YOUR OWN RISK!)", //Description
-			'cacheOnGPU',
-			BOOL);
-		addOption(option);
+		#if !html5
+    #if desktop
+    // different res cant really be done on browser lol
+    final option:Option = new Option('Resolution: ',
+		"What resolution do you want the game to run in?",
+		'resolution',
+		STRING,
+      // 9p,     18p,    36p, 	   72p,       120p,      144p,      270p       360p,      540p,      720p,       1080p (HD),  1440p (FHD),  2160p (UHD, 4K) yeah i went a bit too far with these
+      [
+        '16x9',
+        '32x18',
+        '64x36',
+        '128x72',
+        '214x120',
+        '256x144',
+        '480x270',
+        '640x360',
+        '960x540',
+        '1280x720',
+        '1920x1080',
+        '2560x1440',
+        '3840x2160'
+      ]);
+    addOption(option);
+    option.onChange = onChangeResolution;
+    #end
 
-		#if !html5 //Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
+		//Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
 		var option:Option = new Option('Framerate',
 			"Pretty self explanatory, isn't it?",
 			'framerate',
@@ -292,6 +313,32 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		trace('Graphics cleared due to Trash Mode toggle. New setting: ${ClientPrefs.data.trashMode}');
 		MusicBeatState.resetState();
 	}
+
+	function onChangeResolution()
+  {
+    #if desktop
+    final resolutionValue = cast(ClientPrefs.data.resolution, String); // Assuming 'clientprefs.resolution' holds the selected resolution
+
+    if (resolutionValue != null)
+    {
+      final parts = resolutionValue.split('x');
+
+      if (parts.length == 2)
+      {
+        var width = Std.parseInt(parts[0]);
+        var height = Std.parseInt(parts[1]);
+
+        if (width != null && height != null)
+        {
+          CoolUtil.resetResScale(width, height);
+          FlxG.resizeGame(width, height);
+          lime.app.Application.current.window.width = width;
+          lime.app.Application.current.window.height = height;
+        }
+      }
+    }
+    #end
+  }
 
 	override function changeSelection(change:Int = 0)
 	{

@@ -31,8 +31,43 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		var option:Option = new Option('Opponent Notes Alpha',
 			'How visible do you want the opponent notes to be?\n(ONLY APPLIES TO MIDDLESCROLL!)',
 			'oppNoteAlpha',
-			BOOL);
+			PERCENT);
+		option.scrollSpeed = 1.8;
+    option.minValue = 0.0;
+    option.maxValue = 1;
+    option.changeValue = 0.01;
+    option.decimals = 2;
 		addOption(option);
+
+		final option:Option = new Option('Light Opponent Strums',
+		"If this is unchecked, the Opponent strums won't light up when the Opponent hits a note.",
+		'opponentLightStrum',
+		BOOL);
+    addOption(option);
+
+		final option:Option = new Option('Light Botplay Strums',
+		"If this is unchecked, the Player strums won't light when Botplay is active.", 'botLightStrum',
+    BOOL);
+    addOption(option);
+
+
+		final option:Option = new Option('Max Splashes: ',
+		"How many note splashes should be allowed on screen at the same time?\n(0 means no limit)",
+    'maxSplashLimit',
+		INT);
+    option.minValue = 0;
+    option.maxValue = 50;
+    option.displayFormat = '%v Splashes';
+    addOption(option);
+
+		final option:Option = new Option('Strums BG Alpha: ',
+		"If >0, the game will display a semi-opaque background under the notes.\n`0` for no background, `100` for solid black if you're freaky like that",
+    'strumlineBackgroundOpacity',
+		INT);
+    option.minValue = 0;
+    option.maxValue = 100;
+    option.displayFormat = '%v%';
+    addOption(option);
 
 		var option:Option = new Option('Ghost Tapping',
 			"If checked, you won't get misses from pressing keys\nwhile there are no notes able to be hit.",

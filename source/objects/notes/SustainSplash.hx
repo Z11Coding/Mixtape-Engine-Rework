@@ -162,8 +162,8 @@ class SustainSplash extends ZSprite
 	public static function getSplashSkinPostfix()
 	{
 		var skin:String = '';
-		if (ClientPrefs.data.splashType != 'Default')
-			skin = '-' + ClientPrefs.data.splashType.trim().toLowerCase().replace(' ', '_');
+		if (ClientPrefs.data.splashSkin != 'Default')
+			skin = '-' + ClientPrefs.data.splashSkin.trim().toLowerCase().replace(' ', '_');
 		return skin;
 	}
 }

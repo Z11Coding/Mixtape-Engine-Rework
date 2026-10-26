@@ -18,7 +18,6 @@ import states.TitleState;
 	public var antialiasing:Bool = true;
 	public var noteSkin:String = 'Default';
 	public var splashSkin:String = 'Default';
-	public var splashType:String = 'Default';
 	public var noteColorStyle:String = 'Normal';
 	public var strumLitStyle:String = 'Full Anim';
 	public var splashAlpha:Float = 0.6;
@@ -215,7 +214,6 @@ import states.TitleState;
 	#end
 	public var useMarvs:Bool = true;
 	public var drain:Bool = true;
-	public var noAntimash:Bool = false;
 	public var modcharts:Bool = true;
 	public var gimmicksAllowed:Bool = true;
 	public var showCrash:Bool = true;
@@ -349,6 +347,7 @@ import states.TitleState;
 	public var showScoreText:Bool = true;
 
 	public var gameQuality:String = 'MEDIUM';
+	public var resolution:String = '1280x720';
 }
 
 class ClientPrefs {

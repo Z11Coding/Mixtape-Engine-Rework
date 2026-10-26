@@ -241,8 +241,8 @@ class StrumNote extends ZSpriteProjected
 			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
 
 			// Get the appropriate animation name for this column from the mania mapping
-			var strumAnim:String = animationArray[0]; // This is the strumAnims value
-			var letterAnim:String = animationArray[1]; // This is the letters value
+			var strumAnim:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get("strumAnims")[noteData % (ExtraKeys.mania+1)]; // This is the strumAnims value
+			var letterAnim:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get("letters")[noteData % (ExtraKeys.mania+1)]; // This is the letters value
 
 			// First try the hardcoded switch for traditional 4K animations (backwards compatibility)
 			switch (Math.abs(noteData))

@@ -89,6 +89,41 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.displayFormat = '< %v >';
 
+		var option:Option = new Option('No Antimash',
+			"If checked, makes spamming much easier to do.", 'ezSpam', BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Automatic Note Spawn Time',
+			"If checked, the Notes' spawn time will instead depend on the scroll speed. \nUseful if you don't want notes just spawning out of thin air.", 'dynamicSpawnTime', BOOL);
+		addOption(option);
+
+		final option:Option = new Option('Note Spawn Time', // Name
+      'Changes how early/close a note needs to be before it appears on screen.', // Description
+      'noteSpawnTime', // Save data variable name
+      FLOAT); // Variable type
+    option.scrollSpeed = 2;
+    option.minValue = 0.01;
+    option.maxValue = 10;
+    option.changeValue = 0.1;
+    option.displayFormat = '%vX';
+    addOption(option);
+
+		final option:Option = new Option('Max Rendered Notes: ',
+			"The max amount of notes that the game can render onscreen.\nTo remove this limit, set it to 0.",
+			'maxNotes',
+			INT);
+    addOption(option);
+    option.scrollSpeed = 2000;
+    option.minValue = 0;
+    option.maxValue = 99999;
+    option.displayFormat = '%v Notes';
+
+		final option:Option = new Option('Enable Note Colors',
+		'If unchecked, notes won\'t be able to use your currently set colors.',
+		'enableColorShader',
+    BOOL);
+    addOption(option);
+
 		var option:Option = new Option('Ranking System',
 		"The ranking system you wish to use.\nMixtape: Accuracy-Based ranking system with more through ranks.\nV-Slice: Score, Accuracy and Miss based ranking system with simplistic ranks.\n(Keep in mind, both systems save separately, so your score on one system wont transfer to the other!)",
 		'ranking',
@@ -100,10 +135,6 @@ class MixtapeSettingsSubState extends BaseOptionsMenu
 		]);
 		addOption(option);
 		option.displayFormat = '< %v >';
-
-		var option:Option = new Option('No Antimash',
-			"If checked, Antimash will be disabled. (Does nothing...for now...)\n(dont worry there is no antimashing...yet...)", 'noAntimash', BOOL);
-		addOption(option);
 
 		var option:Option = new Option('Intro Skip When',
 		"Choose when the intro can be skipped.",

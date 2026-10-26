@@ -3160,8 +3160,10 @@ class PlayState extends MusicBeatState
 			//trace("Starting Countdown!");
 			canPause = true;
 
-			if (skipCountdown || startOnTime > 0)
+			if (skipCountdown || startOnTime > 0)  {
 				playfield.skipArrowStartTween = true;
+				countdownFinished = true;
+			}
 
 			#if ALLOW_DEPRECATION
 			callOnScripts('preModifierRegister'); // deprecated
@@ -3964,6 +3966,8 @@ class PlayState extends MusicBeatState
 			mechanicsMod.dodgeWant = FlxG.random.float(6, 18);
 		}
 
+		resyncVocals();
+
 		/*trace('PlayerStrum First Receptor: ${playerStrums.strumLineNotes.members[0]}');
 		trace('PlayerStrum First Receptor X: ${playerStrums.strumLineNotes.members[0].x}');
 		trace('PlayerStrum First Receptor Y: ${playerStrums.strumLineNotes.members[0].y}');
@@ -4116,22 +4120,22 @@ class PlayState extends MusicBeatState
 		#end
 	}
 
-	function resyncVocals():Void
+	function resyncVocals(?toTime:Float):Void
 	{
 		if(finishTimer != null) return;
 
-		trace('resynced vocals at ' + Math.floor(conductor.musicPosition));
+		trace('resynced vocals at ' + Math.floor((toTime ?? conductor.musicPosition)));
 
-		FlxG.sound.music.play();
+		conductor.target.play();
 		#if FLX_PITCH FlxG.sound.music.pitch = playbackRate; #end
-		conductor.target.time = conductor.musicPosition + conductor.musicPositionOffset + delayOffset;
+		conductor.target.time = (toTime ?? conductor.musicPosition) + conductor.musicPositionOffset + delayOffset;
 
 		var checkVocals = [vocals, opponentVocals, gfVocals];
 		for (voc in checkVocals)
 		{
-			if (FlxG.sound.music.time < vocals.length)
+			if ((toTime ?? conductor.musicPosition) < vocals.length)
 			{
-				voc.time = FlxG.sound.music.time - (delayOffset * 1.5);
+				voc.time = (toTime ?? conductor.musicPosition) + conductor.musicPositionOffset + delayOffset;
 				#if FLX_PITCH voc.pitch = playbackRate; #end
 				voc.play();
 			}
@@ -4455,23 +4459,30 @@ class PlayState extends MusicBeatState
 		}
 		else if (!paused && updateTime)
 		{
-			if (conductor.musicPosition - lastUpdateTime >= 1.0)
-				lastUpdateTime = conductor.musicPosition;
+			if (conductor.musicPosition - lastUpdateTime >= 1.0) {
+				if (conductor.musicPosition - lastUpdateTime >= 1.0)
+					lastUpdateTime = conductor.musicPosition;
 
-			// Cache time bar type to avoid repeated property access
-			var timeBarType:String = _cachedTimeBarType;
-			var curTime:Float = Math.max(0, conductor.musicPosition - ClientPrefs.data.noteOffset);
-			var lengthUsing:Float = (maskedSongLength > 0) ? maskedSongLength : songLength;
-			songPercent = (curTime / lengthUsing);
+				// Cache time bar type to avoid repeated property access
+				var timeBarType:String = _cachedTimeBarType;
+				var curTime:Float = Math.max(0, conductor.musicPosition - ClientPrefs.data.noteOffset);
+				var lengthUsing:Float = (maskedSongLength > 0) ? maskedSongLength : songLength;
+				songPercent = (curTime / lengthUsing);
 
-			var songCalc:Float = (lengthUsing - curTime);
-			if(timeBarType == 'Time Elapsed') songCalc = curTime;
+				var songCalc:Float = (lengthUsing - curTime);
+				if(timeBarType == 'Time Elapsed' || timeBarType == 'Modern Time') songCalc = curTime;
 
-			var secondsTotal:Int = Math.floor(songCalc / 1000);
-			if(secondsTotal < 0) secondsTotal = 0;
+				var secondsTotal:Int = Math.floor(songCalc / 1000);
+				if(secondsTotal < 0) secondsTotal = 0;
 
-			if(timeBarType != 'Song Name')
-				timeTxt.text = convertTime(secondsTotal, false);
+				if(timeBarType != 'Song Name') {
+					timeTxt.text = (timeBarType == 'Time Left' || timeBarType == 'Modern Time') ? CoolUtil.getSongDuration(conductor.musicPosition, songPercent) : CoolUtil.formatTime(conductor.musicPosition)
+						+ ((timeBarType == 'Modern Time') ? ' / ' + CoolUtil.formatTime(lengthUsing) : '');
+
+					if (timeBarType == 'Song Name + Time')
+						timeTxt.text = SONG.song + ' (' + CoolUtil.formatTime(conductor.musicPosition) + ' / ' + CoolUtil.formatTime(songPercent) + ')';
+				}
+			}
 		}
 
 		// === OPTIMIZED CAMERA ZOOM ===
@@ -4515,10 +4526,10 @@ class PlayState extends MusicBeatState
 
 				// === OPTIMIZED NOTE PROCESSING ===
 				for (strum in playfield.allStrumLines) {
-					strum.notes.forEachExists(updateLiveNote);
+					strum.notes.forEachAlive(updateLiveNote);
 					if (strum.notes.countLiving() > 1)
 						strum.notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
-					strum.sustainNotes.forEachExists(updateLiveNote);
+					strum.sustainNotes.forEachAlive(updateLiveNote);
 					if (strum.sustainNotes.countLiving() > 1)
 						strum.sustainNotes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
 				}
@@ -4880,11 +4891,11 @@ class PlayState extends MusicBeatState
 			conductor.target.time = skipTo;
 			conductor.target.play();
 
-			vocals.time = conductor.musicPosition;
+			vocals.time = skipTo;
 			vocals.play();
-			opponentVocals.time = conductor.musicPosition;
+			opponentVocals.time = skipTo;
 			opponentVocals.play();
-			gfVocals.time = conductor.musicPosition;
+			gfVocals.time = skipTo;
 			gfVocals.play();
 			FlxTween.tween(skipTxt, {alpha: 0}, 0.2/playbackRate, {
 				onComplete: function(tw)
@@ -4893,6 +4904,7 @@ class PlayState extends MusicBeatState
 				}
 			});
 			skipActive = false;
+			resyncVocals(skipTo);
 		}
 
 		//#if debug
@@ -9092,7 +9104,8 @@ class PlayState extends MusicBeatState
 				}
 
 				noteMiss(note);
-				if(!note.noteSplashData.disabled && !note.isSustainNote) playfield.spawnNoteSplashOnNote(note);
+				if(!note.noteSplashData.disabled && !(note is SustainNote))
+					playfield.spawnNoteSplashOnNote(note);
 			}
 
 			if (mechanicsMod != null) {
@@ -9107,6 +9120,10 @@ class PlayState extends MusicBeatState
 			}
 
 			bfkilledcheck = false;
+
+			if (ClientPrefs.data.noteSplashes && note is SustainNote && playfield.splashesPerFrame[1] <= 4)
+				playfield.spawnHoldSplashOnNote(note);
+
 
 			stagesFunc(function(stage:BaseStage) stage.goodNoteHit(note));
 			var result:Dynamic = callOnLuas('goodNoteHit', [(customStrummer ?? (note.parentStrumline ?? playerStrums)).notes.members.indexOf(note), leData, leType, isSus]);

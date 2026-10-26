@@ -912,63 +912,40 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
   function setupHoldNoteGraphic():Void
   {
-    var letters:Array<String> = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters');
-    var direction:Int = ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData];
-    var noteFrame:FlxFrame = getAnimationFrame(letters[noteData]);
-    var holdFrame:FlxFrame = getAnimationFrame(letters[noteData] + ' hold');
-    var tailFrame:FlxFrame = getAnimationFrame(letters[noteData] + ' tail');
-    var colorName:String = ExtraKeys.colArray[direction];
+    reloadNote(texture);
 
-    if (noteFrame == null) noteFrame = getAnimationFrame(colorName);
-    if (holdFrame == null) holdFrame = getAnimationFrame(colorName + ' hold');
-    if (tailFrame == null) tailFrame = getAnimationFrame(colorName + ' tail');
+    antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
 
-    zoom = 0.7;
-    var noteScale:Float = ExtraKeys.scales[ExtraKeys.mania];
-    if (holdFrame != null && tailFrame != null && holdFrame.parent == tailFrame.parent)
+    if (isPixel)
     {
-      graphic = holdFrame.parent;
-      noteSkinUVs = true;
-      holdFrameUVLeft = holdFrame.uv.left;
-      holdFrameUVTop = holdFrame.uv.top;
-      holdFrameUVRight = holdFrame.uv.right;
-      holdFrameUVBottom = holdFrame.uv.bottom;
-      tailFrameUVLeft = tailFrame.uv.left;
-      tailFrameUVTop = tailFrame.uv.top;
-      tailFrameUVRight = tailFrame.uv.right;
-      tailFrameUVBottom = tailFrame.uv.bottom;
-      graphicWidth = holdFrame.frame.width * zoom * noteScale;
-      tailFrameHeight = tailFrame.frame.height * zoom * noteScale;
+      endOffset = bottomClip = 1;
+      antialiasing = false;
     }
     else
     {
-      loadGraphic(Paths.image('NOTE_ArrowPath'));
-      noteSkinUVs = false;
-      antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
-      graphicWidth = graphic.width / 8 * zoom;
-      tailFrameHeight = graphic.height * zoom;
-      if (PlayState.isPixelStage)
+      endOffset = 0.5;
+      bottomClip = 0.9;
+    }
+    zoom = 1.0;
+
+    graphicWidth = graphic.width / ((ExtraKeys.ammo[ExtraKeys.mania])*2) * zoom;
+    graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
+    if (parentStrumline != null)
+    {
+      if (parentStrumline.sustainGraphicWidth == null)
       {
-        endOffset = bottomClip = 1;
-      }
-      else
-      {
-        endOffset = 0.5;
-        bottomClip = 0.9;
+        parentStrumline.sustainGraphicWidth = graphicWidth;
       }
     }
-
-    antialiasing = ClientPrefs.data.antialiasing && !PlayState.isPixelStage;
-    graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     flipY = ClientPrefs.data.downScroll;
+    alpha = 1.0;
 
-    var noteWidth:Float = noteFrame != null ? noteFrame.frame.width * zoom * noteScale : BaseNote.swagWidth * noteScale;
-    offsetX = (noteWidth - graphicWidth) / 2;
+    if (useHSVShader)
+    {
+      if (hsvShader == null) hsvShader = new HSVNotesShader();
+      this.shader = hsvShader;
+    }
 
-    var initialData:Array<Float> = [];
-    for (_ in 0...16) initialData.push(0);
-    setVertices(initialData);
-    setUVTData(initialData.copy());
     updateClipping();
   }
 
@@ -1190,7 +1167,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     var notePos:Float = parentStrumline.calculateNoteYPos(strumTimmy);
 
     if (
-      parentStrumline.mods.mathCutOffCheck(notePos, noteData % 4)
+      parentStrumline.mods.mathCutOffCheck(notePos, noteData % (ExtraKeys.mania+1))
       || (
         !isRoot
         && whichStrumNote.strumExtraModData.noHoldMathShortcut < 0.5
@@ -1502,7 +1479,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     // Long hold logic:
     var longHolds:Float = noteModData?.longHolds ?? 0;
-    // longHolds = parentStrumline?.mods?.longHolds[noteData % 4] ?? 0;
+    // longHolds = parentStrumline?.mods?.longHolds[noteData % (ExtraKeys.mania+1)] ?? 0;
     if (longHolds != 0)
     {
       var percentageTillCompletion_part:Float = 0;
@@ -1612,7 +1589,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       }
       else
       {
-        uvtData[0 * 2] = (1 / 4) * (noteData % 4);
+        uvtData[0 * 2] = (1 / 4) * (noteData % (ExtraKeys.mania+1));
         uvtData[0 * 2 + 1] = uvClip;
         uvtData[1 * 2] = uvtData[0 * 2] + (1 / 8);
         uvtData[1 * 2 + 1] = uvClip;
@@ -2077,7 +2054,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     else
     {
-      uvtData[0 * 2] = 1 / 4 * (noteData % 4);
+      uvtData[0 * 2] = 1 / 4 * (noteData % (ExtraKeys.mania+1));
       uvtData[0 * 2 + 1] = (-partHeight) / graphic.height / zoom;
     }
     // Top left

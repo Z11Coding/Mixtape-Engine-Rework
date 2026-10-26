@@ -81,11 +81,36 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = playNoteSplashes;
 
+		var option:Option = new Option('Note Splashes',
+			'If unchecked, hitting "Sick!" or "Marvelous!" notes won\'t show particles.',
+			'noteSplashes',
+			BOOL);
+		addOption(option);
+
+		var option:Option = new Option('Opponent Note Splashes',
+			'If checked, opponent note hits will show particles.',
+			'oppNoteSplashes',
+			BOOL);
+		addOption(option);
+
+		final option:Option = new Option('Note Color Style: ',
+		"How would you like your notes colored?",
+		'noteColorStyle',
+		STRING,
+    ['Normal', 'Quant-Based', 'Char-Based', 'Grayscale', 'Rainbow']);
+    addOption(option);
+
 		var option:Option = new Option('Enable Color Shader',
 			'If unchecked, globally disables the RGB Shader on the notes.',
 			'enableColorShader',
 			BOOL);
 		addOption(option);
+
+		final option:Option = new Option('Strum Light Up Style:',
+		"How would you like the strum animations to play when lit up? \nNote: Turn on 'Light Opponent/Botplay Strums' to see this in action!", 'strumLitStyle',
+		STRING,
+		['Full Anim', 'BPM Based']);
+    addOption(option);
 
 		var option:Option = new Option('Hide HUD',
 			'If checked, hides most HUD elements.',
@@ -97,7 +122,7 @@ class VisualsSettingsSubState extends BaseOptionsMenu
 			"What should the Time Bar display?",
 			'timeBarType',
 			STRING,
-			['Time Left', 'Time Elapsed', 'Song Name', 'Disabled']);
+			['Time Left', 'Time Elapsed', 'Song Name', 'Modern Time', 'Song Name + Time', 'Disabled']);
 		addOption(option);
 
 		var option:Option = new Option('Flashing Lights',

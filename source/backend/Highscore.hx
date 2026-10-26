@@ -330,8 +330,8 @@ class Highscore
 			saveMod += "-noGimmick";
 		if (!ClientPrefs.data.modcharts)
 			saveMod += "-noModchart";
-		if (ClientPrefs.data.noAntimash)
-			saveMod += "-noAntimash";
+		if (ClientPrefs.data.ezSpam)
+			saveMod += "-ezSpam";
 		if (!ClientPrefs.data.drain)
 			saveMod += "-noHealthDrain";
 		if (!ClientPrefs.data.useMarvs)

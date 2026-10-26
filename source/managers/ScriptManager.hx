@@ -52,6 +52,11 @@ class ScriptManager {
 	public var hasPyScripts:Bool = false;
 	public var hasYScripts:Bool = false;
 
+	#if LUA_ALLOWED
+	private var luaCallBuffers:Array<Array<Dynamic>> = [];
+	private var luaCallDepth:Int = 0;
+	#end
+
   public function new() {
 		instance = this;
 		luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
@@ -582,15 +587,21 @@ class ScriptManager {
 
 		// var lua = flixel.util.typeLimit.OneOfTwo;
 
-		var arr:Array<Dynamic> = [];
-		if ((luaArray != null || legacyLuaArray != null) && (luaArray.length > 0 || legacyLuaArray.length > 0)) {
-			for (script in yutautil.CollectionUtils.toIterable(cast(luaArray:Array<Dynamic>).concat(legacyLuaArray)))
+		if ((luaArray != null && luaArray.length > 0) || (legacyLuaArray != null && legacyLuaArray.length > 0)) {
+			if (luaCallBuffers.length <= luaCallDepth)
+				luaCallBuffers.push([]);
+
+			var scripts:Array<Dynamic> = luaCallBuffers[luaCallDepth++];
+			scripts.resize(0);
+			if (luaArray != null)
+				for (script in luaArray) scripts.push(script);
+			if (legacyLuaArray != null)
+				for (script in legacyLuaArray) scripts.push(script);
+
+			for (script in scripts)
 			{
-				if(script.closed)
-				{
-					arr.push(script);
+				if (script == null || script.closed)
 					continue;
-				}
 
 				if(exclusions.contains(script.scriptName))
 					continue;
@@ -604,14 +615,22 @@ class ScriptManager {
 
 				if(myValue != null && !excludeValues.contains(myValue))
 					returnVal = myValue;
-
-				if(script.closed) arr.push(script);
 			}
-		}
 
-		if(arr.length > 0)
-			for (script in arr)
-			(luaArray.contains(script)) ? luaArray.remove(script) : legacyLuaArray.remove(cast(script, LegacyFunkinLua));
+			for (script in scripts)
+			{
+				if (script == null || !script.closed)
+					continue;
+
+				if (luaArray != null && luaArray.contains(script))
+					luaArray.remove(script);
+				else if (legacyLuaArray != null)
+					legacyLuaArray.remove(cast(script, LegacyFunkinLua));
+			}
+
+			scripts.resize(0);
+			luaCallDepth--;
+		}
 		#end
 		return returnVal;
 	}
@@ -868,4 +887,3 @@ class ScriptManager {
 		return null;
 	}
 }
-

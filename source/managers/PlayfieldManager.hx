@@ -1229,8 +1229,6 @@ class PlayfieldManager {
 
 		final endTime = haxe.Timer.stamp();
 
-		System.gc();
-
 		final elapsedTime = endTime - startTime;
 
 		notesLoadedRN = 0;
@@ -2378,6 +2376,7 @@ class PlayfieldManager {
 				pressed.remove(eventKey);
 
 			if (key != -1) keyReleased(key);
+      (!opponentmode ? playerStrums : opponentStrums).releaseKey(key, eventKey);
 		} else {
 			#if debug
 			//Prevents crash specifically on debug without needing to try catch shit
@@ -2398,165 +2397,7 @@ class PlayfieldManager {
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
         if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-
-				if (key > -1)
-				{
-					if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
-            return;
-
-          @:privateAccess
-          if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= playerStrums.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
-          if (strumsBlocked[key]) return;
-
-          // Early script callback optimization - only call if scripts exist
-          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-            var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
-            if(ret == LuaUtils.Function_Stop) return;
-          }
-
-          //more accurate hit time for the ratings?
-          var lastTime:Float = MegaManager.conductor.musicPosition;
-          var canMiss:Bool = !ClientPrefs.data.ghostTapping;
-
-          // obtain notes that the player can hit
-          var plrInputNotes:Array<Note> = playerStrums.notes.members.filter(function(n:Note):Bool {
-            var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
-            // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-            return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
-          });
-          plrInputNotes.sort(PlayState.sortHitNotes);
-
-          if (plrInputNotes.length != 0) {
-            var funnyNote:Note = plrInputNotes[0]; // front note
-
-            if (plrInputNotes.length > 1) {
-              var doubleNote:Note = plrInputNotes[1];
-
-              //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-              if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-                // if the note has a 0ms distance (is on top of the current note), kill it
-                if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-                  PlayState.instance?.invalidateNote(doubleNote);
-                else if (doubleNote.strumTime < funnyNote.strumTime)
-                {
-                  // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-                  funnyNote = doubleNote;
-                }
-              }
-              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-            }
-            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-            if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-            }
-          }
-          else {
-            MegaManager.scriptManager.callOnScripts('onGhostTap', [key]);
-            if (canMiss) PlayState.instance?.noteMissPress(key);
-          }
-
-          var spr:StrumNote = playerStrums.getByColumn(key);
-          if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
-          {
-            spr.playAnim('pressed');
-            spr.resetAnim = 0;
-          }
-
-          // Optimize keysPressed tracking with Map
-          keysPressedSet[key] = true;
-          if(!keysPressed.contains(key))
-            keysPressed.push(key);
-
-
-          // Final script callback - only if scripts exist
-          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-            MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
-          }
-				}
-
-        for (customStrummer in customStrumLines)
-        {
-          if (customStrummer != null) return; // No reason to worry about it if it aint there lol
-          if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
-          if (pressed.contains(eventKey)) return;
-          pressed.push(eventKey);
-          if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-
-          if (key > -1)
-          {
-            if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
-              return;
-
-            @:privateAccess
-            if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= customStrummer.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
-            if (strumsBlocked[key]) return;
-
-            // Early script callback optimization - only call if scripts exist
-            if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-              var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
-              if(ret == LuaUtils.Function_Stop) return;
-            }
-
-            //more accurate hit time for the ratings?
-            var lastTime:Float = MegaManager.conductor.musicPosition;
-            var canMiss:Bool = !ClientPrefs.data.ghostTapping;
-
-            // obtain notes that the player can hit
-            var plrInputNotes:Array<Note> = customStrummer.notes.members.filter(function(n:Note):Bool {
-              var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
-              // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-              return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
-            });
-            plrInputNotes.sort(PlayState.sortHitNotes);
-
-            if (plrInputNotes.length != 0) {
-              var funnyNote:Note = plrInputNotes[0]; // front note
-
-              if (plrInputNotes.length > 1) {
-                var doubleNote:Note = plrInputNotes[1];
-
-                //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-                if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-                  // if the note has a 0ms distance (is on top of the current note), kill it
-                  if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-                    PlayState.instance?.invalidateNote(doubleNote);
-                  else if (doubleNote.strumTime < funnyNote.strumTime)
-                  {
-                    // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-                    funnyNote = doubleNote;
-                  }
-                }
-                else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-              }
-              PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-              if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-                for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-              }
-            }
-            else {
-              MegaManager.scriptManager.callOnScripts('onGhostTap', [key]);
-              if (canMiss) PlayState.instance?.noteMissPress(key);
-            }
-
-            var spr:StrumNote = customStrummer.getByColumn(key);
-            if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
-            {
-              spr.playAnim('pressed');
-              spr.resetAnim = 0;
-            }
-
-            // Optimize keysPressed tracking with Map
-            keysPressedSet[key] = true;
-            if(!keysPressed.contains(key))
-              keysPressed.push(key);
-
-
-            // Final script callback - only if scripts exist
-            if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-              MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
-            }
-          }
-        }
+        if (key != -1) keyPressed(key);
 			}
 		}
 	}
@@ -2570,70 +2411,96 @@ class PlayfieldManager {
 		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= playerStrums.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
 		if (strumsBlocked[key]) return;
 
-		// Early script callback optimization - only call if scripts exist
-		if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
+    // Early script callback optimization - only call if scripts exist
+    if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
       var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
       if(ret == LuaUtils.Function_Stop) return;
-		}
+    }
 
-    //more accurate hit time for the ratings?
-		var lastTime:Float = MegaManager.conductor.musicPosition;
-		var canMiss:Bool = !ClientPrefs.data.ghostTapping;
-
-		// obtain notes that the player can hit
-		var plrInputNotes:Array<Note> = playerStrums.notes.members.filter(function(n:Note):Bool {
-			var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
-			// trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-			return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
-		});
-		plrInputNotes.sort(PlayState.sortHitNotes);
-
-		if (plrInputNotes.length != 0) {
-			var funnyNote:Note = plrInputNotes[0]; // front note
-
-			if (plrInputNotes.length > 1) {
-				var doubleNote:Note = plrInputNotes[1];
-
-				//if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-				if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-					// if the note has a 0ms distance (is on top of the current note), kill it
-					if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-						PlayState.instance?.invalidateNote(doubleNote);
-					else if (doubleNote.strumTime < funnyNote.strumTime)
-					{
-						// replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-						funnyNote = doubleNote;
-					}
-				}
-				else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-			}
-			PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-			if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-				for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-			}
-		}
-		else {
-			MegaManager.scriptManager.callOnScripts('onGhostTap', [key]);
-			if (canMiss) PlayState.instance?.noteMissPress(key);
-		}
-
-		var spr:StrumNote = playerStrums.getByColumn(key);
-		if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
+    if (key > -1)
 		{
-			spr.playAnim('pressed');
-			spr.resetAnim = 0;
-		}
 
-		// Optimize keysPressed tracking with Map
-		keysPressedSet[key] = true;
-		if(!keysPressed.contains(key))
-      keysPressed.push(key);
+      (!opponentmode ? playerStrums : opponentStrums).pressKey(key, eventKey);
+
+      //more accurate hit time for the ratings?
+      var lastTime:Float = MegaManager.conductor.musicPosition;
+      var canMiss:Bool = !ClientPrefs.data.ghostTapping;
+
+      // obtain notes that the player can hit
+      var plrInputNotes:Array<Dynamic> = (!opponentmode ? playerStrums : opponentStrums).notes.members.filter(function(n:Note):Bool {
+        var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
+        // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
+        return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
+      });
+      plrInputNotes.concat((!opponentmode ? playerStrums : opponentStrums).sustainNotes.members.filter(function(n:SustainNote):Bool {
+        var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
+        // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
+        return n != null && n.exists && canHit && n.noteData == key;
+      }));
+      plrInputNotes.sort(PlayState.sortHitNotes);
+
+      if (plrInputNotes.length != 0) {
+        var funnyNote:Note = plrInputNotes[0]; // front note
+
+        if (plrInputNotes.length > 1) {
+          var doubleNote:Note = plrInputNotes[1];
+
+          //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
+          if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
+            // if the note has a 0ms distance (is on top of the current note), kill it
+            if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
+              PlayState.instance?.invalidateNote(doubleNote);
+            else if (doubleNote.strumTime < funnyNote.strumTime)
+            {
+              // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
+              funnyNote = doubleNote;
+            }
+          }
+          else {
+            PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
+            (!opponentmode ? playerStrums : opponentStrums).hitNote(doubleNote);
+            for (customStrummer in customStrumLines)
+              customStrummer.hitNote(doubleNote);
+          }
+        }
+        PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
+        (!opponentmode ? playerStrums : opponentStrums).hitNote(funnyNote);
+        for (customStrummer in customStrumLines)
+          customStrummer.hitNote(funnyNote);
+        if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
+          for (i in 1...plrInputNotes.length) {
+            PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
+            (!opponentmode ? playerStrums : opponentStrums).hitNote(plrInputNotes[i]);
+            for (customStrummer in customStrumLines)
+              customStrummer.hitNote(plrInputNotes[i]);
+          }
+        }
+      }
+      else {
+        MegaManager.scriptManager.callOnScripts('onGhostTap', [key]);
+        if (canMiss) PlayState.instance?.noteMissPress(key);
+      }
+
+      var spr:StrumNote = playerStrums.getByColumn(key);
+      if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
+      {
+        spr.playAnim('pressed');
+        spr.resetAnim = 0;
+      }
+
+      // Optimize keysPressed tracking with Map
+      keysPressedSet[key] = true;
+      if(!keysPressed.contains(key))
+        keysPressed.push(key);
 
 
-		// Final script callback - only if scripts exist
-		if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-      MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
-		}
+      // Final script callback - only if scripts exist
+      if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
+        MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
+      }
+    }
+
+
 	}
 
   // very innovative?
@@ -2662,6 +2529,7 @@ class PlayfieldManager {
 
 		if (reverseNoteRules) {
 			if (keyDirection != -1) keyReleased(keyDirection);
+      (!opponentmode ? playerStrums : opponentStrums).releaseKey(keyDirection, key);
 		} else {
 			if (ClientPrefs.data.inputSystem == "Native-old") {
 				if (!Controls.instance.controllerMode)
@@ -2673,82 +2541,7 @@ class PlayfieldManager {
 			else {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (MegaManager.scriptManager.callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
-
-				if (keyDirection > -1)
-				{
-					if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
-            return;
-
-          @:privateAccess
-          if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || keyDirection < 0 || keyDirection >= playerStrums.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
-          if (strumsBlocked[keyDirection]) return;
-
-          // Early script callback optimization - only call if scripts exist
-          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-            var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [keyDirection]);
-            if(ret == LuaUtils.Function_Stop) return;
-          }
-
-          //more accurate hit time for the ratings?
-          var lastTime:Float = MegaManager.conductor.musicPosition;
-          var canMiss:Bool = !ClientPrefs.data.ghostTapping;
-
-          // obtain notes that the player can hit
-          var plrInputNotes:Array<Note> = notes.members.filter(function(n:Note):Bool {
-            var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
-            // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-            return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == keyDirection;
-          });
-          plrInputNotes.sort(PlayState.sortHitNotes);
-
-          if (plrInputNotes.length != 0) {
-            var funnyNote:Note = plrInputNotes[0]; // front note
-
-            if (plrInputNotes.length > 1) {
-              var doubleNote:Note = plrInputNotes[1];
-
-              //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-              if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-                // if the note has a 0ms distance (is on top of the current note), kill it
-                if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-                  PlayState.instance?.invalidateNote(doubleNote);
-                else if (doubleNote.strumTime < funnyNote.strumTime)
-                {
-                  // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-                  funnyNote = doubleNote;
-                }
-              }
-              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-            }
-            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-            if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-            }
-          }
-          else {
-            MegaManager.scriptManager.callOnScripts('onGhostTap', [keyDirection]);
-            if (canMiss) PlayState.instance?.noteMissPress(keyDirection);
-          }
-
-          var spr:StrumNote = playerStrums.getByColumn(keyDirection);
-          if(strumsBlocked[keyDirection] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
-          {
-            spr.playAnim('pressed');
-            spr.resetAnim = 0;
-          }
-
-          // Optimize keysPressed tracking with Map
-          keysPressedSet[keyDirection] = true;
-          if(!keysPressed.contains(keyDirection))
-            keysPressed.push(keyDirection);
-
-
-          // Final script callback - only if scripts exist
-          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-            MegaManager.scriptManager.callOnScripts('onKeyPress', [keyDirection]);
-          }
-				}
-			}
+        if (key != -1) keyPressed(keyDirection);
 		}
 	}
 
@@ -2761,86 +2554,13 @@ class PlayfieldManager {
 				{
 					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 					if (direction != -1) keyPressed(direction);
+          (!opponentmode ? playerStrums : opponentStrums).pressKey(direction, key);
 				}
 			}
 			else {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (MegaManager.scriptManager.callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
-
-				if (direction > -1)
-				{
-					if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
-            return;
-
-          @:privateAccess
-          if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || direction < 0 || direction >= playerStrums.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
-          if (strumsBlocked[direction]) return;
-
-          // Early script callback optimization - only call if scripts exist
-          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-            var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [direction]);
-            if(ret == LuaUtils.Function_Stop) return;
-          }
-
-          //more accurate hit time for the ratings?
-          var lastTime:Float = MegaManager.conductor.musicPosition;
-          var canMiss:Bool = !ClientPrefs.data.ghostTapping;
-
-          // obtain notes that the player can hit
-          var plrInputNotes:Array<Note> = notes.members.filter(function(n:Note):Bool {
-            var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
-            // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-            return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == direction;
-          });
-          plrInputNotes.sort(PlayState.sortHitNotes);
-
-          if (plrInputNotes.length != 0) {
-            var funnyNote:Note = plrInputNotes[0]; // front note
-
-            if (plrInputNotes.length > 1) {
-              var doubleNote:Note = plrInputNotes[1];
-
-              //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-              if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-                // if the note has a 0ms distance (is on top of the current note), kill it
-                if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-                  PlayState.instance?.invalidateNote(doubleNote);
-                else if (doubleNote.strumTime < funnyNote.strumTime)
-                {
-                  // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-                  funnyNote = doubleNote;
-                }
-              }
-              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-            }
-            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-            if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-            }
-          }
-          else {
-            MegaManager.scriptManager.callOnScripts('onGhostTap', [direction]);
-            if (canMiss) PlayState.instance?.noteMissPress(direction);
-          }
-
-          var spr:StrumNote = playerStrums.getByColumn(direction);
-          if(strumsBlocked[direction] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
-          {
-            spr.playAnim('pressed');
-            spr.resetAnim = 0;
-          }
-
-          // Optimize keysPressed tracking with Map
-          keysPressedSet[direction] = true;
-          if(!keysPressed.contains(direction))
-            keysPressed.push(direction);
-
-
-          // Final script callback - only if scripts exist
-          if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-            MegaManager.scriptManager.callOnScripts('onKeyPress', [direction]);
-          }
-				}
+        if (direction != -1) keyPressed(direction);
 			}
 		} else {
 			if (direction != -1) keyReleased(direction);
@@ -2865,6 +2585,7 @@ class PlayfieldManager {
 					if (pressed.contains(eventKey)) return;
 					pressed.push(eventKey);
 					if (key != -1) keyPressed(key);
+          (!opponentmode ? playerStrums : opponentStrums).pressKey(key, eventKey);
 				}
 			}
 			else {
@@ -2873,168 +2594,7 @@ class PlayfieldManager {
 				pressed.push(eventKey);
         if (MusicBeatState.getState() == PlayState.instance)
           if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-
-				if (key > -1)
-				{
-					if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
-            return;
-
-          @:privateAccess
-          if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= playerStrums.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
-          if (strumsBlocked[key]) return;
-
-          // Early script callback optimization - only call if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance) {
-              var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
-              if(ret == LuaUtils.Function_Stop) return;
-            }
-          }
-
-          //more accurate hit time for the ratings?
-          var lastTime:Float = MegaManager.conductor.musicPosition;
-          var canMiss:Bool = !ClientPrefs.data.ghostTapping;
-
-          // obtain notes that the player can hit
-          var plrInputNotes:Array<Note> = playerStrums.notes.members.filter(function(n:Note):Bool {
-            var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
-            // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-            return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
-          });
-          plrInputNotes.sort(PlayState.sortHitNotes);
-
-          if (plrInputNotes.length != 0) {
-            var funnyNote:Note = plrInputNotes[0]; // front note
-
-            if (plrInputNotes.length > 1) {
-              var doubleNote:Note = plrInputNotes[1];
-
-              //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-              if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-                // if the note has a 0ms distance (is on top of the current note), kill it
-                if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-                  PlayState.instance?.invalidateNote(doubleNote);
-                else if (doubleNote.strumTime < funnyNote.strumTime)
-                {
-                  // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-                  funnyNote = doubleNote;
-                }
-              }
-              else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-            }
-            PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-            if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-              for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-            }
-          }
-          else {
-            MegaManager.scriptManager.callOnScripts('onGhostTap', [key]);
-            if (canMiss) PlayState.instance?.noteMissPress(key);
-          }
-
-          var spr:StrumNote = playerStrums.getByColumn(key);
-          if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
-          {
-            spr.playAnim('pressed');
-            spr.resetAnim = 0;
-          }
-
-          // Optimize keysPressed tracking with Map
-          keysPressedSet[key] = true;
-          if(!keysPressed.contains(key))
-            keysPressed.push(key);
-
-
-          // Final script callback - only if scripts exist
-          if (PlayState.instance?.hasLuaScripts || PlayState.instance?.hasHScripts) {
-            if (MusicBeatState.getState() == PlayState.instance)
-              MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
-          }
-				}
-
-        for (customStrummer in customStrumLines)
-        {
-          if (customStrummer != null) return; // No reason to worry about it if it aint there lol
-          if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
-          if (pressed.contains(eventKey)) return;
-          pressed.push(eventKey);
-          if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-
-          if (key > -1)
-          {
-            if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
-              return;
-
-            @:privateAccess
-            if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= customStrummer.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
-            if (strumsBlocked[key]) return;
-
-            // Early script callback optimization - only call if scripts exist
-            if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-              var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyPressPre', [key]);
-              if(ret == LuaUtils.Function_Stop) return;
-            }
-
-            //more accurate hit time for the ratings?
-            var lastTime:Float = MegaManager.conductor.musicPosition;
-            var canMiss:Bool = !ClientPrefs.data.ghostTapping;
-
-            // obtain notes that the player can hit
-            var plrInputNotes:Array<Note> = customStrummer.notes.members.filter(function(n:Note):Bool {
-              var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
-              // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-              return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
-            });
-            plrInputNotes.sort(PlayState.sortHitNotes);
-
-            if (plrInputNotes.length != 0) {
-              var funnyNote:Note = plrInputNotes[0]; // front note
-
-              if (plrInputNotes.length > 1) {
-                var doubleNote:Note = plrInputNotes[1];
-
-                //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-                if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-                  // if the note has a 0ms distance (is on top of the current note), kill it
-                  if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-                    PlayState.instance?.invalidateNote(doubleNote);
-                  else if (doubleNote.strumTime < funnyNote.strumTime)
-                  {
-                    // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-                    funnyNote = doubleNote;
-                  }
-                }
-                else PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-              }
-              PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-              if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-                for (i in 1...plrInputNotes.length) PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-              }
-            }
-            else {
-              MegaManager.scriptManager.callOnScripts('onGhostTap', [key]);
-              if (canMiss) PlayState.instance?.noteMissPress(key);
-            }
-
-            var spr:StrumNote = customStrummer.getByColumn(key);
-            if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
-            {
-              spr.playAnim('pressed');
-              spr.resetAnim = 0;
-            }
-
-            // Optimize keysPressed tracking with Map
-            keysPressedSet[key] = true;
-            if(!keysPressed.contains(key))
-              keysPressed.push(key);
-
-
-            // Final script callback - only if scripts exist
-            if (MegaManager.scriptManager.hasLuaScripts || MegaManager.scriptManager.hasHScripts) {
-              MegaManager.scriptManager.callOnScripts('onKeyPress', [key]);
-            }
-          }
-        }
+        if (key != -1) keyPressed(key);
 			}
 		} else {
 			if (pressed.contains(eventKey))

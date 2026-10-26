@@ -32,7 +32,7 @@ class FunkinAnimationController extends FlxAnimateController
     if (!_parentSprite.hasAnimation(animName))
     {
       // Skip if the animation doesn't exist
-      trace('Animation ${animName} does not exist!');
+      //trace('Animation ${animName} does not exist!');
       return;
     }
 

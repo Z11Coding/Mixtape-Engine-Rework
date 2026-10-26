@@ -1904,6 +1904,12 @@ class FlxCamera extends FlxBasic
     return contained;
   }
 
+  // For compatibility
+  public function setFilters(filters:Array<BitmapFilter>) {
+    this.filters = filters;
+    filtersEnabled = (filters.length > 0);
+  }
+
   function set_width(Value:Int):Int
   {
     if (width != Value && Value > 0)

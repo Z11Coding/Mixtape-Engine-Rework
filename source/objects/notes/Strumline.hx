@@ -22,13 +22,13 @@ import flixel.util.FlxColor;
 import flixel.util.FlxSignal.FlxTypedSignal;
 import flixel.util.FlxSignal.FlxTypedSignal;
 import flixel.util.FlxSort;
+import managers.PlayfieldManager;
 import objects.funkin.graphics.FunkinSprite;
 import objects.funkin.graphics.ZSprite;
 import objects.notes.Note;
 import objects.notes.NoteSplash;
 import objects.notes.SustainSplash;
 import objects.notes.SustainTrail;
-import managers.PlayfieldManager;
 
 using backend.funkin.util.tools.ArraySortTools;
 using thx.Arrays;
@@ -456,7 +456,7 @@ class Strumline extends FlxSpriteGroup
       // Convert the percent to a number between 0 and 1.
       this.background.alpha = ClientPrefs.data.strumlineBackgroundOpacity / 100.0;
       this.background.scrollFactor.set(0, 0);
-      this.background.x = -BACKGROUND_PAD;
+      this.background.x = this.x;
       this.add(this.background);
     }
     strumlineScale = new FlxCallbackPoint(strumlineScaleCallback);
@@ -530,7 +530,7 @@ class Strumline extends FlxSpriteGroup
 
 			var babyArrow:StrumNote = new StrumNote(strumLine.x, strumLine.y, i, playerNum);
 			babyArrow.downScroll = ClientPrefs.data.downScroll;
-			if (!MegaManager.playfield.skipArrowStartTween)
+			if (!MegaManager.playfield.skipArrowStartTween && mods == null)
 			{
 				babyArrow.y -= 150;
 				babyArrow.alpha = 0;
@@ -1238,14 +1238,18 @@ class Strumline extends FlxSpriteGroup
 			{
 				while (limitNC < noteLimit && targetNote.strumTime - conductorInUse.musicPosition < (NOTE_SPAWN_TIME / targetNote.multSpeed)) {
           var drawDistanceForward:Float = 1;
+          var drawDistanceBack:Float = 1;
            if (mods != null)
           {
             var whichStrumNote:StrumNote = getByColumn(targetNote.noteData % (ExtraKeys.mania+1));
             drawDistanceForward = 1 + (whichStrumNote?.strumExtraModData?.drawdistanceForward ?? 0);
+            drawDistanceBack = 1 + (whichStrumNote?.strumExtraModData?.drawdistanceBack ?? 0);
           }
           var renderWindowStart_EDITED:Float = conductorInUse.musicPosition + (renderDistanceMs * drawDistanceForward);
+          var renderWindowEnd_EDITED:Float = conductorInUse.musicPosition - (renderDistanceMs * drawDistanceBack);
 
           if (targetNote.strumTime > renderWindowStart_EDITED) break; // Note is too far ahead to render
+          if (!PlayState.instance.startedSong && targetNote.strumTime < renderWindowEnd_EDITED) break; // Don't load expired notes during countdown
 
           var spawnedSprite:FlxSprite;
           if (targetNote.isSustainNote)
@@ -1517,6 +1521,14 @@ class Strumline extends FlxSpriteGroup
         }
       }
     } // Update rendering of pressed keys.
+
+    for (dir in 0...heldKeys.length)
+    {
+      if (isKeyHeld(dir) && getByColumn(dir).getCurrentAnimation() == 'static')
+      {
+        playPress(dir);
+      }
+    }
   }
 
   /**
@@ -1675,11 +1687,11 @@ class Strumline extends FlxSpriteGroup
     playConfirm(note.noteData);
     note.hasBeenHit = true;
 
-    if (removeNote && !(note is SustainNote))
+    if (removeNote)
     {
       killNote(note);
     }
-    else if (!(note is SustainNote))
+    else
     {
       note.alpha = 0.5;
       note.desaturate();
