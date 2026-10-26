@@ -7,7 +7,8 @@ import cpp.abi.Abi;
 import haxe.Constraints.IMap;
 import haxe.ds.StringMap;
 // import states.PlayState.LuaScript;
-import thx.ReadonlyArray;
+// import thx.ReadonlyArray;
+import yutautil.ReadOnlyArray;
 import yutautil.Threader.MemLimitThreadQ;
 import yutautil.Threader;
 import yutautil.modules.SyncUtils;
@@ -3399,7 +3400,7 @@ class CollectionUtils
 	#if js
 	inline
 	#end
-	public static function mapi<TIn, TOut>(array:ReadonlyArray<TIn>, callback:TIn->Int->TOut):Array<TOut> {
+	public static function mapi<TIn, TOut>(array:ReadOnlyArray<TIn>, callback:TIn->Int->TOut):Array<TOut> {
 		var r = [];
 		for (i in 0...array.length)
 			r.push(callback(array[i], i));
