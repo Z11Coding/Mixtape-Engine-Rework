@@ -4483,11 +4483,11 @@ class PlayState extends MusicBeatState
 				if(secondsTotal < 0) secondsTotal = 0;
 
 				if(timeBarType != 'Song Name') {
-					timeTxt.text = (timeBarType == 'Time Left' || timeBarType == 'Modern Time') ? CoolUtil.getSongDuration(conductor.musicPosition, songPercent) : CoolUtil.formatTime(conductor.musicPosition)
+					timeTxt.text = (timeBarType == 'Time Left' || timeBarType == 'Modern Time') ? CoolUtil.getSongDuration(conductor.musicPosition, lengthUsing) : CoolUtil.formatTime(conductor.musicPosition)
 						+ ((timeBarType == 'Modern Time') ? ' / ' + CoolUtil.formatTime(lengthUsing) : '');
 
 					if (timeBarType == 'Song Name + Time')
-						timeTxt.text = SONG.song + ' (' + CoolUtil.formatTime(conductor.musicPosition) + ' / ' + CoolUtil.formatTime(songPercent) + ')';
+						timeTxt.text = SONG.song + ' (' + CoolUtil.formatTime(conductor.musicPosition) + ' / ' + CoolUtil.formatTime(lengthUsing) + ')';
 				}
 			}
 		}
@@ -5056,9 +5056,9 @@ class PlayState extends MusicBeatState
 			amountOfRenderedNotes += daNote.noteDensity;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
 			final noteStrumline:Strumline = daNote.parentStrumline ?? (daNote.mustPress ? playerStrums : opponentStrums);
-			if (noteStrumline != null && noteStrumline.strumLineNotes.members.length >= (ExtraKeys.mania+1))
+			if (noteStrumline != null && noteStrumline.strumLineNotes.members.length >= (ExtraKeys.mania+1) && noteStrumline.mods == null)
 				daNote.followStrum(noteStrumline.getByColumn(daNote.noteData), songSpeed);
-			if (daNote.isSustainNote && noteStrumline != null)
+			if (daNote.isSustainNote && noteStrumline != null && noteStrumline.mods == null)
 			{
 				final strum = noteStrumline.getByColumn(daNote.noteData);
 				if (strum != null && strum.sustainReduce) daNote.clipToStrumNote(strum);

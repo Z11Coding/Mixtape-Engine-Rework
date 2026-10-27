@@ -780,13 +780,11 @@ class ModHandler
     note.noteModData.scaleY = note.scale.y;
 
     note.noteModData.angleZ = note.noteModData.whichStrumNote.angle;
-    note.noteModData.y = note.noteModData.whichStrumNote.y + note.noteModData.curPos - Strumline.INITIAL_OFFSET;
+    note.noteModData.y = note.noteModData.whichStrumNote.y + note.noteModData.curPos;
     note.noteModData.z = note.noteModData.whichStrumNote.z; // Copy strum Z
 
-    note.noteModData.x = strum.x;
-    note.noteModData.x += strum.getXPos(note.noteModData.direction);
-    note.noteModData.x -= (note.width - Strumline.STRUMLINE_SIZE) / 2; // Center it
-    note.noteModData.x -= Strumline.NUDGE;
+    note.noteModData.x = note.noteModData.whichStrumNote.x;
+    //note.noteModData.x += strum.getXPos(note.noteModData.direction);
 
     final defaultPosition:Array<Float> = getDefaultStrumPos(note.noteModData.direction);
     final xDif:Float = note.noteModData.whichStrumNote.x - defaultPosition[0];
@@ -809,7 +807,7 @@ class ModHandler
     }
     note.noteModData.funnyOffMyself();
 
-    //note.applyNoteData(note.noteModData);
+    note.applyNoteData(note.noteModData);
 
     note.alpha *= note.weBelongTo?.alpha ?? 1.0; // Fix for notes not respecting their parents alpha.
 
@@ -879,7 +877,7 @@ class ModHandler
     var pos:Array<Float> = [0, 0, 0]; // x,y,z
 
     pos[0] = strum.getByColumn(direction).formerPosition.x;
-    pos[1] = strum.getByColumn(direction).formerPosition.y;
+    pos[1] = strum.getByColumn(direction).formerPosition.y + 50;
 
     return pos;
   }

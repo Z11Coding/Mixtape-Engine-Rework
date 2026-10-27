@@ -774,9 +774,17 @@ class Strumline extends FlxSpriteGroup
       note.strumTime = ModConstants.getSongPosition();
       note.strumTime -= whichStrumNote?.strumExtraModData?.arrowpathBackwardsLength ?? 0;
       note.strumTime += length * note.piece;
+      final lengthChanged:Bool = note.sustainLength != length;
+      note.fullSustainLength = length;
+      if (note.alpha <= 0)
+      {
+        note.visible = false;
+        return;
+      }
+      if (lengthChanged) note.sustainLength = length;
       if (!doUpdateClipsInDraw)
       {
-        note.updateClipping();
+        if (!lengthChanged) note.updateClipping();
 
         // note.x += 112 / 2 * note.piece;
 
@@ -1073,6 +1081,7 @@ class Strumline extends FlxSpriteGroup
         note.y = this.strumLineNotes.y;
         note.x = 0;
         note.postAddedToGroup();
+        //note.x *= noteSpacingScale;
       }
     }
   }
@@ -2048,19 +2057,18 @@ class Strumline extends FlxSpriteGroup
   public function getXPos(direction:Int):Float
   {
     var pos:Float = 0;
-    return switch (direction)
-    {
-      case 0:
-        -pos * 2;
-      case 1:
-        -(pos * 2) + (1 * Strumline.NOTE_SPACING) * (noteSpacingScale * strumlineScale.x);
-      case 2:
-        pos + (2 * Strumline.NOTE_SPACING) * (noteSpacingScale * strumlineScale.x);
-      case 3:
-        pos + (3 * Strumline.NOTE_SPACING) * (noteSpacingScale * strumlineScale.x);
-      default:
-        -pos * 2;
-    }
+    switch (ExtraKeys.mania)
+		{
+			case 0 | 1 | 2: pos += getByColumn(direction).width * direction;
+			case 3: pos += (BaseNote.swagWidth * direction);
+			default: pos += ((getByColumn(direction).width - ExtraKeys.lessX[ExtraKeys.mania]) * direction);
+		}
+		pos += 50;
+		pos += ExtraKeys.xtra[ExtraKeys.mania];
+		pos += ((FlxG.width / 2) * playerNum);
+		pos -= ExtraKeys.posRest[ExtraKeys.mania];
+		pos += (ExtraKeys.xPosButBetterOff[ExtraKeys.mania]/2);
+    return pos;
   }
 
   /**
