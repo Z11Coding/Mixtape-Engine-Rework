@@ -784,11 +784,6 @@ class ModHandler
     note.noteModData.z = note.noteModData.whichStrumNote.z; // Copy strum Z
 
     note.noteModData.x = note.noteModData.whichStrumNote.x;
-    //note.noteModData.x += strum.getXPos(note.noteModData.direction);
-
-    final defaultPosition:Array<Float> = getDefaultStrumPos(note.noteModData.direction);
-    final xDif:Float = note.noteModData.whichStrumNote.x - defaultPosition[0];
-    note.noteModData.x += xDif;
     note.noteModData.y -= note.noteModData.whichStrumNote.strumExtraModData.noteStyleOffsetY;
 
     if (!this.mathCutOffCheck(note.noteModData.curPos, note.noteModData.direction))

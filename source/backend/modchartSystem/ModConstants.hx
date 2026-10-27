@@ -151,7 +151,8 @@ class ModConstants
    */
   public static function getDefaultStrumPosition(strumLine:Strumline, lane:Int):Vector3D
   {
-    final wasHereOriginally:Vector3D = new Vector3D(strumLine.getByColumn(lane).formerPosition.x, strumLine.getByColumn(lane).formerPosition.x, 0);
+    final strumNote:StrumNote = strumLine.getByColumn(lane);
+    final wasHereOriginally:Vector3D = new Vector3D(strumNote.formerPosition.x, strumNote.formerPosition.y, 0);
     return wasHereOriginally;
   }
 

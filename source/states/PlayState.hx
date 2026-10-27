@@ -4527,6 +4527,10 @@ class PlayState extends MusicBeatState
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) playfield.keysCheck();
 				else playerDance();
 
+				if (playfield.isModchartSong) processNotesCUSTOM(elapsed);
+				processSustainNotes(opponentStrums, false, dad);
+				processSustainNotes(playerStrums, !cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false), boyfriend);
+
 				// === OPTIMIZED NOTE PROCESSING ===
 				for (strum in playfield.allStrumLines) {
 					strum.notes.forEachAlive(updateLiveNote);
@@ -9237,6 +9241,172 @@ class PlayState extends MusicBeatState
 		}
 		playfield.killNotes = [];
 	}
+
+	/**
+ * A copy of the processNotes() function but for the stupid fricking sustains that I hate.
+ */
+  function processSustainNotes(strummer:Strumline, isControlled:Bool, ?missCharacter:Character):Void
+  {
+    for (holdNote in strummer.sustainNotes.members)
+    {
+      if (holdNote == null || !holdNote.alive) continue;
+      var result = GRhythmUtil.processWindow(holdNote, isControlled);
+      if (result.botplayHit || (isControlled && result.cont && holdNote.mayHit && strummer.isKeyHeld(holdNote.noteData)))
+        strummer.hitNote(holdNote, false);
+
+      if (holdNote.missedNote && !holdNote.handledMiss)
+      {
+        holdNote.handledMiss = true;
+        if (!isControlled && missCharacter != null && holdNote.scoreable)
+          playAnim(holdNote, missCharacter);
+      }
+    }
+  }
+
+	function processNotesCUSTOM(elapsed:Float):Void
+  {
+    for (strummer in playfield.customStrumLines)
+    {
+      if (strummer?.notes?.members == null) continue;
+
+      // if NOT player controlled...
+      if (!strummer.isPlayerControlled)
+      {
+        for (note in strummer.notes.members)
+        {
+          if (note == null) continue;
+          var r = GRhythmUtil.processWindow(note, false);
+          if (r.botplayHit)
+          {
+            // Command the opponent to hit the note on time.
+            // NOTE: This is what handles the strumline and cleaning up the note itself!
+            strummer.hitNote(note);
+
+            if (note is SustainNote)
+            {
+              strummer.playNoteHoldCover(cast (note, SustainNote));
+            }
+          }
+        }
+
+        // Process hold notes on the opponent's side.
+        processSustainNotes(strummer, false);
+      }
+      else // if IS player controlled...
+      {
+        // Process notes on the player's side.
+        for (note in strummer.notes.members)
+        {
+          if (note == null) continue;
+          var r = GRhythmUtil.processWindow(note, !cpuControlled);
+          if (r.botplayHit)
+          {
+            // Command the opponent to hit the note on time.
+            // NOTE: This is what handles the strumline and cleaning up the note itself!
+            strummer.hitNote(note);
+
+            if (note is SustainNote)
+            {
+              strummer.playNoteHoldCover(cast (note, SustainNote));
+            }
+          }
+          if (!r.cont) continue;
+
+          // This becomes true when the note leaves the hit window.
+          // It might still be on screen.
+          if (note.tooLate && !note.handledMiss)
+          {
+           note.handledMiss = true;
+          }
+        }
+
+        processSustainNotes(strummer, !cpuControlled);
+      }
+    }
+  }
+
+	/**
+	 * Handles opponent note hits and player note misses.
+	 */
+  function processNotes(elapsed:Float):Void
+  {
+    if (playerStrums.notes?.members == null || opponentStrums.notes?.members == null) return;
+
+    if (playfield.isModchartSong)
+    {
+      processNotesCUSTOM(elapsed);
+    }
+
+    // Process notes on the opponent's side.
+    for (note in opponentStrums.notes.members)
+    {
+      if (note == null || !note.alive) continue;
+      var r = GRhythmUtil.processWindow(note, false);
+      if (r.botplayHit)
+      {
+        // Command the opponent to hit the note on time.
+        // NOTE: This is what handles the strumline and cleaning up the note itself!
+        opponentStrums.hitNote(note);
+
+        if (note is SustainNote)
+        {
+          opponentStrums.playNoteHoldCover(cast (note, SustainNote));
+        }
+      }
+    }
+
+    processSustainNotes(opponentStrums, false, dad);
+
+    // Process notes on the player's side.
+    for (note in playerStrums.notes.members)
+    {
+      if (note == null || !note.alive) continue;
+      var r = GRhythmUtil.processWindow(note, !cpuControlled);
+      if (r.botplayHit)
+      {
+        playerStrums.hitNote(note);
+
+        if (note is SustainNote)
+        {
+          playerStrums.playNoteHoldCover(cast (note, SustainNote));
+        }
+      }
+      if (!r.cont) continue;
+
+      // This becomes true when the note leaves the hit window.
+      // It might still be on screen.
+      if (note.tooLate && !note.handledMiss)
+      {
+        // Skip handling the miss in botplay!
+        if (!cpuControlled)
+        {
+          // Judge the miss.
+          // NOTE: This is what handles the scoring.
+          // trace('Missed note! ${note.noteData}');
+          noteMiss(note);
+        }
+
+        note.handledMiss = true;
+      }
+    }
+
+    processSustainNotes(playerStrums, !cpuControlled);
+    for (holdNote in playerStrums.sustainNotes.members)
+    {
+      if (holdNote == null || !holdNote.alive) continue;
+
+      if (holdNote.tooLate && !holdNote.handledMiss)
+      {
+        // The player dropped a hold note.
+        holdNote.handledMiss = true;
+
+        // Mute vocals and play miss animation.
+        // vocals.playerVolume = 0;
+        // if (currentStage != null && currentStage.getBoyfriend() != null) currentStage.getBoyfriend().playSingAnimation(holdNote.noteData.getDirection(), true);
+      }
+    }
+		//handleSkippedNotes();
+  }
 
 	public function playAnim(note:Dynamic, char:Character, ?animToPlay:String, ?forceAnim:Bool = false) {
 		if(char != null && note != null)

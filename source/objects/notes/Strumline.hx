@@ -585,8 +585,9 @@ class Strumline extends FlxSpriteGroup
       this.txtActiveMods.borderStyle = FlxTextBorderStyle.OUTLINE;
       this.txtActiveMods.borderColor = FlxColor.BLACK;
       this.txtActiveMods.alignment = FlxTextAlign.CENTER;
+      this.txtActiveMods.size *= 2;
       this.txtActiveMods.borderSize = 2;
-      this.txtActiveMods.x += (1.5 * (Strumline.NOTE_SPACING/ExtraKeys.xPosButBetter2[ExtraKeys.mania]));
+      this.txtActiveMods.x += (2 * (Strumline.NOTE_SPACING/ExtraKeys.xPosButBetter2[ExtraKeys.mania]));
       this.txtActiveMods.zIndex = 66;
       this.add(this.txtActiveMods);
     }
@@ -768,19 +769,11 @@ class Strumline extends FlxSpriteGroup
 
       // ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
       var length:Float = (whichStrumNote.strumExtraModData.arrowpathLength + whichStrumNote.strumExtraModData.arrowpathBackwardsLength) / (pathPieces);
-      note.fullSustainLength = length;
-      if (note.sustainLength != length) note.sustainLength = length;
-
       note.strumTime = ModConstants.getSongPosition();
       note.strumTime -= whichStrumNote?.strumExtraModData?.arrowpathBackwardsLength ?? 0;
       note.strumTime += length * note.piece;
       final lengthChanged:Bool = note.sustainLength != length;
       note.fullSustainLength = length;
-      if (note.alpha <= 0)
-      {
-        note.visible = false;
-        return;
-      }
       if (lengthChanged) note.sustainLength = length;
       if (!doUpdateClipsInDraw)
       {

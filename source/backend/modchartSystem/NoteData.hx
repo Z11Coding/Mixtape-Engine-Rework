@@ -236,7 +236,16 @@ class NoteData
     speedMod = 1;
     strumPosition = 0;
 
-    orient2 = [0, 0, 0];
+    if (orient2.length != 3)
+    {
+      orient2 = [0, 0, 0];
+    }
+    else
+    {
+      orient2[0] = 0;
+      orient2[1] = 0;
+      orient2[2] = 0;
+    }
 
     noteType = "note";
     noteKind = "default";
