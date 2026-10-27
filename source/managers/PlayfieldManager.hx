@@ -2459,20 +2459,27 @@ class PlayfieldManager {
           else {
             PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
             (!opponentmode ? playerStrums : opponentStrums).hitNote(doubleNote);
-            for (customStrummer in customStrumLines)
+            for (customStrummer in customStrumLines) {
               customStrummer.hitNote(doubleNote);
+              PlayState.instance?.goodNoteCustom(doubleNote, customStrummer);
+            }
+
           }
         }
         PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
         (!opponentmode ? playerStrums : opponentStrums).hitNote(funnyNote);
-        for (customStrummer in customStrumLines)
+        for (customStrummer in customStrumLines) {
           customStrummer.hitNote(funnyNote);
+          PlayState.instance?.goodNoteCustom(funnyNote, customStrummer);
+        }
         if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
           for (i in 1...plrInputNotes.length) {
             PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
             (!opponentmode ? playerStrums : opponentStrums).hitNote(plrInputNotes[i]);
-            for (customStrummer in customStrumLines)
+            for (customStrummer in customStrumLines) {
               customStrummer.hitNote(plrInputNotes[i]);
+              PlayState.instance?.goodNoteCustom(plrInputNotes[i], customStrummer);
+            }
           }
         }
       }
@@ -3215,11 +3222,6 @@ class PlayfieldManager {
       setUpModTXT();
 
       MegaManager.scriptManager.callOnScripts('resetModchart');
-    }
-
-    for (customStrummer in customStrumLines)
-    {
-      customStrummer.fadeInArrows();
     }
   }
 

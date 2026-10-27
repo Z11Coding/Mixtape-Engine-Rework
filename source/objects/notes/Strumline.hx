@@ -456,7 +456,7 @@ class Strumline extends FlxSpriteGroup
       // Convert the percent to a number between 0 and 1.
       this.background.alpha = ClientPrefs.data.strumlineBackgroundOpacity / 100.0;
       this.background.scrollFactor.set(0, 0);
-      this.background.x = this.x + backgroundWidth + 150;
+      this.background.x = this.x + backgroundWidth + 250;
       this.add(this.background);
     }
     strumlineScale = new FlxCallbackPoint(strumlineScaleCallback);

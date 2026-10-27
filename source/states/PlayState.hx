@@ -1464,7 +1464,7 @@ class PlayState extends MusicBeatState
 		// TODO: add deprecation messages to function callbacks somehow
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
-    playfield.isModchartSong = playfield.isModchartSong || scripts.startModcharts();
+    playfield.isModchartSong = scripts.hasModchart();
 		trace("Setting Up Mod Manager");
 		playfield.addNotes();
 		//playfield.opponentStrums.visible = false;
@@ -2532,7 +2532,7 @@ class PlayState extends MusicBeatState
 		#if MODCHARTS_NOTITG_ALLOWED
 		// Check if any script has the onInitModchart function
 		var hasModchartFunction:Bool = false;
-		hasModchartFunction = scripts.startModcharts();
+		hasModchartFunction = scripts.hasModchart();
 		// If there is no onInitModchart function, do not initialize the manager
 		if (!hasModchartFunction) {
 			//trace("No onInitModchart function found - modchart manager not initialized");
@@ -3179,6 +3179,8 @@ class PlayState extends MusicBeatState
 					playerStrums.fadeInArrows();
 				if (opponentStrums != null)
 					opponentStrums.fadeInArrows();
+				for (customStrummer in playfield.customStrumLines)
+					customStrummer.fadeInArrows();
 				playfield.setStrumAlpha();
 			}
 
@@ -4524,10 +4526,6 @@ class PlayState extends MusicBeatState
 				@:privateAccess
 				if(!cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false)) playfield.keysCheck();
 				else playerDance();
-
-				if (playfield.isModchartSong) processNotesCUSTOM(elapsed);
-				processSustainNotes(opponentStrums, false, dad);
-				processSustainNotes(playerStrums, !cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false), boyfriend);
 
 				// === OPTIMIZED NOTE PROCESSING ===
 				for (strum in playfield.allStrumLines) {
@@ -8480,113 +8478,6 @@ class PlayState extends MusicBeatState
 			COD.setPresetCOD("miss");
 		}
 	}
-
-	/**
- * A copy of the processNotes() function but for the stupid fricking sustains that I hate.
- */
-  function processSustainNotes(strummer:Strumline, isControlled:Bool, ?missCharacter:Character):Void
-  {
-    for (holdNote in strummer.sustainNotes.members)
-    {
-      if (holdNote == null || !holdNote.alive) continue;
-      var result = GRhythmUtil.processWindow(holdNote, isControlled);
-      if (result.botplayHit || (isControlled && result.cont && holdNote.mayHit && strummer.isKeyHeld(holdNote.noteData)))
-        strummer.hitNote(holdNote, false);
-
-      if (holdNote.missedNote && !holdNote.handledMiss)
-      {
-        holdNote.handledMiss = true;
-        if (!isControlled && missCharacter != null && holdNote.scoreable)
-          playAnim(holdNote, missCharacter);
-      }
-    }
-  }
-
-  function processNotesCUSTOM(elapsed:Float):Void
-  {
-    for (strummer in playfield.customStrumLines)
-    {
-      if (strummer?.notes?.members == null) continue;
-
-      // if NOT player controlled...
-      if (!strummer.isPlayerControlled)
-      {
-        for (note in strummer.notes.members)
-        {
-          if (note == null) continue;
-          var r = GRhythmUtil.processWindow(note, false);
-          if (r.botplayHit)
-          {
-            // Command the opponent to hit the note on time.
-            // NOTE: This is what handles the strumline and cleaning up the note itself!
-            strummer.hitNote(note);
-
-            if (note is SustainNote)
-            {
-              strummer.playNoteHoldCover(cast (note, SustainNote));
-            }
-          }
-        }
-
-        // Process hold notes on the opponent's side.
-        processSustainNotes(strummer, false);
-      }
-      else // if IS player controlled...
-      {
-        // Process notes on the player's side.
-        for (note in strummer.notes.members)
-        {
-          if (note == null) continue;
-          var r = GRhythmUtil.processWindow(note, !cpuControlled);
-          if (r.botplayHit)
-          {
-            // Command the opponent to hit the note on time.
-            // NOTE: This is what handles the strumline and cleaning up the note itself!
-            strummer.hitNote(note);
-
-            if (note is SustainNote)
-            {
-              strummer.playNoteHoldCover(cast (note, SustainNote));
-            }
-          }
-          if (!r.cont) continue;
-
-          // This becomes true when the note leaves the hit window.
-          // It might still be on screen.
-          if (note.tooLate && !note.handledMiss)
-          {
-           note.handledMiss = true;
-          }
-        }
-
-        processSustainNotes(strummer, !cpuControlled);
-      }
-    }
-  }
-
-  function handleSkippedNotes():Void
-  {
-    for (note in playerStrums.notes.members)
-    {
-      if (note == null || note.wasGoodHit) continue;
-      var hitWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS;
-
-      if (conductor.musicPosition > hitWindowEnd)
-      {
-        // We have passed this note.
-        // Flag the note for deletion without actually penalizing the player.
-        note.handledMiss = true;
-      }
-    }
-
-    // Respawns notes that were between the previous time and the current time when skipping backward, or destroy notes between the previous time and the current time when skipping forward.
-    playerStrums.handleSkippedNotes();
-    opponentStrums.handleSkippedNotes();
-    for (customStrummer in playfield.customStrumLines)
-    {
-      customStrummer.handleSkippedNotes();
-    }
-  }
 
   /**
  * A copy of goodNote() function...

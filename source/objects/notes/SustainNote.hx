@@ -908,7 +908,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     zoom = 1.0;
 
-    graphicWidth = getAnimationFrame(animation?.curAnim?.name).width / ((ExtraKeys.ammo[ExtraKeys.mania])*2) * zoom;
+    graphicWidth = getAnimationFrame(animation?.curAnim?.name).frame.width / ((ExtraKeys.ammo[ExtraKeys.mania])*2) * zoom;
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     if (parentStrumline != null)
     {
@@ -1472,7 +1472,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     longHolds += 1;
 
-    final endPixelSize:Float = getAnimationFrame(animation?.curAnim?.name).width * endOffset * zoom;
+    final endPixelSize:Float = getAnimationFrame(animation?.curAnim?.name).frame.width * endOffset * zoom;
     final scroll:Float = parentStrumline?.scrollSpeed ?? 1.0;
     final endCapTime:Float = endPixelSize / (Constants.PIXELS_PER_MS * scroll);
 
@@ -1973,8 +1973,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       visible = true;
     }
 
-    var bottomHeight:Float = tailFrameHeight * endOffset;
-    var partHeight:Float = renderEnd ? clipHeight - bottomHeight : clipHeight;
+    var bottomHeight:Float = getAnimationFrame(animation?.curAnim?.name).frame.height * zoom * endOffset;
+    var partHeight:Float = clipHeight - bottomHeight;
 
     // ===HOLD VERTICES==
     // Top left
@@ -2008,7 +2008,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // We are expecting an image containing 8 horizontal segments, each representing a different colored hold note followed by its end cap.
 
     uvtData[0 * 2] = 1 / 4 * (noteData % 4); // 0%/25%/50%/75% of the way through the image
-    uvtData[0 * 2 + 1] = (-partHeight) / getAnimationFrame(animation?.curAnim?.name).height / zoom; // top bound
+    uvtData[0 * 2 + 1] = (-partHeight) / getAnimationFrame(animation?.curAnim?.name).frame.height / zoom; // top bound
     // Top left
 
     // Top right
@@ -2032,11 +2032,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     vertices[5 * 2] = vertices[3 * 2]; // Inline with bottom right vertex of hold
     vertices[5 * 2 + 1] = vertices[3 * 2 + 1]; // Inline with bottom right vertex of hold
 
-    // Bottom left
-    vertices[6 * 2] = vertices[2 * 2]; // Inline with left side
-    vertices[6 * 2 + 1] = renderEnd
-      ? (flipY ? (tailFrameHeight * (-bottomClip + endOffset)) : (graphicHeight + tailFrameHeight * (bottomClip - endOffset)))
-      : vertices[4 * 2 + 1];
+     // Bottom left
+     vertices[6 * 2] = vertices[2 * 2]; // Inline with left side
+     vertices[6 * 2 + 1] = flipY ? (getAnimationFrame(animation?.curAnim?.name).frame.height * (-bottomClip + endOffset) * zoom) : (graphicHeight + getAnimationFrame(animation?.curAnim?.name).frame.height * (bottomClip - endOffset) * zoom);
 
     // Bottom right
     vertices[7 * 2] = vertices[3 * 2]; // Inline with right side
@@ -2051,7 +2049,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     else
     {
-      (bottomHeight - clipHeight) / zoom / getAnimationFrame(animation?.curAnim?.name).height;
+      (bottomHeight - clipHeight) / zoom / getAnimationFrame(animation?.curAnim?.name).frame.height;
     };
 
      // Top right

@@ -7,12 +7,12 @@ echo This might take a few moments depending on your internet speed.
 haxelib git lime https://github.com/FunkinCrew/lime 268dacfb2609766e14bef9ea5b669e91501852d2
 haxelib git openfl https://github.com/FunkinCrew/openfl 74a51908a116d6df74be1083e219abb9fa057636
 haxelib git flixel https://github.com/FunkinCrew/flixel 141f23c400c0508c76d5a09a143f5ce6790f8122
-haxelib git flixel-addons https://github.com/FunkinCrew/flixel-addons 7628435364c4a45440d1e5db656741b66a8cd2ec
+haxelib git flixel-addons https://github.com/FunkinCrew/flixel-addons 7628435364c4a45440d1e5db656741b66a8cd2ec  --skip-dependencies
 haxelib install flixel-ui 2.6.2
 haxelib install tjson 1.4.0
 haxelib install noisehx 0.0.1
-haxelib git haxeui-core https://github.com/FunkinCrew/haxeui-core 998534fb830450ca1e60c47a9524af5730431145
-haxelib git haxeui-flixel https://github.com/haxeui/haxeui-flixel 100f2c96beab619cfe72c567a058c41c71e3e998
+haxelib git haxeui-core https://github.com/FunkinCrew/haxeui-core 998534fb830450ca1e60c47a9524af5730431145  --skip-dependencies
+haxelib git haxeui-flixel https://github.com/haxeui/haxeui-flixel 100f2c96beab619cfe72c567a058c41c71e3e998  --skip-dependencies
 haxelib install random 1.4.1
 haxelib install flxrhythmconductor 0.2.0
 haxelib install hxvlc 2.3.0 --skip-dependencies

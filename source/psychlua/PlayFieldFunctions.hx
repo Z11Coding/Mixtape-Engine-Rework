@@ -844,7 +844,7 @@ class PlayFieldFunctions
 
     Lua_helper.add_callback(lua, "initPlayfield", function(playerControlled:Bool)
 		{
-			MegaManager.playfield.constructNewStrumLine(playerControlled, noteStyle);
+			MegaManager.playfield.constructNewStrumLine(playerControlled);
 		});
 
     Lua_helper.add_callback(lua, "setPercent", function(modName:String, val:Float, player:Int = -1) {
@@ -863,7 +863,7 @@ class PlayFieldFunctions
     });
 
 		Lua_helper.add_callback(lua, "addBlankMod", function(modName:String, defaultVal:Float = 0, player:Int = -1) {
-      createCustomMod(modName, defaultVal);
+      ModConstants.createNewCustomMod(modName, defaultVal);
 		});
 
 		Lua_helper.add_callback(lua, "setValue", function(modName:String, val:Float, player:Int = -1) {
