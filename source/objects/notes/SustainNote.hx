@@ -1161,7 +1161,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteModData.direction = noteData % (ExtraKeys.mania+1);
     noteModData.curPos_unscaled = notePos;
     noteModData.whichStrumNote = whichStrumNote;
-    noteModData.noteType = "hold";
+    noteModData.noteType = "receptor";
     noteModData.width = graphicWidth;
     noteModData.height = 0;
 
@@ -1179,7 +1179,16 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteModData.speedMod = scrollMult;
 
     // Position like vanilla
-    noteModData.x = whichStrumNote.x;
+    noteModData.x = parentStrumline.x;
+    noteModData.x += parentStrumline.getXPos((noteModData.direction % (ExtraKeys.mania+1)));
+    noteModData.x += Strumline.STRUMLINE_SIZE / 2;
+    noteModData.x -= graphicWidth / 2;
+
+    // Then offset based on the movement from the default strum position so movement it still tied to the strum receptors.
+    final defaultPosition:Array<Float> = parentStrumline.mods.getDefaultStrumPos(noteModData.direction);
+    final xDif:Float = whichStrumNote.x - defaultPosition[0];
+    noteModData.x += xDif;
+
     var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime) * scrollMult;
     if (flipY)
     {

@@ -4531,11 +4531,35 @@ class PlayState extends MusicBeatState
 				processSustainNotes(opponentStrums, false, dad);
 				processSustainNotes(playerStrums, !cpuControlled && !ClientPrefs.getGameplaySetting('showcase', false), boyfriend);
 
-				// === OPTIMIZED NOTE PROCESSING ===
+				// slighty better note processing
 				for (strum in playfield.allStrumLines) {
-					strum.notes.forEachAlive(updateLiveNote);
-					if (strum.notes.countLiving() > 1)
-						strum.notes.sort(FlxSort.byY, ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+					if (strum == null) continue;
+					var noteMembers = strum.notes.members;
+					if (noteMembers.length > 1)
+					{
+						var sortOrder:Int = ClientPrefs.data.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING;
+						var previousNote:Note = null;
+						var aliveNoteCount:Int = 0;
+						var needsNoteSort:Bool = false;
+						for (note in noteMembers)
+						{
+							if (note == null) continue;
+
+							if (note.exists && note.alive)
+								updateLiveNote(note);
+							if (note.exists && note.alive)
+								aliveNoteCount++;
+
+							if (previousNote != null && FlxSort.byY(sortOrder, previousNote, note) > 0)
+								needsNoteSort = true;
+							previousNote = note;
+						}
+						if (aliveNoteCount > 1 && needsNoteSort)
+							strum.notes.sort(FlxSort.byY, sortOrder);
+					}
+					else
+						strum.notes.forEachAlive(updateLiveNote);
+
 					var sustainMembers = strum.sustainNotes.members;
 					if (sustainMembers.length > 1)
 					{
