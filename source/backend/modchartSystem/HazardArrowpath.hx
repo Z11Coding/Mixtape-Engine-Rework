@@ -9,7 +9,6 @@ import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import flixel.util.FlxColor;
 import lime.graphics.Image;
-import lime.math.Vector2;
 import objects.funkin.graphics.ZSprite;
 import objects.notes.StrumNote;
 import objects.notes.Strumline;
@@ -40,8 +39,8 @@ class HazardArrowpath
 
   // For limiting the AFT update rate. Useful to make it less framerate dependent.
   // TODO -> Make a public function called limitAFT() which takes a target FPS (like the mirin template plugin)
-  public var updateTimer:Float = 0.0;
-  public var updateRate:Float = 0.25;
+  public var updateTimer:Float = -1.0;
+  public var updateRate:Float = 1 / 15;
 
   // Just a basic rectangle which fills the entire bitmap when clearing out the old pixel data
   var rec:Rectangle;
@@ -49,6 +48,8 @@ class HazardArrowpath
   var colTransf:ColorTransform;
   var strum:Strumline;
   var fakeNoteData:NoteData;
+  var pathCommands:Vector<Int> = new Vector<Int>();
+  var pathData:Vector<Float> = new Vector<Float>();
 
   function setNotePos(note:ZSprite, strumTime:Float, lane:Int, whichStrumNote:StrumNote):Void
   {
@@ -65,7 +66,7 @@ class HazardArrowpath
       scrollMult *= mod.speedMath(lane, notePosUnscaled, strum, true);
     }
 
-    var notePos:Float = strum.calculateNoteYPos(strumTime) * scrollMult;
+    var notePos:Float = notePosUnscaled * scrollMult;
     note.angle = whichStrumNote.angle;
     note.x = whichStrumNote.x + strum.getNoteXOffset();
     // note.set_y(whichStrumNote.y - INITIAL_OFFSET + notePos);
@@ -125,8 +126,8 @@ class HazardArrowpath
       var holdResolution:Int = 2; // Will get set after the first sample to get the path-specific modifiers (mainly grain)
 
       // https://github.com/4mbr0s3-2/Schmovin/blob/main/SchmovinRenderers.hx
-      var commands = new Vector<Int>();
-      var data = new Vector<Float>();
+      pathCommands.length = 0;
+      pathData.length = 0;
 
       var tim:Float = MegaManager.conductor?.musicPosition ?? 0;
       tim -= whichStrumNote.strumExtraModData.strumPos; // for drive2 mod
@@ -148,24 +149,21 @@ class HazardArrowpath
         var scaleX = FlxMath.remapToRange(fakeNote.scale.x, 0, ModConstants.noteScale, 0, 1);
         var lineSize:Float = defaultLineSize * scaleX;
 
-        var path2:Vector2 = new Vector2(fakeNote.x, fakeNote.y);
-
         if (i == 0)
         {
-          commands.push(GraphicsPathCommand.MOVE_TO);
+          pathCommands.push(GraphicsPathCommand.MOVE_TO);
           flashGfx.lineStyle(lineSize, fakeNote.color, arrowPathAlpha);
         }
         else
         {
-          commands.push(GraphicsPathCommand.LINE_TO);
+          pathCommands.push(GraphicsPathCommand.LINE_TO);
         }
-        data.push(path2.x);
-        data.push(path2.y);
+        pathData.push(fakeNote.x);
+        pathData.push(fakeNote.y);
       }
-      flashGfx.drawPath(commands, data);
+      flashGfx.drawPath(pathCommands, pathData);
     }
     bitmap.draw(flashGfxSprite);
-    bitmap.disposeImage();
     flashGfx.clear();
     bitmap.unlock();
   }
@@ -181,6 +179,12 @@ class HazardArrowpath
   {
     if (bitmap != null)
     {
+      if (!hasVisiblePaths())
+      {
+        updateTimer = -1.0;
+        return;
+      }
+
       if (updateTimer >= 0 && updateRate != 0)
       {
         updateTimer -= elapsed;
@@ -191,6 +195,16 @@ class HazardArrowpath
         updateAFT();
       }
     }
+  }
+
+  public function hasVisiblePaths():Bool
+  {
+    for (lane in 0...(ExtraKeys.mania + 1))
+    {
+      final strumNote:StrumNote = strum.getByColumn(lane);
+      if ((strumNote?.strumExtraModData?.arrowPathAlpha ?? 0) > 0) return true;
+    }
+    return false;
   }
 
   var width:Int = 0;

@@ -97,7 +97,6 @@ class ScriptManager {
 		for (script in luaArray) {
 			if (script != null && !script.closed && script.lua != null) {
 				Lua.getglobal(script.lua, 'modsTimeline');
-				Lua.getglobal(script.lua, 'generateModchart');
 				var type:Int = Lua.type(script.lua, -1);
 				Lua.pop(script.lua, 1);
 
@@ -113,7 +112,7 @@ class ScriptManager {
 		if (!hasModchartFunction) {
 			for (script in hscriptArray) {
 				@:privateAccess
-				if (script != null && (script.exists('modsTimeline') || script.exists('generateModchart'))) {
+				if (script != null && (script.exists('modsTimeline'))) {
 					hasModchartFunction = true;
 					break;
 				}
@@ -124,7 +123,7 @@ class ScriptManager {
 		if (!hasModchartFunction) {
 			for (script in yscriptArray) {
 				@:privateAccess
-				if (script != null && (script.hasFunction('modsTimeline') || script.hasFunction('generateModchart'))) {
+				if (script != null && (script.hasFunction('modsTimeline'))) {
 					hasModchartFunction = true;
 					break;
 				}

@@ -49,7 +49,7 @@ class SustainSplash extends ZSprite
 
 		isHoldCover = true;
     coverBehindStrums = false;
-    //applyAngularVelocityOffset = true;
+    applyAngularVelocityOffset = true;
 	}
 
 	public var autoOrigin:Bool = false;

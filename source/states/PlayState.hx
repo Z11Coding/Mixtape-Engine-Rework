@@ -883,7 +883,6 @@ class PlayState extends MusicBeatState
 	#end
 
 	//JS Engine shenanigans
-	var noteLimit = ClientPrefs.data.maxNotes;
 	public var renderedTxt:FlxText;
 	var limitNC = 0;
 	public var amountOfRenderedNotes:Float = 0;
@@ -964,8 +963,6 @@ class PlayState extends MusicBeatState
 					curHealthMode = "Mixtape";
 			}
 		}
-
-		if (noteLimit == 0) noteLimit = 2147483647;
 
 		if (SONG == null) {
 			var songLowercase:String = Paths.formatToSongPath('tutorial');
@@ -1459,12 +1456,36 @@ class PlayState extends MusicBeatState
 			playfield.skipArrowStartTween = true;
 			countdownFinished = true;
 		}
+
+		// SONG SPECIFIC SCRIPTS
+		// Moved this here so song-specific modcharts still work
+		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
+		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'data/$_cachedSongName/'))
+			for (file in FileSystem.readDirectory(folder))
+			{
+				#if LUA_ALLOWED
+				if(file.toLowerCase().endsWith('.lua'))
+					initLuaScript(folder + file);
+				#end
+
+				#if HSCRIPT_ALLOWED
+				for (ext in Paths.HSCRIPT_EXTENSIONS)
+					if(file.toLowerCase().endsWith('.$ext'))
+						initHScript(folder + file);
+				#end
+
+				for (ext in Paths.YSCRIPT_EXTENSIONS)
+					if(file.toLowerCase().endsWith('.$ext'))
+						initYScript(folder + file);
+			}
+		#end
+
 		#if ALLOW_DEPRECATION
 		callOnScripts("prePlayfieldCreation"); // backwards compat
 		// TODO: add deprecation messages to function callbacks somehow
 		#end
 		callOnScripts("onPlayfieldCreation"); // you should use this
-    playfield.isModchartSong = scripts.hasModchart();
+    playfield.isModchartSong = hasModchart();
 		trace("Setting Up Mod Manager");
 		playfield.addNotes();
 		//playfield.opponentStrums.visible = false;
@@ -1823,28 +1844,6 @@ class PlayState extends MusicBeatState
 		for (event in playfield.eventsPushed)
 			startYScriptsNamed('custom_events/' + event + '.ys');
 		trace("NoteType Scripts Loaded");
-
-		// SONG SPECIFIC SCRIPTS
-		#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-		for (folder in Mods.directoriesWithFile(Paths.getSharedPath(), 'data/$_cachedSongName/'))
-			for (file in FileSystem.readDirectory(folder))
-			{
-				#if LUA_ALLOWED
-				if(file.toLowerCase().endsWith('.lua'))
-					initLuaScript(folder + file);
-				#end
-
-				#if HSCRIPT_ALLOWED
-				for (ext in Paths.HSCRIPT_EXTENSIONS)
-					if(file.toLowerCase().endsWith('.$ext'))
-						initHScript(folder + file);
-				#end
-
-				for (ext in Paths.YSCRIPT_EXTENSIONS)
-					if(file.toLowerCase().endsWith('.$ext'))
-						initYScript(folder + file);
-			}
-		#end
 
 		trace("Triggering Early Events");
 		playfield.triggerEarlyEvents();
@@ -2532,7 +2531,7 @@ class PlayState extends MusicBeatState
 		#if MODCHARTS_NOTITG_ALLOWED
 		// Check if any script has the onInitModchart function
 		var hasModchartFunction:Bool = false;
-		hasModchartFunction = scripts.hasModchart();
+		hasModchartFunction = hasModchart();
 		// If there is no onInitModchart function, do not initialize the manager
 		if (!hasModchartFunction) {
 			//trace("No onInitModchart function found - modchart manager not initialized");
@@ -3237,7 +3236,8 @@ class PlayState extends MusicBeatState
 			// Initialize any Funkin Modchart modcharts after all scripts and strums are loaded
 			initModchart();
 
-			callOnScripts("generateModchart"); // this is where scripts should generate modcharts from here on out lol
+			if (hasModchart())
+				callOnScripts("generateModchart"); // this is where scripts should generate modcharts from here on out lol
 
 			// if there's a Funkin Modchart present, Load that too
 			if (hasModchart())

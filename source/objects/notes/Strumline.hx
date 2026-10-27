@@ -456,7 +456,7 @@ class Strumline extends FlxSpriteGroup
       // Convert the percent to a number between 0 and 1.
       this.background.alpha = ClientPrefs.data.strumlineBackgroundOpacity / 100.0;
       this.background.scrollFactor.set(0, 0);
-      this.background.x = this.x + backgroundWidth + 250;
+      this.background.x = this.x + backgroundWidth + 240;
       this.add(this.background);
     }
     strumlineScale = new FlxCallbackPoint(strumlineScaleCallback);
@@ -680,7 +680,7 @@ class Strumline extends FlxSpriteGroup
       #if FEATURE_GHOST_TAPPING
       updateGhostTapTimer(elapsed);
       #end
-      updateArrowPaths();
+      updateArrowPaths(elapsed);
       updateModDebug();
       for (cover in holdSplashes)
       {
@@ -714,9 +714,9 @@ class Strumline extends FlxSpriteGroup
   var generatedArrowPaths:Bool = false;
 
   // if set to false, will skip arrowpath update logic
-  public var drawArrowPaths:Bool = false;
+  public var drawArrowPaths:Bool = true;
 
-  function updateArrowPaths():Void
+  function updateArrowPaths(elapsed:Float):Void
   {
     if (!generatedArrowPaths) return;
     if (!drawArrowPaths)
@@ -731,10 +731,10 @@ class Strumline extends FlxSpriteGroup
     }
     // arrowPaths.visible = this.visible;
 
-    notitgPathSprite.visible = notitgStyledPath && this.visible;
+    notitgPathSprite.visible = notitgStyledPath && this.visible && notitgPath.hasVisiblePaths();
     if (notitgStyledPath)
     {
-      notitgPath.updateAFT();
+      notitgPath.update(elapsed);
 
       var isPixel:Bool = PlayState.isPixelStage; // dumb fucking fix lmfao
       isPixel = false;
@@ -760,9 +760,16 @@ class Strumline extends FlxSpriteGroup
       // note.alpha = arrowPathAlpha[note.noteDirection];
       var whichStrumNote:StrumNote = getByColumn(note.noteDirection);
       note.alpha = whichStrumNote?.strumExtraModData?.arrowPathAlpha ?? 0;
+      if (note.alpha <= 0)
+      {
+        note.visible = false;
+        return;
+      }
+
       // ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
       var length:Float = (whichStrumNote.strumExtraModData.arrowpathLength + whichStrumNote.strumExtraModData.arrowpathBackwardsLength) / (pathPieces);
-      note.fullSustainLength = note.sustainLength = length;
+      note.fullSustainLength = length;
+      if (note.sustainLength != length) note.sustainLength = length;
 
       note.strumTime = ModConstants.getSongPosition();
       note.strumTime -= whichStrumNote?.strumExtraModData?.arrowpathBackwardsLength ?? 0;

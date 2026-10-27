@@ -3099,7 +3099,6 @@ class PlayfieldManager {
       add(customZspritesGroup);
 
       allStrumSprites = new FlxTypedSpriteGroup<ZSprite>();
-
       allStrumSprites.zIndex = 69;
       allStrumSprites.cameras = [camNotes];
       add(allStrumSprites);
@@ -3143,17 +3142,8 @@ class PlayfieldManager {
   {
     var isDownscroll:Bool = ClientPrefs.data.downScroll;
     if (invertDownscrollCheck)
-    {
       isDownscroll = !ClientPrefs.data.downScroll;
-    }
-    return
-      0
-      + (
-        isDownscroll ? FlxG.height
-        - strummy.heightWas
-        - Constants.STRUMLINE_Y_OFFSET
-        - 0
-        : Constants.STRUMLINE_Y_OFFSET);
+    return (isDownscroll) ? FlxG.height - 150 : 50;
   }
 
   /**
