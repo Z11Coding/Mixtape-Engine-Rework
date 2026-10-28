@@ -40,10 +40,10 @@ class ZSpriteProjected extends ZSprite
   }
 
   // If true, will correct the texture distortion created when transforming in 3D
-  public var doPerspectiveCorrection:Bool = false;
+  public var doPerspectiveCorrection:Bool = true;
 
   // If set to true, will set this sprite to be culled if all the subdivision points are considered "too close" to the camera.
-  public var cullIfTooClose:Bool = false;
+  public var cullIfTooClose:Bool = true;
 
   // If true, will repeat the texture in the draw call. Otherwise texture will be clamped
   public var textureRepeat:Bool = false;
