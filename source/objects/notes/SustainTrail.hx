@@ -46,6 +46,18 @@ class SustainTrail extends ZSprite
   var sampleArrowpathMods:Array<Modifier> = [];
   var sampleNoteMods:Array<Modifier> = [];
 
+  #if debug
+  static var arrowPathClipPerfLastReport:Float = 0;
+  static var arrowPathClipPerfCalls:Int = 0;
+  static var arrowPathClipPerfTotalMs:Float = 0;
+  static var arrowPathClipPerfMaxMs:Float = 0;
+  static var arrowPathClipPerfTotalSamples:Float = 0;
+  static var arrowPathClipPerfMaxResolution:Int = 0;
+  static var arrowPathClipPerfMaxSpeedMods:Int = 0;
+  static var arrowPathClipPerfMaxPathMods:Int = 0;
+  static var arrowPathClipPerfMaxNoteMods:Int = 0;
+  #end
+
   /**
    * The triangles corresponding to the hold, followed by the endcap.
    * `top left, top right, bottom left`
@@ -845,6 +857,10 @@ class SustainTrail extends ZSprite
       return;
     }
 
+    #if debug
+    final arrowPathClipStart:Float = isArrowPathPiece ? haxe.Timer.stamp() : 0;
+    #end
+
     // Make sure we're at the proper position!
     // This is cuz hold notes are always set to this exact position, then the tris are set to make it appear where it needs to be on the screen.
     // Done cuz I'm lazy and it made the calcs easier lol
@@ -1368,6 +1384,44 @@ class SustainTrail extends ZSprite
       setUVTData(uvtData);
     }
     waitTillModUpdate = false;
+
+    #if debug
+    if (isArrowPathPiece)
+    {
+      final clipMs:Float = (haxe.Timer.stamp() - arrowPathClipStart) * 1000;
+      arrowPathClipPerfCalls++;
+      arrowPathClipPerfTotalMs += clipMs;
+      if (clipMs > arrowPathClipPerfMaxMs) arrowPathClipPerfMaxMs = clipMs;
+      arrowPathClipPerfTotalSamples += holdResolution + (renderEnd ? 2 : 1);
+      if (holdResolution > arrowPathClipPerfMaxResolution) arrowPathClipPerfMaxResolution = holdResolution;
+      if (sampleSpeedMods.length > arrowPathClipPerfMaxSpeedMods) arrowPathClipPerfMaxSpeedMods = sampleSpeedMods.length;
+      if (sampleArrowpathMods.length > arrowPathClipPerfMaxPathMods) arrowPathClipPerfMaxPathMods = sampleArrowpathMods.length;
+      if (sampleNoteMods.length > arrowPathClipPerfMaxNoteMods) arrowPathClipPerfMaxNoteMods = sampleNoteMods.length;
+
+      final clipNow:Float = haxe.Timer.stamp();
+      if (arrowPathClipPerfLastReport == 0) arrowPathClipPerfLastReport = clipNow;
+      if (clipNow - arrowPathClipPerfLastReport >= 2.0)
+      {
+        final avgClipMs:Float = arrowPathClipPerfCalls > 0 ? arrowPathClipPerfTotalMs / arrowPathClipPerfCalls : 0;
+        final avgSamples:Float = arrowPathClipPerfCalls > 0 ? arrowPathClipPerfTotalSamples / arrowPathClipPerfCalls : 0;
+        trace('[MODCHART-PERF] arrowPath clip: calls=' + arrowPathClipPerfCalls
+          + ', avg=' + Math.round(avgClipMs * 100) / 100 + 'ms'
+          + ', max=' + Math.round(arrowPathClipPerfMaxMs * 100) / 100 + 'ms'
+          + ', avg samples=' + Math.round(avgSamples * 10) / 10
+          + ', max resolution=' + arrowPathClipPerfMaxResolution
+          + ', max mods speed/path/note=' + arrowPathClipPerfMaxSpeedMods + '/' + arrowPathClipPerfMaxPathMods + '/' + arrowPathClipPerfMaxNoteMods);
+        arrowPathClipPerfCalls = 0;
+        arrowPathClipPerfTotalMs = 0;
+        arrowPathClipPerfMaxMs = 0;
+        arrowPathClipPerfTotalSamples = 0;
+        arrowPathClipPerfMaxResolution = 0;
+        arrowPathClipPerfMaxSpeedMods = 0;
+        arrowPathClipPerfMaxPathMods = 0;
+        arrowPathClipPerfMaxNoteMods = 0;
+        arrowPathClipPerfLastReport = clipNow;
+      }
+    }
+    #end
   }
 
   function setVerts(vertices:Array<Float>):Void
