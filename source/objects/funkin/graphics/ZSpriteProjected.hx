@@ -606,6 +606,10 @@ class ZSpriteProjected extends ZSprite
   static var projectionPerfInvalidNote:Int = 0;
   static var projectionPerfInvalidStrum:Int = 0;
   static var projectionPerfNoteExample:String = "";
+  static var flatPathLastReport:Float = 0;
+  static var flatPathNoteCount:Int = 0;
+  static var flatPathStrumCount:Int = 0;
+  static var flatPathOtherCount:Int = 0;
   #end
 
   /**
@@ -616,9 +620,9 @@ class ZSpriteProjected extends ZSprite
    */
   function canUseFlatProjectionFastPath():Bool
   {
-    if (z != 0 || z2 != 0 || scaleZ != 1 || depth != 0) return false;
+    if (z != 0 || z2 != 0 || scaleZ != 1 || depth != 0 || cullIfTooClose) return false;
     if (angleX != 0 || angleY != 0 || angleX2 != 0 || angleY2 != 0 || angleZ2 != 0 || spinAngle != 0) return false;
-    if (skewZ != 0 || skewX_playfield != 0 || skewY_playfield != 0 || skewZ_playfield != 0) return false;
+    if (skew.x != 0 || skew.y != 0 || skewZ != 0 || skewX_playfield != 0 || skewY_playfield != 0 || skewZ_playfield != 0) return false;
     if (fovOffsetX != 0 || fovOffsetY != 0) return false;
     if (pivotOffsetX != 0 || pivotOffsetY != 0 || pivotOffsetZ != 0) return false;
     if (preRotationMoveX != 0 || preRotationMoveY != 0 || preRotationMoveZ != 0) return false;
@@ -650,6 +654,33 @@ class ZSpriteProjected extends ZSprite
     else if (canUseFlatProjectionFastPath())
     {
       usedFlatProjectionFastPath = true;
+      #if debug
+      final flatPathClassName:Null<String> = Type.getClassName(Type.getClass(this));
+      if (flatPathClassName == "objects.notes.Note"
+        || (flatPathClassName != null && flatPathClassName.indexOf(".APNote") >= 0))
+      {
+        flatPathNoteCount++;
+      }
+      else if (flatPathClassName == "objects.notes.StrumNote")
+      {
+        flatPathStrumCount++;
+      }
+      else
+      {
+        flatPathOtherCount++;
+      }
+      final flatPathNow:Float = haxe.Timer.stamp();
+      if (flatPathLastReport == 0) flatPathLastReport = flatPathNow;
+      if (flatPathNow - flatPathLastReport >= 2.0)
+      {
+        trace('[MODCHART-PERF] 3D flat fast path: notes=' + flatPathNoteCount
+          + ', strums=' + flatPathStrumCount + ', other sprites=' + flatPathOtherCount);
+        flatPathNoteCount = 0;
+        flatPathStrumCount = 0;
+        flatPathOtherCount = 0;
+        flatPathLastReport = flatPathNow;
+      }
+      #end
       super.draw();
     }
     else
