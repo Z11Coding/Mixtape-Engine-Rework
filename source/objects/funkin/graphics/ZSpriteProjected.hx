@@ -586,6 +586,15 @@ class ZSpriteProjected extends ZSprite
   static var projectionPerfMaxRebuildMs:Float = 0;
   static var projectionPerfTotalVertices:Float = 0;
   static var projectionPerfMaxSubdivisions:Int = 0;
+  static var projectionPerfNoteDraws:Int = 0;
+  static var projectionPerfNoteRebuilds:Int = 0;
+  static var projectionPerfStrumDraws:Int = 0;
+  static var projectionPerfStrumRebuilds:Int = 0;
+  static var projectionPerfCullNote:Int = 0;
+  static var projectionPerfCullStrum:Int = 0;
+  static var projectionPerfInvalidNote:Int = 0;
+  static var projectionPerfInvalidStrum:Int = 0;
+  static var projectionPerfNoteExample:String = "";
   #end
 
   @:access(flixel.FlxCamera)
@@ -609,10 +618,20 @@ class ZSpriteProjected extends ZSprite
           culled = true;
       }
 
+      final frameChanged:Bool = frame != lastProjectedFrame;
+      final centerChanged:Bool = playfieldSkewCenterX != lastProjectionCenterX
+        || playfieldSkewCenterY != lastProjectionCenterY
+        || playfieldSkewCenterZ != lastProjectionCenterZ;
       #if debug
       final projectionPerfNow:Float = haxe.Timer.stamp();
       if (projectionPerfLastReport == 0) projectionPerfLastReport = projectionPerfNow;
       projectionPerfDraws++;
+      final projectionClassName:Null<String> = Type.getClassName(Type.getClass(this));
+      final isPerfNote:Bool = projectionClassName == "objects.notes.Note"
+        || (projectionClassName != null && projectionClassName.indexOf(".APNote") >= 0);
+      final isPerfStrum:Bool = projectionClassName == "objects.notes.StrumNote";
+      if (isPerfNote) projectionPerfNoteDraws++;
+      if (isPerfStrum) projectionPerfStrumDraws++;
       #end
 
       if (frame != lastProjectedFrame)
@@ -644,6 +663,8 @@ class ZSpriteProjected extends ZSprite
         if (projectionRebuildMs > projectionPerfMaxRebuildMs) projectionPerfMaxRebuildMs = projectionRebuildMs;
         if (subdivisions > projectionPerfMaxSubdivisions) projectionPerfMaxSubdivisions = subdivisions;
         projectionPerfTotalVertices += (subdivisions + 2) * (subdivisions + 2);
+        if (isPerfNote) projectionPerfNoteRebuilds++;
+        if (isPerfStrum) projectionPerfStrumRebuilds++;
         #end
         dirty = false;
       }
@@ -660,16 +681,68 @@ class ZSpriteProjected extends ZSprite
           + ', rebuild ms max=' + Math.round(projectionPerfMaxRebuildMs * 100) / 100
           + ', avg vertices=' + Math.round(avgVertices * 10) / 10
           + ', max subdivisions=' + projectionPerfMaxSubdivisions);
+        trace('[MODCHART-PERF] 3D render health: notes draws/rebuilds=' + projectionPerfNoteDraws + '/' + projectionPerfNoteRebuilds
+          + ', strums draws/rebuilds=' + projectionPerfStrumDraws + '/' + projectionPerfStrumRebuilds
+          + ', culled notes/strums=' + projectionPerfCullNote + '/' + projectionPerfCullStrum
+          + ', invalid mesh notes/strums=' + projectionPerfInvalidNote + '/' + projectionPerfInvalidStrum
+          + (projectionPerfNoteExample.length > 0 ? ', note mesh sample={' + projectionPerfNoteExample + '}' : ''));
         projectionPerfDraws = 0;
         projectionPerfRebuilds = 0;
         projectionPerfRebuildMs = 0;
         projectionPerfMaxRebuildMs = 0;
         projectionPerfTotalVertices = 0;
         projectionPerfMaxSubdivisions = 0;
+        projectionPerfNoteDraws = 0;
+        projectionPerfNoteRebuilds = 0;
+        projectionPerfStrumDraws = 0;
+        projectionPerfStrumRebuilds = 0;
+        projectionPerfCullNote = 0;
+        projectionPerfCullStrum = 0;
+        projectionPerfInvalidNote = 0;
+        projectionPerfInvalidStrum = 0;
+        projectionPerfNoteExample = "";
         projectionPerfLastReport = projectionPerfNow;
       }
       #end
 
+      #if debug
+      if (culled)
+      {
+        if (isPerfNote) projectionPerfCullNote++;
+        if (isPerfStrum) projectionPerfCullStrum++;
+      }
+      if (vertices == null || indices == null || graphic == null || uvtData == null || _point == null || offset == null)
+      {
+        if (isPerfNote) projectionPerfInvalidNote++;
+        if (isPerfStrum) projectionPerfInvalidStrum++;
+      }
+      if (isPerfNote && projectionPerfNoteExample.length == 0 && vertices != null && vertices.length >= 8)
+      {
+        var minVertexX:Float = vertices[0];
+        var maxVertexX:Float = vertices[0];
+        var minVertexY:Float = vertices[1];
+        var maxVertexY:Float = vertices[1];
+        for (i in 0...vertices.length)
+        {
+          if ((i & 1) == 0)
+          {
+            if (vertices[i] < minVertexX) minVertexX = vertices[i];
+            if (vertices[i] > maxVertexX) maxVertexX = vertices[i];
+          }
+          else
+          {
+            if (vertices[i] < minVertexY) minVertexY = vertices[i];
+            if (vertices[i] > maxVertexY) maxVertexY = vertices[i];
+          }
+        }
+        projectionPerfNoteExample = 'xy=' + Math.round(x * 10) / 10 + ',' + Math.round(y * 10) / 10
+          + ' z=' + Math.round(z * 10) / 10 + ' alpha=' + Math.round(alpha * 100) / 100
+          + ' cullMode=' + cullMode + ' frame=' + frameWidth + 'x' + frameHeight
+          + ' verts=' + vertices.length / 2
+          + ' localBounds=' + Math.round(minVertexX * 10) / 10 + ':' + Math.round(maxVertexX * 10) / 10
+          + ',' + Math.round(minVertexY * 10) / 10 + ':' + Math.round(maxVertexY * 10) / 10;
+      }
+      #end
       if (culled || alpha < 0 || vertices == null || indices == null || graphic == null || uvtData == null || _point == null || offset == null)
       {
         return;
