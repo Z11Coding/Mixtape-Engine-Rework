@@ -855,9 +855,13 @@ class ZSpriteProjected extends ZSprite
     final angle:Float = degrees * FlxAngle.TO_RAD;
     final x:Float = point.x - originX;
     final y:Float = point.y - originY;
+    // Reuse each trig result for both coordinates instead of doing four
+    // fast-trig lookups for every projected vertex rotation.
+    final cos:Float = FlxMath.fastCos(angle);
+    final sin:Float = FlxMath.fastSin(angle);
     point.setTo(
-      originX + FlxMath.fastCos(angle) * x - FlxMath.fastSin(angle) * y,
-      originY + FlxMath.fastSin(angle) * x + FlxMath.fastCos(angle) * y
+      originX + cos * x - sin * y,
+      originY + sin * x + cos * y
     );
   }
 
