@@ -611,6 +611,10 @@ class Strumline extends FlxSpriteGroup
   // Number of meshes per lane for the visual arrow path. Each mesh has a sample cap in SustainTrail.
   public var pathPieces:Int = 1;
 
+  // Arrow paths are cosmetic and can be expensive to sample. Update alternating
+  // lane pairs each frame, so each lane refreshes at 30 Hz on a 60 Hz game.
+  var arrowPathUpdateFrame:Int = 0;
+
   override public function update(elapsed:Float):Void
   {
     super.update(elapsed);
@@ -789,6 +793,8 @@ class Strumline extends FlxSpriteGroup
     }
 
     var stitchEnds:Bool = true;
+    final currentPathParity:Int = arrowPathUpdateFrame & 1;
+    arrowPathUpdateFrame++;
 
     arrowPaths.forEach(function(note:SustainTrail)
     {
@@ -804,6 +810,10 @@ class Strumline extends FlxSpriteGroup
         note.visible = false;
         return;
       }
+
+      // Keep each lane's path pieces in sync, but only rebuild half the lanes
+      // per update. The other pair retains its last geometry for one frame.
+      if ((note.noteDirection & 1) != currentPathParity) return;
 
       // ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
       var length:Float = (whichStrumNote.strumExtraModData.arrowpathLength + whichStrumNote.strumExtraModData.arrowpathBackwardsLength) / (pathPieces);
