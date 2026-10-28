@@ -443,6 +443,16 @@ class SustainTrail extends ZSprite
   var clipIndexBuffer:Array<Int> = [];
   var clipColorBuffer:Array<Int> = [];
 
+  // The 3D projection below transforms several vertices for every sampled
+  // sustain point. These angles stay constant until the next susSample(), so
+  // calculate their trigonometry once per point rather than once per vertex.
+  var projectionSkewTan:Float = 0.0;
+  var projectionSkewXPlayfieldTan:Float = 0.0;
+  var projectionSkewYPlayfieldTan:Float = 0.0;
+  var projectionSkewZPlayfieldTan:Float = 0.0;
+  var projectionAngleYCos:Float = 1.0;
+  var projectionAngleYSin:Float = 0.0;
+
   // 953.27ms with tracy. Ouch.
   // OPTIMISE ME!
   // Call this function to sample where a note would be at this strum position.
@@ -644,6 +654,31 @@ class SustainTrail extends ZSprite
       fakeNote.alpha = 0;
       fakeNote.scale.set(0.0, 0.0);
     }
+
+    // These values are constant for all vertices generated from this sample.
+    // Keep the old/fake-3D path untouched; it does not use these cached values.
+    if (is3D && !old3Dholds)
+    {
+      projectionSkewTan = fakeNote.skew.y != 0 ? Math.tan(fakeNote.skew.y * FlxAngle.TO_RAD) : 0.0;
+      projectionSkewXPlayfieldTan = noteModData.skewX_playfield != 0
+        ? Math.tan(noteModData.skewX_playfield * FlxAngle.TO_RAD) : 0.0;
+      projectionSkewYPlayfieldTan = noteModData.skewY_playfield != 0
+        ? Math.tan(noteModData.skewY_playfield * FlxAngle.TO_RAD) : 0.0;
+      projectionSkewZPlayfieldTan = noteModData.skewZ_playfield != 0
+        ? Math.tan(noteModData.skewZ_playfield * FlxAngle.TO_RAD) : 0.0;
+
+      if (noteModData.angleY != 0)
+      {
+        final angleYRad:Float = noteModData.angleY * FlxAngle.TO_RAD;
+        projectionAngleYCos = FlxMath.fastCos(angleYRad);
+        projectionAngleYSin = FlxMath.fastSin(angleYRad);
+      }
+      else
+      {
+        projectionAngleYCos = 1.0;
+        projectionAngleYSin = 0.0;
+      }
+    }
   }
 
   var zCutOff:Float = 835;
@@ -677,15 +712,19 @@ class SustainTrail extends ZSprite
 
       // apply skew
       var xPercent_SkewOffset:Float = tempVec3.x - fakeNote.x - (graphicWidth / 2);
-      if (fakeNote.skew.y != 0) tempVec3.y += xPercent_SkewOffset * Math.tan(fakeNote.skew.y * FlxAngle.TO_RAD);
+      if (fakeNote.skew.y != 0) tempVec3.y += xPercent_SkewOffset * projectionSkewTan;
 
-      // Rotate
+      // Rotate around Y. angleY and its trigonometric values are shared by all
+      // vertices for the current susSample(), unlike the varying spiral angle.
       final angleY:Float = noteModData.angleY;
 
       tempVec2.setTo(tempVec3.x, tempVec3.z);
       clipPerspectivePivot.setTo(rotatePivot.x, tempVec3.z);
       final rotateModPivotPoint:Vector2 = clipPerspectivePivot;
-      rotateAroundInPlace(rotateModPivotPoint, tempVec2, angleY);
+      if (angleY != 0)
+      {
+        rotateAroundInPlaceCached(rotateModPivotPoint, tempVec2, projectionAngleYCos, projectionAngleYSin);
+      }
       tempVec3.x = tempVec2.x;
       tempVec3.z = tempVec2.y;
 
@@ -693,11 +732,11 @@ class SustainTrail extends ZSprite
       var playfieldSkewOffset_Y:Float = pos.x - (whichStrumNote?.strumExtraModData?.playfieldX ?? FlxG.width / 2);
       var playfieldSkewOffset_X:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
 
-      if (noteModData.skewX_playfield != 0) tempVec3.x += playfieldSkewOffset_X * Math.tan(noteModData.skewX_playfield * FlxAngle.TO_RAD);
-      if (noteModData.skewY_playfield != 0) tempVec3.y += playfieldSkewOffset_Y * Math.tan(noteModData.skewY_playfield * FlxAngle.TO_RAD);
+      if (noteModData.skewX_playfield != 0) tempVec3.x += playfieldSkewOffset_X * projectionSkewXPlayfieldTan;
+      if (noteModData.skewY_playfield != 0) tempVec3.y += playfieldSkewOffset_Y * projectionSkewYPlayfieldTan;
 
       var playfieldSkewOffset_Z:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
-      if (noteModData.skewZ_playfield != 0) tempVec3.z += playfieldSkewOffset_Z * Math.tan(noteModData.skewZ_playfield * FlxAngle.TO_RAD);
+      if (noteModData.skewZ_playfield != 0) tempVec3.z += playfieldSkewOffset_Z * projectionSkewZPlayfieldTan;
 
       tempVec3.z *= 0.001;
       final thisNotePos:Vector3D = ModConstants.perspectiveMath(tempVec3, 0, 0, noteModData.perspectiveOffset);
@@ -706,16 +745,21 @@ class SustainTrail extends ZSprite
     }
   }
 
+  function rotateAroundInPlaceCached(origin:Vector2, point:Vector2, cos:Float, sin:Float):Vector2
+  {
+    final dx:Float = point.x - origin.x;
+    final dy:Float = point.y - origin.y;
+    point.setTo(origin.x + cos * dx - sin * dy, origin.y + sin * dx + cos * dy);
+    return point;
+  }
+
   function rotateAroundInPlace(origin:Vector2, point:Vector2, degrees:Float):Vector2
   {
     if (degrees == 0) return point;
     final angle:Float = degrees * FlxAngle.TO_RAD;
-    final dx:Float = point.x - origin.x;
-    final dy:Float = point.y - origin.y;
     final cos:Float = FlxMath.fastCos(angle);
     final sin:Float = FlxMath.fastSin(angle);
-    point.setTo(origin.x + cos * dx - sin * dy, origin.y + sin * dx + cos * dy);
-    return point;
+    return rotateAroundInPlaceCached(origin, point, cos, sin);
   }
 
   var spiralHoldOldMath:Bool = false;
