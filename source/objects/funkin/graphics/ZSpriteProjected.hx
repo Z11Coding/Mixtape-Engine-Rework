@@ -200,7 +200,7 @@ class ZSpriteProjected extends ZSprite
   public var fov:Float = 90;
 
   // custom setter to prevent values below 0, cuz otherwise we'll divide by 0!
-  public var subdivisions(default, set):Int = 1;
+  public var subdivisions(default, set):Int = 0;
 
   function set_subdivisions(value:Int):Int
   {
