@@ -628,6 +628,8 @@ class ZSpriteProjected extends ZSprite
     if (preRotationMoveX != 0 || preRotationMoveY != 0 || preRotationMoveZ != 0) return false;
     if (offsetBeforeRotation.x != 0 || offsetBeforeRotation.y != 0) return false;
     if (vibrateEffect != 0 || subdivisions != 0) return false;
+    if (vertices == null || vertices.length != 8 || indices == null || indices.length != 6) return false;
+    if (uvtData == null || uvtData.length != 12 || (colors != null && colors.length != 0)) return false;
     if (scaleX2 != 1 || scaleY2 != 1) return false;
     if (cropLeft != 0 || cropRight != 0 || cropTop != 0 || cropBottom != 0) return false;
     if (uvScale.x != 1 || uvScale.y != 1 || uvOffset.x != 0 || uvOffset.y != 0) return false;
@@ -636,9 +638,18 @@ class ZSpriteProjected extends ZSprite
     if (rotationOrder == null || rotationOrder.length != 3
       || rotationOrder[0] != "z" || rotationOrder[1] != "y" || rotationOrder[2] != "x") return false;
 
-    for (value in vertOffsetX) if (value != 0) return false;
-    for (value in vertOffsetY) if (value != 0) return false;
-    for (value in vertOffsetZ) if (value != 0) return false;
+    for (value in vertOffsetX)
+    {
+      if (value != 0) return false;
+    }
+    for (value in vertOffsetY)
+    {
+      if (value != 0) return false;
+    }
+    for (value in vertOffsetZ)
+    {
+      if (value != 0) return false;
+    }
     return true;
   }
 
