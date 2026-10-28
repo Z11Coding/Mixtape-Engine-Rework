@@ -200,7 +200,7 @@ class ZSpriteProjected extends ZSprite
   public var fov:Float = 90;
 
   // custom setter to prevent values below 0, cuz otherwise we'll divide by 0!
-  public var subdivisions(default, set):Int = 2;
+  public var subdivisions(default, set):Int = 1;
 
   function set_subdivisions(value:Int):Int
   {
@@ -284,6 +284,13 @@ class ZSpriteProjected extends ZSprite
 
   var curRotationAmount:Float = 0; // Keep track of our current rotation for scale and skew to work correctly.
 
+  // Rotation angles repeat for every vertex in a mesh. Keep a small reusable
+  // cache so each distinct angle needs sine/cosine only once per rebuild.
+  var rotationTrigAngles:Array<Float> = [];
+  var rotationTrigCosines:Array<Float> = [];
+  var rotationTrigSines:Array<Float> = [];
+  var rotationTrigCount:Int = 0;
+
   // Skew angles are constant throughout one mesh rebuild. Avoid recalculating
   // Math.tan for every vertex (up to 16+ times per projected sprite per frame).
   var cachedSkewXAngle:Float = Math.NaN;
@@ -339,6 +346,7 @@ class ZSpriteProjected extends ZSprite
   public function updateTris():Void
   {
     if (destroying) return;
+    rotationTrigCount = 0;
     refreshSkewTrigCache();
 
     // TODO: Improve how this gets applied!
@@ -852,13 +860,49 @@ class ZSpriteProjected extends ZSprite
   {
     if (degrees == 0) return;
 
-    final angle:Float = degrees * FlxAngle.TO_RAD;
+    var cachedIndex:Int = -1;
+    for (i in 0...rotationTrigCount)
+    {
+      if (rotationTrigAngles[i] == degrees)
+      {
+        cachedIndex = i;
+        break;
+      }
+    }
+
+    var cos:Float;
+    var sin:Float;
+    if (cachedIndex >= 0)
+    {
+      cos = rotationTrigCosines[cachedIndex];
+      sin = rotationTrigSines[cachedIndex];
+    }
+    else
+    {
+      final angle:Float = degrees * FlxAngle.TO_RAD;
+      cos = FlxMath.fastCos(angle);
+      sin = FlxMath.fastSin(angle);
+
+      if (rotationTrigCount < 16)
+      {
+        if (rotationTrigCount < rotationTrigAngles.length)
+        {
+          rotationTrigAngles[rotationTrigCount] = degrees;
+          rotationTrigCosines[rotationTrigCount] = cos;
+          rotationTrigSines[rotationTrigCount] = sin;
+        }
+        else
+        {
+          rotationTrigAngles.push(degrees);
+          rotationTrigCosines.push(cos);
+          rotationTrigSines.push(sin);
+        }
+        rotationTrigCount++;
+      }
+    }
+
     final x:Float = point.x - originX;
     final y:Float = point.y - originY;
-    // Reuse each trig result for both coordinates instead of doing four
-    // fast-trig lookups for every projected vertex rotation.
-    final cos:Float = FlxMath.fastCos(angle);
-    final sin:Float = FlxMath.fastSin(angle);
     point.setTo(
       originX + cos * x - sin * y,
       originY + sin * x + cos * y
