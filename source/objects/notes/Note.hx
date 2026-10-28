@@ -679,18 +679,15 @@ class Note extends BaseNote
 		shader = hsvShader;
 	}
 
-  #if debug
   static var mod3DNoteDrawLastReport:Float = 0;
   static var mod3DNoteEligible:Int = 0;
   static var mod3DNoteAlphaSkipped:Int = 0;
   static var mod3DNoteInvisibleSkipped:Int = 0;
   static var mod3DNoteDeadSkipped:Int = 0;
   static var mod3DNoteSkipExample:String = "";
-  #end
 
   override function draw()
 	{
-    #if debug
     final debugStrumExtra = noteModData?.whichStrumNote?.strumExtraModData;
     if (debugStrumExtra?.threeD ?? false)
     {
@@ -733,7 +730,6 @@ class Note extends BaseNote
         mod3DNoteDrawLastReport = debugNow;
       }
     }
-    #end
 
 		if (this.alpha <= 0 || !this.visible || !this.alive)
     {
