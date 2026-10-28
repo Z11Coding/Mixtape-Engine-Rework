@@ -426,6 +426,8 @@ class Note extends BaseNote
 				animation.add(animName + ' tail', [colorIndex + (ExtraKeys.pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0] * 2)]);
 			}
 		}
+		setGraphicSize(Std.int(width * PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]));
+		updateHitbox();
 	}
 
 	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
@@ -748,7 +750,8 @@ class Note extends BaseNote
 		angularVelocity = 0;
 		spinVelocity = 0;
 		spinAngle = 0;
-		graphic.destroyOnNoUse = false;
+		if (graphic != null)
+			graphic.destroyOnNoUse = false;
 		hitWindowMultiplier = 1.0;
 
 		strumTime = chartNoteData.strumTime;
