@@ -608,7 +608,7 @@ class Strumline extends FlxSpriteGroup
     return (ExtraKeys.mania+1) * (Strumline.NOTE_SPACING/ExtraKeys.xPosButBetter2[ExtraKeys.mania]) * noteSpacingScale * strumlineScale.x;
   }
 
-  // This can be changed to make the arrowpath segment into smaller chunks, making it less likely to memory leak when really long and detailed
+  // Number of meshes per lane for the visual arrow path. Each mesh has a sample cap in SustainTrail.
   public var pathPieces:Int = 1;
 
   override public function update(elapsed:Float):Void
