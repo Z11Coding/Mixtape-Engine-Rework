@@ -620,8 +620,11 @@ class ZSpriteProjected extends ZSprite
    */
   function canUseFlatProjectionFastPath():Bool
   {
+    // The identity case relies on the standard projection plane. If global
+    // near/far/FOV settings are changed, keep the full projected path.
+    if (ModConstants.zNear != 0 || ModConstants.zFar != 100 || ModConstants.FOV != 90) return false;
     // With every vertex's depth fixed at zero, the near-plane test cannot
-    // cull anything; the option remains meaningful for actual 3D transforms.
+    // cull anything under the standard positive camera-safety margin.
     if (z != 0 || z2 != 0 || scaleZ != 1 || depth != 0) return false;
     if (angleX != 0 || angleY != 0 || angleX2 != 0 || angleY2 != 0 || angleZ2 != 0 || spinAngle != 0) return false;
     if (skew.x != 0 || skew.y != 0 || skewZ != 0 || skewX_playfield != 0 || skewY_playfield != 0 || skewZ_playfield != 0) return false;
