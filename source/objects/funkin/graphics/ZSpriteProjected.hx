@@ -574,6 +574,16 @@ class ZSpriteProjected extends ZSprite
   // check alone is not enough: animated frames and playfield-center changes also
   // affect those vertices even when the note's x/y/scale did not change.
   var lastProjectedFrame:Dynamic = null;
+  var lastProjectedFrameX:Float = Math.NaN;
+  var lastProjectedFrameY:Float = Math.NaN;
+  var lastProjectedFrameWidth:Float = Math.NaN;
+  var lastProjectedFrameHeight:Float = Math.NaN;
+  var lastProjectedOffsetX:Float = Math.NaN;
+  var lastProjectedOffsetY:Float = Math.NaN;
+  var lastProjectedUVLeft:Float = Math.NaN;
+  var lastProjectedUVRight:Float = Math.NaN;
+  var lastProjectedUVTop:Float = Math.NaN;
+  var lastProjectedUVBottom:Float = Math.NaN;
   var lastProjectionCenterX:Float = Math.NaN;
   var lastProjectionCenterY:Float = Math.NaN;
   var lastProjectionCenterZ:Float = Math.NaN;
@@ -618,7 +628,22 @@ class ZSpriteProjected extends ZSprite
           culled = true;
       }
 
-      final frameChanged:Bool = frame != lastProjectedFrame;
+      final currentFrame = frame;
+      var frameChanged:Bool = currentFrame != lastProjectedFrame;
+      if (currentFrame?.frame != null)
+      {
+        frameChanged = frameChanged
+          || currentFrame.frame.x != lastProjectedFrameX
+          || currentFrame.frame.y != lastProjectedFrameY
+          || currentFrame.frame.width != lastProjectedFrameWidth
+          || currentFrame.frame.height != lastProjectedFrameHeight
+          || currentFrame.offset.x != lastProjectedOffsetX
+          || currentFrame.offset.y != lastProjectedOffsetY
+          || currentFrame.uv.left != lastProjectedUVLeft
+          || currentFrame.uv.right != lastProjectedUVRight
+          || currentFrame.uv.top != lastProjectedUVTop
+          || currentFrame.uv.bottom != lastProjectedUVBottom;
+      }
       final centerChanged:Bool = playfieldSkewCenterX != lastProjectionCenterX
         || playfieldSkewCenterY != lastProjectionCenterY
         || playfieldSkewCenterZ != lastProjectionCenterZ;
@@ -634,9 +659,35 @@ class ZSpriteProjected extends ZSprite
       if (isPerfStrum) projectionPerfStrumDraws++;
       #end
 
-      if (frame != lastProjectedFrame)
+      if (frameChanged)
       {
-        lastProjectedFrame = frame;
+        lastProjectedFrame = currentFrame;
+        if (currentFrame?.frame != null)
+        {
+          lastProjectedFrameX = currentFrame.frame.x;
+          lastProjectedFrameY = currentFrame.frame.y;
+          lastProjectedFrameWidth = currentFrame.frame.width;
+          lastProjectedFrameHeight = currentFrame.frame.height;
+          lastProjectedOffsetX = currentFrame.offset.x;
+          lastProjectedOffsetY = currentFrame.offset.y;
+          lastProjectedUVLeft = currentFrame.uv.left;
+          lastProjectedUVRight = currentFrame.uv.right;
+          lastProjectedUVTop = currentFrame.uv.top;
+          lastProjectedUVBottom = currentFrame.uv.bottom;
+        }
+        else
+        {
+          lastProjectedFrameX = Math.NaN;
+          lastProjectedFrameY = Math.NaN;
+          lastProjectedFrameWidth = Math.NaN;
+          lastProjectedFrameHeight = Math.NaN;
+          lastProjectedOffsetX = Math.NaN;
+          lastProjectedOffsetY = Math.NaN;
+          lastProjectedUVLeft = Math.NaN;
+          lastProjectedUVRight = Math.NaN;
+          lastProjectedUVTop = Math.NaN;
+          lastProjectedUVBottom = Math.NaN;
+        }
         dirty = true;
       }
 
