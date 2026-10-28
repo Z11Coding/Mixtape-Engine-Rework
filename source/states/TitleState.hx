@@ -227,11 +227,12 @@ class TitleState extends MusicBeatState
 		if (!candance)
 			candance = true;
 
+		conductor.target.time = 0;
 		addManagerStuff();
 	}
 
 	function addManagerStuff() {
-		MegaManager.conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
+		conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
 		{
 			if(logoBl != null)
 			logoBl.animation.play('bump', true);
@@ -901,7 +902,7 @@ class TitleState extends MusicBeatState
 		}
 	}
 
-	public var sickBeats:Int = -1; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
+	public var sickBeats:Int = 0; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
 	public static var closedState:Bool = false;
 	var skippedIntro:Bool = false;
 	var increaseVolume:Bool = false;

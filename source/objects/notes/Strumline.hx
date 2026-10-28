@@ -682,11 +682,8 @@ class Strumline extends FlxSpriteGroup
       #if FEATURE_GHOST_TAPPING
       updateGhostTapTimer(elapsed);
       #end
-      #if debug
       final arrowPathStart:Float = haxe.Timer.stamp();
-      #end
       updateArrowPaths(elapsed);
-      #if debug
       final arrowPathMs:Float = (haxe.Timer.stamp() - arrowPathStart) * 1000;
       debugArrowPathTotalMs += arrowPathMs;
       if (arrowPathMs > debugArrowPathMaxMs) debugArrowPathMaxMs = arrowPathMs;
@@ -712,7 +709,6 @@ class Strumline extends FlxSpriteGroup
         debugArrowPathMaxMs = 0;
         debugArrowPathFrames = 0;
       }
-      #end
       updateModDebug();
       for (cover in holdSplashes)
       {
@@ -743,12 +739,10 @@ class Strumline extends FlxSpriteGroup
   // Saved as a variable because accessing height mid-song will result in arrowpath and other stuff being included.
   public var heightWas:Float = 116;
 
-  #if debug
   var debugArrowPathWindowElapsed:Float = 0;
   var debugArrowPathTotalMs:Float = 0;
   var debugArrowPathMaxMs:Float = 0;
   var debugArrowPathFrames:Int = 0;
-  #end
 
   var generatedArrowPaths:Bool = false;
 

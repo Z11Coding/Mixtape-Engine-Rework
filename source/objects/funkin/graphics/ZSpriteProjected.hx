@@ -578,7 +578,6 @@ class ZSpriteProjected extends ZSprite
   var lastProjectionCenterY:Float = Math.NaN;
   var lastProjectionCenterZ:Float = Math.NaN;
 
-  #if debug
   static var projectionPerfLastReport:Float = 0;
   static var projectionPerfDraws:Int = 0;
   static var projectionPerfRebuilds:Int = 0;
@@ -586,7 +585,6 @@ class ZSpriteProjected extends ZSprite
   static var projectionPerfMaxRebuildMs:Float = 0;
   static var projectionPerfTotalVertices:Float = 0;
   static var projectionPerfMaxSubdivisions:Int = 0;
-  #end
 
   @:access(flixel.FlxCamera)
   override public function draw():Void
@@ -609,11 +607,9 @@ class ZSpriteProjected extends ZSprite
           culled = true;
       }
 
-      #if debug
       final projectionPerfNow:Float = haxe.Timer.stamp();
       if (projectionPerfLastReport == 0) projectionPerfLastReport = projectionPerfNow;
       projectionPerfDraws++;
-      #end
 
       if (frame != lastProjectedFrame)
       {
@@ -633,22 +629,18 @@ class ZSpriteProjected extends ZSprite
 
       if (dirty)
       {
-        #if debug
         final projectionUpdateStart:Float = haxe.Timer.stamp();
-        #end
         this.updateTris();
-        #if debug
         final projectionRebuildMs:Float = (haxe.Timer.stamp() - projectionUpdateStart) * 1000;
         projectionPerfRebuilds++;
         projectionPerfRebuildMs += projectionRebuildMs;
         if (projectionRebuildMs > projectionPerfMaxRebuildMs) projectionPerfMaxRebuildMs = projectionRebuildMs;
         if (subdivisions > projectionPerfMaxSubdivisions) projectionPerfMaxSubdivisions = subdivisions;
         projectionPerfTotalVertices += (subdivisions + 2) * (subdivisions + 2);
-        #end
         dirty = false;
       }
 
-      #if debug
+
       if (projectionPerfNow - projectionPerfLastReport >= 2.0)
       {
         final avgRebuildMs:Float = projectionPerfRebuilds > 0 ? projectionPerfRebuildMs / projectionPerfRebuilds : 0;
@@ -668,7 +660,6 @@ class ZSpriteProjected extends ZSprite
         projectionPerfMaxSubdivisions = 0;
         projectionPerfLastReport = projectionPerfNow;
       }
-      #end
 
       if (culled || alpha < 0 || vertices == null || indices == null || graphic == null || uvtData == null || _point == null || offset == null)
       {

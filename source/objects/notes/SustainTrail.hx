@@ -46,7 +46,6 @@ class SustainTrail extends ZSprite
   var sampleArrowpathMods:Array<Modifier> = [];
   var sampleNoteMods:Array<Modifier> = [];
 
-  #if debug
   static var arrowPathClipPerfLastReport:Float = 0;
   static var arrowPathClipPerfCalls:Int = 0;
   static var arrowPathClipPerfTotalMs:Float = 0;
@@ -56,7 +55,6 @@ class SustainTrail extends ZSprite
   static var arrowPathClipPerfMaxSpeedMods:Int = 0;
   static var arrowPathClipPerfMaxPathMods:Int = 0;
   static var arrowPathClipPerfMaxNoteMods:Int = 0;
-  #end
 
   /**
    * The triangles corresponding to the hold, followed by the endcap.
@@ -857,9 +855,7 @@ class SustainTrail extends ZSprite
       return;
     }
 
-    #if debug
     final arrowPathClipStart:Float = isArrowPathPiece ? haxe.Timer.stamp() : 0;
-    #end
 
     // Make sure we're at the proper position!
     // This is cuz hold notes are always set to this exact position, then the tris are set to make it appear where it needs to be on the screen.
@@ -1385,7 +1381,6 @@ class SustainTrail extends ZSprite
     }
     waitTillModUpdate = false;
 
-    #if debug
     if (isArrowPathPiece)
     {
       final clipMs:Float = (haxe.Timer.stamp() - arrowPathClipStart) * 1000;
@@ -1421,7 +1416,6 @@ class SustainTrail extends ZSprite
         arrowPathClipPerfLastReport = clipNow;
       }
     }
-    #end
   }
 
   function setVerts(vertices:Array<Float>):Void

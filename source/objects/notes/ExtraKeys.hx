@@ -201,5 +201,8 @@ class ExtraKeys {
 
   public static var mania:Int = 3;
 
+	public final function getMania():Int
+		return mania+1;
+
 	// End of Extra Keys
 }
