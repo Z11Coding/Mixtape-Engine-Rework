@@ -583,6 +583,9 @@ class ZSpriteProjected extends ZSprite
   static var projectionPerfDraws:Int = 0;
   static var projectionPerfRebuilds:Int = 0;
   static var projectionPerfRebuildMs:Float = 0;
+  static var projectionPerfMaxRebuildMs:Float = 0;
+  static var projectionPerfTotalVertices:Float = 0;
+  static var projectionPerfMaxSubdivisions:Int = 0;
   #end
 
   @:access(flixel.FlxCamera)
@@ -635,8 +638,12 @@ class ZSpriteProjected extends ZSprite
         #end
         this.updateTris();
         #if debug
+        final projectionRebuildMs:Float = (haxe.Timer.stamp() - projectionUpdateStart) * 1000;
         projectionPerfRebuilds++;
-        projectionPerfRebuildMs += (haxe.Timer.stamp() - projectionUpdateStart) * 1000;
+        projectionPerfRebuildMs += projectionRebuildMs;
+        if (projectionRebuildMs > projectionPerfMaxRebuildMs) projectionPerfMaxRebuildMs = projectionRebuildMs;
+        if (subdivisions > projectionPerfMaxSubdivisions) projectionPerfMaxSubdivisions = subdivisions;
+        projectionPerfTotalVertices += (subdivisions + 2) * (subdivisions + 2);
         #end
         dirty = false;
       }
@@ -645,13 +652,20 @@ class ZSpriteProjected extends ZSprite
       if (projectionPerfNow - projectionPerfLastReport >= 2.0)
       {
         final avgRebuildMs:Float = projectionPerfRebuilds > 0 ? projectionPerfRebuildMs / projectionPerfRebuilds : 0;
+        final avgVertices:Float = projectionPerfRebuilds > 0 ? projectionPerfTotalVertices / projectionPerfRebuilds : 0;
         trace('[MODCHART-PERF] 3D projection: projected draws=' + projectionPerfDraws
           + ', mesh rebuilds=' + projectionPerfRebuilds
           + ', rebuild ms total=' + Math.round(projectionPerfRebuildMs * 100) / 100
-          + ', rebuild ms avg=' + Math.round(avgRebuildMs * 100) / 100);
+          + ', rebuild ms avg=' + Math.round(avgRebuildMs * 100) / 100
+          + ', rebuild ms max=' + Math.round(projectionPerfMaxRebuildMs * 100) / 100
+          + ', avg vertices=' + Math.round(avgVertices * 10) / 10
+          + ', max subdivisions=' + projectionPerfMaxSubdivisions);
         projectionPerfDraws = 0;
         projectionPerfRebuilds = 0;
         projectionPerfRebuildMs = 0;
+        projectionPerfMaxRebuildMs = 0;
+        projectionPerfTotalVertices = 0;
+        projectionPerfMaxSubdivisions = 0;
         projectionPerfLastReport = projectionPerfNow;
       }
       #end
