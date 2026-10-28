@@ -284,12 +284,62 @@ class ZSpriteProjected extends ZSprite
 
   var curRotationAmount:Float = 0; // Keep track of our current rotation for scale and skew to work correctly.
 
+  // Skew angles are constant throughout one mesh rebuild. Avoid recalculating
+  // Math.tan for every vertex (up to 16+ times per projected sprite per frame).
+  var cachedSkewXAngle:Float = Math.NaN;
+  var cachedSkewYAngle:Float = Math.NaN;
+  var cachedSkewZAngle:Float = Math.NaN;
+  var cachedPlayfieldSkewXAngle:Float = Math.NaN;
+  var cachedPlayfieldSkewYAngle:Float = Math.NaN;
+  var cachedPlayfieldSkewZAngle:Float = Math.NaN;
+  var cachedSkewXTan:Float = 0;
+  var cachedSkewYTan:Float = 0;
+  var cachedSkewZTan:Float = 0;
+  var cachedPlayfieldSkewXTan:Float = 0;
+  var cachedPlayfieldSkewYTan:Float = 0;
+  var cachedPlayfieldSkewZTan:Float = 0;
+
+  function refreshSkewTrigCache():Void
+  {
+    if (cachedSkewXAngle != skewX)
+    {
+      cachedSkewXAngle = skewX;
+      cachedSkewXTan = skewX != 0 ? Math.tan(skewX * FlxAngle.TO_RAD) : 0;
+    }
+    if (cachedSkewYAngle != skewY)
+    {
+      cachedSkewYAngle = skewY;
+      cachedSkewYTan = skewY != 0 ? Math.tan(skewY * FlxAngle.TO_RAD) : 0;
+    }
+    if (cachedSkewZAngle != skewZ)
+    {
+      cachedSkewZAngle = skewZ;
+      cachedSkewZTan = skewZ != 0 ? Math.tan(skewZ * FlxAngle.TO_RAD) : 0;
+    }
+    if (cachedPlayfieldSkewXAngle != skewX_playfield)
+    {
+      cachedPlayfieldSkewXAngle = skewX_playfield;
+      cachedPlayfieldSkewXTan = skewX_playfield != 0 ? Math.tan(skewX_playfield * FlxAngle.TO_RAD) : 0;
+    }
+    if (cachedPlayfieldSkewYAngle != skewY_playfield)
+    {
+      cachedPlayfieldSkewYAngle = skewY_playfield;
+      cachedPlayfieldSkewYTan = skewY_playfield != 0 ? Math.tan(skewY_playfield * FlxAngle.TO_RAD) : 0;
+    }
+    if (cachedPlayfieldSkewZAngle != skewZ_playfield)
+    {
+      cachedPlayfieldSkewZAngle = skewZ_playfield;
+      cachedPlayfieldSkewZTan = skewZ_playfield != 0 ? Math.tan(skewZ_playfield * FlxAngle.TO_RAD) : 0;
+    }
+  }
+
   /**
    * The function which will update all the vertex and UV data.
    */
   public function updateTris():Void
   {
     if (destroying) return;
+    refreshSkewTrigCache();
 
     // TODO: Improve how this gets applied!
     var wasAlreadyFlipped_X:Bool = flipX;
@@ -747,22 +797,22 @@ class ZSpriteProjected extends ZSprite
     var yPercent_SkewOffset:Float = rotationPoint.y - skewX_offset - skewOffsetFix;
     // Keep math the same as skewedsprite for parity reasons.
     if (skewX != 0) // Small performance boost from this if check to avoid the tan math lol?
-      pos.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h * scaleY;
+      pos.x += yPercent_SkewOffset * cachedSkewXTan * h * scaleY;
     if (skewY != 0) //
-      pos.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w * scaleX;
+      pos.y += xPercent_SkewOffset * cachedSkewYTan * w * scaleX;
 
     // the %, followed by the position moved to the center of the sprite, then moved based off screen center (playfield center in future)
     var playfieldSkewOffset_Y:Float = ((rotationPoint.x - 0.5) * (h * scaleY)) + skewPosX - (playfieldSkewCenterX);
     var playfieldSkewOffset_X:Float = ((rotationPoint.y - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
 
-    if (skewX_playfield != 0) pos.x += playfieldSkewOffset_X * Math.tan(skewX_playfield * FlxAngle.TO_RAD);
-    if (skewY_playfield != 0) pos.y += playfieldSkewOffset_Y * Math.tan(skewY_playfield * FlxAngle.TO_RAD);
+    if (skewX_playfield != 0) pos.x += playfieldSkewOffset_X * cachedPlayfieldSkewXTan;
+    if (skewY_playfield != 0) pos.y += playfieldSkewOffset_Y * cachedPlayfieldSkewYTan;
 
     // z SKEW ?
 
-    if (skewZ != 0) pos.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h * scaleY;
+    if (skewZ != 0) pos.z += yPercent_SkewOffset * cachedSkewZTan * h * scaleY;
     var playfieldSkewOffset_Z:Float = ((rotationPoint.y - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
-    if (skewZ_playfield != 0) pos.z += playfieldSkewOffset_Z * Math.tan(skewZ_playfield * FlxAngle.TO_RAD);
+    if (skewZ_playfield != 0) pos.z += playfieldSkewOffset_Z * cachedPlayfieldSkewZTan;
 
     return pos;
   }
