@@ -620,7 +620,9 @@ class ZSpriteProjected extends ZSprite
    */
   function canUseFlatProjectionFastPath():Bool
   {
-    if (z != 0 || z2 != 0 || scaleZ != 1 || depth != 0 || cullIfTooClose) return false;
+    // With every vertex's depth fixed at zero, the near-plane test cannot
+    // cull anything; the option remains meaningful for actual 3D transforms.
+    if (z != 0 || z2 != 0 || scaleZ != 1 || depth != 0) return false;
     if (angleX != 0 || angleY != 0 || angleX2 != 0 || angleY2 != 0 || angleZ2 != 0 || spinAngle != 0) return false;
     if (skew.x != 0 || skew.y != 0 || skewZ != 0 || skewX_playfield != 0 || skewY_playfield != 0 || skewZ_playfield != 0) return false;
     if (fovOffsetX != 0 || fovOffsetY != 0) return false;
@@ -777,9 +779,7 @@ class ZSpriteProjected extends ZSprite
         dirty = true;
       }
 
-      if (playfieldSkewCenterX != lastProjectionCenterX
-        || playfieldSkewCenterY != lastProjectionCenterY
-        || playfieldSkewCenterZ != lastProjectionCenterZ)
+      if (centerChanged)
       {
         lastProjectionCenterX = playfieldSkewCenterX;
         lastProjectionCenterY = playfieldSkewCenterY;
