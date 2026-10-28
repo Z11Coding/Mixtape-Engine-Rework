@@ -83,7 +83,11 @@ class ZSprite extends FunkinSkewedSprite
       var angleBefore = this.angle;
       super.updateMotion(elapsed);
       var angleAfter = this.angle;
-      angleAngularVelocityOffset += angleAfter - angleBefore;
+      final angularVelocityDelta:Float = angleAfter - angleBefore;
+      angleAngularVelocityOffset += angularVelocityDelta;
+      // Projected sprites bake rotation into their vertices, unlike normal
+      // sprites where the renderer applies angle every draw.
+      if (angularVelocityDelta != 0) dirty = true;
     }
     else
     {
