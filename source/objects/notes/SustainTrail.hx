@@ -33,6 +33,12 @@ using backend.funkin.util.tools.FloatTools;
  */
 class SustainTrail extends ZSprite
 {
+  // Arrow paths are regenerated every frame, so an unconstrained time-based
+  // hold resolution can turn a decorative path into hundreds of modifier samples
+  // per lane per frame. Normal sustain notes keep their configured resolution.
+  public static inline var MAX_ARROWPATH_SAMPLES:Int = 16;
+  public var isArrowPathPiece:Bool = false;
+
   /**
    * The triangles corresponding to the hold, followed by the endcap.
    * `top left, top right, bottom left`
@@ -851,6 +857,14 @@ class SustainTrail extends ZSprite
     if (holdResolution < 1) // To ensure UV's dont break (lol???)
     {
       holdResolution = 1;
+    }
+
+    // Arrow-path pieces are only a visual guide, not score-bearing sustain
+    // geometry. Keep the curve smooth enough to read while bounding the amount
+    // of modifier math performed on every frame.
+    if (isArrowPathPiece && holdResolution > MAX_ARROWPATH_SAMPLES)
+    {
+      holdResolution = MAX_ARROWPATH_SAMPLES;
     }
 
     // Renders the holds to face the direction of travel.
