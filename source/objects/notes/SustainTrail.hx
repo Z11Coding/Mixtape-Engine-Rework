@@ -37,7 +37,7 @@ class SustainTrail extends ZSprite
   // Arrow paths are regenerated every frame, so an unconstrained time-based
   // hold resolution can turn a decorative path into hundreds of modifier samples
   // per lane per frame. Normal sustain notes keep their configured resolution.
-  public static inline var MAX_ARROWPATH_SAMPLES:Int = 4;
+  public static inline var MAX_ARROWPATH_SAMPLES:Int = 2;
   public var isArrowPathPiece:Bool = false;
 
   // Cache lane-filtered modifier lists once per trail rebuild rather than

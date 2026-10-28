@@ -679,8 +679,62 @@ class Note extends BaseNote
 		shader = hsvShader;
 	}
 
+  #if debug
+  static var mod3DNoteDrawLastReport:Float = 0;
+  static var mod3DNoteEligible:Int = 0;
+  static var mod3DNoteAlphaSkipped:Int = 0;
+  static var mod3DNoteInvisibleSkipped:Int = 0;
+  static var mod3DNoteDeadSkipped:Int = 0;
+  static var mod3DNoteSkipExample:String = "";
+  #end
+
   override function draw()
 	{
+    #if debug
+    final debugStrumExtra = noteModData?.whichStrumNote?.strumExtraModData;
+    if (debugStrumExtra?.threeD ?? false)
+    {
+      if (this.alpha <= 0)
+      {
+        mod3DNoteAlphaSkipped++;
+        if (mod3DNoteSkipExample.length == 0)
+        {
+          mod3DNoteSkipExample = 'alpha=' + alpha + ' visible=' + visible + ' alive=' + alive
+            + ' xy=' + Math.round(x * 10) / 10 + ',' + Math.round(y * 10) / 10
+            + ' z=' + Math.round(z * 10) / 10 + ' direction=' + noteData
+            + ' time=' + strumTime;
+        }
+      }
+      else if (!this.visible)
+      {
+        mod3DNoteInvisibleSkipped++;
+      }
+      else if (!this.alive)
+      {
+        mod3DNoteDeadSkipped++;
+      }
+      else
+      {
+        mod3DNoteEligible++;
+      }
+
+      final debugNow:Float = haxe.Timer.stamp();
+      if (mod3DNoteDrawLastReport == 0) mod3DNoteDrawLastReport = debugNow;
+      if (debugNow - mod3DNoteDrawLastReport >= 2.0)
+      {
+        trace('[MODCHART-PERF] 3D note admission: eligible=' + mod3DNoteEligible
+          + ', skipped alpha/hidden/dead=' + mod3DNoteAlphaSkipped + '/' + mod3DNoteInvisibleSkipped + '/' + mod3DNoteDeadSkipped
+          + (mod3DNoteSkipExample.length > 0 ? ', first skipped={' + mod3DNoteSkipExample + '}' : ''));
+        mod3DNoteEligible = 0;
+        mod3DNoteAlphaSkipped = 0;
+        mod3DNoteInvisibleSkipped = 0;
+        mod3DNoteDeadSkipped = 0;
+        mod3DNoteSkipExample = "";
+        mod3DNoteDrawLastReport = debugNow;
+      }
+    }
+    #end
+
 		if (this.alpha <= 0 || !this.visible || !this.alive)
     {
       return;
