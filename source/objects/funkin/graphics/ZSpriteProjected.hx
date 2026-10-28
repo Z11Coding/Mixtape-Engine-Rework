@@ -512,6 +512,21 @@ class ZSpriteProjected extends ZSprite
 
   var culled:Bool = false;
 
+  // Projection uses pre-transformed mesh vertices, so a regular FlxSprite dirty
+  // check alone is not enough: animated frames and playfield-center changes also
+  // affect those vertices even when the note's x/y/scale did not change.
+  var lastProjectedFrame:Dynamic = null;
+  var lastProjectionCenterX:Float = Math.NaN;
+  var lastProjectionCenterY:Float = Math.NaN;
+  var lastProjectionCenterZ:Float = Math.NaN;
+
+  #if debug
+  static var projectionPerfLastReport:Float = 0;
+  static var projectionPerfDraws:Int = 0;
+  static var projectionPerfRebuilds:Int = 0;
+  static var projectionPerfRebuildMs:Float = 0;
+  #end
+
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
@@ -533,11 +548,55 @@ class ZSpriteProjected extends ZSprite
           culled = true;
       }
 
+      #if debug
+      final projectionPerfNow:Float = haxe.Timer.stamp();
+      if (projectionPerfLastReport == 0) projectionPerfLastReport = projectionPerfNow;
+      projectionPerfDraws++;
+      #end
+
+      if (frame != lastProjectedFrame)
+      {
+        lastProjectedFrame = frame;
+        dirty = true;
+      }
+
+      if (playfieldSkewCenterX != lastProjectionCenterX
+        || playfieldSkewCenterY != lastProjectionCenterY
+        || playfieldSkewCenterZ != lastProjectionCenterZ)
+      {
+        lastProjectionCenterX = playfieldSkewCenterX;
+        lastProjectionCenterY = playfieldSkewCenterY;
+        lastProjectionCenterZ = playfieldSkewCenterZ;
+        dirty = true;
+      }
+
       if (dirty)
       {
+        #if debug
+        final projectionUpdateStart:Float = haxe.Timer.stamp();
+        #end
         this.updateTris();
+        #if debug
+        projectionPerfRebuilds++;
+        projectionPerfRebuildMs += (haxe.Timer.stamp() - projectionUpdateStart) * 1000;
+        #end
         dirty = false;
       }
+
+      #if debug
+      if (projectionPerfNow - projectionPerfLastReport >= 2.0)
+      {
+        final avgRebuildMs:Float = projectionPerfRebuilds > 0 ? projectionPerfRebuildMs / projectionPerfRebuilds : 0;
+        trace('[MODCHART-PERF] 3D projection: projected draws=' + projectionPerfDraws
+          + ', mesh rebuilds=' + projectionPerfRebuilds
+          + ', rebuild ms total=' + Math.round(projectionPerfRebuildMs * 100) / 100
+          + ', rebuild ms avg=' + Math.round(avgRebuildMs * 100) / 100);
+        projectionPerfDraws = 0;
+        projectionPerfRebuilds = 0;
+        projectionPerfRebuildMs = 0;
+        projectionPerfLastReport = projectionPerfNow;
+      }
+      #end
 
       if (culled || alpha < 0 || vertices == null || indices == null || graphic == null || uvtData == null || _point == null || offset == null)
       {
@@ -591,6 +650,12 @@ class ZSpriteProjected extends ZSprite
       || skewY_playfield != data.skewY_playfield
       || skewZ_playfield != data.skewZ_playfield
       || scaleZ != data.scaleZ
+      || pivotOffsetX != data.meshOffsets_PivotX
+      || pivotOffsetY != data.meshOffsets_PivotY
+      || pivotOffsetZ != data.meshOffsets_PivotZ
+      || skewX_offset != data.meshOffsets_SkewX
+      || skewY_offset != data.meshOffsets_SkewY
+      || skewZ_offset != data.meshOffsets_SkewZ
       || perspectiveCenterOffset.x != data.perspectiveOffset.x
       || perspectiveCenterOffset.y != data.perspectiveOffset.y;
 
