@@ -609,7 +609,7 @@ class Strumline extends FlxSpriteGroup
   }
 
   // This can be changed to make the arrowpath segment into smaller chunks, making it less likely to memory leak when really long and detailed
-  public var pathPieces:Int = 3;
+  public var pathPieces:Int = 1;
 
   override public function update(elapsed:Float):Void
   {
