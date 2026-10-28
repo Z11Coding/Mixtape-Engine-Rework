@@ -789,6 +789,12 @@ class ModConstants
     return FlxMath.fastSin(rad) / FlxMath.fastCos(rad);
   }
 
+  // perspectiveMath is called for every projected mesh vertex. The projection
+  // FOV is fixed at 90 degrees, so cache its half-angle tangent and reciprocal
+  // instead of repeating two trigonometric lookups and a division per vertex.
+  static var projectionTanHalfFOV:Float = fastTan(Math.PI / 4);
+  static var projectionInvTanHalfFOV:Float = 1 / projectionTanHalfFOV;
+
   public static var zNear:Float = 0.0;
   public static var zFar:Float = 100.0;
   public static var FOV:Float = 90;
@@ -800,15 +806,13 @@ class ModConstants
     // Math isn't perfect (mainly with lack of FOV support), but it's good enough. -Haz
     try
     {
-      final _FOV = Math.PI / 2;
-
       /*
         math from opengl lol
         found from this website https://ogldev.org/www/tutorial12/tutorial12.html
        */
 
-      var newz:Float = pos.z;
-      newz *= FlxMath.lerp(0, 1, FOV / 90); // very very fucking stupid work-around for no proper FOV support  -Haz
+      // Equivalent to lerp(0, 1, FOV / 90), without a function call.
+      var newz:Float = pos.z * (FOV / 90); // work-around for no proper FOV support -Haz
       // Too close to camera!
       if (newz > zNear + ModConstants.tooCloseToCameraFix)
       {
@@ -822,7 +826,7 @@ class ModConstants
       newz = newz - 1;
 
       var zRange:Float = zNear - zFar;
-      var tanHalfFOV:Float = fastTan(_FOV * 0.5);
+      final tanHalfFOV:Float = projectionTanHalfFOV;
 
       var screenCenterX:Float = (FlxG.width * 0.5) + (perspectiveOffset?.x ?? 0.0);
       var screenCenterY:Float = (FlxG.height * 0.5) + (perspectiveOffset?.y ?? 0.0);
@@ -837,7 +841,7 @@ class ModConstants
       xOffsetToCenter += (offsetX * -zPerspectiveOffset);
       yOffsetToCenter += (offsetY * -zPerspectiveOffset);
 
-      var xPerspective:Float = xOffsetToCenter * (1 / tanHalfFOV);
+      var xPerspective:Float = xOffsetToCenter * projectionInvTanHalfFOV;
       var yPerspective:Float = yOffsetToCenter * tanHalfFOV;
       xPerspective /= -zPerspectiveOffset;
       yPerspective /= -zPerspectiveOffset;
