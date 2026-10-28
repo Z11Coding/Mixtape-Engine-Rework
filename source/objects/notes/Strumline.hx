@@ -787,7 +787,10 @@ class Strumline extends FlxSpriteGroup
     }
 
     var stitchEnds:Bool = true;
-    final currentPathParity:Int = arrowPathUpdateFrame & 1;
+    // Refresh all lanes together every other frame. Updating alternating lanes
+    // makes the line visibly twitch because neighbouring lanes represent
+    // different song times; coherent updates keep the whole path in phase.
+    final updatePathGeometry:Bool = (arrowPathUpdateFrame % 2) == 0;
     arrowPathUpdateFrame++;
 
     arrowPaths.forEach(function(note:SustainTrail)
@@ -805,9 +808,9 @@ class Strumline extends FlxSpriteGroup
         return;
       }
 
-      // Keep each lane's path pieces in sync, but only rebuild half the lanes
-      // per update. The other pair retains its last geometry for one frame.
-      if ((note.noteDirection & 1) != currentPathParity) return;
+      // ArrowPath is decorative: doing all lanes together at 30 Hz avoids
+      // temporal wobble while placing a hard bound on clipping work.
+      if (!updatePathGeometry) return;
 
       // ay -= whichStrumNote.strumExtraModData.alphaHoldCoverMod;
       var length:Float = (whichStrumNote.strumExtraModData.arrowpathLength + whichStrumNote.strumExtraModData.arrowpathBackwardsLength) / (pathPieces);
