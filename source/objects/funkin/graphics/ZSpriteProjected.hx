@@ -569,6 +569,7 @@ class ZSpriteProjected extends ZSprite
   public var colors:DrawData<Int> = new DrawData<Int>();
 
   var culled:Bool = false;
+  var usedFlatProjectionFastPath:Bool = false;
 
   // Projection uses pre-transformed mesh vertices, so a regular FlxSprite dirty
   // check alone is not enough: animated frames and playfield-center changes also
@@ -607,16 +608,59 @@ class ZSpriteProjected extends ZSprite
   static var projectionPerfNoteExample:String = "";
   #end
 
+  /**
+   * When the 3D modifier is enabled but the sprite has no depth-axis or
+   * custom-mesh effects, perspective is mathematically the identity transform.
+   * Draw it as a normal sprite instead of rebuilding a projected mesh. This
+   * keeps ordinary receptor/note animations responsive with the 3D toggle on.
+   */
+  function canUseFlatProjectionFastPath():Bool
+  {
+    if (z != 0 || z2 != 0 || scaleZ != 1 || depth != 0) return false;
+    if (angleX != 0 || angleY != 0 || angleX2 != 0 || angleY2 != 0 || angleZ2 != 0 || spinAngle != 0) return false;
+    if (skewZ != 0 || skewX_playfield != 0 || skewY_playfield != 0 || skewZ_playfield != 0) return false;
+    if (fovOffsetX != 0 || fovOffsetY != 0) return false;
+    if (pivotOffsetX != 0 || pivotOffsetY != 0 || pivotOffsetZ != 0) return false;
+    if (preRotationMoveX != 0 || preRotationMoveY != 0 || preRotationMoveZ != 0) return false;
+    if (offsetBeforeRotation.x != 0 || offsetBeforeRotation.y != 0) return false;
+    if (vibrateEffect != 0 || subdivisions != 0) return false;
+    if (scaleX2 != 1 || scaleY2 != 1) return false;
+    if (cropLeft != 0 || cropRight != 0 || cropTop != 0 || cropBottom != 0) return false;
+    if (uvScale.x != 1 || uvScale.y != 1 || uvOffset.x != 0 || uvOffset.y != 0) return false;
+    if (uvScaleOffset.x != 0.5 || uvScaleOffset.y != 0.5 || textureRepeat || frameBorderCut) return false;
+    if (cullMode != "none" && cullMode != "never") return false;
+    if (rotationOrder == null || rotationOrder.length != 3
+      || rotationOrder[0] != "z" || rotationOrder[1] != "y" || rotationOrder[2] != "x") return false;
+
+    for (value in vertOffsetX) if (value != 0) return false;
+    for (value in vertOffsetY) if (value != 0) return false;
+    for (value in vertOffsetZ) if (value != 0) return false;
+    return true;
+  }
+
   @:access(flixel.FlxCamera)
   override public function draw():Void
   {
     if (destroying) return;
     if (!projectionEnabled)
     {
+      usedFlatProjectionFastPath = false;
+      super.draw();
+    }
+    else if (canUseFlatProjectionFastPath())
+    {
+      usedFlatProjectionFastPath = true;
       super.draw();
     }
     else
     {
+      if (usedFlatProjectionFastPath)
+      {
+        // Rebuild after returning from ordinary 2D rendering, since animation
+        // frame or mesh properties may have changed while the fast path ran.
+        dirty = true;
+        usedFlatProjectionFastPath = false;
+      }
       var culling = TriangleCulling.NONE;
       switch (cullMode)
       {
