@@ -654,6 +654,7 @@ class Strumline extends FlxSpriteGroup
             holdNote.renderEnd = (p == (pathPieces - 1));
             holdNote.parentStrumline = this;
             holdNote.noteData = null;
+            holdNote.isArrowPathPiece = true;
             holdNote.strumTime = 0;
             holdNote.noteDirection = i;
 
@@ -681,7 +682,37 @@ class Strumline extends FlxSpriteGroup
       #if FEATURE_GHOST_TAPPING
       updateGhostTapTimer(elapsed);
       #end
+      #if debug
+      final arrowPathStart:Float = haxe.Timer.stamp();
+      #end
       updateArrowPaths(elapsed);
+      #if debug
+      final arrowPathMs:Float = (haxe.Timer.stamp() - arrowPathStart) * 1000;
+      debugArrowPathTotalMs += arrowPathMs;
+      if (arrowPathMs > debugArrowPathMaxMs) debugArrowPathMaxMs = arrowPathMs;
+      debugArrowPathFrames++;
+      debugArrowPathWindowElapsed += elapsed;
+      if (debugArrowPathWindowElapsed >= 2.0)
+      {
+        var threeDLanes:Int = 0;
+        for (lane in 0...(ExtraKeys.mania + 1))
+        {
+          final receptor:StrumNote = getByColumn(lane);
+          if (receptor != null && receptor.strumExtraModData != null && receptor.strumExtraModData.threeD) threeDLanes++;
+        }
+        final avgArrowPathMs:Float = debugArrowPathFrames > 0 ? debugArrowPathTotalMs / debugArrowPathFrames : 0;
+        trace('[MODCHART-PERF] arrowPath update: avg=' + Math.round(avgArrowPathMs * 100) / 100
+          + 'ms, max=' + Math.round(debugArrowPathMaxMs * 100) / 100
+          + 'ms, pieces=' + arrowPaths.members.length
+          + ', configured pieces/lane=' + pathPieces
+          + ', 3D lanes=' + threeDLanes
+          + ', drawInDraw=' + doUpdateClipsInDraw);
+        debugArrowPathWindowElapsed = 0;
+        debugArrowPathTotalMs = 0;
+        debugArrowPathMaxMs = 0;
+        debugArrowPathFrames = 0;
+      }
+      #end
       updateModDebug();
       for (cover in holdSplashes)
       {
@@ -711,6 +742,13 @@ class Strumline extends FlxSpriteGroup
   // used for the reverse math (or any other math which needs to know the strumline position from PlayState).
   // Saved as a variable because accessing height mid-song will result in arrowpath and other stuff being included.
   public var heightWas:Float = 116;
+
+  #if debug
+  var debugArrowPathWindowElapsed:Float = 0;
+  var debugArrowPathTotalMs:Float = 0;
+  var debugArrowPathMaxMs:Float = 0;
+  var debugArrowPathFrames:Int = 0;
+  #end
 
   var generatedArrowPaths:Bool = false;
 
