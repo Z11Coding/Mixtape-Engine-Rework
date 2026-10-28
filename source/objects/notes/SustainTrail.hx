@@ -757,9 +757,12 @@ class SustainTrail extends ZSprite
   {
     if (degrees == 0) return point;
     final angle:Float = degrees * FlxAngle.TO_RAD;
+    final dx:Float = point.x - origin.x;
+    final dy:Float = point.y - origin.y;
     final cos:Float = FlxMath.fastCos(angle);
     final sin:Float = FlxMath.fastSin(angle);
-    return rotateAroundInPlaceCached(origin, point, cos, sin);
+    point.setTo(origin.x + cos * dx - sin * dy, origin.y + sin * dx + cos * dy);
+    return point;
   }
 
   var spiralHoldOldMath:Bool = false;
