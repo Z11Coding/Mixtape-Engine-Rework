@@ -3,6 +3,7 @@ package objects.notes;
 import backend.modchartSystem.ModConstants;
 import backend.modchartSystem.ModHandler;
 import backend.modchartSystem.NoteData;
+import backend.modchartSystem.modifiers.BaseModifier;
 import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
@@ -36,8 +37,14 @@ class SustainTrail extends ZSprite
   // Arrow paths are regenerated every frame, so an unconstrained time-based
   // hold resolution can turn a decorative path into hundreds of modifier samples
   // per lane per frame. Normal sustain notes keep their configured resolution.
-  public static inline var MAX_ARROWPATH_SAMPLES:Int = 16;
+  public static inline var MAX_ARROWPATH_SAMPLES:Int = 4;
   public var isArrowPathPiece:Bool = false;
+
+  // Cache lane-filtered modifier lists once per trail rebuild rather than
+  // repeating the same target-lane tests for every sampled point.
+  var sampleSpeedMods:Array<Modifier> = [];
+  var sampleArrowpathMods:Array<Modifier> = [];
+  var sampleNoteMods:Array<Modifier> = [];
 
   /**
    * The triangles corresponding to the hold, followed by the endcap.
@@ -459,10 +466,36 @@ class SustainTrail extends ZSprite
   var projectionAngleYCos:Float = 1.0;
   var projectionAngleYSin:Float = 0.0;
 
-  // 953.27ms with tracy. Ouch.
-  // OPTIMISE ME!
-  // Call this function to sample where a note would be at this strum position.
+  function prepareSampleModifiers():Void
+  {
+    sampleSpeedMods.resize(0);
+    sampleArrowpathMods.resize(0);
+    sampleNoteMods.resize(0);
 
+    final lane:Int = noteDirection % (ExtraKeys.mania + 1);
+    final handler:ModHandler = parentStrumline.mods;
+
+    for (i in 0...handler.mods_speed.length)
+    {
+      final mod:Modifier = handler.mods_speed[i];
+      if (mod.targetLane == -1 || mod.targetLane == lane) sampleSpeedMods.push(mod);
+    }
+    for (i in 0...handler.mods_arrowpath.length)
+    {
+      final mod:Modifier = handler.mods_arrowpath[i];
+      if (mod.targetLane == -1 || mod.targetLane == lane) sampleArrowpathMods.push(mod);
+    }
+    if (noteModData != null)
+    {
+      for (i in 0...noteModData.noteMods.length)
+      {
+        final mod:Modifier = noteModData.noteMods[i];
+        if (mod.targetLane == -1 || mod.targetLane == lane) sampleNoteMods.push(mod);
+      }
+    }
+  }
+
+  // Call this function to sample where a note would be at this strum position.
   function susSample(strumTimmy:Float, isRoot:Bool = false, dumbHeight:Float = 0):Void
   {
     final strumNote:StrumNote = whichStrumNote;
@@ -500,19 +533,13 @@ class SustainTrail extends ZSprite
     noteModData.height = 0;
 
     var scrollMult:Float = 1.0;
-    final speedMods = parentStrumline.mods.mods_speed;
-    for (i in 0...speedMods.length)
+    for (i in 0...sampleSpeedMods.length)
     {
-      final mod = speedMods[i];
-      if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
-      scrollMult *= mod.speedMath(lane, notePos, parentStrumline, true);
+      scrollMult *= sampleSpeedMods[i].speedMath(lane, notePos, parentStrumline, true);
     }
-    final noteMods = noteModData.noteMods;
-    for (i in 0...noteMods.length)
+    for (i in 0...sampleNoteMods.length)
     {
-      final mod = noteMods[i];
-      if (mod.targetLane != -1 && noteModData.direction != mod.targetLane) continue;
-      scrollMult *= mod.speedMath(lane, notePos, parentStrumline, true);
+      scrollMult *= sampleNoteMods[i].speedMath(lane, notePos, parentStrumline, true);
     }
     noteModData.speedMod = scrollMult;
 
@@ -523,8 +550,9 @@ class SustainTrail extends ZSprite
     noteModData.x -= graphicWidth / 2;
 
     // Then offset based on the movement from the default strum position so movement it still tied to the strum receptors.
-    final defaultPosition:Array<Float> = parentStrumline.mods.getDefaultStrumPos(noteModData.direction);
-    final xDif:Float = whichStrumNote.x - defaultPosition[0];
+    // getDefaultStrumPos() allocates a three-element array, but this sample
+    // only needs X and that value is exactly formerPosition.x.
+    final xDif:Float = whichStrumNote.x - whichStrumNote.formerPosition.x;
     noteModData.x += xDif;
 
     final sillyPos:Float = notePos * scrollMult;
@@ -543,19 +571,14 @@ class SustainTrail extends ZSprite
     noteModData.z = strumNote.z;
     noteModData.curPos = sillyPos;
 
-    final arrowpathMods = parentStrumline.mods.mods_arrowpath;
-    for (i in 0...arrowpathMods.length)
+    for (i in 0...sampleArrowpathMods.length)
     {
-      final mod = arrowpathMods[i];
-      if (mod.targetLane != -1 && lane != mod.targetLane) continue;
-      mod.noteMath(noteModData, parentStrumline, true, true);
+      sampleArrowpathMods[i].noteMath(noteModData, parentStrumline, true, true);
     }
 
-    for (i in 0...noteMods.length)
+    for (i in 0...sampleNoteMods.length)
     {
-      final mod = noteMods[i];
-      if (mod.targetLane != -1 && lane != mod.targetLane) continue;
-      mod.noteMath(noteModData, parentStrumline, true, true);
+      sampleNoteMods[i].noteMath(noteModData, parentStrumline, true, true);
     }
 
     noteModData.funnyOffMyself();
@@ -835,6 +858,7 @@ class SustainTrail extends ZSprite
     // (such as are we using spiral holds for example?)
     final clippingTimeOffset:Float = clipTimeThing(songTimmy, strumTime);
     extraHoldRootInfo(this.strumTime);
+    prepareSampleModifiers();
     susSample(this.strumTime + clippingTimeOffset, true, 0);
 
     grain = noteModData?.holdGrain ?? ModConstants.defaultPathGrain;
