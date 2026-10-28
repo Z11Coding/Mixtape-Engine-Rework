@@ -40,10 +40,10 @@ class ZSpriteProjected extends ZSprite
   }
 
   // If true, will correct the texture distortion created when transforming in 3D
-  public var doPerspectiveCorrection:Bool = false;
+  public var doPerspectiveCorrection:Bool = true;
 
   // If set to true, will set this sprite to be culled if all the subdivision points are considered "too close" to the camera.
-  public var cullIfTooClose:Bool = false;
+  public var cullIfTooClose:Bool = true;
 
   // If true, will repeat the texture in the draw call. Otherwise texture will be clamped
   public var textureRepeat:Bool = false;
@@ -200,7 +200,7 @@ class ZSpriteProjected extends ZSprite
   public var fov:Float = 90;
 
   // custom setter to prevent values below 0, cuz otherwise we'll divide by 0!
-  public var subdivisions(default, set):Int = 1;
+  public var subdivisions(default, set):Int = 0;
 
   function set_subdivisions(value:Int):Int
   {
@@ -569,15 +569,27 @@ class ZSpriteProjected extends ZSprite
   public var colors:DrawData<Int> = new DrawData<Int>();
 
   var culled:Bool = false;
+  var usedFlatProjectionFastPath:Bool = false;
 
   // Projection uses pre-transformed mesh vertices, so a regular FlxSprite dirty
   // check alone is not enough: animated frames and playfield-center changes also
   // affect those vertices even when the note's x/y/scale did not change.
   var lastProjectedFrame:Dynamic = null;
+  var lastProjectedFrameX:Float = Math.NaN;
+  var lastProjectedFrameY:Float = Math.NaN;
+  var lastProjectedFrameWidth:Float = Math.NaN;
+  var lastProjectedFrameHeight:Float = Math.NaN;
+  var lastProjectedOffsetX:Float = Math.NaN;
+  var lastProjectedOffsetY:Float = Math.NaN;
+  var lastProjectedUVLeft:Float = Math.NaN;
+  var lastProjectedUVRight:Float = Math.NaN;
+  var lastProjectedUVTop:Float = Math.NaN;
+  var lastProjectedUVBottom:Float = Math.NaN;
   var lastProjectionCenterX:Float = Math.NaN;
   var lastProjectionCenterY:Float = Math.NaN;
   var lastProjectionCenterZ:Float = Math.NaN;
 
+  #if debug
   static var projectionPerfLastReport:Float = 0;
   static var projectionPerfDraws:Int = 0;
   static var projectionPerfRebuilds:Int = 0;
@@ -585,6 +597,66 @@ class ZSpriteProjected extends ZSprite
   static var projectionPerfMaxRebuildMs:Float = 0;
   static var projectionPerfTotalVertices:Float = 0;
   static var projectionPerfMaxSubdivisions:Int = 0;
+  static var projectionPerfNoteDraws:Int = 0;
+  static var projectionPerfNoteRebuilds:Int = 0;
+  static var projectionPerfStrumDraws:Int = 0;
+  static var projectionPerfStrumRebuilds:Int = 0;
+  static var projectionPerfCullNote:Int = 0;
+  static var projectionPerfCullStrum:Int = 0;
+  static var projectionPerfInvalidNote:Int = 0;
+  static var projectionPerfInvalidStrum:Int = 0;
+  static var projectionPerfNoteExample:String = "";
+  static var flatPathLastReport:Float = 0;
+  static var flatPathNoteCount:Int = 0;
+  static var flatPathStrumCount:Int = 0;
+  static var flatPathOtherCount:Int = 0;
+  #end
+
+  /**
+   * When the 3D modifier is enabled but the sprite has no depth-axis or
+   * custom-mesh effects, perspective is mathematically the identity transform.
+   * Draw it as a normal sprite instead of rebuilding a projected mesh. This
+   * keeps ordinary receptor/note animations responsive with the 3D toggle on.
+   */
+  function canUseFlatProjectionFastPath():Bool
+  {
+    // The identity case relies on the standard projection plane. If global
+    // near/far/FOV settings are changed, keep the full projected path.
+    if (ModConstants.zNear != 0 || ModConstants.zFar != 100 || ModConstants.FOV != 90) return false;
+    // With every vertex's depth fixed at zero, the near-plane test cannot
+    // cull anything under the standard positive camera-safety margin.
+    if (z != 0 || z2 != 0 || scaleZ != 1 || depth != 0) return false;
+    if (angleX != 0 || angleY != 0 || angleX2 != 0 || angleY2 != 0 || angleZ2 != 0 || spinAngle != 0) return false;
+    if (skew.x != 0 || skew.y != 0 || skewZ != 0 || skewX_playfield != 0 || skewY_playfield != 0 || skewZ_playfield != 0) return false;
+    if (fovOffsetX != 0 || fovOffsetY != 0) return false;
+    if (pivotOffsetX != 0 || pivotOffsetY != 0 || pivotOffsetZ != 0) return false;
+    if (preRotationMoveX != 0 || preRotationMoveY != 0 || preRotationMoveZ != 0) return false;
+    if (offsetBeforeRotation.x != 0 || offsetBeforeRotation.y != 0) return false;
+    if (vibrateEffect != 0 || subdivisions != 0) return false;
+    if (vertices == null || vertices.length != 8 || indices == null || indices.length != 6) return false;
+    if (uvtData == null || uvtData.length != 12 || (colors != null && colors.length != 0)) return false;
+    if (scaleX2 != 1 || scaleY2 != 1) return false;
+    if (cropLeft != 0 || cropRight != 0 || cropTop != 0 || cropBottom != 0) return false;
+    if (uvScale.x != 1 || uvScale.y != 1 || uvOffset.x != 0 || uvOffset.y != 0) return false;
+    if (uvScaleOffset.x != 0.5 || uvScaleOffset.y != 0.5 || textureRepeat || frameBorderCut) return false;
+    if (cullMode != "none" && cullMode != "never") return false;
+    if (rotationOrder == null || rotationOrder.length != 3
+      || rotationOrder[0] != "z" || rotationOrder[1] != "y" || rotationOrder[2] != "x") return false;
+
+    for (value in vertOffsetX)
+    {
+      if (value != 0) return false;
+    }
+    for (value in vertOffsetY)
+    {
+      if (value != 0) return false;
+    }
+    for (value in vertOffsetZ)
+    {
+      if (value != 0) return false;
+    }
+    return true;
+  }
 
   @:access(flixel.FlxCamera)
   override public function draw():Void
@@ -592,10 +664,50 @@ class ZSpriteProjected extends ZSprite
     if (destroying) return;
     if (!projectionEnabled)
     {
+      usedFlatProjectionFastPath = false;
+      super.draw();
+    }
+    else if (canUseFlatProjectionFastPath())
+    {
+      usedFlatProjectionFastPath = true;
+      #if debug
+      final flatPathClassName:Null<String> = Type.getClassName(Type.getClass(this));
+      if (flatPathClassName == "objects.notes.Note"
+        || (flatPathClassName != null && flatPathClassName.indexOf(".APNote") >= 0))
+      {
+        flatPathNoteCount++;
+      }
+      else if (flatPathClassName == "objects.notes.StrumNote")
+      {
+        flatPathStrumCount++;
+      }
+      else
+      {
+        flatPathOtherCount++;
+      }
+      final flatPathNow:Float = haxe.Timer.stamp();
+      if (flatPathLastReport == 0) flatPathLastReport = flatPathNow;
+      if (flatPathNow - flatPathLastReport >= 2.0)
+      {
+        trace('[MODCHART-PERF] 3D flat fast path: notes=' + flatPathNoteCount
+          + ', strums=' + flatPathStrumCount + ', other sprites=' + flatPathOtherCount);
+        flatPathNoteCount = 0;
+        flatPathStrumCount = 0;
+        flatPathOtherCount = 0;
+        flatPathLastReport = flatPathNow;
+      }
+      #end
       super.draw();
     }
     else
     {
+      if (usedFlatProjectionFastPath)
+      {
+        // Rebuild after returning from ordinary 2D rendering, since animation
+        // frame or mesh properties may have changed while the fast path ran.
+        dirty = true;
+        usedFlatProjectionFastPath = false;
+      }
       var culling = TriangleCulling.NONE;
       switch (cullMode)
       {
@@ -607,19 +719,70 @@ class ZSpriteProjected extends ZSprite
           culled = true;
       }
 
+      final currentFrame = frame;
+      var frameChanged:Bool = currentFrame != lastProjectedFrame;
+      if (currentFrame?.frame != null)
+      {
+        frameChanged = frameChanged
+          || currentFrame.frame.x != lastProjectedFrameX
+          || currentFrame.frame.y != lastProjectedFrameY
+          || currentFrame.frame.width != lastProjectedFrameWidth
+          || currentFrame.frame.height != lastProjectedFrameHeight
+          || currentFrame.offset.x != lastProjectedOffsetX
+          || currentFrame.offset.y != lastProjectedOffsetY
+          || currentFrame.uv.left != lastProjectedUVLeft
+          || currentFrame.uv.right != lastProjectedUVRight
+          || currentFrame.uv.top != lastProjectedUVTop
+          || currentFrame.uv.bottom != lastProjectedUVBottom;
+      }
+      final centerChanged:Bool = playfieldSkewCenterX != lastProjectionCenterX
+        || playfieldSkewCenterY != lastProjectionCenterY
+        || playfieldSkewCenterZ != lastProjectionCenterZ;
+      #if debug
       final projectionPerfNow:Float = haxe.Timer.stamp();
       if (projectionPerfLastReport == 0) projectionPerfLastReport = projectionPerfNow;
       projectionPerfDraws++;
+      final projectionClassName:Null<String> = Type.getClassName(Type.getClass(this));
+      final isPerfNote:Bool = projectionClassName == "objects.notes.Note"
+        || (projectionClassName != null && projectionClassName.indexOf(".APNote") >= 0);
+      final isPerfStrum:Bool = projectionClassName == "objects.notes.StrumNote";
+      if (isPerfNote) projectionPerfNoteDraws++;
+      if (isPerfStrum) projectionPerfStrumDraws++;
+      #end
 
-      if (frame != lastProjectedFrame)
+      if (frameChanged)
       {
-        lastProjectedFrame = frame;
+        lastProjectedFrame = currentFrame;
+        if (currentFrame?.frame != null)
+        {
+          lastProjectedFrameX = currentFrame.frame.x;
+          lastProjectedFrameY = currentFrame.frame.y;
+          lastProjectedFrameWidth = currentFrame.frame.width;
+          lastProjectedFrameHeight = currentFrame.frame.height;
+          lastProjectedOffsetX = currentFrame.offset.x;
+          lastProjectedOffsetY = currentFrame.offset.y;
+          lastProjectedUVLeft = currentFrame.uv.left;
+          lastProjectedUVRight = currentFrame.uv.right;
+          lastProjectedUVTop = currentFrame.uv.top;
+          lastProjectedUVBottom = currentFrame.uv.bottom;
+        }
+        else
+        {
+          lastProjectedFrameX = Math.NaN;
+          lastProjectedFrameY = Math.NaN;
+          lastProjectedFrameWidth = Math.NaN;
+          lastProjectedFrameHeight = Math.NaN;
+          lastProjectedOffsetX = Math.NaN;
+          lastProjectedOffsetY = Math.NaN;
+          lastProjectedUVLeft = Math.NaN;
+          lastProjectedUVRight = Math.NaN;
+          lastProjectedUVTop = Math.NaN;
+          lastProjectedUVBottom = Math.NaN;
+        }
         dirty = true;
       }
 
-      if (playfieldSkewCenterX != lastProjectionCenterX
-        || playfieldSkewCenterY != lastProjectionCenterY
-        || playfieldSkewCenterZ != lastProjectionCenterZ)
+      if (centerChanged)
       {
         lastProjectionCenterX = playfieldSkewCenterX;
         lastProjectionCenterY = playfieldSkewCenterY;
@@ -629,18 +792,24 @@ class ZSpriteProjected extends ZSprite
 
       if (dirty)
       {
+        #if debug
         final projectionUpdateStart:Float = haxe.Timer.stamp();
+        #end
         this.updateTris();
+        #if debug
         final projectionRebuildMs:Float = (haxe.Timer.stamp() - projectionUpdateStart) * 1000;
         projectionPerfRebuilds++;
         projectionPerfRebuildMs += projectionRebuildMs;
         if (projectionRebuildMs > projectionPerfMaxRebuildMs) projectionPerfMaxRebuildMs = projectionRebuildMs;
         if (subdivisions > projectionPerfMaxSubdivisions) projectionPerfMaxSubdivisions = subdivisions;
         projectionPerfTotalVertices += (subdivisions + 2) * (subdivisions + 2);
+        if (isPerfNote) projectionPerfNoteRebuilds++;
+        if (isPerfStrum) projectionPerfStrumRebuilds++;
+        #end
         dirty = false;
       }
 
-
+      #if debug
       if (projectionPerfNow - projectionPerfLastReport >= 2.0)
       {
         final avgRebuildMs:Float = projectionPerfRebuilds > 0 ? projectionPerfRebuildMs / projectionPerfRebuilds : 0;
@@ -652,15 +821,68 @@ class ZSpriteProjected extends ZSprite
           + ', rebuild ms max=' + Math.round(projectionPerfMaxRebuildMs * 100) / 100
           + ', avg vertices=' + Math.round(avgVertices * 10) / 10
           + ', max subdivisions=' + projectionPerfMaxSubdivisions);
+        trace('[MODCHART-PERF] 3D render health: notes draws/rebuilds=' + projectionPerfNoteDraws + '/' + projectionPerfNoteRebuilds
+          + ', strums draws/rebuilds=' + projectionPerfStrumDraws + '/' + projectionPerfStrumRebuilds
+          + ', culled notes/strums=' + projectionPerfCullNote + '/' + projectionPerfCullStrum
+          + ', invalid mesh notes/strums=' + projectionPerfInvalidNote + '/' + projectionPerfInvalidStrum
+          + (projectionPerfNoteExample.length > 0 ? ', note mesh sample={' + projectionPerfNoteExample + '}' : ''));
         projectionPerfDraws = 0;
         projectionPerfRebuilds = 0;
         projectionPerfRebuildMs = 0;
         projectionPerfMaxRebuildMs = 0;
         projectionPerfTotalVertices = 0;
         projectionPerfMaxSubdivisions = 0;
+        projectionPerfNoteDraws = 0;
+        projectionPerfNoteRebuilds = 0;
+        projectionPerfStrumDraws = 0;
+        projectionPerfStrumRebuilds = 0;
+        projectionPerfCullNote = 0;
+        projectionPerfCullStrum = 0;
+        projectionPerfInvalidNote = 0;
+        projectionPerfInvalidStrum = 0;
+        projectionPerfNoteExample = "";
         projectionPerfLastReport = projectionPerfNow;
       }
+      #end
 
+      #if debug
+      if (culled)
+      {
+        if (isPerfNote) projectionPerfCullNote++;
+        if (isPerfStrum) projectionPerfCullStrum++;
+      }
+      if (vertices == null || indices == null || graphic == null || uvtData == null || _point == null || offset == null)
+      {
+        if (isPerfNote) projectionPerfInvalidNote++;
+        if (isPerfStrum) projectionPerfInvalidStrum++;
+      }
+      if (isPerfNote && projectionPerfNoteExample.length == 0 && vertices != null && vertices.length >= 8)
+      {
+        var minVertexX:Float = vertices[0];
+        var maxVertexX:Float = vertices[0];
+        var minVertexY:Float = vertices[1];
+        var maxVertexY:Float = vertices[1];
+        for (i in 0...vertices.length)
+        {
+          if ((i & 1) == 0)
+          {
+            if (vertices[i] < minVertexX) minVertexX = vertices[i];
+            if (vertices[i] > maxVertexX) maxVertexX = vertices[i];
+          }
+          else
+          {
+            if (vertices[i] < minVertexY) minVertexY = vertices[i];
+            if (vertices[i] > maxVertexY) maxVertexY = vertices[i];
+          }
+        }
+        projectionPerfNoteExample = 'xy=' + Math.round(x * 10) / 10 + ',' + Math.round(y * 10) / 10
+          + ' z=' + Math.round(z * 10) / 10 + ' alpha=' + Math.round(alpha * 100) / 100
+          + ' cullMode=' + cullMode + ' frame=' + frameWidth + 'x' + frameHeight
+          + ' verts=' + vertices.length / 2
+          + ' localBounds=' + Math.round(minVertexX * 10) / 10 + ':' + Math.round(maxVertexX * 10) / 10
+          + ',' + Math.round(minVertexY * 10) / 10 + ':' + Math.round(maxVertexY * 10) / 10;
+      }
+      #end
       if (culled || alpha < 0 || vertices == null || indices == null || graphic == null || uvtData == null || _point == null || offset == null)
       {
         return;
