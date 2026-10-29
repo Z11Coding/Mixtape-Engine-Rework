@@ -1332,6 +1332,21 @@ class Strumline extends FlxSpriteGroup
           //trace('Note wasHit: ${targetNote.wasHit}');
           //trace('Note Spawn Timing: music=${conductorInUse.musicPosition}, precise=${conductorInUse.getTimeWithDelta()}, delta=${targetNote.strumTime - conductorInUse.getTimeWithDelta()}, scrollSpeed=$scrollSpeed');
 
+          // Z-sorted mode hides the per-strumline note groups and draws
+          // their sprites from PlayfieldManager.allStrumSprites instead.
+          // Existing sprites are transferred when the mode is toggled, but
+          // notes spawned after that transition must be registered here too.
+          if (MegaManager.playfield != null && MegaManager.playfield.noteRenderMode)
+          {
+            final renderGroup = MegaManager.playfield.allStrumSprites;
+            if (renderGroup != null)
+            {
+              final zSprite:ZSprite = cast spawnedSprite;
+              // A recycled sprite may already be registered from its previous life.
+              if (renderGroup.members.indexOf(zSprite) < 0) renderGroup.add(zSprite);
+            }
+          }
+
           onNoteIncoming.dispatch(spawnedSprite);
 					notesAddedCount++; limitNC++;
 					if (unspawnNotes[notesAddedCount+1] != null) targetNote = unspawnNotes[notesAddedCount];
