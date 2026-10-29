@@ -434,8 +434,7 @@ class PauseSubState extends MusicBeatSubstate
 					}
 				case 'End Song' | 'Skip Song':
 					close();
-					PlayState.instance.notes.clear();
-					PlayState.instance.unspawnNotes = [];
+					MegaManager.playfield.killDaNotes();
 					PlayState.instance.finishSong(true);
 				case 'Toggle Botplay':
 					PlayState.instance.cpuControlled = !PlayState.instance.cpuControlled;

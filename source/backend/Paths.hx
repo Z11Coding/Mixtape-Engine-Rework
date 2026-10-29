@@ -175,7 +175,7 @@ class Paths
 	}
 
 	// define the locally tracked assets
-	public static var localTrackedAssets:Array<String> = [];
+	//public static var localTrackedAssets:Array<String> = [];
 
 	public static function clearStoredMemory()
 	{

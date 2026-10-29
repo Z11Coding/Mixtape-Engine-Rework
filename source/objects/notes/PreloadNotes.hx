@@ -4,6 +4,7 @@ package objects.notes;
 {
   public var strumTime:Float = 0;
   public var noteData:Int = 0;
+	public var trueNoteData:Int = 0;
   public var mustPress:Bool = false;
   public var oppNote:Bool = false;
 	public var noteType:String = "";

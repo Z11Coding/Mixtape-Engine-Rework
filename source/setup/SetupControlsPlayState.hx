@@ -123,8 +123,8 @@ class SetupControlsPlayState extends PlayState {
         notesHit++;
     }
 
-    override function noteMiss(daNote:Note) {
-        super.noteMiss(daNote);
+    override function noteMiss(daNote:Dynamic, ?strum:Strumline) {
+        super.noteMiss(daNote, strum);
         notesMissed++;
     }
 

@@ -58,7 +58,7 @@ class BaseStage extends FlxBasic
 	public var gfGroup(get, never):FlxSpriteGroup;
 
 	public var unspawnNotes(get, never):Array<PreloadNotes>;
-	public var notes(get, never):FlxTypedGroup<Note>;
+	public var notes(get, never):FlxTypedSpriteGroup<Dynamic>;
 
 	public var camGame(get, never):FlxCamera;
 	public var camHUD(get, never):FlxCamera;
@@ -114,9 +114,9 @@ class BaseStage extends FlxBasic
 	public function onSkipDialogue(dialogueCount:Int) {}
 
 	// Note Hit/Miss
-	public function goodNoteHit(note:Note) {}
-	public function opponentNoteHit(note:Note) {}
-	public function noteMiss(note:Note) {}
+	public function goodNoteHit(note:Dynamic) {}
+	public function opponentNoteHit(note:Dynamic) {}
+	public function noteMiss(note:Dynamic) {}
 	public function noteMissPress(direction:Int) {}
 
 	// Things to replace FlxGroup stuff and inject sprites directly into the state
@@ -193,13 +193,18 @@ class BaseStage extends FlxBasic
 
 	inline private function get_unspawnNotes():Array<PreloadNotes>
 	{
-		return PlayfieldManager.instance.unspawnNotes;
+		return MegaManager.playfield.unspawnNotes;
 	}
 
 
-	inline private function get_notes():FlxTypedGroup<Note>
+	inline private function get_notes():FlxTypedSpriteGroup<Dynamic>
 	{
-		return PlayfieldManager.instance.notes;
+		var allNotes:FlxTypedSpriteGroup<Dynamic> = new FlxTypedSpriteGroup<Dynamic>();
+		allNotes.add(MegaManager.playfield.playerStrums.notes);
+		allNotes.add(MegaManager.playfield.playerStrums.sustainNotes);
+		allNotes.add(MegaManager.playfield.opponentStrums.notes);
+		allNotes.add(MegaManager.playfield.opponentStrums.sustainNotes);
+		return allNotes;
 	}
 
 	inline private function get_camGame():FlxCamera return game.camGame;

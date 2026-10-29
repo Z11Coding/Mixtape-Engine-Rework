@@ -134,14 +134,16 @@ class PhillyBlazin extends BaseStage
 		}
 		PicoCapableStage.instance.abot.color = 0xFF888888;
 
-		var unspawnNotes:Array<Note> = cast game.unspawnNotes;
-		for (note in unspawnNotes)
-		{
-			if(note == null) continue;
+		for (strum in [game.playerStrums, game.opponentStrums]) {
+			var unspawnNotes:Array<PreloadNotes> = cast strum.unspawnNotes;
+			for (note in unspawnNotes)
+			{
+				if(note == null) continue;
 
-			//override animations for note types
-			note.noAnimation = true;
-			note.noMissAnimation = true;
+				//override animations for note types
+				note.noAnimation = true;
+				note.noMissAnimation = true;
+			}
 		}
 		remove(dadGroup, true);
 		addBehindBF(dadGroup);
@@ -243,14 +245,14 @@ class PhillyBlazin extends BaseStage
 	// Note functions
 	var picoFight:PicoBlazinHandler = new PicoBlazinHandler();
 	var darnellFight:DarnellBlazinHandler = new DarnellBlazinHandler();
-	override function goodNoteHit(note:Note)
+	override function goodNoteHit(note:Dynamic)
 	{
 		//trace('hit note! ${note.noteType}');
 		rainTimeScale += 0.7;
 		picoFight.noteHit(note);
 		darnellFight.noteHit(note);
 	}
-	override function noteMiss(note:Note)
+	override function noteMiss(note:Dynamic)
 	{
 		//trace('missed note!');
 		picoFight.noteMiss(note);
@@ -265,7 +267,7 @@ class PhillyBlazin extends BaseStage
 	}
 
 	// Darnell Note functions
-	override function opponentNoteHit(note:Note)
+	override function opponentNoteHit(note:Dynamic)
 	{
 		//trace('opponent hit!');
 		picoFight.noteMiss(note);

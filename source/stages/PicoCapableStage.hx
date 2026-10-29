@@ -180,7 +180,7 @@ class PicoCapableStage extends BaseStage
 		transitionState();
 	}
 
-	override function goodNoteHit(note:Note)
+	override function goodNoteHit(note:Dynamic)
 	{
 		super.goodNoteHit(note);
 		if (!NENE_LIST.contains(PlayfieldManager.SONG.gfVersion))

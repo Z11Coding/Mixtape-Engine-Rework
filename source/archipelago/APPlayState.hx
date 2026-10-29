@@ -343,16 +343,20 @@ class APPlayState extends PlayState {
                 var originalShaders:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
-                    /*for (sprite in playfield.playerField.strumNotes) {
-                        sprite.shader = originalShaders.get(sprite);
-                    };
-                    for (sprite in playfield.dadField.strumNotes) {
-                        sprite.shader = originalShaders.get(sprite);
-                    };*/
-                    for (daNote in notes) {
-                        if (daNote == null) continue;
-                        else
-                            daNote.shader = originalShaders.get(daNote);
+                    for (strum in strumLineNotes) {
+                        for (sprite in strum.strumLineNotes.members) {
+                            sprite.shader = originalShaders.get(sprite);
+                        };
+                        for (daNote in strum.notes.members) {
+                            if (daNote == null) continue;
+                            else
+                                daNote.shader = originalShaders.get(daNote);
+                        }
+                        for (daNote in strum.sustainNotes.members) {
+                            if (daNote == null) continue;
+                            else
+                                daNote.shader = originalShaders.get(daNote);
+                        }
                     }
                     boyfriend.shader = originalShaders.get(boyfriend);
                     dad.shader = originalShaders.get(dad);
@@ -370,19 +374,25 @@ class APPlayState extends PlayState {
                         blurEffect.setStrength(2, 2);
                     else
                         blurEffect.setStrength(32, 32);
-                    /*for (sprite in playfield.playerField.strumNotes) {
-                        originalShaders.set(sprite, sprite.shader);
-                        sprite.shader = blurEffect.shader;
-                    };
-                    for (sprite in playfield.dadField.strumNotes) {
-                        originalShaders.set(sprite, sprite.shader);
-                        sprite.shader = blurEffect.shader;
-                    };*/
-                    for (daNote in notes) {
-                        if (daNote == null) continue;
-                        else {
-                            originalShaders.set(daNote, daNote.shader);
-                            daNote.shader = blurEffect.shader;
+
+                    for (strum in strumLineNotes) {
+                        for (sprite in strum.strumLineNotes.members) {
+                            originalShaders.set(sprite, sprite.shader);
+                            sprite.shader = blurEffect.shader;
+                        };
+                        for (daNote in strum.notes.members) {
+                            if (daNote == null) continue;
+                            else {
+                                originalShaders.set(daNote, daNote.shader);
+                                daNote.shader = blurEffect.shader;
+                            }
+                        }
+                        for (daNote in strum.sustainNotes.members) {
+                            if (daNote == null) continue;
+                            else {
+                                originalShaders.set(daNote, daNote.shader);
+                                daNote.shader = blurEffect.shader;
+                            }
                         }
                     }
                     originalShaders.set(boyfriend, boyfriend.shader);
@@ -526,37 +536,57 @@ class APPlayState extends PlayState {
             'rainbow' => function() {
                 var ttl:Float = 20;
                 var onEnd:(Void->Void) = function() {
-                    for (daNote in notes) {
-                        if (daNote == null) continue;
-                        daNote.defaultRGB();
+                    for (strum in strumLineNotes) {
+                        for (daNote in strum.notes.members) {
+                            if (daNote == null) continue;
+                            daNote.defaultRGB();
+                        }
+                        for (daNote in strum.sustainNotes.members) {
+                            if (daNote == null) continue;
+                            daNote.defaultRGB();
+                        }
                     }
                 };
                 var playSound:String = "rainbow";
                 var playSoundVol:Float = 0.5;
                 var noIcon:Bool = false;
 
-                for (daNote in unspawnNotes) {
-                    if (daNote == null) continue;
-                    if (daNote.strumTime >= Conductor.songPosition && !daNote.isSustainNote) {
-                        daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                    } else if (daNote.strumTime >= Conductor.songPosition && daNote.isSustainNote) {
-                        daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                for (strum in strumLineNotes) {
+                    for (daNote in strum.unspawnNotes) {
+                        if (daNote == null) continue;
+                        if (daNote.strumTime >= Conductor.songPosition && !daNote.isSustainNote) {
+                            daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                        } else if (daNote.strumTime >= Conductor.songPosition && daNote.isSustainNote) {
+                            daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                        }
                     }
-                }
-                for (daNote in notes) {
-                    if (daNote == null) continue;
-                    if (daNote.strumTime >= Conductor.songPosition && !daNote.isSustainNote) {
-                        daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                    } else if (daNote.strumTime >= Conductor.songPosition && daNote.isSustainNote) {
-                        daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
-                        daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                    for (daNote in strum.notes.members) {
+                        if (daNote == null) continue;
+                        if (daNote.strumTime >= Conductor.songPosition && !daNote.isSustainNote) {
+                            daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                        } else if (daNote.strumTime >= Conductor.songPosition && daNote.isSustainNote) {
+                            daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                        }
+                    }
+                    for (daNote in strum.sustainNotes.members) {
+                        if (daNote == null) continue;
+                        if (daNote.strumTime >= Conductor.songPosition && !daNote.isSustainNote) {
+                            daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                        } else if (daNote.strumTime >= Conductor.songPosition && daNote.isSustainNote) {
+                            daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                            daNote.rgbShader.b = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
+                        }
                     }
                 }
 
@@ -1171,45 +1201,29 @@ class APPlayState extends PlayState {
             },
             'randomize' => function() {
                 var ttl:Float = 10;
-                var availableS:String = "";
-                switch (FlxG.random.bool(15)) {
-                    case true:
-                        availableS = "invert";
-                    case false:
-                        availableS = "flip";
-                }
-                var onEnd:(Void->Void) = function() {
-                    //modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, 0, "sineInOut");
-                };
-                var playSound:String = "randomize";
-                var playSoundVol:Float = 0.7;
-                var noIcon:Bool = false;
-
-
-                //modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, availableS, .96, "sineInOut");
-                trace(availableS);
-
-                applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomize');
-            },
-            'randomizeAlt' => function() {
-                var ttl:Float = 10;
                 var onEnd:(Void->Void) = function() {
                     available = [];
                     doRandomize = false;
-                    for (daNote in notes) {
-                        if (daNote == null) continue;
-                        else {
-                            //daNote.noteData = daNote.trueNoteData;
-                        }
-                    }
-                    /*for (data => column in playerField.noteQueue) {
-                        if (column[0] != null) {
-                            if (column[0] == null) continue;
+                    for (strum in strumLineNotes) {
+                        for (daNote in strum.notes.members) {
+                            if (daNote == null) continue;
                             else {
-                                column[0].noteData = available[column[0].noteData];
+                                daNote.noteData = daNote.trueNoteData;
                             }
                         }
-                    }*/
+                        for (daNote in strum.sustainNotes.members) {
+                            if (daNote == null) continue;
+                            else {
+                                daNote.noteData = daNote.trueNoteData;
+                            }
+                        }
+                        for (daNote in strum.unspawnNotes) {
+                            if (daNote == null) continue;
+                            else {
+                                daNote.noteData = daNote.trueNoteData;
+                            }
+                        }
+                    }
                 };
                 var playSound:String = "randomize";
                 var playSoundVol:Float = 0.7;
@@ -1226,20 +1240,27 @@ class APPlayState extends PlayState {
                         available = [3, 2, 1, 0];
                     default:
                 }
-                for (daNote in notes) {
-                    if (daNote == null) continue;
-                    else {
-                        daNote.noteData = available[daNote.noteData];
-                    }
-                }
-                /*for (data => column in playerField.noteQueue) {
-                    if (column[0] != null) {
-                        if (column[0] == null) continue;
+
+                for (strum in strumLineNotes) {
+                    for (daNote in strum.notes.members) {
+                        if (daNote == null) continue;
                         else {
-                            column[0].noteData = available[column[0].noteData];
+                            daNote.noteData = available[daNote.noteData];
                         }
                     }
-                }*/
+                    for (daNote in strum.sustainNotes.members) {
+                        if (daNote == null) continue;
+                        else {
+                            daNote.noteData = available[daNote.noteData];
+                        }
+                    }
+                    for (daNote in strum.unspawnNotes) {
+                        if (daNote == null) continue;
+                        else {
+                            daNote.noteData = available[daNote.noteData];
+                        }
+                    }
+                }
 
                 applyEffect(ttl, onEnd, playSound, playSoundVol, noIcon, 'randomizeAlt');
             },
@@ -1935,7 +1956,7 @@ class APPlayState extends PlayState {
         super.postGen();
         if (PlayfieldManager.SONG == null || archipelago.APItem.hasActiveItemNamed("Tutorial Trap")) return;
         try {
-            apNotes = archipelago.APNote.replaceInQueue(notes, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
+            apNotes = archipelago.APNote.replaceInQueue(playerStrums.notes, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
         } catch (e:Dynamic) {
             trace('Error replacing notes with APNotes: ' + e);
             apNotes = null;
@@ -2152,7 +2173,7 @@ class APPlayState extends PlayState {
 			{}
 		swagNote.x += FlxG.width / 2;
 
-        notes.insert(0, swagNote); // just for the sake of convenience
+        playerStrums.notes.members.insert(0, swagNote); // just for the sake of convenience
 	}
 
 	public var isFrozen:Bool = false;
@@ -2441,16 +2462,22 @@ class APPlayState extends PlayState {
 
         curEffect = FlxG.random.int(0, 38);
         if (isFrozen) boyfriend.stunned = true;
-        if (notes != null)
+        if (playerStrums.notes.members != null)
 		{
-			notes.forEachAlive(function(note:Note)
+			playerStrums.notes.forEachAlive(function(note:Note)
 			{
-				if (severInputs[picked] == true && note.noteData == picked)
-					note.blockHit = true;
-				else
-					note.blockHit = false;
+				if (note.noteData == picked)
+					note.blockHit = severInputs[picked];
 			});
 		}
+        if (playerStrums.sustainNotes.members != null)
+        {
+            playerStrums.sustainNotes.forEachAlive(function(note:SustainNote)
+            {
+                if (note.noteData == picked)
+                    note.blockHit = severInputs[picked];
+            });
+        }
 
         #if windows
 		for (video in addedMP4s)
@@ -2828,7 +2855,7 @@ class APPlayState extends PlayState {
         }
     }
 
-    override function noteMiss(daNote:Note)
+    override function noteMiss(daNote:Dynamic, ?strum:Strumline)
     {
         var char:Character = boyfriend;
 		/*if (opponentmode || field == dadField)
@@ -2883,7 +2910,7 @@ class APPlayState extends PlayState {
         {
             // You didn't hit the key and let it go offscreen, also used by Hurt Notes
             // Dupe note remove
-            notes.forEachAlive(function(note:Note)
+            playerStrums.notes.forEachAlive(function(note:Note)
             {
                 if (daNote != note
                     && daNote.mustPress
@@ -2892,13 +2919,27 @@ class APPlayState extends PlayState {
                     && Math.abs(daNote.strumTime - note.strumTime) < 1)
                 {
                     note.kill();
-                    notes.remove(note, true);
+                    playerStrums.notes.remove(note, true);
+                    note.destroy();
+                }
+            });
+            playerStrums.sustainNotes.forEachAlive(function(note:SustainNote)
+            {
+                if (daNote != note
+                    && daNote.mustPress
+                    && daNote.noteData == note.noteData
+                    && daNote.isSustainNote == note.isSustainNote
+                    && Math.abs(daNote.strumTime - note.strumTime) < 1)
+                {
+                    note.kill();
+                    playerStrums.sustainNotes.remove(note, true);
                     note.destroy();
                 }
             });
         }
 
-        super.noteMiss(daNote);
+        if (!boyfriend.invuln)
+            super.noteMiss(daNote, strum);
 
         if (releasethebeast) {
             if (daNote.noteType == '')
@@ -3122,7 +3163,7 @@ class APPlayState extends PlayState {
             {
                 if (curStep % 16 == 0)
                 {
-                    for (daNote in notes) {
+                    for (daNote in playerStrums.notes.members) {
                         if (daNote == null) continue;
                         else {
                             daNote.noteData = daNote.trueNoteData;
@@ -3163,7 +3204,7 @@ class APPlayState extends PlayState {
 
     //Removes the Throat Notes
     public function removeThroatNotes() {
-        for (note in notes.members) {
+        for (note in playerStrums.notes.members) {
             if (note.noteType == "Throat Note")
                 invalidateNote(note);
         }
@@ -3174,18 +3215,24 @@ class APPlayState extends PlayState {
         if (APInfo.blindness) {
             for (line in strumLineNotes) {
                 for (strum in line.strumLineNotes.members)
-                    strum.multAlpha = 1;
-            }
-            for (note in notes.members) {
-                note.multAlpha = 0.3;
+                    strum.multAlpha = 0.3;
+                for (note in line.notes.members) {
+                    note.multAlpha = 0.3;
+                }
+                for (note in line.sustainNotes.members) {
+                    note.multAlpha = 0.3;
+                }
             }
         } else {
             for (line in strumLineNotes) {
                 for (strum in line.strumLineNotes.members)
                     strum.multAlpha = 1;
-            }
-            for (note in notes.members) {
-                note.multAlpha = 1;
+                for (note in line.notes.members) {
+                    note.multAlpha = 1;
+                }
+                for (note in line.sustainNotes.members) {
+                    note.multAlpha = 1;
+                }
             }
         }
     }

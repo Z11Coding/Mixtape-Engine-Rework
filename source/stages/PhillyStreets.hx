@@ -169,20 +169,23 @@ class PhillyStreets extends BaseStage
 	override function createPost()
 	{
 		StickerSubState.STICKER_PACK = "weekend";
-		var unspawnNotes:Array<Note> = cast game.unspawnNotes;
-		for (note in unspawnNotes)
-		{
-			if (note == null)
-				continue;
 
-			// override animations for note types
-			switch (note.noteType)
+		for (strum in [game.playerStrums, game.opponentStrums]) {
+			var unspawnNotes:Array<PreloadNotes> = cast strum.unspawnNotes;
+			for (note in unspawnNotes)
 			{
-				case 'weekend-1-firegun':
-					note.blockHit = true;
+				if (note == null)
+					continue;
+
+				// override animations for note types
+				switch (note.noteType)
+				{
+					case 'weekend-1-firegun':
+						note.blockHit = true;
+				}
+				if (!noteTypes.contains(note.noteType))
+					noteTypes.push(note.noteType);
 			}
-			if (!noteTypes.contains(note.noteType))
-				noteTypes.push(note.noteType);
 		}
 
 		spraycanPile = new BGSprite('SpraycanPile', 920, 1045, 1, 1);
@@ -568,7 +571,7 @@ class PhillyStreets extends BaseStage
 		FlxTween.quadPath(sprite, path, duration, true, {onComplete: function(_) car2Interruptable = true});
 	}
 
-	override function goodNoteHit(note:Note)
+	override function goodNoteHit(note:Dynamic)
 	{
 		super.goodNoteHit(note);
 
@@ -595,7 +598,7 @@ class PhillyStreets extends BaseStage
 					}
 				}
 
-				game.notes.forEachAlive(function(note:Note)
+				game.playerStrums.notes.forEachAlive(function(note:Note)
 				{
 					if (note.noteType == 'weekend-1-firegun')
 						note.blockHit = false;
@@ -654,7 +657,7 @@ class PhillyStreets extends BaseStage
 		casingGroup.add(casing);
 	}
 
-	override function opponentNoteHit(note:Note)
+	override function opponentNoteHit(note:Dynamic)
 	{
 		var sndTime:Float = note.strumTime - Conductor.songPosition;
 		switch (note.noteType)
@@ -697,7 +700,7 @@ class PhillyStreets extends BaseStage
 
 	var picoFlicker:FlxTimer = null;
 
-	override function noteMiss(note:Note)
+	override function noteMiss(note:Dynamic)
 	{
 		switch (note.noteType)
 		{

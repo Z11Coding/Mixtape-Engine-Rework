@@ -63,7 +63,7 @@ class APNote extends Note {
         return newNotes; // Return the new notes
     }
 
-    public static function replaceInQueue(notes:FlxTypedGroup<Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
+    public static function replaceInQueue(notes:FlxTypedSpriteGroup<Note>, locations:Array<Int>, ?ignoreNonEmptyNoteType:Bool = true) {
         var newNotes:Array<APNote> = [];
         var flatNotes:Array<{index:Int, note:Note}> = [];
         var isAprilFools:Bool = yutautil.AprilFools.allowAF;

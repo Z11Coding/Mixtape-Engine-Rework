@@ -75,12 +75,12 @@ class StageWeek1 extends BaseStage
         return true;
     }
 
-	override function goodNoteHit(note:Note) {
+	override function goodNoteHit(note:Dynamic) {
 		if (allowCrowdOpinion) crowdPleaser.crowdAppeasment += 1;
 		super.goodNoteHit(note);
 	}
 
-	override function noteMiss(note:Note) {
+	override function noteMiss(note:Dynamic) {
 		if (allowCrowdOpinion) crowdPleaser.crowdAppeasment -= 5;
 		super.noteMiss(note);
 	}

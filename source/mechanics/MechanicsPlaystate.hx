@@ -96,7 +96,7 @@ class MechanicsPlaystate {
 					restoreNote.noteType = 'Restore Note';
 					restoreNote.x += FlxG.width / 2; // general offset
 					restoreNoteGroup.push(restoreNote);
-					PlayState.instance.notes.insert(0, restoreNote);
+					PlayState.instance.playerStrums.notes.insert(0, restoreNote);
 				}
 			}
 			PlayState.instance.noTriggerKarma = false;
@@ -139,11 +139,11 @@ class MechanicsPlaystate {
 			healthTimer.cancel();
 		for (restoreNote in restoreNoteGroup)
 		{
-			if (PlayState.instance.notes.members.contains(restoreNote))
-				PlayState.instance.notes.remove(restoreNote, true);
+			if (PlayState.instance.playerStrums.notes.members.contains(restoreNote))
+				PlayState.instance.playerStrums.notes.remove(restoreNote, true);
 		}
 
-		PlayState.instance.notes.forEachAlive(function(daNote:Note)
+		PlayState.instance.playerStrums.notes.forEachAlive(function(daNote:Note)
 		{
 			if (daNote.noteType == 'Restore Note')
 			{

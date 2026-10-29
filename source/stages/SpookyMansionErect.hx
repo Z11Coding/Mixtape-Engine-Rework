@@ -89,19 +89,20 @@ class SpookyMansionErect extends BaseStage
 		if (curBeat % game.gf.danceEveryNumBeats == 0 && !StringTools.startsWith(gf.getAnimationName(),'sing') && !game.gf.stunned)
 			gfGhost.dance();
 	}
-    override function goodNoteHit(note:Note) {
+    override function goodNoteHit(note:Dynamic) {
         var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
 	    boyfriendGhost?.playAnim(anims[note.noteData],true);
 		super.goodNoteHit(note);
     }
-    override function noteMiss(note:Note) {
+    override function noteMiss(note:Dynamic) {
         var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
 	    boyfriendGhost?.playAnim(anims[note.noteData]+"miss",true);
 		super.noteMiss(note);
     }
-    override function opponentNoteHit(note:Note) {
+    override function opponentNoteHit(note:Dynamic) {
         var anims = [ "singLEFT","singDOWN","singUP","singRIGHT"];
 	    dadGhost?.playAnim(anims[note.noteData],true);
+			super.opponentNoteHit(note);
     }
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float) {
 		switch (eventName){

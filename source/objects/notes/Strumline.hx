@@ -557,6 +557,11 @@ class Strumline extends FlxSpriteGroup
 				}
 			}
 
+      if (PlayState.isPixelStage)
+        babyArrow.setGraphicSize(Std.int(babyArrow.width * PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]));
+      else
+        babyArrow.setGraphicSize(Std.int(babyArrow.width * ExtraKeys.scales[ExtraKeys.mania]));
+
 			this.strumLineNotes.add(babyArrow);
 			this.strumLineNotesAlt.push(babyArrow);
 			babyArrow.weBelongTo = this;

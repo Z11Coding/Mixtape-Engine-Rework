@@ -274,7 +274,7 @@ class SserafimStage extends BaseStage
 
   function hideOpponentStrumline()
   {
-    //game.modManager.setValue('alpha', 1, 1);
+    game.opponentStrums.visible = false;
   }
 
   /**
@@ -409,8 +409,16 @@ class SserafimStage extends BaseStage
               }
           }
       }
-
     super.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime);
+  }
+
+  override function goodNoteHit(note:Dynamic) {
+    for (character in [game.boyfriend, game.gf, game.dad, yunjin, chaewon, eunchae]) {
+      if (character.charType == CharType.BF) {
+        PlayState.instance?.playAnim(note, character);
+      } else continue;
+    }
+    //super.goodNoteHit(note);
   }
 
   function parseBoolArray(value:String):Array<Bool> {
@@ -451,12 +459,12 @@ class SserafimStage extends BaseStage
   {
     if (visibleArray.length < 5) return;
 
-    //yunjin.visible = visibleArray[0];
+    yunjin.visible = visibleArray[0];
 
-    //game.dadGroup.visible = visibleArray[1];
+    game.dadGroup.visible = visibleArray[1];
 
-    //chaewon.visible = visibleArray[2];
-    //eunchae.visible = visibleArray[3];
+    chaewon.visible = visibleArray[2];
+    eunchae.visible = visibleArray[3];
 
     game.boyfriendGroup.visible = visibleArray[4];
 

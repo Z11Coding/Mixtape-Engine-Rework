@@ -421,7 +421,6 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        PlayfieldManager.curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
                     // Set second argument (difficulty) to range 1-5, with 1% chance of 6 (GOD)
@@ -499,7 +498,6 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        PlayfieldManager.curChart = [];
                         MusicBeatState.allowNuke = true;
                         archipelago.APInfo.inMinigame = archipelago.APInfo.APMinigame.Uno;
                     }
@@ -578,7 +576,11 @@ class APItem {
                             activeItem = new APTrap("Tutorial Trap", ConditionHelper.PlayState(), function() {
                                 popup('Go relearn the basics', "APItem: Tutorial Trap");
                                 APPlayState.instance.doEffect('songSwitch');
-                                APPlayState.instance.notes.members.map(function(note) {
+                                APPlayState.instance.playerStrums.notes.members.map(function(note) {
+                                    note.botNote = true;
+                                    return note;
+                                });
+                                APPlayState.instance.playerStrums.sustainNotes.members.map(function(note) {
                                     note.botNote = true;
                                     return note;
                                 });
@@ -1025,7 +1027,7 @@ class APItem {
             case "BF's Mic":
                 return new APItem(name, ConditionHelper.Everywhere(), function() {
                     popup('Boyfriend\'s singing restored!', "Z11 Hell Element: BF's Mic");
-                    for (note in APPlayState.instance?.notes.members) {
+                    for (note in APPlayState.instance?.playerStrums.notes.members) {
                         note.forceBlockHit = false;
                     }
                     hardmodeItems.push("BF's Mic");
@@ -1931,7 +1933,6 @@ class APItem {
                         APPlayState.instance.paused = true;
                         APPlayState.instance.canResync = false;
                         FlxG.camera.followLerp = 0;
-                        PlayfieldManager.curChart = [];
                         MusicBeatState.allowNuke = true;
                     }
                     FlxG.switchState(new archipelago.traps.games.APPongTrapState(MusicBeatState.getState()));

@@ -28,14 +28,11 @@ class PlayfieldManager {
 
 	public static final STRUM_X = 42;
 	public static final STRUM_X_MIDDLESCROLL = -278;
-  public static var curChart:Array<Note> = [];
   public var singAnimations:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
 
-  public var notes:FlxTypedGroup<Note>; // Contains all the notes (spawned) (notes only)
-	public var sustainNotes:FlxTypedGroup<Note>; // Contains all the notes (spawned) (sustains only)
-	public var killNotes:Array<Note> = []; // Notes that shouldn't be there
-	public var unspawnNotes:Array<PreloadNotes> = []; // Contains all the notes (unspawned)
-  public var eventNotes:Array<EventNote> = []; // All Events for the current charts (actively used list)
+  public var killNotes:Array<Dynamic> = []; // Notes that shouldn't be there
+  public var unspawnNotes:Array<PreloadNotes> = []; // Contains all the notes (unspawned)
+	public var eventNotes:Array<EventNote> = []; // All Events for the current charts (actively used list)
 	public var curEvents:Array<EventNote> = []; // All Events for the current charts (used for song looping)
 
   /**
@@ -562,11 +559,6 @@ class PlayfieldManager {
   }
 
   public function addNotes() {
-    sustainNotes = new FlxTypedGroup<Note>();
-
-		notes = new FlxTypedGroup<Note>();
-		notes.visible = sustainNotes.visible = ClientPrefs.data.showNotes; //that was easier than expected
-
     grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
 
     SustainSplash.startCrochet = Conductor.stepCrochet;
@@ -577,6 +569,7 @@ class PlayfieldManager {
     splash.alpha = 0.0001;
 
 		initStrumlines();
+    playerStrums.visible = opponentStrums.visible = ClientPrefs.data.showNotes; //that was easier than expected
 
     if (isModchartSong)
     {
@@ -594,7 +587,7 @@ class PlayfieldManager {
   }
 
   public function setStrumAlpha() {
-    for (group in [notes, sustainNotes]) group.forEachAlive(function(note:Note) {
+    for (note in opponentStrums.notes.members) {
       if(ClientPrefs.data.opponentStrums || !ClientPrefs.data.opponentStrums || ClientPrefs.data.middleScroll || !note.mustPress)
       {
         note.alpha *= 0.35;
@@ -607,7 +600,22 @@ class PlayfieldManager {
           note.alpha *= 0.35;
         }
       }
-    });
+    }
+
+    for (note in opponentStrums.sustainNotes.members) {
+      if(ClientPrefs.data.opponentStrums || !ClientPrefs.data.opponentStrums || ClientPrefs.data.middleScroll || !note.mustPress)
+      {
+        note.alpha *= 0.35;
+      }
+      if(ClientPrefs.data.opponentStrums || !ClientPrefs.data.opponentStrums || note.mustPress)
+      {
+        note.copyAlpha = false;
+        note.alpha = note.multAlpha;
+        if(ClientPrefs.data.middleScroll && !note.mustPress) {
+          note.alpha *= 0.35;
+        }
+      }
+    }
   }
 
   // Chart Loading
@@ -1091,6 +1099,7 @@ class PlayfieldManager {
 					swagNote = {
 						strumTime: daStrumTime,
 						noteData: daNoteData,
+            trueNoteData: daNoteData,
 						mustPress: gottaHitNote,
 						oppNote: !gottaHitNote,
 						noteType: songNotes[3],
@@ -1132,6 +1141,7 @@ class PlayfieldManager {
 							final jackNote:PreloadNotes = {
 								strumTime: swagNote.strumTime + (15000 / SONG.bpm) * (j + 1),
 								noteData: swagNote.noteData,
+                trueNoteData: swagNote.noteData,
 								mustPress: swagNote.mustPress,
 								oppNote: swagNote.oppNote,
 								noteType: swagNote.noteType,
@@ -1165,6 +1175,7 @@ class PlayfieldManager {
 							final sustainNote:PreloadNotes = {
 								strumTime: daStrumTime + (stepCrochet * susNote),
 								noteData: daNoteData,
+                trueNoteData: daNoteData,
 								mustPress: gottaHitNote,
 								oppNote: !gottaHitNote,
 								noteType: songNotes[3],
@@ -1210,12 +1221,15 @@ class PlayfieldManager {
 
 		if (ClientPrefs.data.noteColorStyle == 'Char-Based')
 		{
-			for (group in [notes, sustainNotes])
-				for (note in group){
-					if (note == null || !note.alive)
-						continue;
-					if (ClientPrefs.data.enableColorShader) note.updateRGBColors();
-				}
+      for (strum in allStrumLines) {
+        var allNotes:Array<Dynamic> = [strum.notes.members, strum.sustainNotes.members];
+        for (note in allNotes) {
+          if (note == null || !note.alive) {
+            continue;
+          }
+          if (ClientPrefs.data.enableColorShader) note.updateRGBColors();
+        }
+      }
 		}
 		// trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCleared');
 		unspawnNotes.sort(sortByTime);
@@ -2363,7 +2377,7 @@ class PlayfieldManager {
   }
 
 	public var strumsBlocked:Array<Bool> = [];
-	var closestNotes:Array<Note> = [];
+	var closestNotes:Array<Dynamic> = [];
 	var pressed:Array<FlxKey> = [];
 	public var reverseNoteRules:Bool = false;
 	private function onKeyPress(event:KeyboardEvent):Void
@@ -2430,20 +2444,20 @@ class PlayfieldManager {
       var plrInputNotes:Array<Dynamic> = (!opponentmode ? playerStrums : opponentStrums).notes.members.filter(function(n:Note):Bool {
         var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
         // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
-        return n != null && n.exists && canHit && !n.isSustainNote && n.noteData == key;
+        return n != null && n.exists && canHit && n.noteData == key;
       });
       plrInputNotes.concat((!opponentmode ? playerStrums : opponentStrums).sustainNotes.members.filter(function(n:SustainNote):Bool {
-        var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
+        var canHit:Bool = n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
         // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
         return n != null && n.exists && canHit && n.noteData == key;
       }));
       plrInputNotes.sort(PlayState.sortHitNotes);
 
       if (plrInputNotes.length != 0) {
-        var funnyNote:Note = plrInputNotes[0]; // front note
+        var funnyNote:Dynamic = plrInputNotes[0]; // front note
 
         if (plrInputNotes.length > 1) {
-          var doubleNote:Note = plrInputNotes[1];
+          var doubleNote:Dynamic = plrInputNotes[1];
 
           //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
           if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
@@ -2760,7 +2774,7 @@ class PlayfieldManager {
         if (PlayState.instance?.startedCountdown && PlayState.instance?.generatedMusic)
         {
           // rewritten inputs???
-          notes.forEachAlive(function(daNote:Note)
+          playerStrums.notes.forEachAlive(function(daNote:Note)
           {
             // hold note functions
             if (parsedHoldArray.contains(true) && !PlayState.instance?.endingSong)
@@ -2799,7 +2813,7 @@ class PlayfieldManager {
 		}
 	}
 
-  public function spawnHoldSplashOnNote(note:Note, ?isDad:Bool = false) {
+  public function spawnHoldSplashOnNote(note:Dynamic, ?isDad:Bool = false) {
 		if (!ClientPrefs.data.noteSplashes || note == null || !note.alive)
 			return;
 
@@ -2815,15 +2829,15 @@ class PlayfieldManager {
 		}
 	}
 
-	public function spawnHoldSplash(note:Note) {
-		var end:Note = note;
+	public function spawnHoldSplash(note:Dynamic) {
+		var end:Dynamic = note;
 		var splash:SustainSplash = note.parentStrumline.holdSplashes.recycle(SustainSplash);
     final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
 		splash.setupSusSplash((note.parentStrumline ?? (note.mustPress ? playerStrums : opponentStrums)).getByColumn(note.noteData), note, playbackRate);
 		(note.parentStrumline ?? (note.mustPress ? playerStrums : opponentStrums)).holdSplashes.add(end.noteHoldSplash = splash);
 	}
 
-	public function spawnNoteSplashOnNote(note:Note, ?isDad:Bool) {
+	public function spawnNoteSplashOnNote(note:Dynamic, ?isDad:Bool) {
 		if(ClientPrefs.data.noteSplashes && note != null) {
 			splashesPerFrame[(isDad ? 0 : 1)] += 1;
 			final strum:Strumline = !isDad ? playerStrums : opponentStrums;
@@ -2835,7 +2849,6 @@ class PlayfieldManager {
   //General
   public function resetFields() {
     unspawnNotes = [];
-    curChart = [];
 
     // cleanup
     isModchartSong = true;
@@ -2909,22 +2922,11 @@ class PlayfieldManager {
     localFreezeNotes = false;
     skipArrowStartTween = false;
 
-    if (notes != null) {
-      notes.destroy();
-      notes = new FlxTypedGroup<Note>();
-    }
-
     manualInputChecks = false;
   }
 
   public function resetChartStuff() { //Specifically for preload stuff
     unspawnNotes = [];
-    curChart = [];
-
-    if (notes != null) {
-      notes.destroy();
-      notes = new FlxTypedGroup<Note>();
-    }
 
     // Clear event and callback references
 		if (eventNotes != null) {
@@ -2953,14 +2955,6 @@ class PlayfieldManager {
       if (strumLine != null)
         strumLine.resetSongNotes();
     }
-
-		for (group in [notes, sustainNotes]){
-			if (group != null){
-				while (group.length > 0) {
-					group.remove(group.members[0], true);
-				}
-			}
-		}
 
 		unspawnNotes = [];
 		eventNotes = [];
@@ -3164,7 +3158,7 @@ class PlayfieldManager {
 
     final cutoutSize = ScaleMode.gameCutoutSize.x / 2.5;
 
-    allStrumLines = [playerStrums, opponentStrums];
+    allStrumLines = [opponentStrums, playerStrums];
 
     // Position the player strumline on the right half of the screen
     //playerStrums.x = FlxG.width / 2 + Constants.STRUMLINE_X_OFFSET + noteStyle.getInitialStrumlineOffsets()[0] + (cutoutSize / 2.0); // Classic style
