@@ -1242,7 +1242,7 @@ class PlayfieldManager {
         }
       }
 		}
-		// trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCleared');
+		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCleared');
 		unspawnNotes.sort(sortByTime);
 		if (playerStrums != null) playerStrums.unspawnNotes.sort(sortByTime);
 		if (opponentStrums != null) opponentStrums.unspawnNotes.sort(sortByTime);

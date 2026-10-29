@@ -8657,10 +8657,9 @@ class PlayState extends MusicBeatState
 				playfield.spawnHoldSplashOnNote(note, true);
 
 			stagesFunc(function(stage:BaseStage) stage.opponentNoteHit(note));
-			var result:Dynamic = callOnLuas('opponentNoteHit', [(customStrummer ?? (note.parentStrumline ?? opponentStrums)).notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
+			var result:Dynamic = callOnLuas('opponentNoteHit', [(customStrummer ?? (note.parentStrumline ?? opponentStrums)).notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, (note is SustainNote)]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnHScript('opponentNoteHit', [note]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('opponentNoteHit', [note]);
-
 			if (!(note is SustainNote)) invalidateNote(note);
 			return;
 		}
