@@ -713,10 +713,10 @@ class PlayfieldManager {
           if (i != 0) {
             // CLEAR ANY POSSIBLE GHOST NOTES
             for (evilNote in unspawnNotes) {
-              var matches:Bool = (daNoteData == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType);
+              var matches:Bool = (daNoteData == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == songNotes[3]);
               if (matches && Math.abs(daStrumTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
                 unspawnNotes.remove(evilNote);
-                ghostNotesCaught++;
+                ghostNotesCleared++;
                 //continue;
               }
             }
