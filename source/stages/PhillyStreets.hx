@@ -170,7 +170,7 @@ class PhillyStreets extends BaseStage
 	{
 		StickerSubState.STICKER_PACK = "weekend";
 
-		for (strum in [game.playerStrums, game.opponentStrums]) {
+		for (strum in [game.playerStrumline, game.opponentStrumline]) {
 			var unspawnNotes:Array<PreloadNotes> = cast strum.unspawnNotes;
 			for (note in unspawnNotes)
 			{
@@ -598,7 +598,7 @@ class PhillyStreets extends BaseStage
 					}
 				}
 
-				game.playerStrums.notes.forEachAlive(function(note:Note)
+				game.playerStrumline.notes.forEachAlive(function(note:Note)
 				{
 					if (note.noteType == 'weekend-1-firegun')
 						note.blockHit = false;

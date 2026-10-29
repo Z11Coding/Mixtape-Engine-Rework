@@ -119,14 +119,14 @@ class TwoPicos
 				{
 					game.camZooming = true;
 					game.opponentVocals = new FlxSound();
-					for (note in game.playerStrums.unspawnNotes)
+					for (note in game.playerStrumline.unspawnNotes)
 					{
 						if (!note.mustPress)
 						{
 							note.ignoreNote = true;
 						}
 					}
-					for (note in game.opponentStrums.unspawnNotes)
+					for (note in game.opponentStrumline.unspawnNotes)
 					{
 						if (!note.mustPress)
 						{

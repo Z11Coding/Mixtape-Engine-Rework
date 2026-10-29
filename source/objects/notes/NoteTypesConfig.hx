@@ -75,11 +75,9 @@ class NoteTypesConfig
 					note.ignoreNote = note.mustPress;
 					// note colors
 		  		// Store temporarily if in preload mode, otherwise set directly
-          if (note.rgbShader != null) {
-            note.rgbShader.r = 0xFF101010;
-            note.rgbShader.g = 0xFFFF0000;
-            note.rgbShader.b = 0xFF990022;
-          }
+          note.rgbShader.r = 0xFF101010;
+					note.rgbShader.g = 0xFFFF0000;
+					note.rgbShader.b = 0xFF990022;
 					note.noteSplashData.texture = 'noteSplashes/noteSplashes-electric';
 
 					// gameplay data

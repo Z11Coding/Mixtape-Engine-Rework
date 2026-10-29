@@ -343,7 +343,7 @@ class APPlayState extends PlayState {
                 var originalShaders:Map<Dynamic, Dynamic> = new Map<Dynamic, Dynamic>();
                 var ttl:Float = 12;
                 var onEnd:(Void->Void) = function() {
-                    for (strum in strumLineNotes) {
+                    for (strum in allStrumlines) {
                         for (sprite in strum.strumLineNotes.members) {
                             sprite.shader = originalShaders.get(sprite);
                         };
@@ -375,7 +375,7 @@ class APPlayState extends PlayState {
                     else
                         blurEffect.setStrength(32, 32);
 
-                    for (strum in strumLineNotes) {
+                    for (strum in allStrumlines) {
                         for (sprite in strum.strumLineNotes.members) {
                             originalShaders.set(sprite, sprite.shader);
                             sprite.shader = blurEffect.shader;
@@ -536,7 +536,7 @@ class APPlayState extends PlayState {
             'rainbow' => function() {
                 var ttl:Float = 20;
                 var onEnd:(Void->Void) = function() {
-                    for (strum in strumLineNotes) {
+                    for (strum in allStrumlines) {
                         for (daNote in strum.notes.members) {
                             if (daNote == null) continue;
                             daNote.defaultRGB();
@@ -551,7 +551,7 @@ class APPlayState extends PlayState {
                 var playSoundVol:Float = 0.5;
                 var noIcon:Bool = false;
 
-                for (strum in strumLineNotes) {
+                for (strum in allStrumlines) {
                     for (daNote in strum.unspawnNotes) {
                         if (daNote == null) continue;
                         if (daNote.strumTime >= Conductor.songPosition && !daNote.isSustainNote) {
@@ -1204,7 +1204,7 @@ class APPlayState extends PlayState {
                 var onEnd:(Void->Void) = function() {
                     available = [];
                     doRandomize = false;
-                    for (strum in strumLineNotes) {
+                    for (strum in allStrumlines) {
                         for (daNote in strum.notes.members) {
                             if (daNote == null) continue;
                             else {
@@ -1241,7 +1241,7 @@ class APPlayState extends PlayState {
                     default:
                 }
 
-                for (strum in strumLineNotes) {
+                for (strum in allStrumlines) {
                     for (daNote in strum.notes.members) {
                         if (daNote == null) continue;
                         else {
@@ -1956,7 +1956,7 @@ class APPlayState extends PlayState {
         super.postGen();
         if (PlayfieldManager.SONG == null || archipelago.APItem.hasActiveItemNamed("Tutorial Trap")) return;
         try {
-            apNotes = archipelago.APNote.replaceInQueue(playerStrums.notes, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
+            apNotes = archipelago.APNote.replaceInQueue(playerStrumline.notes, apGame.excludeCheckedLocations(apGame.noteData(currentSong, currentMod)));
         } catch (e:Dynamic) {
             trace('Error replacing notes with APNotes: ' + e);
             apNotes = null;
@@ -2173,7 +2173,7 @@ class APPlayState extends PlayState {
 			{}
 		swagNote.x += FlxG.width / 2;
 
-        playerStrums.notes.members.insert(0, swagNote); // just for the sake of convenience
+        playerStrumline.notes.members.insert(0, swagNote); // just for the sake of convenience
 	}
 
 	public var isFrozen:Bool = false;
@@ -2462,17 +2462,17 @@ class APPlayState extends PlayState {
 
         curEffect = FlxG.random.int(0, 38);
         if (isFrozen) boyfriend.stunned = true;
-        if (playerStrums.notes.members != null)
+        if (playerStrumline.notes.members != null)
 		{
-			playerStrums.notes.forEachAlive(function(note:Note)
+			playerStrumline.notes.forEachAlive(function(note:Note)
 			{
 				if (note.noteData == picked)
 					note.blockHit = severInputs[picked];
 			});
 		}
-        if (playerStrums.sustainNotes.members != null)
+        if (playerStrumline.sustainNotes.members != null)
         {
-            playerStrums.sustainNotes.forEachAlive(function(note:SustainNote)
+            playerStrumline.sustainNotes.forEachAlive(function(note:SustainNote)
             {
                 if (note.noteData == picked)
                     note.blockHit = severInputs[picked];
@@ -2910,7 +2910,7 @@ class APPlayState extends PlayState {
         {
             // You didn't hit the key and let it go offscreen, also used by Hurt Notes
             // Dupe note remove
-            playerStrums.notes.forEachAlive(function(note:Note)
+            playerStrumline.notes.forEachAlive(function(note:Note)
             {
                 if (daNote != note
                     && daNote.mustPress
@@ -2919,11 +2919,11 @@ class APPlayState extends PlayState {
                     && Math.abs(daNote.strumTime - note.strumTime) < 1)
                 {
                     note.kill();
-                    playerStrums.notes.remove(note, true);
+                    playerStrumline.notes.remove(note, true);
                     note.destroy();
                 }
             });
-            playerStrums.sustainNotes.forEachAlive(function(note:SustainNote)
+            playerStrumline.sustainNotes.forEachAlive(function(note:SustainNote)
             {
                 if (daNote != note
                     && daNote.mustPress
@@ -2932,7 +2932,7 @@ class APPlayState extends PlayState {
                     && Math.abs(daNote.strumTime - note.strumTime) < 1)
                 {
                     note.kill();
-                    playerStrums.sustainNotes.remove(note, true);
+                    playerStrumline.sustainNotes.remove(note, true);
                     note.destroy();
                 }
             });
@@ -3072,11 +3072,11 @@ class APPlayState extends PlayState {
                     if (note.isSustainNote && !note.animation.curAnim.name.endsWith('tail'))
                         time += 0.15;
 
-                    strumPlayAnim(playerStrums, note.noteData % (ExtraKeys.mania+1), time, /*note*/);
+                    strumPlayAnim(playerStrumline, note.noteData % (ExtraKeys.mania+1), time, /*note*/);
                 }
                 else
                 {
-                    var spr = playerStrums.getByColumn(note.noteData);
+                    var spr = playerStrumline.getByColumn(note.noteData);
     				if(spr != null) spr.playAnim('confirm', true);
                 }
             }
@@ -3163,7 +3163,7 @@ class APPlayState extends PlayState {
             {
                 if (curStep % 16 == 0)
                 {
-                    for (daNote in playerStrums.notes.members) {
+                    for (daNote in playerStrumline.notes.members) {
                         if (daNote == null) continue;
                         else {
                             daNote.noteData = daNote.trueNoteData;
@@ -3204,7 +3204,7 @@ class APPlayState extends PlayState {
 
     //Removes the Throat Notes
     public function removeThroatNotes() {
-        for (note in playerStrums.notes.members) {
+        for (note in playerStrumline.notes.members) {
             if (note.noteType == "Throat Note")
                 invalidateNote(note);
         }
@@ -3213,7 +3213,7 @@ class APPlayState extends PlayState {
     //Adjust the note's alpha
     public function adjustSight() {
         if (APInfo.blindness) {
-            for (line in strumLineNotes) {
+            for (line in allStrumlines) {
                 for (strum in line.strumLineNotes.members)
                     strum.multAlpha = 0.3;
                 for (note in line.notes.members) {
@@ -3224,7 +3224,7 @@ class APPlayState extends PlayState {
                 }
             }
         } else {
-            for (line in strumLineNotes) {
+            for (line in allStrumlines) {
                 for (strum in line.strumLineNotes.members)
                     strum.multAlpha = 1;
                 for (note in line.notes.members) {

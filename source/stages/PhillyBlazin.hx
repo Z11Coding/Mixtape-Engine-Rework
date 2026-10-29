@@ -134,7 +134,7 @@ class PhillyBlazin extends BaseStage
 		}
 		PicoCapableStage.instance.abot.color = 0xFF888888;
 
-		for (strum in [game.playerStrums, game.opponentStrums]) {
+		for (strum in [game.playerStrumline, game.opponentStrumline]) {
 			var unspawnNotes:Array<PreloadNotes> = cast strum.unspawnNotes;
 			for (note in unspawnNotes)
 			{

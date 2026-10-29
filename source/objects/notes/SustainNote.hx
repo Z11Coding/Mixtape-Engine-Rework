@@ -1532,8 +1532,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // Make sure we're at the proper position!
     // This is cuz hold notes are always set to this exact position, then the tris are set to make it appear where it needs to be on the screen.
     // Done cuz I'm lazy and it made the calcs easier lol
-    this.x = ModConstants.holdNoteJankX;
-    this.y = ModConstants.holdNoteJankY;
+    this.x = noteModData.x;
+    this.y = noteModData.y;
     if (fakeNote == null) fakeNote = new ZSprite();
     var songTimmy:Float = (ModConstants.getSongPosition());
     whichStrumNote = parentStrumline.getByColumn(noteData);

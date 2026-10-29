@@ -1464,14 +1464,8 @@ class FunkinLua {
 	function noteTweenFunction(tag:String, note:Int, data:Dynamic, duration:Float, ease:String)
 	{
 		if(PlayState.instance == null) return null;
-		var globalStrumGroup:Array<StrumNote> = [];
-		for (line in PlayState.instance.strumLineNotes) {
-			for (strum in line.strumLineNotes.members) {
-				globalStrumGroup.push(strum);
-			}
-		}
 
-		var strumNote:StrumNote = globalStrumGroup[note % globalStrumGroup.length];
+		var strumNote:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 		if(strumNote == null) return null;
 

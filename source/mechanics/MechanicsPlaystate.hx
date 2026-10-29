@@ -96,7 +96,7 @@ class MechanicsPlaystate {
 					restoreNote.noteType = 'Restore Note';
 					restoreNote.x += FlxG.width / 2; // general offset
 					restoreNoteGroup.push(restoreNote);
-					PlayState.instance.playerStrums.notes.insert(0, restoreNote);
+					PlayState.instance.playerStrumline.notes.insert(0, restoreNote);
 				}
 			}
 			PlayState.instance.noTriggerKarma = false;
@@ -139,11 +139,11 @@ class MechanicsPlaystate {
 			healthTimer.cancel();
 		for (restoreNote in restoreNoteGroup)
 		{
-			if (PlayState.instance.playerStrums.notes.members.contains(restoreNote))
-				PlayState.instance.playerStrums.notes.remove(restoreNote, true);
+			if (PlayState.instance.playerStrumline.notes.members.contains(restoreNote))
+				PlayState.instance.playerStrumline.notes.remove(restoreNote, true);
 		}
 
-		PlayState.instance.playerStrums.notes.forEachAlive(function(daNote:Note)
+		PlayState.instance.playerStrumline.notes.forEachAlive(function(daNote:Note)
 		{
 			if (daNote.noteType == 'Restore Note')
 			{
@@ -167,7 +167,7 @@ class MechanicsPlaystate {
 	{
 		if (wasSwapped)
 		{
-			PlayState.instance.playerStrums.strumLineNotes.forEachAlive(function(strum:StrumNote)
+			PlayState.instance.playerStrumline.strumLineNotes.forEachAlive(function(strum:StrumNote)
 			{
 				@:privateAccess
 				{
@@ -182,7 +182,7 @@ class MechanicsPlaystate {
 				}));
 			});
 
-			PlayState.instance.opponentStrums.strumLineNotes.forEachAlive(function(strum:StrumNote)
+			PlayState.instance.opponentStrums.forEachAlive(function(strum:StrumNote)
 			{
 				@:privateAccess
 				{
@@ -204,39 +204,39 @@ class MechanicsPlaystate {
 		var chosenStrum:Int = FlxG.random.int(0, 3);
 		var tweenToStrum:Int = FlxG.random.int(0, 3, [chosenStrum]);
 
-		PlayState.instance.playerStrums.getByColumn(chosenStrum).positionData = tweenToStrum;
-		PlayState.instance.playerStrums.getByColumn(tweenToStrum).positionData = chosenStrum;
+		PlayState.instance.playerStrumline.getByColumn(chosenStrum).positionData = tweenToStrum;
+		PlayState.instance.playerStrumline.getByColumn(tweenToStrum).positionData = chosenStrum;
 
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrums.getByColumn(chosenStrum),
-			{x: PlayState.instance.playerStrums.getByColumn(tweenToStrum).formerPosition.x, y: PlayState.instance.playerStrums.getByColumn(tweenToStrum).formerPosition.y}, 0.4, {
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrumline.getByColumn(chosenStrum),
+		{x: PlayState.instance.playerStrumline.getByColumn(tweenToStrum).formerPosition.x, y: PlayState.instance.playerStrumline.getByColumn(tweenToStrum).formerPosition.y}, 0.4, {
+			ease: FlxEase.cubeOut,
+			onComplete: function(twn:FlxTween)
+			{
+				noteSwapTweens.remove(twn);
+			}
+		}));
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrumline.getByColumn(tweenToStrum),
+			{x: PlayState.instance.playerStrumline.getByColumn(chosenStrum).formerPosition.x, y: PlayState.instance.playerStrumline.getByColumn(chosenStrum).formerPosition.y}, 0.4, {
 				ease: FlxEase.cubeOut,
 				onComplete: function(twn:FlxTween)
 				{
 					noteSwapTweens.remove(twn);
 				}
 			}));
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.playerStrums.getByColumn(tweenToStrum),
-			{x: PlayState.instance.playerStrums.getByColumn(chosenStrum).formerPosition.x, y: PlayState.instance.playerStrums.getByColumn(chosenStrum).formerPosition.y}, 0.4, {
+
+		PlayState.instance.opponentStrumline.getByColumn(chosenStrum).positionData = tweenToStrum;
+		PlayState.instance.opponentStrumline.getByColumn(tweenToStrum).positionData = chosenStrum;
+
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrumline.getByColumn(chosenStrum),
+			{x: PlayState.instance.opponentStrumline.getByColumn(tweenToStrum).formerPosition.x, y: PlayState.instance.opponentStrumline.getByColumn(tweenToStrum).formerPosition.y}, 0.4, {
 				ease: FlxEase.cubeOut,
 				onComplete: function(twn:FlxTween)
 				{
 					noteSwapTweens.remove(twn);
 				}
 			}));
-
-		PlayState.instance.opponentStrums.getByColumn(chosenStrum).positionData = tweenToStrum;
-		PlayState.instance.opponentStrums.getByColumn(tweenToStrum).positionData = chosenStrum;
-
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrums.getByColumn(chosenStrum),
-			{x: PlayState.instance.opponentStrums.getByColumn(tweenToStrum).formerPosition.x, y: PlayState.instance.opponentStrums.getByColumn(tweenToStrum).formerPosition.y}, 0.4, {
-				ease: FlxEase.cubeOut,
-				onComplete: function(twn:FlxTween)
-				{
-					noteSwapTweens.remove(twn);
-				}
-			}));
-		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrums.getByColumn(tweenToStrum),
-			{x: PlayState.instance.opponentStrums.getByColumn(chosenStrum).formerPosition.x, y: PlayState.instance.opponentStrums.getByColumn(chosenStrum).formerPosition.y}, 0.4, {
+		noteSwapTweens.push(FlxTween.tween(PlayState.instance.opponentStrumline.getByColumn(tweenToStrum),
+			{x: PlayState.instance.opponentStrumline.getByColumn(chosenStrum).formerPosition.x, y: PlayState.instance.opponentStrumline.getByColumn(chosenStrum).formerPosition.y}, 0.4, {
 				ease: FlxEase.cubeOut,
 				onComplete: function(twn:FlxTween)
 				{
