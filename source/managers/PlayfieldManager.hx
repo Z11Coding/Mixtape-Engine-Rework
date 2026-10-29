@@ -710,6 +710,18 @@ class PlayfieldManager {
           daNoteData = Std.int(noteColumn % ExtraKeys.ammo[songData.mania != null ? songData.mania : 3]);
 					gottaHitNote = (noteColumn < (songData.mania != null ? totalColumns : ExtraKeys.ammo[songData.mania != null ? songData.mania : 3]));
 
+          if (i != 0) {
+            // CLEAR ANY POSSIBLE GHOST NOTES
+            for (evilNote in unspawnNotes) {
+              var matches:Bool = (daNoteData == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == noteType);
+              if (matches && Math.abs(daStrumTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
+                unspawnNotes.remove(evilNote);
+                ghostNotesCaught++;
+                //continue;
+              }
+            }
+          }
+
           if (!PlayState.chartingMode) {
             switch (chartModifier)
             {
@@ -1175,7 +1187,6 @@ class PlayfieldManager {
 							final sustainNote:PreloadNotes = {
 								strumTime: daStrumTime + (stepCrochet * susNote),
 								noteData: daNoteData,
-                trueNoteData: daNoteData,
 								mustPress: gottaHitNote,
 								oppNote: !gottaHitNote,
 								noteType: songNotes[3],
@@ -2868,28 +2879,16 @@ class PlayfieldManager {
       remove(customZspritesGroup);
     }
 
-    // Clear strum note references
-		if (playerStrums != null) {
-			playerStrums.strumLineNotes.forEachAlive(function(strum:StrumNote) {
-				if (strum != null) strum.destroy();
-			});
-			playerStrums.clear();
-		}
-
-		if (opponentStrums != null) {
-			opponentStrums.strumLineNotes.forEachAlive(function(strum:StrumNote) {
-				if (strum != null) strum.destroy();
-			});
-			opponentStrums.clear();
-		}
-
+		// Strumline owns its receptor, note, sustain and splash groups. Destroy
+		// each owner once so FlxGroup can recursively release its children.
 		if (allStrumLines != null) {
-      for (strum in allStrumLines) {
-				if (strum != null)
-          strum.destroy();
+			for (strum in allStrumLines) {
+				if (strum != null) strum.destroy();
 			}
 			allStrumLines.clear();
 		}
+		playerStrums = null;
+		opponentStrums = null;
 
     // Clear event and callback references
 		if (eventNotes != null) {

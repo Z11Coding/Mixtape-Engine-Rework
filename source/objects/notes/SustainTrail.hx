@@ -544,7 +544,7 @@ class SustainTrail extends ZSprite
 
     noteModData.funnyOffMyself();
 
-    is3D = strumExtraData.threeD;
+    is3D = strumExtraData.threeD || (parentStrumline?.projection3D?.enabled ?? false);
     // old3Dholds = (whichStrumNote.strumExtraModData?.old3Dholds ?? false);
     old3Dholds = noteModData.old3Dholds;
 
@@ -620,7 +620,7 @@ class SustainTrail extends ZSprite
     }
     fakeNote.scale.set(scaleX, scaleY);
 
-    if (!is3D || old3Dholds)
+    if ((!is3D || old3Dholds) && !(parentStrumline?.projection3D?.enabled ?? false))
     {
       ModConstants.playfieldSkew(
         fakeNote,
@@ -658,7 +658,7 @@ class SustainTrail extends ZSprite
       pos.z += FlxG.random.float(-1, 1) * vibrateEffect;
     }
 
-    if (!is3D || old3Dholds)
+    if ((!is3D || old3Dholds) && !(parentStrumline?.projection3D?.enabled ?? false))
     {
       tempVec2.setTo(pos.x, pos.y);
 
@@ -699,6 +699,7 @@ class SustainTrail extends ZSprite
       var playfieldSkewOffset_Z:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
       if (noteModData.skewZ_playfield != 0) tempVec3.z += playfieldSkewOffset_Z * Math.tan(noteModData.skewZ_playfield * FlxAngle.TO_RAD);
 
+      if (parentStrumline?.projection3D != null) parentStrumline.projection3D.transform(tempVec3);
       tempVec3.z *= 0.001;
       final thisNotePos:Vector3D = ModConstants.perspectiveMath(tempVec3, 0, 0, noteModData.perspectiveOffset);
       tempVec2.setTo(thisNotePos.x, thisNotePos.y);
@@ -762,6 +763,7 @@ class SustainTrail extends ZSprite
    */
   public function updateClipping_mods(songTime:Float = 0, uvSetup:Bool = true):Void
   {
+    parentStrumline?.getFieldProjection3D();
     // Skip all the logic if this note is considered a 'miss' and we already was hit.
     if (hitNote && missedNote && hideOnMiss)
     {

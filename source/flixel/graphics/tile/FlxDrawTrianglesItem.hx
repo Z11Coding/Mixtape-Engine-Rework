@@ -178,11 +178,35 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
     }
     else
     {
-      var uvtDataLength:Int = uvtData.length;
-      for (i in 0...uvtDataLength)
+      // OpenFL selects ONE UV stride for an entire drawTriangles call. Projected
+      // sprites use (u,v,t), while ordinary sprites/holds use (u,v). Mixing the
+      // two without promotion samples unrelated parts of the texture atlas.
+      final inputHasT = uvtData.length == numberOfVertices * 3;
+      final previousHasT = prevNumberOfVertices > 0 && prevUVTDataLength == prevNumberOfVertices * 3;
+      final useT = inputHasT || previousHasT;
+      if (inputHasT && !previousHasT && prevNumberOfVertices > 0)
       {
-        this.uvtData[prevUVTDataLength + i] = uvtData[i];
+        this.uvtData.length = prevNumberOfVertices * 3;
+        var vertex = prevNumberOfVertices;
+        while (vertex-- > 0)
+        {
+          this.uvtData[vertex * 3 + 1] = this.uvtData[vertex * 2 + 1];
+          this.uvtData[vertex * 3] = this.uvtData[vertex * 2];
+          this.uvtData[vertex * 3 + 2] = 1;
+        }
+        prevUVTDataLength = prevNumberOfVertices * 3;
       }
+      var uvtDataLength:Int = uvtData.length;
+      if (useT && !inputHasT)
+      {
+        for (vertex in 0...numberOfVertices)
+        {
+          this.uvtData[prevUVTDataLength + vertex * 3] = uvtData[vertex * 2];
+          this.uvtData[prevUVTDataLength + vertex * 3 + 1] = uvtData[vertex * 2 + 1];
+          this.uvtData[prevUVTDataLength + vertex * 3 + 2] = 1;
+        }
+      }
+      else for (i in 0...uvtDataLength) this.uvtData[prevUVTDataLength + i] = uvtData[i];
 
       for (i in 0...indicesLength)
       {
@@ -285,14 +309,15 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
     vertices[prevVerticesPos + 6] = matrix.transformX(w, h); // right
     vertices[prevVerticesPos + 7] = matrix.transformY(w, h); // bottom
 
-    uvtData[prevVerticesPos + 0] = frame.uv.left;
-    uvtData[prevVerticesPos + 1] = frame.uv.top;
-    uvtData[prevVerticesPos + 2] = frame.uv.right;
-    uvtData[prevVerticesPos + 3] = frame.uv.top;
-    uvtData[prevVerticesPos + 4] = frame.uv.left;
-    uvtData[prevVerticesPos + 5] = frame.uv.bottom;
-    uvtData[prevVerticesPos + 6] = frame.uv.right;
-    uvtData[prevVerticesPos + 7] = frame.uv.bottom;
+    final uvStride = prevNumberOfVertices > 0 && uvtData.length == prevNumberOfVertices * 3 ? 3 : 2;
+    final uvStart = prevNumberOfVertices * uvStride;
+    for (corner in 0...4)
+    {
+      // FlxFrame.uv.width/height are already the right/bottom UV edges.
+      uvtData[uvStart + corner * uvStride] = corner % 2 == 0 ? frame.uv.x : frame.uv.width;
+      uvtData[uvStart + corner * uvStride + 1] = corner < 2 ? frame.uv.y : frame.uv.height;
+      if (uvStride == 3) uvtData[uvStart + corner * uvStride + 2] = 1;
+    }
 
     final prevIndicesPos = indicesPosition;
     indices[prevIndicesPos + 0] = prevNumberOfVertices + 0; // TL

@@ -693,10 +693,16 @@ class Note extends BaseNote
 		}
 
 		var strumExtraModData = noteModData?.whichStrumNote?.strumExtraModData ?? null;
-    projectionEnabled = strumExtraModData?.threeD ?? false;
-    playfieldSkewCenterX = (strumExtraModData?.playfieldX ?? FlxG.width / 2);
-    playfieldSkewCenterY = (strumExtraModData?.playfieldY ?? FlxG.height / 2);
-    playfieldSkewCenterZ = (strumExtraModData?.playfieldZ ?? 0);
+    fieldProjection3D = parentStrumline?.getFieldProjection3D();
+    projectionEnabled = (strumExtraModData?.threeD ?? false) || (fieldProjection3D?.enabled ?? false);
+    sharedProjectionPlanes = noteModData?.whichStrumNote?.laneProjectionPlanes;
+    var skewCenterX:Float = (strumExtraModData?.playfieldX ?? FlxG.width / 2);
+    var skewCenterY:Float = (strumExtraModData?.playfieldY ?? FlxG.height / 2);
+    var skewCenterZ:Float = (strumExtraModData?.playfieldZ ?? 0);
+    if (playfieldSkewCenterX != skewCenterX || playfieldSkewCenterY != skewCenterY || playfieldSkewCenterZ != skewCenterZ) invalidateMesh();
+    playfieldSkewCenterX = skewCenterX;
+    playfieldSkewCenterY = skewCenterY;
+    playfieldSkewCenterZ = skewCenterZ;
 
 		super.draw();
 	}

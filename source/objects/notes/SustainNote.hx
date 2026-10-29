@@ -369,6 +369,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   public var isPixel:Bool;
 
   var graphicWidth:Float = 0;
+  var headCenterX:Float = Strumline.STRUMLINE_SIZE / 2;
   var graphicHeight:Float = 0;
 
   // Makes the mesh all wobbly! Taken from ZProjectSprite_Note.hx
@@ -907,7 +908,28 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     zoom = 1.0;
 
-    graphicWidth = getAnimationFrame(animation?.curAnim?.name).frame.width / ((ExtraKeys.ammo[ExtraKeys.mania])*2) * zoom;
+    // Atlas frames already represent one hold, unlike the packed 8-strip sheet.
+    // The mesh uses normalized mod scales (1 = normal), so bake in the same
+    // native skin scale as the note heads here. Raw atlas pixels made holds
+    // about 43% wider than the skin intended at the normal 0.7 note scale.
+    final bodyFrame = getHoldBodyFrame();
+    final skinScale = pixelNote ? PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]
+      : ExtraKeys.scales[ExtraKeys.mania];
+    graphicWidth = frames.frames.length > 1 && bodyFrame != null ? bodyFrame.frame.width * skinScale * zoom
+      : getAnimationFrame(animation?.curAnim?.name).frame.width / ((ExtraKeys.ammo[ExtraKeys.mania])*2) * zoom;
+    // Resolve the actual head center once per skin load, not per mesh sample.
+    // Match Note's integer-sized native graphic instead of a lane-size guess.
+    headCenterX = Strumline.STRUMLINE_SIZE / 2;
+    var headFrames = Paths.noteSkinFramesMap.get(texture);
+    var headAnims = Paths.noteSkinAnimsMap.get(texture);
+    var letter:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[noteData];
+    var headAnim = headAnims?.getByName(letter);
+    if (!pixelNote && headFrames != null && headFrames.frames.length > 0 && headAnim != null && headAnim.frames.length > 0)
+    {
+      var headFrame = headFrames.frames[headAnim.frames[0]];
+      if (headFrame.sourceSize.x > 0)
+        headCenterX = Std.int(headFrame.sourceSize.x * skinScale) / 2;
+    }
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     if (parentStrumline != null)
     {
@@ -1128,6 +1150,68 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   // reuse this vector2 and vector3 variable instead of creating a bunch of new ones all the time
   var tempVec2:Vector2 = new Vector2(0, 0);
   var tempVec3:Vector3D = new Vector3D(0, 0, 0);
+  // Scratch state for the per-frame mesh builder. Sustains can call the
+  // projection path hundreds of times per frame, so keep these objects alive.
+  var clipInputVec3:Vector3D = new Vector3D(0, 0, 0);
+  var clipPerspectivePivot:Vector2 = new Vector2(0, 0);
+  var clipRotateOrigin:Vector2 = new Vector2(0, 0);
+  var clipRotateRoot:Vector2 = new Vector2(0, 0);
+  var clipRotatePoint:Vector2 = new Vector2(0, 0);
+  var clipVertexBuffer:Array<Float> = [];
+  var clipUVBuffer:Array<Float> = [];
+  var clipIndexBuffer:Array<Int> = [];
+  var clipColorBuffer:Array<Int> = [];
+  var atlasVertexBuffer:Array<Float> = [];
+  var atlasUVBuffer:Array<Float> = [];
+  var atlasIndexBuffer:Array<Int> = [];
+  var atlasColorBuffer:Array<Int> = [];
+
+  function getHoldBodyFrame():FlxFrame
+  {
+    var name = animation?.curAnim?.name;
+    if (name == null) return null;
+    name = StringTools.replace(name, "tail", "hold");
+    name = StringTools.replace(name, "holdend", "hold");
+    name = StringTools.replace(name, "hold end", "hold piece");
+    return getAnimationFrame(name);
+  }
+
+  /** Split repeats at their UV seam, so an atlas hold never tiles other sprites. */
+  function buildAtlasHold(raw:Array<Float>, rawColors:Array<Int>, segments:Int, capFirst:Int):Bool
+  {
+    if (frames == null || frames.frames.length <= 1) return false;
+    var body = getHoldBodyFrame();
+    var cap = getAnimationFrame(animation?.curAnim?.name);
+    if (body == null || cap == null) return false;
+    atlasVertexBuffer.resize(0);
+    atlasUVBuffer.resize(0);
+    atlasIndexBuffer.resize(0);
+    atlasColorBuffer.resize(0);
+    for (piece in 0...(segments + (capFirst >= 0 ? 1 : 0)))
+    {
+      var first = piece < segments ? piece * 2 : capFirst;
+      var frame = piece < segments ? body : cap;
+      var start = Std.int(atlasVertexBuffer.length / 2);
+      for (corner in 0...4)
+      {
+        var source = first + corner;
+        atlasVertexBuffer.push(raw[source * 2]);
+        atlasVertexBuffer.push(raw[source * 2 + 1]);
+        atlasUVBuffer.push(corner % 2 == 0 ? frame.uv.x : frame.uv.width);
+        atlasUVBuffer.push(corner < 2 ? frame.uv.y : frame.uv.height);
+        atlasColorBuffer.push(rawColors[source * 2]);
+      }
+      atlasIndexBuffer.push(start); atlasIndexBuffer.push(start + 2); atlasIndexBuffer.push(start + 1);
+      atlasIndexBuffer.push(start + 1); atlasIndexBuffer.push(start + 2); atlasIndexBuffer.push(start + 3);
+    }
+    setVerts(atlasVertexBuffer);
+    setIndices(atlasIndexBuffer);
+    setUVTData(atlasUVBuffer);
+    if (colors == null) colors = new DrawData<Int>();
+    colors.length = atlasColorBuffer.length;
+    for (i in 0...atlasColorBuffer.length) colors[i] = atlasColorBuffer[i];
+    return true;
+  }
 
   // 953.27ms with tracy. Ouch.
   // OPTIMISE ME!
@@ -1161,7 +1245,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteModData.direction = noteData % (ExtraKeys.mania+1);
     noteModData.curPos_unscaled = notePos;
     noteModData.whichStrumNote = whichStrumNote;
-    noteModData.noteType = "receptor";
+    noteModData.noteType = "hold";
     noteModData.width = graphicWidth;
     noteModData.height = 0;
 
@@ -1178,16 +1262,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     noteModData.speedMod = scrollMult;
 
-    // Position like vanilla
-    noteModData.x = parentStrumline.x;
-    noteModData.x += parentStrumline.getXPos((noteModData.direction % (ExtraKeys.mania+1)));
-    noteModData.x += Strumline.STRUMLINE_SIZE / 2;
-    noteModData.x -= graphicWidth / 2;
-
-    // Then offset based on the movement from the default strum position so movement it still tied to the strum receptors.
-    final defaultPosition:Array<Float> = parentStrumline.mods.getDefaultStrumPos(noteModData.direction);
-    final xDif:Float = whichStrumNote.x - defaultPosition[0];
-    noteModData.x += xDif;
+    // Center the ribbon on the head's actual skin geometry. Follow the live
+    // receptor directly, avoiding a second layout calculation and allocation.
+    noteModData.x = whichStrumNote.x + headCenterX - graphicWidth / 2;
 
     var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime) * scrollMult;
     if (flipY)
@@ -1219,11 +1296,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     noteModData.funnyOffMyself();
 
-    is3D = (whichStrumNote.strumExtraModData?.threeD ?? false);
+    is3D = (whichStrumNote.strumExtraModData?.threeD ?? false) || (parentStrumline?.projection3D?.enabled ?? false);
     // old3Dholds = (whichStrumNote.strumExtraModData?.old3Dholds ?? false);
     old3Dholds = noteModData?.old3Dholds ?? false;
-
-    noteModData.x -= 5; // apply notestyle offset here for z math reasons
 
     fakeNote.applyNoteData(noteModData, !is3D);
 
@@ -1296,7 +1371,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
     fakeNote.scale.set(scaleX, scaleY);
 
-    if (!is3D || old3Dholds)
+    if ((!is3D || old3Dholds) && !(parentStrumline?.projection3D?.enabled ?? false))
     {
       ModConstants.playfieldSkew(
         fakeNote,
@@ -1334,7 +1409,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       pos.z += FlxG.random.float(-1, 1) * vibrateEffect;
     }
 
-    if (!is3D || old3Dholds)
+    if ((!is3D || old3Dholds) && !(parentStrumline?.projection3D?.enabled ?? false))
     {
       tempVec2.setTo(pos.x, pos.y);
 
@@ -1359,8 +1434,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       final angleY:Float = noteModData.angleY;
 
       tempVec2.setTo(tempVec3.x, tempVec3.z);
-      final rotateModPivotPoint:Vector2 = new Vector2(rotatePivot.x, tempVec3.z);
-      tempVec2 = ModConstants.rotateAround(rotateModPivotPoint, tempVec2, angleY);
+      clipPerspectivePivot.setTo(rotatePivot.x, tempVec3.z);
+      rotateAroundInPlace(clipPerspectivePivot, tempVec2, angleY);
       tempVec3.x = tempVec2.x;
       tempVec3.z = tempVec2.y;
 
@@ -1374,10 +1449,32 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       var playfieldSkewOffset_Z:Float = pos.y - (whichStrumNote?.strumExtraModData?.playfieldY ?? FlxG.height / 2);
       if (noteModData.skewZ_playfield != 0) tempVec3.z += playfieldSkewOffset_Z * Math.tan(noteModData.skewZ_playfield * FlxAngle.TO_RAD);
 
+      if (parentStrumline?.projection3D != null) parentStrumline.projection3D.transform(tempVec3);
       tempVec3.z *= 0.001;
       final thisNotePos:Vector3D = ModConstants.perspectiveMath(tempVec3, 0, 0, noteModData.perspectiveOffset);
-      return new Vector2(thisNotePos.x, thisNotePos.y);
+      tempVec2.setTo(thisNotePos.x, thisNotePos.y);
+      return tempVec2;
     }
+  }
+
+  /** Projects raw coordinates without allocating a temporary Vector3D. */
+  inline function applyPerspectiveAt(x:Float, y:Float, z:Float, rotatePivot:Vector2):Vector2
+  {
+    clipInputVec3.setTo(x, y, z);
+    return applyPerspective(clipInputVec3, rotatePivot);
+  }
+
+  /** Rotates a point in place to avoid ModConstants.rotateAround allocations. */
+  function rotateAroundInPlace(origin:Vector2, point:Vector2, degrees:Float):Vector2
+  {
+    if (degrees == 0) return point;
+    final angle:Float = degrees * FlxAngle.TO_RAD;
+    final dx:Float = point.x - origin.x;
+    final dy:Float = point.y - origin.y;
+    final cos:Float = FlxMath.fastCos(angle);
+    final sin:Float = FlxMath.fastSin(angle);
+    point.setTo(origin.x + cos * dx - sin * dy, origin.y + sin * dx + cos * dy);
+    return point;
   }
 
   var spiralHoldOldMath:Bool = false;
@@ -1424,6 +1521,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
    */
   public function updateClipping_mods(songTime:Float = 0, uvSetup:Bool = true):Void
   {
+    parentStrumline?.getFieldProjection3D();
     // Skip all the logic if this note is considered a 'miss' and we already was hit.
     if (hitNote && missedNote && hideOnMiss)
     {
@@ -1485,10 +1583,14 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     final holdNoteJankX:Float = ModConstants.holdNoteJankX * -1;
     final holdNoteJankY:Float = ModConstants.holdNoteJankY * -1;
 
-    var testCol:Array<Int> = [];
-    var vertices:Array<Float> = [];
-    var uvtData:Array<Float> = [];
-    var noteIndices:Array<Int> = [];
+    var testCol:Array<Int> = clipColorBuffer;
+    var vertices:Array<Float> = clipVertexBuffer;
+    var uvtData:Array<Float> = clipUVBuffer;
+    var noteIndices:Array<Int> = clipIndexBuffer;
+    testCol.resize(0);
+    vertices.resize(0);
+    uvtData.resize(0);
+    noteIndices.resize(0);
 
     // to keep the face normal facing towards the camera for culling.
     var dumbAlt:Bool = true;
@@ -1553,10 +1655,11 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
 
     // grab left vert
-    var rotateOrigin:Vector2 = new Vector2(fakeNote.x + holdLeftSide, fakeNote.y);
+    clipRotateOrigin.setTo(fakeNote.x + holdLeftSide, fakeNote.y);
+    var rotateOrigin:Vector2 = clipRotateOrigin;
     // move rotateOrigin to be inbetween the left and right vert so it's centered
     rotateOrigin.x += ((fakeNote.x + holdRightSide) - (fakeNote.x + holdLeftSide)) / 2;
-    var vert:Vector2 = applyPerspective(new Vector3D(fakeNote.x + holdLeftSide, fakeNote.y, fakeNote.z), rotateOrigin);
+    var vert:Vector2 = applyPerspectiveAt(fakeNote.x + holdLeftSide, fakeNote.y, fakeNote.z, rotateOrigin);
 
     // Top left
     vertices[0 * 2] = vert.x; // Inline with left side
@@ -1580,7 +1683,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     }
 
     // Top right
-    vert = applyPerspective(new Vector3D(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z), rotateOrigin);
+    vert = applyPerspectiveAt(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z, rotateOrigin);
     vertices[1 * 2] = vert.x;
     vertices[1 * 2 + 1] = vert.y; // Inline with top left vertex
 
@@ -1613,11 +1716,12 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       holdRightSide = widthScaled - (scaleChange / 2);
 
       // grab left vert
-      var rotateOrigin:Vector2 = new Vector2(fakeNote.x + holdLeftSide, fakeNote.y);
+      clipRotateOrigin.setTo(fakeNote.x + holdLeftSide, fakeNote.y);
+      var rotateOrigin:Vector2 = clipRotateOrigin;
       // move rotateOrigin to be inbetween the left and right vert so it's centered
       rotateOrigin.x += ((fakeNote.x + holdRightSide) - (fakeNote.x + holdLeftSide)) / 2;
 
-      var vert:Vector2 = applyPerspective(new Vector3D(fakeNote.x + holdLeftSide, fakeNote.y, fakeNote.z), rotateOrigin);
+      var vert:Vector2 = applyPerspectiveAt(fakeNote.x + holdLeftSide, fakeNote.y, fakeNote.z, rotateOrigin);
 
       // Bottom left
       vertices[i * 2] = vert.x; // Inline with left side
@@ -1632,7 +1736,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         angle *= (180 / Math.PI);
         calculateAngleDif = angle;
         tempVec2.setTo(vertices[i * 2], vertices[i * 2 + 1]);
-        var thing:Vector2 = ModConstants.rotateAround(tempVec2, new Vector2(fakeNote.x + holdRightSide, vertices[i * 2 + 1]), calculateAngleDif);
+        clipRotatePoint.setTo(fakeNote.x + holdRightSide, vertices[i * 2 + 1]);
+        var thing:Vector2 = rotateAroundInPlace(tempVec2, clipRotatePoint, calculateAngleDif);
         rightSideOffX = thing.x;
         rightSideOffY = thing.y;
         previousSampleX = fakeNote.x;
@@ -1666,9 +1771,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         var calculateAngleDif:Float = angle * (180 / Math.PI);
 
         // rotate right point
-        var rotatePoint:Vector2 = new Vector2(fakeNote.x + holdRightSide, fakeNote.y);
-        var thing:Vector2 = ModConstants.rotateAround(rotateOrigin, rotatePoint, calculateAngleDif);
-        thing = applyPerspective(new Vector3D(thing.x, thing.y, fakeNote.z), rotateOrigin);
+        clipRotatePoint.setTo(fakeNote.x + holdRightSide, fakeNote.y);
+        var thing:Vector2 = rotateAroundInPlace(rotateOrigin, clipRotatePoint, calculateAngleDif);
+        thing = applyPerspectiveAt(thing.x, thing.y, fakeNote.z, rotateOrigin);
         rightSideOffX = thing.x;
         rightSideOffY = thing.y;
 
@@ -1677,9 +1782,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         vertices[(i + 1) * 2 + 1] = rightSideOffY;
 
         // left
-        rotatePoint.setTo(fakeNote.x + holdLeftSide, fakeNote.y);
-        thing = ModConstants.rotateAround(rotateOrigin, rotatePoint, calculateAngleDif);
-        thing = applyPerspective(new Vector3D(thing.x, thing.y, fakeNote.z), rotateOrigin);
+        clipRotatePoint.setTo(fakeNote.x + holdLeftSide, fakeNote.y);
+        thing = rotateAroundInPlace(rotateOrigin, clipRotatePoint, calculateAngleDif);
+        thing = applyPerspectiveAt(thing.x, thing.y, fakeNote.z, rotateOrigin);
         rightSideOffX = thing.x;
         rightSideOffY = thing.y;
 
@@ -1690,18 +1795,19 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         {
           baseAngle = calculateAngleDif;
 
-          var rotateOrigin_rooter:Vector2 = new Vector2(vertices[(i - 2) * 2], vertices[(i - 2) * 2 + 1]);
+          clipRotateRoot.setTo(vertices[(i - 2) * 2], vertices[(i - 2) * 2 + 1]);
+          var rotateOrigin_rooter:Vector2 = clipRotateRoot;
           // move rotateOrigin to be inbetween the left and right vert so it's centered
           rotateOrigin_rooter.x += (vertices[(i - 2 + 1) * 2] - vertices[(i - 2) * 2]) / 2;
 
-          rotatePoint = new Vector2(vertices[(i - 2) * 2], vertices[(i - 2) * 2 + 1]);
-          thing = ModConstants.rotateAround(rotateOrigin_rooter, rotatePoint, calculateAngleDif);
+          clipRotatePoint.setTo(vertices[(i - 2) * 2], vertices[(i - 2) * 2 + 1]);
+          thing = rotateAroundInPlace(rotateOrigin_rooter, clipRotatePoint, calculateAngleDif);
 
           vertices[(i - 2) * 2] = thing.x;
           vertices[(i - 2) * 2 + 1] = thing.y;
 
-          rotatePoint = new Vector2(vertices[(i - 2 + 1) * 2], vertices[(i - 2 + 1) * 2 + 1]);
-          thing = ModConstants.rotateAround(rotateOrigin_rooter, rotatePoint, calculateAngleDif);
+          clipRotatePoint.setTo(vertices[(i - 2 + 1) * 2], vertices[(i - 2 + 1) * 2 + 1]);
+          thing = rotateAroundInPlace(rotateOrigin_rooter, clipRotatePoint, calculateAngleDif);
 
           vertices[(i - 2 + 1) * 2] = thing.x;
           vertices[(i - 2 + 1) * 2 + 1] = thing.y;
@@ -1712,7 +1818,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       else
       {
         // Bottom right
-        var vert:Vector2 = applyPerspective(new Vector3D(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z), rotateOrigin);
+        var vert:Vector2 = applyPerspectiveAt(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z, rotateOrigin);
         vertices[(i + 1) * 2] = vert.x;
         vertices[(i + 1) * 2 + 1] = vert.y;
       }
@@ -1780,11 +1886,12 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       highestNumSoFar += 1;
 
       // grab left vert
-      var rotateOrigin:Vector2 = new Vector2(fakeNote.x + holdLeftSide, fakeNote.y);
+      clipRotateOrigin.setTo(fakeNote.x + holdLeftSide, fakeNote.y);
+      var rotateOrigin:Vector2 = clipRotateOrigin;
       // move rotateOrigin to be inbetween the left and right vert so it's centered
       rotateOrigin.x += ((fakeNote.x + holdRightSide) - (fakeNote.x + holdLeftSide)) / 2;
 
-      vert = applyPerspective(new Vector3D(fakeNote.x + holdLeftSide, fakeNote.y, fakeNote.z), rotateOrigin);
+      vert = applyPerspectiveAt(fakeNote.x + holdLeftSide, fakeNote.y, fakeNote.z, rotateOrigin);
       vertices[highestNumSoFar * 2] = vert.x;
       vertices[highestNumSoFar * 2 + 1] = vert.y;
       testCol[highestNumSoFar * 2] = fakeNote.color;
@@ -1792,7 +1899,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
       // Bottom right
       highestNumSoFar += 1;
-      vert = applyPerspective(new Vector3D(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z), rotateOrigin);
+      vert = applyPerspectiveAt(fakeNote.x + holdRightSide, fakeNote.y, fakeNote.z, rotateOrigin);
       vertices[highestNumSoFar * 2] = vert.x;
       vertices[highestNumSoFar * 2 + 1] = vert.y;
       testCol[highestNumSoFar * 2] = fakeNote.color;
@@ -1812,15 +1919,15 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         rotateOrigin.x += (vertices[highestNumSoFar * 2] - rotateOrigin.x) / 2;
 
         // rotate right point
-        var rotatePoint:Vector2 = new Vector2(vertices[highestNumSoFar * 2], vertices[highestNumSoFar * 2 + 1]);
+        clipRotatePoint.setTo(vertices[highestNumSoFar * 2], vertices[highestNumSoFar * 2 + 1]);
 
-        var thing = ModConstants.rotateAround(rotateOrigin, rotatePoint, calculateAngleDif);
+        var thing = rotateAroundInPlace(rotateOrigin, clipRotatePoint, calculateAngleDif);
 
         vertices[highestNumSoFar * 2 + 1] = thing.y;
         vertices[highestNumSoFar * 2] = thing.x;
 
-        rotatePoint = new Vector2(vertices[(highestNumSoFar - 1) * 2], ybeforerotate);
-        var thing = ModConstants.rotateAround(rotateOrigin, rotatePoint, calculateAngleDif);
+        clipRotatePoint.setTo(vertices[(highestNumSoFar - 1) * 2], ybeforerotate);
+        var thing = rotateAroundInPlace(rotateOrigin, clipRotatePoint, calculateAngleDif);
         vertices[(highestNumSoFar - 1) * 2 + 1] = thing.y;
         vertices[(highestNumSoFar - 1) * 2] = thing.x;
       }
@@ -1834,7 +1941,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         calculateAngleDif = angle;
 
         tempVec2.setTo(vertices[(highestNumSoFar - 1) * 2], vertices[(highestNumSoFar - 1) * 2 + 1]);
-        var thing = ModConstants.rotateAround(tempVec2, new Vector2(vertices[highestNumSoFar * 2], vertices[highestNumSoFar * 2 + 1]), calculateAngleDif);
+        clipRotatePoint.setTo(vertices[highestNumSoFar * 2], vertices[highestNumSoFar * 2 + 1]);
+        var thing = rotateAroundInPlace(tempVec2, clipRotatePoint, calculateAngleDif);
         vertices[highestNumSoFar * 2 + 1] = thing.y;
         vertices[highestNumSoFar * 2] = thing.x;
       }
@@ -1896,16 +2004,28 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         {
           // assume +1 means we access the y vert
           tempVec2.setTo(vertices[k], vertices[k + 1]);
-          var rotateModPivotPoint:Vector2 = new Vector2(holdRootX, holdRootY); // TEMP FOR NOW
-          tempVec2 = ModConstants.rotateAround(rotateModPivotPoint, tempVec2, this.angle);
+          clipRotateRoot.setTo(holdRootX, holdRootY); // TEMP FOR NOW
+          rotateAroundInPlace(clipRotateRoot, tempVec2, this.angle);
           vertices[k] = tempVec2.x;
           vertices[k + 1] = tempVec2.y;
         }
       }
     }
+    if (buildAtlasHold(vertices, testCol, holdResolution, renderEnd ? (holdResolution + 1) * 2 : -1))
+    {
+      waitTillModUpdate = false;
+      return;
+    }
     setVerts(vertices);
-    this.indices = new DrawData<Int>(noteIndices.length - 0, true, noteIndices);
-    this.colors = new DrawData<Int>(testCol.length - 0, true, testCol);
+    setIndices(noteIndices);
+    if (colors == null || colors.length != testCol.length)
+    {
+      colors = new DrawData<Int>(testCol.length, false, testCol);
+    }
+    else
+    {
+      for (k in 0...testCol.length) colors[k] = testCol[k];
+    }
 
     if (uvSetup)
     {
@@ -1928,19 +2048,15 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         }
       }
 
-      this.uvtData = new DrawData<Float>(uvtData.length, true, uvtData);
-      uvtData = null;
+      setUVTData(uvtData);
     }
-    testCol = null;
-    noteIndices = null;
-    vertices = null;
     waitTillModUpdate = false;
   }
 
-  function setVerts(vertices):Void
+  function setVerts(vertices:Array<Float>):Void
   {
     this.vertices_array = vertices;
-    this.vertices = new DrawData<Float>(vertices.length - 0, true, vertices);
+    setVertices(vertices);
   }
 
   public var uvScale:Vector2 = new Vector2(1.0, 1.0);

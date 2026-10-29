@@ -23,6 +23,8 @@ import states.TitleState;
 class RankingSubstate extends MusicBeatSubstate
 {
 	var pauseMusic:FlxSound;
+	var introTweens:Array<FlxTween> = [];
+	var leaving:Bool = false;
 
 	var rank:FlxSprite = new FlxSprite(-200, 730);
 	var combo:FlxSprite = new FlxSprite(-200, 730);
@@ -219,9 +221,9 @@ class RankingSubstate extends MusicBeatSubstate
 		press.screenCenter();
 		press.y = 670 - press.height;
 
-		FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
-		FlxTween.tween(press, {alpha: 1, y: 690 - press.height}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
-		FlxTween.tween(hint, {alpha: 1, y: 645 - hint.height}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
+		introTweens.push(FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut}));
+		introTweens.push(FlxTween.tween(press, {alpha: 1, y: 690 - press.height}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3}));
+		introTweens.push(FlxTween.tween(hint, {alpha: 1, y: 645 - hint.height}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3}));
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 
@@ -238,8 +240,10 @@ class RankingSubstate extends MusicBeatSubstate
 
 		super.update(elapsed);
 
-		if (FlxG.keys.justPressed.SPACE || PlayState.instance.practiceMode)
+		if (!leaving && (FlxG.keys.justPressed.SPACE || PlayState.instance.practiceMode))
 		{
+			// Practice mode can leave on the first frame; request the transition once.
+			leaving = true;
 			PlayState.instance.paused = false;
 			switch (PlayState.gameplayArea)
 			{
@@ -249,6 +253,7 @@ class RankingSubstate extends MusicBeatSubstate
 				case "Freeplay":
 					if (archipelago.APInfo.inArchipelagoMode) { // Failsafe
 						PlayState.gameplayArea = "APFreeplay";
+						leaving = false; // Retry once with the corrected destination.
 						return;
 					}
 					trace('WENT BACK TO FREEPLAY??');
@@ -475,6 +480,10 @@ class RankingSubstate extends MusicBeatSubstate
 
 	override function destroy()
 	{
+		// These tweens live in the global manager, beyond this substate's lifetime.
+		// Cancel them before super.destroy() clears the text color transforms.
+		for (tween in introTweens) tween.cancel();
+		introTweens.resize(0);
 		pauseMusic.destroy();
 
 		super.destroy();

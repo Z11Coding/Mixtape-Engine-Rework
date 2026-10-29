@@ -1,5 +1,3 @@
-package flixel.addons.ui;
-
 package flixel.text;
 
 import flixel.util.FlxSignal;

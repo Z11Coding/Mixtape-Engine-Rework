@@ -34,13 +34,19 @@ class ZSpriteProjected extends ZSprite
 
   function set_projectionEnabled(value:Bool):Bool
   {
-    if (projectionEnabled != value) dirty = true;
+    if (projectionEnabled != value) invalidateMesh();
     projectionEnabled = value;
     return value;
   }
 
+  /** Marks projected geometry as stale after a modchart changes mesh inputs. */
+  public inline function invalidateMesh():Void
+  {
+    if (!destroying) dirty = true;
+  }
+
   // If true, will correct the texture distortion created when transforming in 3D
-  public var doPerspectiveCorrection:Bool = false;
+  public var doPerspectiveCorrection:Bool = true;
 
   // If set to true, will set this sprite to be culled if all the subdivision points are considered "too close" to the camera.
   public var cullIfTooClose:Bool = false;
@@ -116,7 +122,9 @@ class ZSpriteProjected extends ZSprite
 
   function set_cropLeft(n:Float):Float
   {
-    this.cropLeft = FlxMath.bound(n, 0.0, 1.0);
+    n = FlxMath.bound(n, 0.0, 1.0);
+    if (cropLeft != n) invalidateMesh();
+    this.cropLeft = n;
     return this.cropLeft;
   }
 
@@ -125,7 +133,9 @@ class ZSpriteProjected extends ZSprite
 
   function set_cropRight(n:Float):Float
   {
-    this.cropRight = FlxMath.bound(n, 0.0, 1.0);
+    n = FlxMath.bound(n, 0.0, 1.0);
+    if (cropRight != n) invalidateMesh();
+    this.cropRight = n;
     return this.cropRight;
   }
 
@@ -134,7 +144,9 @@ class ZSpriteProjected extends ZSprite
 
   function set_cropTop(n:Float):Float
   {
-    this.cropTop = FlxMath.bound(n, 0.0, 1.0);
+    n = FlxMath.bound(n, 0.0, 1.0);
+    if (cropTop != n) invalidateMesh();
+    this.cropTop = n;
     return this.cropTop;
   }
 
@@ -143,7 +155,9 @@ class ZSpriteProjected extends ZSprite
 
   function set_cropBottom(n:Float):Float
   {
-    this.cropBottom = FlxMath.bound(n, 0.0, 1.0);
+    n = FlxMath.bound(n, 0.0, 1.0);
+    if (cropBottom != n) invalidateMesh();
+    this.cropBottom = n;
     return this.cropBottom;
   }
 
@@ -242,36 +256,57 @@ class ZSpriteProjected extends ZSprite
 
   public function setUp():Void
   {
-    var nextRow:Int = (subdivisions + 1 + 1);
-    updateColorTransform();
-    var noteIndices:Array<Int> = [];
-    for (x in 0...subdivisions + 1)
-    {
-      for (y in 0...subdivisions + 1)
-      {
-        // indices are created from top to bottom, going along the x axis each cycle.
-        var funny:Int = y + (x * nextRow);
-        noteIndices.push(0 + funny);
-        noteIndices.push(nextRow + funny);
-        noteIndices.push(1 + funny);
+    if (destroying || vertices == null || indices == null || uvtData == null) return;
 
-        noteIndices.push(nextRow + funny);
-        noteIndices.push(nextRow + 1 + funny);
-        noteIndices.push(1 + funny);
-      }
-    }
-    indices = new DrawData<Int>(noteIndices.length, true, noteIndices);
+    final sideLength:Int = subdivisions + 2;
+    final pointCount:Int = sideLength * sideLength;
+    final nextRow:Int = sideLength;
 
-    for (x in 0...subdivisions + 2) // x
+    // Keep the 3-component UVT layout (u, v, perspective t) used by FlxCamera.
+    if (vertices.length != pointCount * 2) vertices.length = pointCount * 2;
+    if (uvtData.length != pointCount * 3) uvtData.length = pointCount * 3;
+    resizeVertexOffsets(vertOffsetX, pointCount);
+    resizeVertexOffsets(vertOffsetY, pointCount);
+    resizeVertexOffsets(vertOffsetZ, pointCount);
+
+    if (_builtSubdivisions != subdivisions)
     {
-      for (y in 0...subdivisions + 2) // y
+      var noteIndices:Array<Int> = [];
+      for (x in 0...subdivisions + 1)
       {
-        vertOffsetX.push(0);
-        vertOffsetY.push(0);
-        vertOffsetZ.push(0);
+        for (y in 0...subdivisions + 1)
+        {
+          // Indices are created from top to bottom, going along the x axis each cycle.
+          var funny:Int = y + (x * nextRow);
+          noteIndices.push(funny);
+          noteIndices.push(nextRow + funny);
+          noteIndices.push(1 + funny);
+
+          noteIndices.push(nextRow + funny);
+          noteIndices.push(nextRow + 1 + funny);
+          noteIndices.push(1 + funny);
+        }
       }
+      indices = new DrawData<Int>(noteIndices.length, true, noteIndices);
+      _builtSubdivisions = subdivisions;
     }
-    updateTris();
+
+    if (frame != null && frame.frame != null)
+    {
+      updateColorTransform();
+      updateTris();
+      dirty = false;
+    }
+    else
+    {
+      invalidateMesh();
+    }
+  }
+
+  inline function resizeVertexOffsets(values:Array<Float>, length:Int):Void
+  {
+    while (values.length > length) values.pop();
+    while (values.length < length) values.push(0);
   }
 
   public var uvScale:Vector2 = new Vector2(1.0, 1.0);
@@ -279,6 +314,23 @@ class ZSpriteProjected extends ZSprite
   public var uvOffset:Vector2 = new Vector2(0.0, 0.0);
 
   var destroying:Bool = false;
+
+  var _builtSubdivisions:Int = -1;
+  var texturedPlane:TexturedPlane3D = new TexturedPlane3D();
+  public var sharedProjectionPlanes:Array<TexturedPlane3D>;
+  public var fieldProjection3D:FieldProjection3D;
+  var lastFieldProjection:FieldProjection3D;
+  var lastFieldRevision:Int = -1;
+  var perspectiveWeight:Float = 1;
+
+  // A mesh uses the same six skew angles for every vertex; cache their tangents per rebuild.
+  var meshTangentCacheActive:Bool = false;
+  var meshTanSkewX:Float = 0;
+  var meshTanSkewY:Float = 0;
+  var meshTanSkewXPlayfield:Float = 0;
+  var meshTanSkewYPlayfield:Float = 0;
+  var meshTanSkewZ:Float = 0;
+  var meshTanSkewZPlayfield:Float = 0;
 
   var cullCounter:Int = 0;
 
@@ -289,7 +341,25 @@ class ZSpriteProjected extends ZSprite
    */
   public function updateTris():Void
   {
-    if (destroying) return;
+    if (destroying || vertices == null || indices == null || uvtData == null) return;
+    if (frame == null || frame.frame == null)
+    {
+      culled = true;
+      return;
+    }
+
+    final frameData = frame;
+    final w:Float = frameData.frame.width;
+    final h:Float = frameData.frame.height;
+
+    // Cache invariant trig work once per mesh, instead of once for every vertex.
+    meshTanSkewX = skewX == 0 ? 0 : Math.tan(skewX * FlxAngle.TO_RAD);
+    meshTanSkewY = skewY == 0 ? 0 : Math.tan(skewY * FlxAngle.TO_RAD);
+    meshTanSkewXPlayfield = skewX_playfield == 0 ? 0 : Math.tan(skewX_playfield * FlxAngle.TO_RAD);
+    meshTanSkewYPlayfield = skewY_playfield == 0 ? 0 : Math.tan(skewY_playfield * FlxAngle.TO_RAD);
+    meshTanSkewZ = skewZ == 0 ? 0 : Math.tan(skewZ * FlxAngle.TO_RAD);
+    meshTanSkewZPlayfield = skewZ_playfield == 0 ? 0 : Math.tan(skewZ_playfield * FlxAngle.TO_RAD);
+    meshTangentCacheActive = true;
 
     // TODO: Improve how this gets applied!
     var wasAlreadyFlipped_X:Bool = flipX;
@@ -340,15 +410,21 @@ class ZSpriteProjected extends ZSprite
         }
     }
 
-    if (this.frame?.frame != null) {
-      var w:Float = this.frame.frame.width;
-      var h:Float = this.frame.frame.height;
+    {
 
       var offsetX:Float = this.frame.offset.x * scaleX;
       var offsetScaledX:Float = (frameWidth - w) * (scaleX - 1) / 2;
 
       var offsetY:Float = this.frame.offset.y * scaleY;
       var offsetScaledY:Float = (frameHeight - h) * (scaleY - 1) / 2;
+
+      var displaced = vibrateEffect != 0;
+      if (!displaced) for (value in vertOffsetX) if (value != 0) { displaced = true; break; }
+      if (!displaced) for (value in vertOffsetY) if (value != 0) { displaced = true; break; }
+      if (!displaced) for (value in vertOffsetZ) if (value != 0) { displaced = true; break; }
+      // Prepare a textured plane from the current spatial transforms. No note
+      // motion, animation frame, strum time or hit state is changed here.
+      var plane = TexturedPlane3D.obtain(this, texturedPlane, w, h, offsetX - offsetScaledX, offsetY - offsetScaledY, displaced);
 
       culled = false;
       cullCounter = 0; // If every point triggers the "too close to camera" check, then we cull this sprite.
@@ -359,26 +435,10 @@ class ZSpriteProjected extends ZSprite
       {
         for (y in 0...subdivisions + 2) // y
         {
-          curRotationAmount = 0;
-
-          // Setup point
           var point3D:Vector3D = projectionPoint;
-          point3D.setTo((w / (subdivisions + 1)) * x, (h / (subdivisions + 1)) * y, 0);
-
-          // Animation frame offset stuff
-          point3D.x += offsetX - offsetScaledX;
-          point3D.y += offsetY - offsetScaledY;
 
           var xPercent:Float = x / (subdivisions + 1);
           var yPercent:Float = y / (subdivisions + 1);
-
-          // Apply vibrate effect
-          if (vibrateEffect != 0)
-          {
-            point3D.x += FlxG.random.float(-1, 1) * vibrateEffect;
-            point3D.y += FlxG.random.float(-1, 1) * vibrateEffect;
-            point3D.z += FlxG.random.float(-1, 1) * vibrateEffect;
-          }
 
           // Apply curVertOffsets
           var curVertOffsetX:Float = 0;
@@ -398,30 +458,13 @@ class ZSpriteProjected extends ZSprite
             curVertOffsetZ = vertOffsetZ[i];
           }
 
-          point3D.x += curVertOffsetX;
-          point3D.y += curVertOffsetY;
-          point3D.z += curVertOffsetZ;
-
-          if (spinAngle != 0)
+          if (vibrateEffect != 0)
           {
-            point3D = applyRotZ(point3D, xPercent, yPercent, frameWidth, frameHeight, spinAngle);
+            curVertOffsetX += FlxG.random.float(-1, 1) * vibrateEffect;
+            curVertOffsetY += FlxG.random.float(-1, 1) * vibrateEffect;
+            curVertOffsetZ += FlxG.random.float(-1, 1) * vibrateEffect;
           }
-
-          point3D = applyCrop(point3D, w, h);
-
-          point3D = applyScale(point3D, xPercent, yPercent, w, h, false);
-
-          point3D = applyFlip(point3D, xPercent, yPercent);
-          point3D = applyRotation(point3D, xPercent, yPercent);
-
-          point3D = applySkew(point3D, xPercent, yPercent, w, h);
-
-          // scale2
-          point3D = applyScale(point3D, xPercent, yPercent, w, h, true);
-
-          // Apply offset here before it gets affected by z projection!
-          point3D.x -= offset.x;
-          point3D.y -= offset.y;
+          plane.transform(point3D, xPercent, yPercent, curVertOffsetX, curVertOffsetY, curVertOffsetZ, this);
           point3D = applyPerspective(point3D, xPercent, yPercent);
           if (cullCounter >= cullCounterCap) culled = true;
 
@@ -430,6 +473,7 @@ class ZSpriteProjected extends ZSprite
 
           if (culled)
           {
+            meshTangentCacheActive = false;
             return; // Just stop if we are culled.
           }
 
@@ -443,28 +487,17 @@ class ZSpriteProjected extends ZSprite
           }
 
           /* Updating the UV mapping! */
-          var uvX:Float = xPercent;
-          var uvY:Float = yPercent;
+          // Crop in frame-local coordinates before mapping into the atlas.
+          var uvX:Float = cropLeft + xPercent * Math.max(0, 1 - cropLeft - cropRight);
+          var uvY:Float = cropTop + yPercent * Math.max(0, 1 - cropTop - cropBottom);
 
-          var curFrame = this.frame;
-          uvX = FlxMath.remapToRange(xPercent, 0, 1, curFrame.uv.left, curFrame.uv.right);
-          uvY = FlxMath.remapToRange(yPercent, 0, 1, curFrame.uv.top, curFrame.uv.bottom);
+          // FlxFrame.uv stores right/bottom in width/height, NOT a normal rect.
+          // Using .right/.bottom adds the atlas origin a second time.
+          uvX = FlxMath.remapToRange(uvX, 0, 1, frameData.uv.x, frameData.uv.width);
+          uvY = FlxMath.remapToRange(uvY, 0, 1, frameData.uv.y, frameData.uv.height);
 
           // todo: add repeat texture to here (using %) instead so that we can use frameBorderCut to determine if we repeat the entire atlas, or just the current frame
           // 2026 me here, idk if this is possible cuz will need a vert for every time the texture repeats. Would have to be handled via shader instead :(
-
-          // crop
-          uvX *= (1 - cropLeft);
-
-          uvX -= 1 * (1 - cropLeft);
-          uvX *= (1.0 - cropRight / (1.0 - cropLeft));
-          uvX += 1 * (1 - cropLeft);
-
-          uvY *= (1 - cropTop);
-
-          uvY -= 1 * (1 - cropTop);
-          uvY *= (1.0 - cropBottom / (1.0 - cropTop));
-          uvY += 1 * (1 - cropTop);
 
           // uv scale
           uvX -= uvScaleOffset.x;
@@ -483,25 +516,31 @@ class ZSpriteProjected extends ZSprite
           // map it
           uvtData[i * 3] = uvX; // u
           uvtData[i * 3 + 1] = uvY; // v
-          uvtData[i * 3 + 2] = (doPerspectiveCorrection ? 1 / Math.max(0.0001, -point3D.z) : 1.0); // t
+          uvtData[i * 3 + 2] = doPerspectiveCorrection ? perspectiveWeight : 1.0; // true camera-space reciprocal depth
 
           i++;
         }
       }
     }
+    meshTangentCacheActive = false;
   }
 
   override public function loadGraphic(graphic:FlxGraphicAsset, animated = false, frameWidth = 0, frameHeight = 0, unique = false, ?key:String):FlxSprite
   {
+    // FlxSprite.loadGraphic assigns `frames`, which reaches set_frames() above.
+    // Let that setter build the mesh once instead of rebuilding it a second time here.
     super.loadGraphic(graphic, animated, frameWidth, frameHeight, unique, key);
-    setUp();
     return this;
   }
 
   override function set_frames(Frames:FlxFramesCollection):FlxFramesCollection
   {
+    // FunkinSprite and FlxSprite both clear frames during destruction. Avoid
+    // running the frame teardown twice when the second assignment is null.
+    if (Frames == null && frames == null) return Frames;
     super.set_frames(Frames);
-    setUp();
+    // FlxSprite.destroy() clears frames through this virtual setter.
+    if (!destroying && Frames != null) setUp();
     return Frames;
   }
 
@@ -516,12 +555,23 @@ class ZSpriteProjected extends ZSprite
   override public function draw():Void
   {
     if (destroying) return;
+    if (fieldProjection3D != null) fieldProjection3D.prepare();
+    var revision = fieldProjection3D == null ? -1 : fieldProjection3D.revision;
+    if (fieldProjection3D != lastFieldProjection || revision != lastFieldRevision)
+    {
+      invalidateMesh();
+      lastFieldProjection = fieldProjection3D;
+      lastFieldRevision = revision;
+    }
     if (!projectionEnabled)
     {
       super.draw();
     }
     else
     {
+      if (!visible || !alive || alpha <= 0 || graphic == null || frame == null || frame.frame == null) return;
+
+      var forceCull:Bool = cullMode == "always";
       var culling = TriangleCulling.NONE;
       switch (cullMode)
       {
@@ -529,8 +579,6 @@ class ZSpriteProjected extends ZSprite
           culling = TriangleCulling.POSITIVE;
         case "negative" | "back":
           culling = TriangleCulling.NEGATIVE;
-        case "always":
-          culled = true;
       }
 
       if (dirty)
@@ -539,7 +587,7 @@ class ZSpriteProjected extends ZSprite
         dirty = false;
       }
 
-      if (culled || alpha < 0 || vertices == null || indices == null || graphic == null || uvtData == null || _point == null || offset == null)
+      if (forceCull || culled || vertices == null || indices == null || uvtData == null || _point == null || offset == null)
       {
         return;
       }
@@ -563,10 +611,14 @@ class ZSpriteProjected extends ZSprite
 
   override public function destroy():Void
   {
+    if (destroying) return;
     destroying = true;
+    meshTangentCacheActive = false;
     vertices = null;
     indices = null;
     uvtData = null;
+    sharedProjectionPlanes = null;
+    fieldProjection3D = lastFieldProjection = null;
     super.destroy();
   }
 
@@ -609,21 +661,9 @@ class ZSpriteProjected extends ZSprite
 
   public function applyCrop(pos:Vector3D, w:Float, h:Float):Vector3D
   {
-    // right
-    pos.x *= (1.0 - cropRight / (1.0 - cropLeft));
-
-    // left
-    pos.x -= w;
-    pos.x *= (1.0 - cropLeft);
-    pos.x += w;
-
-    // bottom
-    pos.y *= (1.0 - cropBottom / (1.0 - cropTop));
-
-    // top
-    pos.y -= h;
-    pos.y *= (1.0 - cropTop);
-    pos.y += h;
+    // Equivalent crop without division by zero at a fully cropped edge.
+    pos.x = w * cropLeft + pos.x * Math.max(0, 1 - cropLeft - cropRight);
+    pos.y = h * cropTop + pos.y * Math.max(0, 1 - cropTop - cropBottom);
 
     return pos;
   }
@@ -660,6 +700,21 @@ class ZSpriteProjected extends ZSprite
 
   public var offsetBeforeRotation:FlxPoint = new FlxPoint(0, 0);
 
+  /** Spatial transform only, sampled when preparing the textured plane. */
+  public function transformPlaneVertex(point:Vector3D, u:Float, v:Float, width:Float, height:Float):Void
+  {
+    curRotationAmount = 0;
+    if (spinAngle != 0) applyRotZ(point, u, v, frameWidth, frameHeight, spinAngle);
+    applyCrop(point, width, height);
+    applyScale(point, u, v, width, height, false);
+    applyFlip(point, u, v);
+    applyRotation(point, u, v);
+    applySkew(point, u, v, width, height);
+    applyScale(point, u, v, width, height, true);
+    point.x -= offset.x;
+    point.y -= offset.y;
+  }
+
   public var preRotationMoveX:Float = 0;
   public var preRotationMoveY:Float = 0;
   public var preRotationMoveZ:Float = 0;
@@ -682,22 +737,22 @@ class ZSpriteProjected extends ZSprite
     var yPercent_SkewOffset:Float = rotationPoint.y - skewX_offset - skewOffsetFix;
     // Keep math the same as skewedsprite for parity reasons.
     if (skewX != 0) // Small performance boost from this if check to avoid the tan math lol?
-      pos.x += yPercent_SkewOffset * Math.tan(skewX * FlxAngle.TO_RAD) * h * scaleY;
-    if (skewY != 0) //
-      pos.y += xPercent_SkewOffset * Math.tan(skewY * FlxAngle.TO_RAD) * w * scaleX;
+      pos.x += yPercent_SkewOffset * (meshTangentCacheActive ? meshTanSkewX : Math.tan(skewX * FlxAngle.TO_RAD)) * h * scaleY;
+    if (skewY != 0)
+      pos.y += xPercent_SkewOffset * (meshTangentCacheActive ? meshTanSkewY : Math.tan(skewY * FlxAngle.TO_RAD)) * w * scaleX;
 
     // the %, followed by the position moved to the center of the sprite, then moved based off screen center (playfield center in future)
     var playfieldSkewOffset_Y:Float = ((rotationPoint.x - 0.5) * (h * scaleY)) + skewPosX - (playfieldSkewCenterX);
     var playfieldSkewOffset_X:Float = ((rotationPoint.y - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
 
-    if (skewX_playfield != 0) pos.x += playfieldSkewOffset_X * Math.tan(skewX_playfield * FlxAngle.TO_RAD);
-    if (skewY_playfield != 0) pos.y += playfieldSkewOffset_Y * Math.tan(skewY_playfield * FlxAngle.TO_RAD);
+    if (skewX_playfield != 0) pos.x += playfieldSkewOffset_X * (meshTangentCacheActive ? meshTanSkewXPlayfield : Math.tan(skewX_playfield * FlxAngle.TO_RAD));
+    if (skewY_playfield != 0) pos.y += playfieldSkewOffset_Y * (meshTangentCacheActive ? meshTanSkewYPlayfield : Math.tan(skewY_playfield * FlxAngle.TO_RAD));
 
     // z SKEW ?
 
-    if (skewZ != 0) pos.z += yPercent_SkewOffset * Math.tan(skewZ * FlxAngle.TO_RAD) * h * scaleY;
+    if (skewZ != 0) pos.z += yPercent_SkewOffset * (meshTangentCacheActive ? meshTanSkewZ : Math.tan(skewZ * FlxAngle.TO_RAD)) * h * scaleY;
     var playfieldSkewOffset_Z:Float = ((rotationPoint.y - 0.5) * (w * scaleX)) + skewPosY - (playfieldSkewCenterY);
-    if (skewZ_playfield != 0) pos.z += playfieldSkewOffset_Z * Math.tan(skewZ_playfield * FlxAngle.TO_RAD);
+    if (skewZ_playfield != 0) pos.z += playfieldSkewOffset_Z * (meshTangentCacheActive ? meshTanSkewZPlayfield : Math.tan(skewZ_playfield * FlxAngle.TO_RAD));
 
     return pos;
   }
@@ -806,11 +861,13 @@ class ZSpriteProjected extends ZSprite
 
   public function applyPerspective(pos:Vector3D, xPercent:Float = 0, yPercent:Float = 0):Vector3D
   {
+    perspectiveWeight = 1;
     if (projectionEnabled)
     {
       pos.x += this.x + this.x2;
       pos.y += this.y + this.y2;
       pos.z += this.z + this.z2;
+      if (fieldProjection3D != null) fieldProjection3D.transform(pos);
       pos.x += fovOffsetX;
       pos.y += fovOffsetY;
       pos.z *= 0.001;
@@ -827,6 +884,9 @@ class ZSpriteProjected extends ZSprite
       }
 
       ModConstants.perspectiveMath(pos, 0, 0, perspectiveCenterOffset);
+      // Capture the camera depth before converting the vertex back to local
+      // coordinates. Object Z is not part of the texture interpolation weight.
+      perspectiveWeight = -1 / pos.z;
 
       pos.x -= this.x + this.x2;
       pos.y -= this.y + this.y2;

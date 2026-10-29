@@ -793,66 +793,18 @@ class ModConstants
   public static var zFar:Float = 100.0;
   public static var FOV:Float = 90;
 
+  static var projectionView = new objects.funkin.graphics.ProjectionView3D();
+
   // https://github.com/TheZoroForce240/FNF-Modcharting-Tools/blob/main/source/modcharting/ModchartUtil.hx
 
   public static function perspectiveMath(pos:Vector3D, offsetX:Float = 0, offsetY:Float = 0, ?perspectiveOffset:Vector2):Vector3D
   {
-    // Math isn't perfect (mainly with lack of FOV support), but it's good enough. -Haz
-    try
-    {
-      final _FOV = Math.PI / 2;
-
-      /*
-        math from opengl lol
-        found from this website https://ogldev.org/www/tutorial12/tutorial12.html
-       */
-
-      var newz:Float = pos.z;
-      newz *= FlxMath.lerp(0, 1, FOV / 90); // very very fucking stupid work-around for no proper FOV support  -Haz
-      // Too close to camera!
-      if (newz > zNear + ModConstants.tooCloseToCameraFix)
-      {
-        newz = zNear + ModConstants.tooCloseToCameraFix;
-      }
-      // else if (newz < (zFar * -1)) // Too far from camera!
-      // {
-      // culled = true;
-      // }
-
-      newz = newz - 1;
-
-      var zRange:Float = zNear - zFar;
-      var tanHalfFOV:Float = fastTan(_FOV * 0.5);
-
-      var screenCenterX:Float = (FlxG.width * 0.5) + (perspectiveOffset?.x ?? 0.0);
-      var screenCenterY:Float = (FlxG.height * 0.5) + (perspectiveOffset?.y ?? 0.0);
-
-      var xOffsetToCenter:Float = pos.x - screenCenterX; // so the perspective focuses on the center of the screen
-      var yOffsetToCenter:Float = pos.y - screenCenterY;
-
-      var zPerspectiveOffset:Float = (newz + (2 * zFar * zNear / zRange));
-
-      if (zPerspectiveOffset == 0) zPerspectiveOffset = 0.001; // divide by zero check  -Haz
-
-      xOffsetToCenter += (offsetX * -zPerspectiveOffset);
-      yOffsetToCenter += (offsetY * -zPerspectiveOffset);
-
-      var xPerspective:Float = xOffsetToCenter * (1 / tanHalfFOV);
-      var yPerspective:Float = yOffsetToCenter * tanHalfFOV;
-      xPerspective /= -zPerspectiveOffset;
-      yPerspective /= -zPerspectiveOffset;
-
-      pos.x = xPerspective + screenCenterX; // offset it back to normal
-      pos.y = yPerspective + screenCenterY;
-      pos.z = zPerspectiveOffset;
-
-      return pos;
-    }
-    catch (e)
-    {
-      trace("FUCK. NEARLY DIED CUZ OF: \n" + e.toString());
-      return pos;
-    }
+    if (pos == null) return pos;
+    // Compatibility entry point: note placement and timing remain in their
+    // existing owners. This delegates only a render vertex and the current POV.
+    projectionView.configure(FlxG.width, FlxG.height, FOV, zNear, zFar);
+    return projectionView.project(pos, perspectiveOffset?.x ?? 0, perspectiveOffset?.y ?? 0,
+      tooCloseToCameraFix, offsetX, offsetY);
   }
 
   /** Creates a new custom modifier!

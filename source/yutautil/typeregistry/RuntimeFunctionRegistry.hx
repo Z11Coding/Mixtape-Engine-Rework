@@ -116,6 +116,13 @@ class RuntimeFunctionRegistry {
     /** Map of mod folder -> (functionId -> mod edit entry). Session-only. */
     private var modEdits:Map<String, Map<String, ModEditEntry>>;
 
+    /**
+     * IDs that may be intercepted by a persistent, temporary, or mod edit.
+     * This positive-only index lets instrumented hot paths skip argument-array
+     * creation and mod-folder scans when no edit can possibly apply.
+     */
+    private var interceptionCandidates:Map<String, Bool>;
+
     /** Map of functionId -> original source code (for revert) */
     private var originalSources:Map<String, String>;
 
@@ -175,6 +182,11 @@ class RuntimeFunctionRegistry {
         _instance = null;
     }
 
+    /** Fast preflight used by generated wrappers before they allocate args. */
+    public static inline function shouldIntercept(functionId:String):Bool {
+        return _instance != null && _instance.isReady() && _instance.interceptionCandidates.exists(functionId);
+    }
+
     public static function getFresh():RuntimeFunctionRegistry {
         reset();
         return get();
@@ -184,6 +196,7 @@ class RuntimeFunctionRegistry {
         editedSources = new Map();
         editedCallbacks = new Map();
         modEdits = new Map();
+        interceptionCandidates = new Map();
         originalSources = new Map();
         editMetadata = new Map();
         editableFunctions = new Map();
@@ -304,6 +317,7 @@ class RuntimeFunctionRegistry {
             editedSources.set(functionId, editedSource);
             editedCallbacks.remove(functionId); // A source edit replaces any callback edit
         }
+        interceptionCandidates.set(functionId, true);
         originalSources.set(functionId, originalSource);
         editMetadata.set(functionId, {
             functionName: functionName,
@@ -971,6 +985,7 @@ class RuntimeFunctionRegistry {
             modEdits.set(modFolder, folderMap);
         }
         folderMap.set(info.functionId, entry);
+        interceptionCandidates.set(info.functionId, true);
 
         trace('RuntimeFunctionRegistry: Registered mod edit from "$modFolder" for ${info.functionName} (${info.functionId})');
         if (!isModLoaded(modFolder)) {
@@ -1413,6 +1428,7 @@ class RuntimeFunctionRegistry {
     private function applyPersistedEdit(edit:Dynamic):Void {
         try {
             editedSources.set(edit.functionId, edit.editedSource);
+            interceptionCandidates.set(edit.functionId, true);
             if (edit.originalSource != null) {
                 originalSources.set(edit.functionId, edit.originalSource);
             }

@@ -12,6 +12,7 @@ class StrumNote extends ZSpriteProjected
 {
 	public var noteModData:NoteData;
 	public var strumExtraModData:StrumExtraData;
+  public var laneProjectionPlanes:Array<objects.funkin.graphics.TexturedPlane3D> = [];
 	var hsvShader:HSVNotesShader;
 
 	public var strumDistance(default, set):Float;
@@ -391,11 +392,15 @@ class StrumNote extends ZSpriteProjected
       return;
     }
 
+    if (playfieldSkewCenterX != strumExtraModData.playfieldX || playfieldSkewCenterY != strumExtraModData.playfieldY
+      || playfieldSkewCenterZ != strumExtraModData.playfieldZ) invalidateMesh();
     this.playfieldSkewCenterX = strumExtraModData.playfieldX;
     this.playfieldSkewCenterY = strumExtraModData.playfieldY;
     this.playfieldSkewCenterZ = strumExtraModData.playfieldZ;
 
-    projectionEnabled = strumExtraModData?.threeD ?? false;
+    fieldProjection3D = weBelongTo?.getFieldProjection3D();
+    projectionEnabled = (strumExtraModData?.threeD ?? false) || (fieldProjection3D?.enabled ?? false);
+    sharedProjectionPlanes = laneProjectionPlanes;
     super.draw();
   }
 

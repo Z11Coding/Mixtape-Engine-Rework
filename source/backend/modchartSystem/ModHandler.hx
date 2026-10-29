@@ -827,6 +827,9 @@ class ModHandler
       note.skew.y += note.noteModData.skewY_playfield;
     }
 
+    if (note.pivotOffsetX != note.noteModData.meshOffsets_PivotX || note.pivotOffsetY != note.noteModData.meshOffsets_PivotY
+      || note.pivotOffsetZ != note.noteModData.meshOffsets_PivotZ || note.skewX_offset != note.noteModData.meshOffsets_SkewX
+      || note.skewY_offset != note.noteModData.meshOffsets_SkewY || note.skewZ_offset != note.noteModData.meshOffsets_SkewZ) note.invalidateMesh();
     note.pivotOffsetX = note.noteModData.meshOffsets_PivotX;
     note.pivotOffsetY = note.noteModData.meshOffsets_PivotY;
     note.pivotOffsetZ = note.noteModData.meshOffsets_PivotZ;
@@ -1006,6 +1009,9 @@ class ModHandler
       note.skew.y += note.noteModData.skewY_playfield;
     }
 
+    if (note.pivotOffsetX != note.noteModData.meshOffsets_PivotX || note.pivotOffsetY != note.noteModData.meshOffsets_PivotY
+      || note.pivotOffsetZ != note.noteModData.meshOffsets_PivotZ || note.skewX_offset != note.noteModData.meshOffsets_SkewX
+      || note.skewY_offset != note.noteModData.meshOffsets_SkewY || note.skewZ_offset != note.noteModData.meshOffsets_SkewZ) note.invalidateMesh();
     note.pivotOffsetX = note.noteModData.meshOffsets_PivotX;
     note.pivotOffsetY = note.noteModData.meshOffsets_PivotY;
     note.pivotOffsetZ = note.noteModData.meshOffsets_PivotZ;

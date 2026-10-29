@@ -38,6 +38,20 @@ using thx.Arrays;
  */
 class Strumline extends FlxSpriteGroup
 {
+  public var projection3D:objects.funkin.graphics.FieldProjection3D = new objects.funkin.graphics.FieldProjection3D();
+
+  /** Shared visual model matrix; logical note positions and timers stay intact. */
+  public function getFieldProjection3D():objects.funkin.graphics.FieldProjection3D
+  {
+    var first = strumLineNotes?.members[0];
+    var last = strumLineNotes?.members[strumLineNotes.length - 1];
+    if (first != null && last != null)
+      projection3D.prepareAutomaticPivot((first.x + first.width * 0.5 + last.x + last.width * 0.5) * 0.5,
+        (first.y + first.height * 0.5 + last.y + last.height * 0.5) * 0.5, first.downScroll);
+    else projection3D.prepareAutomaticPivot(x + width * 0.5, y + STRUMLINE_SIZE * 0.5, ClientPrefs.data.downScroll);
+    return projection3D;
+  }
+
   var renderDistanceMs(get, never):Float;
 
    /**
@@ -1299,6 +1313,83 @@ class Strumline extends FlxSpriteGroup
 				}
 			}
 		}
+
+    // Update rendering of notes.
+    for (note in notes.members)
+    {
+      if (note == null || !note.alive) continue;
+      // Set the note's position.
+      if (mods != null)
+      {
+        mods.setNotePos(note);
+
+        var drawDistanceBackkk:Float = 1;
+        if (mods != null)
+        {
+          drawDistanceBackkk = 1 + (note?.noteModData?.whichStrumNote?.strumExtraModData?.drawdistanceBack ?? 0);
+        }
+
+        var renderWindowEnd = note.strumTime + Constants.HIT_WINDOW_MS + (renderDistanceMs / 8 * drawDistanceBackkk);
+        // If the note is missed
+        // if desaturated, ,eisofnoaunawdabwo
+        if ((note.missed || note.wasGoodHit) && conductorInUse.musicPosition >= renderWindowEnd)
+        {
+          killNote(note);
+        }
+      }
+    }
+
+    // Update rendering of hold notes.
+    for (holdNote in sustainNotes.members)
+    {
+      if (holdNote == null || !holdNote.alive) continue;
+      final magicNumberIGuess:Float = 8;
+
+      var drawDistanceBack:Float = 1;
+      if (mods != null)
+      {
+
+        drawDistanceBack = 1.0 + (holdNote?.whichStrumNote?.strumExtraModData?.drawdistanceBack ?? 0.0);
+      }
+
+      if (holdNote.missedNote && (holdNote.fullSustainLength > holdNote.sustainLength))
+      {
+        // Hold note was dropped before completing, keep it in its clipped state.
+        holdNote.visible = true;
+
+        var yOffset:Float = (holdNote.fullSustainLength - holdNote.sustainLength) * Constants.PIXELS_PER_MS;
+
+        if (mods != null)
+        {
+          holdNote.x = ModConstants.holdNoteJankX;
+          holdNote.y = ModConstants.holdNoteJankY;
+        }
+      }
+      else if (conductorInUse.musicPosition > holdNote.strumTime && holdNote.hitNote)
+      {
+        holdNote.sustainLength = (holdNote.strumTime + holdNote.fullSustainLength) - conductorInUse.musicPosition;
+
+        if (mods != null)
+        {
+          if (holdNote.sustainLength <= 1)
+          {
+            holdNote.visible = false;
+          }
+          holdNote.x = ModConstants.holdNoteJankX;
+          holdNote.y = ModConstants.holdNoteJankY;
+        }
+      }
+      else
+      {
+        // Hold note is new, render it normally.
+        holdNote.visible = true;
+        if (mods != null)
+        {
+          holdNote.x = ModConstants.holdNoteJankX;
+          holdNote.y = ModConstants.holdNoteJankY;
+        }
+      }
+    }
   }
 
   /**

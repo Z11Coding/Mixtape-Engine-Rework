@@ -518,31 +518,42 @@ class TypeCollectionMacro {
                         if (isVoidReturn) {
                             var originalExpr = func.expr != null ? func.expr : macro {};
                             func.expr = macro {
-                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
-                                if (!_interceptResult.intercepted) {
+                                if (yutautil.typeregistry.RuntimeFunctionRegistry.shouldIntercept($v{functionId})) {
+                                    var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                    if (!_interceptResult.intercepted) {
+                                        $e{originalExpr};
+                                    }
+                                } else {
                                     $e{originalExpr};
                                 }
                             };
                         } else {
                             var originalValueExpr = buildInlineValueExpr(func.expr);
                             func.expr = macro {
-                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
-                                return _interceptResult.intercepted ? cast _interceptResult.value : $e{originalValueExpr};
+                                if (yutautil.typeregistry.RuntimeFunctionRegistry.shouldIntercept($v{functionId})) {
+                                    var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                    if (_interceptResult.intercepted) return cast _interceptResult.value;
+                                }
+                                return $e{originalValueExpr};
                             };
                         }
                     } else {
                         var interceptCall = if (isVoidReturn) {
                             macro {
-                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
-                                if (_interceptResult.intercepted) {
-                                    return;
+                                if (yutautil.typeregistry.RuntimeFunctionRegistry.shouldIntercept($v{functionId})) {
+                                    var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                    if (_interceptResult.intercepted) {
+                                        return;
+                                    }
                                 }
                             };
                         } else {
                             macro {
-                                var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
-                                if (_interceptResult.intercepted) {
-                                    return cast _interceptResult.value;
+                                if (yutautil.typeregistry.RuntimeFunctionRegistry.shouldIntercept($v{functionId})) {
+                                    var _interceptResult = yutautil.typeregistry.RuntimeFunctionRegistry.get().intercept($v{functionId}, $contextExpr, $a{argExprs});
+                                    if (_interceptResult.intercepted) {
+                                        return cast _interceptResult.value;
+                                    }
                                 }
                             };
                         };
