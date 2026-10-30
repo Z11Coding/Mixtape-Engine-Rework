@@ -81,6 +81,18 @@ class SustainSplash extends ZSprite
 		}
 	}
 
+	public function playStart():Void
+  {
+    setPosition(this.x, this.y);
+    animation.play('hold');
+  }
+
+  public function playContinue():Void
+		animation.play('hold');
+
+  public function playEnd():Void
+		animation.play('end');
+
 	public function setupSusSplash(strum:StrumNote, daNote:Dynamic, ?playbackRate:Float = 1):Void
 	{
 		sustainNote = cast (daNote, SustainNote);

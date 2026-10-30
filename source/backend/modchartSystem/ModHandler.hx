@@ -702,7 +702,7 @@ class ModHandler
 
   public function mathCutOffCheck(notePos:Float, lane:Int = 0):Bool
   {
-    final whichStrumNote:StrumNote = strum.getByColumn(lane % (ExtraKeys.mania+1));
+    final whichStrumNote:StrumNote = strum.getByColumn(lane);
     return (whichStrumNote.strumExtraModData.mathCutOff > 0 && !(whichStrumNote.strumExtraModData.mathCutOff >= Math.abs(notePos)));
   }
 

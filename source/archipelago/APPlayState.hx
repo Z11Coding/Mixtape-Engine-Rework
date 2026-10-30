@@ -2622,7 +2622,7 @@ class APPlayState extends PlayState {
         super.update(elapsed);
     }
 
-    override function opponentNoteHit(note:Note, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void {
+    override function opponentNoteHit(note:Dynamic, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void {
         super.opponentNoteHit(note, noteAlt, customStrummer);
 
         if (releasethebeast) {

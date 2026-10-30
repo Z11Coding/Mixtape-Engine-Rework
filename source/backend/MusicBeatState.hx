@@ -319,8 +319,6 @@ class MusicBeatState extends FlxState
 			return;
 		}
 
-		scripts.addDebugText();
-
 		// Handle Garbage Collection for this state
 		handleGarbageCollection();
 
@@ -464,6 +462,8 @@ class MusicBeatState extends FlxState
 		// Update Archipelago tags on every state switch
 		updateAPTags();
 		#end
+
+		scripts.addDebugText();
 	}
 
 	public static var firstRun:Bool = true;

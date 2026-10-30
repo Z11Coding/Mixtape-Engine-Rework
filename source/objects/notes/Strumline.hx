@@ -716,7 +716,7 @@ class Strumline extends FlxSpriteGroup
           noteSplashSetPos(splash, splash.noteData);
         }
       }
-      //updatePerspective();
+      updatePerspective();
     }
     else
     {
@@ -1352,7 +1352,35 @@ class Strumline extends FlxSpriteGroup
         drawDistanceBack = 1.0 + (holdNote?.whichStrumNote?.strumExtraModData?.drawdistanceBack ?? 0.0);
       }
 
-      if (holdNote.missedNote && (holdNote.fullSustainLength > holdNote.sustainLength))
+      var renderWindowEnd =
+        holdNote.strumTime
+        + holdNote.fullSustainLength
+        + Constants.HIT_WINDOW_MS
+        + (renderDistanceMs / magicNumberIGuess * drawDistanceBack);
+
+      if (holdNote.missedNote && conductorInUse.musicPosition >= renderWindowEnd)
+      {
+        // Hold note is offscreen, kill it.
+        holdNote.visible = false;
+        holdNote.kill(); // Do not destroy! Recycling is faster.
+      }
+      else if (holdNote.hitNote && holdNote.sustainLength <= 0)
+      {
+        if (holdNote.cover != null && isPlayerControlled)
+        {
+          holdNote.cover.playEnd();
+        }
+        else if (holdNote.cover != null)
+        {
+          // *lightning* *zap* *crackle*
+          holdNote.cover.visible = false;
+          holdNote.cover.kill();
+        }
+
+        holdNote.visible = false;
+        holdNote.kill();
+      }
+      else if (holdNote.missedNote && (holdNote.fullSustainLength > holdNote.sustainLength))
       {
         // Hold note was dropped before completing, keep it in its clipped state.
         holdNote.visible = true;
@@ -1367,6 +1395,7 @@ class Strumline extends FlxSpriteGroup
       }
       else if (conductorInUse.musicPosition > holdNote.strumTime && holdNote.hitNote)
       {
+        // Hold note is currently being hit, clip it off.
         holdNote.sustainLength = (holdNote.strumTime + holdNote.fullSustainLength) - conductorInUse.musicPosition;
 
         if (mods != null)
@@ -1618,18 +1647,11 @@ class Strumline extends FlxSpriteGroup
       }
       else
       {
-        cover.x = this.x;
-        cover.x += getXPos(holdNote.noteData);
-        cover.x += STRUMLINE_SIZE / 2;
-        cover.x -= cover.width / 2;
-        cover.x += 0 * cover.scale.x;
-        cover.x += -12; // hardcoded adjustment, because we are evil.
+        cover.x = holdNote.parentStrumline.getByColumn(holdNote.noteData).x;
+        //cover.x += -12; // hardcoded adjustment, because we are evil.
 
-        cover.y = this.y;
-        cover.y += INITIAL_OFFSET;
-        cover.y += STRUMLINE_SIZE / 2;
-        cover.y += 0 * cover.scale.y;
-        cover.y += -96; // hardcoded adjustment, because we are evil.
+        cover.y = holdNote.parentStrumline.getByColumn(holdNote.noteData).y;
+        //cover.y += -96; // hardcoded adjustment, because we are evil.
       }
     }
   }

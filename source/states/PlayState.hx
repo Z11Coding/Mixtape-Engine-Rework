@@ -211,8 +211,8 @@ class PlayState extends MusicBeatState
 
 	// For Psych Compat.
 	public var strumLineNotes(get, default):FlxTypedSpriteGroup<StrumNote>;
-	public var opponentStrums(get, set):FlxTypedSpriteGroup<StrumNote>;
-	public var playerStrums(get, set):FlxTypedSpriteGroup<StrumNote>;
+	public var opponentStrums(get, default):FlxTypedSpriteGroup<StrumNote>;
+	public var playerStrums(get, default):FlxTypedSpriteGroup<StrumNote>;
 	public var grpNoteSplashes(get, set):FlxTypedGroup<NoteSplash>;
 
 	public var cpuControlled(get, set):Bool;
@@ -274,15 +274,7 @@ class PlayState extends MusicBeatState
 	private function get_opponentStrums():FlxTypedSpriteGroup<StrumNote> {
 		return playfield.opponentStrums.strumLineNotes;
 	}
-	private function set_opponentStrums(value:FlxTypedSpriteGroup<StrumNote>):FlxTypedSpriteGroup<StrumNote> {
-		playfield.opponentStrums.strumLineNotes = value;
-		return playfield.opponentStrums.strumLineNotes;
-	}
 	private function get_playerStrums():FlxTypedSpriteGroup<StrumNote> {
-		return playfield.playerStrums.strumLineNotes;
-	}
-	private function set_playerStrums(value:FlxTypedSpriteGroup<StrumNote>):FlxTypedSpriteGroup<StrumNote> {
-		playfield.playerStrums.strumLineNotes = value;
 		return playfield.playerStrums.strumLineNotes;
 	}
 	private function get_opponentStrumline():Strumline {
@@ -3455,9 +3447,9 @@ class PlayState extends MusicBeatState
 					note.visible = false;
 					note.ignoreNote = true;
 					if (note is SustainNote)
-						strum.sustainNotes.remove(note, true);
+						invalidateNote(note);
 					else
-						strum.notes.remove(note, true);
+						invalidateNote(note);
 				} else continue;
 			}
 		}
@@ -8547,7 +8539,7 @@ class PlayState extends MusicBeatState
     }
   }
 
-	public function opponentNoteHit(note:Note, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void
+	public function opponentNoteHit(note:Dynamic, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void
 	{
 		if (note != null) {
 			var result:Dynamic;
@@ -8991,8 +8983,11 @@ class PlayState extends MusicBeatState
 				}
 
 				noteMiss(note);
-				if(!note.noteSplashData.disabled && !(note is SustainNote))
+				if(!note.noteSplashData.disabled && !(note is SustainNote)) {
 					playfield.spawnNoteSplashOnNote(note);
+				}
+				if (note is SustainNote)
+					(customStrummer ?? (note.parentStrumline ?? playerStrumline)).playNoteHoldCover(note);
 			}
 
 			if (mechanicsMod != null) {
