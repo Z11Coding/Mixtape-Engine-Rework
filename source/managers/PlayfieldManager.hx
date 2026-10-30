@@ -710,7 +710,7 @@ class PlayfieldManager {
           daNoteData = Std.int(noteColumn % ExtraKeys.ammo[songData.mania != null ? songData.mania : 3]);
 					gottaHitNote = (noteColumn < (songData.mania != null ? totalColumns : ExtraKeys.ammo[songData.mania != null ? songData.mania : 3]));
 
-          if (unspawnNotes.length >= 10000) { // SONG IS TO BIG TO CHECK, SKIP IT!
+          if (unspawnNotes.length <= 10000) { // SONG IS TO BIG TO CHECK, SKIP IT!
             if (i != 0) {
               // CLEAR ANY POSSIBLE GHOST NOTES
               for (evilNote in unspawnNotes) {
@@ -1244,7 +1244,10 @@ class PlayfieldManager {
         }
       }
 		}
-		trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCleared');
+    if (unspawnNotes.length <= 10000)
+      trace('["${SONG.song.toUpperCase()}" CHART INFO]: Ghost Notes Cleared: $ghostNotesCleared');
+    else
+      trace('["${SONG.song.toUpperCase()}" HAS MORE THEN 10,000 NOTES! GHOST NOTE CHECK HAS BEEN DISABLED FOR THIS SONG!');
 		unspawnNotes.sort(sortByTime);
 		if (playerStrums != null) playerStrums.unspawnNotes.sort(sortByTime);
 		if (opponentStrums != null) opponentStrums.unspawnNotes.sort(sortByTime);
