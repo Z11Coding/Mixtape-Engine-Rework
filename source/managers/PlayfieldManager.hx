@@ -710,14 +710,16 @@ class PlayfieldManager {
           daNoteData = Std.int(noteColumn % ExtraKeys.ammo[songData.mania != null ? songData.mania : 3]);
 					gottaHitNote = (noteColumn < (songData.mania != null ? totalColumns : ExtraKeys.ammo[songData.mania != null ? songData.mania : 3]));
 
-          if (i != 0) {
-            // CLEAR ANY POSSIBLE GHOST NOTES
-            for (evilNote in unspawnNotes) {
-              var matches:Bool = (daNoteData == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == songNotes[3]);
-              if (matches && Math.abs(daStrumTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
-                unspawnNotes.remove(evilNote);
-                ghostNotesCleared++;
-                //continue;
+          if (unspawnNotes.length >= 10000) { // SONG IS TO BIG TO CHECK, SKIP IT!
+            if (i != 0) {
+              // CLEAR ANY POSSIBLE GHOST NOTES
+              for (evilNote in unspawnNotes) {
+                var matches:Bool = (daNoteData == evilNote.noteData && gottaHitNote == evilNote.mustPress && evilNote.noteType == songNotes[3]);
+                if (matches && Math.abs(daStrumTime - evilNote.strumTime) < flixel.math.FlxMath.EPSILON) {
+                  unspawnNotes.remove(evilNote);
+                  ghostNotesCleared++;
+                  //continue;
+                }
               }
             }
           }

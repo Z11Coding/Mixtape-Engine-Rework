@@ -147,21 +147,6 @@ class PhillyBlazin extends BaseStage
 		}
 		remove(dadGroup, true);
 		addBehindBF(dadGroup);
-
-		/*var off:Float = Math.min(FlxG.width, 1280) / 4;
-		var opp:Int = PlayState.instance.opponentmode ? 0 : 1;
-
-		var halfKeys:Int = Math.floor(Note.ammo[PlayfieldManager.mania[0]] / 2);
-		if (Note.ammo[PlayfieldManager.mania[0]] % 2 != 0) // middle receptor dissappears, if there is one
-			PlayState.instance.modManager.setValue('alpha${halfKeys + 1}', 1.0, opp);
-
-		for (i in 0...halfKeys)
-			PlayState.instance.modManager.setValue('transform${i}X', -off, opp);
-		for (i in Note.ammo[PlayfieldManager.mania[0]]-halfKeys...Note.ammo[PlayfieldManager.mania[0]])
-			PlayState.instance.modManager.setValue('transform${i}X', off, opp);
-
-		PlayState.instance.modManager.setValue("alpha", 1, opp);
-		PlayState.instance.modManager.setValue("opponentSwap", 0.5);*/
 	}
 
 	function setupRainShader()

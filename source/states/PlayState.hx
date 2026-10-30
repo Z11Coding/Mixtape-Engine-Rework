@@ -3326,29 +3326,6 @@ class PlayState extends MusicBeatState
 						tick = START;
 				}
 
-				if(!playfield.skipArrowStartTween)
-				{
-					opponentStrumline.notes.forEachAlive(function(note:Note) {
-						if(ClientPrefs.data.opponentStrums || note.mustPress)
-						{
-							note.copyAlpha = false;
-							note.alpha = note.multAlpha;
-							if(ClientPrefs.data.middleScroll && !note.mustPress)
-								note.alpha *= 0.35;
-						}
-					});
-
-					opponentStrumline.sustainNotes.forEachAlive(function(note:SustainNote) {
-						if(ClientPrefs.data.opponentStrums || note.mustPress)
-						{
-							note.copyAlpha = false;
-							note.alpha = note.multAlpha;
-							if(ClientPrefs.data.middleScroll && !note.mustPress)
-								note.alpha *= 0.35;
-						}
-					});
-				}
-
 				stagesFunc(function(stage:BaseStage) stage.countdownTick(tick, swagCounter));
 				callOnLuas('onCountdownTick', [swagCounter]);
 				callOnHScript('onCountdownTick', [tick, swagCounter]);
