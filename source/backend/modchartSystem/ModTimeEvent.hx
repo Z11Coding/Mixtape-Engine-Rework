@@ -57,16 +57,6 @@ class ModTimeEvent
    */
   public var startingBeat:Float = 4.0;
 
-   /**
-   * Defines the duration of the tween in beats.
-   */
-  public var timeInSteps:Float = 4.0;
-
-  /**
-   * The time (in beats) when this event will be triggered.
-   */
-  public var startingStep:Float = 16.0;
-
   /**
    * If skipping past the event trigger time, should it stil activate?
    */
