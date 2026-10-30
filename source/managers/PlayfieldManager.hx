@@ -2864,7 +2864,7 @@ class PlayfieldManager {
 			splashesPerFrame[(isDad ? 0 : 1)] += 1;
 			final strum:Strumline = !isDad ? playerStrums : opponentStrums;
 			if(strum != null)
-				strum.constructNoteSplash(note.noteData);
+				strum.constructNoteSplash(note.noteData, null, note);
 		}
 	}
 

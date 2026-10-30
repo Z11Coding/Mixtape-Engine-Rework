@@ -54,6 +54,43 @@ class NoteSplash extends ZSprite
 	public static var defaultNoteSplash(default, never):String = "noteSplashes/noteSplashes";
 	public static var configs:Map<String, NoteSplashConfig> = new Map();
 
+	/** Resolve the built-in splash separately from optional splash packs. */
+	static function getDefaultSplashTexture():String
+	{
+		var postfix = getSplashSkinPostfix();
+		// The base splash atlas and its JSON live under different paths: the base
+		// atlas is assets/shared/images/noteSplashes, while optional skins live in
+		// assets/shared/images/noteSplashes/noteSplashes-<skin>.
+		return postfix.length > 0 ? defaultNoteSplash + postfix : "noteSplashes";
+	}
+
+	/** Resolve each mania lane to its configured color, not its key letter. */
+	static function getSplashColors(keyCount:Int):Array<String>
+	{
+		var colors:Array<String> = [];
+		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length && ExtraKeys.keysShit.exists(ExtraKeys.mania))
+		{
+			var keyData = ExtraKeys.keysShit.get(ExtraKeys.mania);
+			if (keyData.exists("colArray") && keyData.get("colArray") is Array)
+			{
+				var colorIndices:Array<Int> = cast keyData.get("colArray");
+				for (index in colorIndices)
+					if (index >= 0 && index < ExtraKeys.colArray.length)
+						colors.push(ExtraKeys.colArray[index].toLowerCase());
+			}
+		}
+
+		if (colors.length == 0)
+		{
+			var fallback = ExtraKeys.colArray4k;
+			while (colors.length < keyCount)
+				colors.push(fallback[colors.length % fallback.length].toLowerCase());
+		}
+		while (colors.length < keyCount)
+			colors.push(ExtraKeys.colArray4k[colors.length % ExtraKeys.colArray4k.length].toLowerCase());
+		return colors;
+	}
+
 	public function new(?x:Float = 0, ?y:Float = 0, ?strum:Int = 0, ?splash:String)
 	{
 		super(x, y);
@@ -81,7 +118,9 @@ class NoteSplash extends ZSprite
 
 		if (doR)return;*/ //TODO: Psych-ify this later
 
-		loadSplash(texture);
+		// Reuse the parsed config/animations when the same skin is recycled.
+		if (this.texture == null || texture != null && this.texture != texture)
+			loadSplash(texture);
 		setPosition(x, y);
 		animationAmount = 2;
 		alpha = 0.6;
@@ -100,7 +139,7 @@ class NoteSplash extends ZSprite
 
 		if(splash == null)
 		{
-			splash = defaultNoteSplash + getSplashSkinPostfix();
+			splash = getDefaultSplashTexture();
 			if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) splash = PlayfieldManager.SONG.splashSkin;
 		}
 
@@ -213,25 +252,7 @@ class NoteSplash extends ZSprite
 		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length) {
 			keyCount = ExtraKeys.ammo[ExtraKeys.mania];
 		}
-
-		// Get the appropriate color array for the current key count
-		var colArray:Array<String> = [];
-		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length && ExtraKeys.keysShit.exists(ExtraKeys.mania)) {
-			var keyData = ExtraKeys.keysShit.get(ExtraKeys.mania);
-			if (keyData.exists("letters") && keyData.get("letters") is Array) {
-				var letters:Array<String> = cast keyData.get("letters");
-				colArray = letters.map(letter -> letter.toLowerCase()); // Convert to lowercase for consistency
-			}
-		}
-
-		// Fallback to default if no proper key data found
-		if (colArray.length == 0) {
-			colArray = ExtraKeys.colArray.copy();
-			// Extend if we need more keys
-			while (colArray.length < keyCount) {
-				colArray.push('key${colArray.length}');
-			}
-		}
+		var colArray = getSplashColors(keyCount);
 
 		var failedToFind:Bool = false;
 		while (true)
@@ -263,18 +284,23 @@ class NoteSplash extends ZSprite
 		configs.set(path, this.config);
 	}
 
-	public function spawnSplashNote(?x:Float = 0, ?y:Float = 0, ?noteData:Int = 0, ?note:Note, ?randomize:Bool = true)
+	public function spawnSplashNote(?x:Float = 0, ?y:Float = 0, ?noteData:Int = 0, ?note:Note, ?randomize:Bool = true, ?splashSkin:String)
 	{
 		if (note != null && note.noteSplashData.disabled)
+		{
+			alpha = 0;
+			visible = false;
+			spawned = false;
 			return;
+		}
 
 		aliveTime = 0;
 
 		if (!inEditor)
 		{
-			var loadedTexture:String = defaultNoteSplash + getSplashSkinPostfix();
-			if (note != null && note.noteSplashData.texture != null) loadedTexture = note.noteSplashData.texture;
-			else if (PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) loadedTexture = PlayfieldManager.SONG.splashSkin;
+			var loadedTexture:String = splashSkin != null ? splashSkin : getDefaultSplashTexture();
+			if (note != null && note.noteSplashData.texture != null && note.noteSplashData.texture.length > 0) loadedTexture = note.noteSplashData.texture;
+			else if (splashSkin == null && PlayfieldManager.SONG != null && PlayfieldManager.SONG.splashSkin != null && PlayfieldManager.SONG.splashSkin.length > 0) loadedTexture = PlayfieldManager.SONG.splashSkin;
 
 			if (texture != loadedTexture) loadSplash(loadedTexture);
 		}
@@ -298,25 +324,11 @@ class NoteSplash extends ZSprite
 
 		// Get current key count for proper noteData calculation
 		var keyCount:Int = 4; // Default fallback
-		var colArray:Array<String> = ExtraKeys.colArray.copy();
 
 		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length) {
 			keyCount = ExtraKeys.ammo[ExtraKeys.mania];
 		}
-
-		// Get the appropriate color array for the current key count
-		if (ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length && ExtraKeys.keysShit.exists(ExtraKeys.mania)) {
-			var keyData = ExtraKeys.keysShit.get(ExtraKeys.mania);
-			if (keyData.exists("letters") && keyData.get("letters") is Array) {
-				var letters:Array<String> = cast keyData.get("letters");
-				colArray = letters.map(letter -> letter.toLowerCase());
-			}
-		}
-
-		// Extend color array if needed
-		while (colArray.length < keyCount) {
-			colArray.push('key${colArray.length}');
-		}
+		var colArray = getSplashColors(keyCount);
 
 		if (randomize && maxAnims > 1)
 			noteData = noteData % colArray.length + (FlxG.random.int(0, maxAnims - 1) * colArray.length);
@@ -328,6 +340,15 @@ class NoteSplash extends ZSprite
 		visible = true;
 
 		var anim:String = playDefaultAnim();
+		if (anim == null || !animation.exists(anim))
+		{
+			// A missing lane animation must not leave a visible, unanimated atlas
+			// frame behind (which appears as a black/garbled splash when recycled).
+			alpha = 0;
+			visible = false;
+			spawned = false;
+			return;
+		}
 
 		// Apply config-based offset if animation was found
 		if (anim != null && config != null && config.animations.exists(anim)) {
@@ -418,6 +439,9 @@ class NoteSplash extends ZSprite
 			}
 		}
 		rgbShader.copyValues(tempShader);
+		// With no palette, the identity matrix and mult=0 pass the texture through
+		// while retaining pixel-splash sampling when the skin requests it.
+		shader = rgbShader.shader;
 		if (!config.allowPixel) rgbShader.pixelAmount = 1;
 		else if (PlayState.isPixelStage) rgbShader.pixelAmount = 6;
 
@@ -463,6 +487,14 @@ class NoteSplash extends ZSprite
 	public function playDefaultAnim()
 	{
 		var anim:String = noteDataMap.get(noteData);
+		// Standard splash atlases only define the four base directions. Extra-key
+		// layouts can still show a base animation instead of a blank atlas frame.
+		if (anim == null || !animation.exists(anim))
+		{
+			var baseDirection = noteData % 4;
+			if (baseDirection < 0) baseDirection += 4;
+			anim = noteDataMap.get(baseDirection);
+		}
 		#if debug
 		trace('NoteSplash: Trying to play animation for noteData $noteData, found: $anim');
 		trace('NoteSplash: Available animations in noteDataMap: ${[for (k => v in noteDataMap) '$k=>$v']}');
@@ -612,17 +644,21 @@ class PixelSplashShaderRef
 
 	public function copyValues(tempShader:RGBPalette)
 	{
-		if (tempShader != null)
+		if (tempShader == null)
 		{
-			for (i in 0...3)
-			{
-				shader.r.value[i] = tempShader.shader.r.value[i];
-				shader.g.value[i] = tempShader.shader.g.value[i];
-				shader.b.value[i] = tempShader.shader.b.value[i];
-			}
-			shader.mult.value[0] = tempShader.shader.mult.value[0];
+			reset();
+			enabled = false;
+			return;
 		}
-		else enabled = false;
+
+		for (i in 0...3)
+		{
+			shader.r.value[i] = tempShader.shader.r.value[i];
+			shader.g.value[i] = tempShader.shader.g.value[i];
+			shader.b.value[i] = tempShader.shader.b.value[i];
+		}
+		enabled = tempShader.shader.mult.value[0] > 0;
+		shader.mult.value[0] = tempShader.shader.mult.value[0];
 	}
 
 	public function set_enabled(value:Bool)
@@ -641,9 +677,11 @@ class PixelSplashShaderRef
 
 	public function reset()
 	{
-		shader.r.value = [0, 0, 0];
-		shader.g.value = [0, 0, 0];
-		shader.b.value = [0, 0, 0];
+		// Identity palette keeps the original splash visible until a real palette
+		// is copied in; zeroing all channels turns textured sprites black.
+		shader.r.value = [1, 0, 0];
+		shader.g.value = [0, 1, 0];
+		shader.b.value = [0, 0, 1];
 	}
 
 	public function new()

@@ -1183,19 +1183,20 @@ class Strumline extends FlxSpriteGroup
   /**
    * Custom recycling behavior for note splashes.
    */
-  public function constructNoteSplash(data:Int, ?splashSkin:String):NoteSplash
+  public function constructNoteSplash(data:Int, ?splashSkin:String, ?note:Note):NoteSplash
   {
-    var splash:NoteSplash = null;
+    var strumNote = getByColumn(data);
+    if (strumNote == null) return null;
+    if (note != null && note.noteSplashData.disabled) return null;
 
-    // If we haven't filled the pool yet...
-    if (noteSplashes.length < noteSplashes.maxSize)
+    // recycle() already inserts newly-created splashes and revives/reuses the
+    // next pooled one. Avoid adding the same sprite twice to the group.
+    var addingSplash:Bool = noteSplashes.length < noteSplashes.maxSize;
+    var splash:NoteSplash = noteSplashes.recycle(NoteSplash);
+    if (splash == null) return null;
+
+    if (addingSplash)
     {
-      // Recycle the first one
-      splash = noteSplashes.recycle(NoteSplash);
-      splash.setupNoteSplash(getByColumn(data).x, getByColumn(data).y, data, splashSkin);
-      this.noteSplashes.add(splash);
-      splash.weBelongTo = this;
-
       if (MegaManager.playfield != null)
       {
         if (MegaManager.playfield.allStrumSprites != null && MegaManager.playfield.noteRenderMode)
@@ -1204,24 +1205,11 @@ class Strumline extends FlxSpriteGroup
         }
       }
     }
-    else
-    {
-      // Else, find a note splash which is inactive so we can revive it.
-      splash = this.noteSplashes.getFirstAvailable();
-
-      if (splash != null)
-      {
-        // Recycle it again
-        splash = noteSplashes.recycle(NoteSplash);
-        splash.setupNoteSplash(getByColumn(data).x, getByColumn(data).y, data, splashSkin);
-      }
-      else
-      {
-        // The note splash pool is full and all note splashes are active,
-        // so we just pick one at random to destroy and restart.
-        splash = FlxG.random.getObject(this.noteSplashes.members);
-      }
-    }
+    splash.weBelongTo = this;
+    splash.setupNoteSplash(strumNote.x, strumNote.y, data, splashSkin);
+    // Setting up a splash only loads its atlas. Start its animation and apply
+    // the note's palette here; otherwise recycling draws the atlas' blank frame.
+    splash.spawnSplashNote(strumNote.x, strumNote.y, data, note, true, splashSkin);
 
     if (mods != null)
       noteSplashSetPos(splash, data);
@@ -1417,6 +1405,20 @@ class Strumline extends FlxSpriteGroup
           holdNote.x = ModConstants.holdNoteJankX;
           holdNote.y = ModConstants.holdNoteJankY;
         }
+      }
+
+      // SustainNote is a generated mesh, so unlike a note head it cannot scroll
+      // by changing its sprite position alone. Re-sample its hold path after the
+      // hit/clip state above so modchart and plain gameplay use the same current
+      // note positions. updateClipping defers to draw when a drawFunc requests it.
+      holdNote.updateClipping(conductorInUse.musicPosition);
+
+      // The modded mesh vertices are already in playfield coordinates. Keep the
+      // sprite origin neutral or drawTriangles adds the note position a second time.
+      if (mods != null)
+      {
+        holdNote.x = ModConstants.holdNoteJankX;
+        holdNote.y = ModConstants.holdNoteJankY;
       }
     }
   }
@@ -1880,10 +1882,10 @@ class Strumline extends FlxSpriteGroup
     }
 
     // Move the splash to where the strum is
-    var strumStartX:Float = INITIAL_OFFSET + this.x + getXPos(direction) + 0;
-    var strumStartY:Float = this.y + 0;
-    splash.x += (whichStrumNote.x - strumStartX);
-    splash.y += (whichStrumNote.y - strumStartY);
+    // Reposition relative to the receptor each frame. Accumulating the delta
+    // from the default lane location made splashes drift whenever it moved.
+    splash.x = whichStrumNote.x;
+    splash.y = whichStrumNote.y;
 
     splash.z = whichStrumNote.z; // copy Z!
 

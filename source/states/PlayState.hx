@@ -8531,7 +8531,7 @@ class PlayState extends MusicBeatState
     // Display the hit on the strums
 		if ((ClientPrefs.data.badShitBreakCombo && (daRating.name == 'bad' || daRating.name == 'shit')) || daRating.name == 'shit') isComboBreak = true;
     customStrummer.hitNote(targetNote, !isComboBreak);
-    customStrummer.constructNoteSplash(targetNote.noteData);
+    customStrummer.constructNoteSplash(targetNote.noteData, null, targetNote);
 
     if (targetNote.isHoldNote && targetNote is SustainNote)
     {

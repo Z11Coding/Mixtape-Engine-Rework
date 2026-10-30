@@ -979,8 +979,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
    * If flipY is true, top and bottom bounds swap places.
    * @param songTime	The time to clip the note at, in milliseconds.
    */
-  public function updateClipping(songTime:Float = 0):Void
+  public function updateClipping(?songTime:Float):Void
   {
+    final clippingTime:Float = songTime ?? ModConstants.getSongPosition();
     if (getAnimationFrame(animation?.curAnim?.name) == null || customVertexData)
     {
       return;
@@ -989,20 +990,20 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     if (parentStrumline == null || parentStrumline.mods == null)
     {
       // trace("AW FUCK, THERE IS NO WAY TO SAMPLE MOD DATA!");
-      updateClipping_Vanilla(songTime);
+      updateClipping_Vanilla(clippingTime);
       usingHazModHolds = false;
       return;
     }
 
     if (usingHazModHolds)
     {
-      if (!parentStrumline.doUpdateClipsInDraw) updateClipping_mods(songTime);
+      if (!parentStrumline.doUpdateClipsInDraw) updateClipping_mods(clippingTime);
       else
         return;
     }
     else
     {
-      updateClipping_Vanilla(songTime);
+      updateClipping_Vanilla(clippingTime);
     }
   }
 
@@ -1177,7 +1178,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   }
 
   /** Split repeats at their UV seam, so an atlas hold never tiles other sprites. */
-  function buildAtlasHold(raw:Array<Float>, rawColors:Array<Int>, segments:Int, capFirst:Int):Bool
+  function buildAtlasHold(raw:Array<Float>, rawColors:Array<Int>, segments:Int, capFirst:Int, capTop:Float = 0, capBottom:Float = 1):Bool
   {
     if (frames == null || frames.frames.length <= 1) return false;
     var body = getHoldBodyFrame();
@@ -1191,6 +1192,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     {
       var first = piece < segments ? piece * 2 : capFirst;
       var frame = piece < segments ? body : cap;
+      // FlxFrame.uv.width/height store right/bottom coordinates, not extents.
+      var uvTop:Float = piece < segments ? frame.uv.y : FlxMath.lerp(frame.uv.y, frame.uv.height, capTop);
+      var uvBottom:Float = piece < segments ? frame.uv.height : FlxMath.lerp(frame.uv.y, frame.uv.height, capBottom);
       var start = Std.int(atlasVertexBuffer.length / 2);
       for (corner in 0...4)
       {
@@ -1198,7 +1202,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         atlasVertexBuffer.push(raw[source * 2]);
         atlasVertexBuffer.push(raw[source * 2 + 1]);
         atlasUVBuffer.push(corner % 2 == 0 ? frame.uv.x : frame.uv.width);
-        atlasUVBuffer.push(corner < 2 ? frame.uv.y : frame.uv.height);
+        atlasUVBuffer.push(corner < 2 ? uvTop : uvBottom);
         atlasColorBuffer.push(rawColors[source * 2]);
       }
       atlasIndexBuffer.push(start); atlasIndexBuffer.push(start + 2); atlasIndexBuffer.push(start + 1);
@@ -1211,6 +1215,44 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     colors.length = atlasColorBuffer.length;
     for (i in 0...atlasColorBuffer.length) colors[i] = atlasColorBuffer[i];
     return true;
+  }
+
+  /** Rebuild a vanilla straight sustain with tiled atlas frames instead of sampling neighboring atlas sprites. */
+  function buildVanillaAtlasHold(source:DrawData<Float>, clipHeight:Float, partHeight:Float, bottomHeight:Float):Bool
+  {
+    if (frames == null || frames.frames.length <= 1) return false;
+    final body = getHoldBodyFrame();
+    final cap = getAnimationFrame(animation?.curAnim?.name);
+    if (body == null || cap == null || body.frame.width <= 0 || body.frame.height <= 0) return false;
+
+    final bodyPixelHeight:Float = body.frame.height * (graphicWidth / body.frame.width);
+    final bodyDrawHeight:Float = Math.abs(source[5] - source[1]);
+    final segments:Int = Std.int(FlxMath.bound(Math.ceil(bodyDrawHeight / Math.max(1, bodyPixelHeight)), 1, 256));
+    clipVertexBuffer.resize(0);
+    for (segment in 0...(segments + 1))
+    {
+      final t:Float = segment / segments;
+      clipVertexBuffer.push(FlxMath.lerp(source[0], source[4], t));
+      clipVertexBuffer.push(FlxMath.lerp(source[1], source[5], t));
+      clipVertexBuffer.push(FlxMath.lerp(source[2], source[6], t));
+      clipVertexBuffer.push(FlxMath.lerp(source[3], source[7], t));
+    }
+
+    if (renderEnd)
+    {
+      // Duplicate the body endpoint as the tail's top edge, then append its bottom edge.
+      clipVertexBuffer.push(source[8]); clipVertexBuffer.push(source[9]);
+      clipVertexBuffer.push(source[10]); clipVertexBuffer.push(source[11]);
+      clipVertexBuffer.push(source[12]); clipVertexBuffer.push(source[13]);
+      clipVertexBuffer.push(source[14]); clipVertexBuffer.push(source[15]);
+    }
+
+    clipColorBuffer.resize(clipVertexBuffer.length);
+    for (i in 0...clipColorBuffer.length) clipColorBuffer[i] = color;
+    final capHeight:Float = cap.frame.height * zoom;
+    final capTop:Float = partHeight > 0 || capHeight <= 0 ? 0 : FlxMath.bound((bottomHeight - clipHeight) / capHeight, 0, bottomClip);
+    final capFirst:Int = renderEnd ? (segments + 1) * 2 : -1;
+    return buildAtlasHold(clipVertexBuffer, clipColorBuffer, segments, capFirst, capTop, bottomClip);
   }
 
   // 953.27ms with tracy. Ouch.
@@ -1519,7 +1561,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
    * @param songTime	The time to clip the note at, in milliseconds.
    * @param uvSetup	Should UV's be updated?.
    */
-  public function updateClipping_mods(songTime:Float = 0, uvSetup:Bool = true):Void
+  public function updateClipping_mods(?songTime:Float, uvSetup:Bool = true):Void
   {
     parentStrumline?.getFieldProjection3D();
     // Skip all the logic if this note is considered a 'miss' and we already was hit.
@@ -1535,7 +1577,9 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     this.x = noteModData.x;
     this.y = noteModData.y;
     if (fakeNote == null) fakeNote = new ZSprite();
-    var songTimmy:Float = (ModConstants.getSongPosition());
+    // Honor explicit gameplay/probe timestamps; use the conductor only for
+    // legacy callers that omit the argument.
+    final songTimmy:Float = songTime ?? ModConstants.getSongPosition();
     whichStrumNote = parentStrumline.getByColumn(noteData);
 
     // Moved the first susSample point to be much earlier so that we can also get the current mod values for how we should render he rest of this hold
@@ -1620,7 +1664,10 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     noteIndices.push(highestNumSoFar_ + 1 + 2);
     noteIndices.push(highestNumSoFar_ + 2 + 2);
 
-    var clipHeight:Float = FlxMath.bound(sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
+    // Strumline stores the remaining duration once the player is holding the
+    // note. Do not subtract elapsed time a second time in that case.
+    final clipLength:Float = hitNote && !missedNote ? sustainLength : sustainLength - (songTime - strumTime);
+    var clipHeight:Float = FlxMath.bound(sustainHeight(clipLength, parentStrumline?.scrollSpeed ?? 1.0), 0, graphicHeight);
     if (clipHeight <= 0.05)
     {
       visible = false;
@@ -2069,7 +2116,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
    */
   public function updateClipping_Vanilla(songTime:Float = 0):Void
   {
-    var clipHeight:Float = sustainHeight(sustainLength - (songTime - strumTime), parentStrumline?.scrollSpeed ?? 1.0).clamp(0, graphicHeight);
+    final clipLength:Float = hitNote && !missedNote ? sustainLength : sustainLength - (songTime - strumTime);
+    var clipHeight:Float = sustainHeight(clipLength, parentStrumline?.scrollSpeed ?? 1.0).clamp(0, graphicHeight);
     if (clipHeight <= 0.1)
     {
       visible = false;
@@ -2170,6 +2218,15 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // Bottom right
     uvtData[7 * 2] = uvtData[5 * 2]; // 25%/50%/75%/100% of the way through the image (1/8th past the top left of cap)
     uvtData[7 * 2 + 1] = uvtData[6 * 2 + 1]; // bottom bound
+
+    // Vanilla clipping above uses the legacy packed 8-column UV layout. Atlas
+    // skins store body and tail as separate frames, so tile those real frames
+    // into the same straight mesh instead of sampling unrelated atlas regions.
+    if (buildVanillaAtlasHold(vertices, clipHeight, partHeight, bottomHeight))
+    {
+      waitTillModUpdate = false;
+      return;
+    }
     waitTillModUpdate = false;
   }
 
@@ -2193,7 +2250,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // Update tris if modchart system
     if (usingHazModHolds && parentStrumline != null && parentStrumline.doUpdateClipsInDraw)
     {
-      updateClipping_mods();
+      updateClipping_mods(ModConstants.getSongPosition());
 
       // Stiching the verts of this sustain to the previous piece verts.
       if (this.previousPiece != null)
@@ -2207,6 +2264,14 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
         v[0] = v_prev[v_prev.length - 4];
 
         this.setVerts(v);
+      }
+
+      // updateClipping_mods temporarily uses the unsorted sample position, but
+      // this mesh stores playfield-space vertices. Restore its neutral draw origin.
+      if (parentStrumline.mods != null)
+      {
+        this.x = ModConstants.holdNoteJankX;
+        this.y = ModConstants.holdNoteJankY;
       }
     }
 

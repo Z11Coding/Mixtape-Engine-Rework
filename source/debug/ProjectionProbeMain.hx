@@ -112,6 +112,7 @@ class ProjectionProbeMain
 
 @:access(objects.notes.SustainNote)
 @:access(objects.notes.Strumline)
+@:access(objects.notes.NoteSplash)
 class ProjectionProbeState extends FlxState
 {
   var line:Strumline;
@@ -126,6 +127,8 @@ class ProjectionProbeState extends FlxState
   var animatedFrames:Int = 0;
   var lastAnimFrame:Int = -1;
   var snapshots:Int = 0;
+  var previousHoldRoots:Array<Array<Float>> = [];
+  var holdMeshMoved:Bool = false;
   var cases:Array<String> = ["2d", "3d", "paths", "3d-paths", "3d-flip-crop", "3d-back-face"];
 
   override public function create():Void
@@ -143,6 +146,11 @@ class ProjectionProbeState extends FlxState
     MegaManager.playfield.skipArrowStartTween = true;
     MegaManager.scriptManager = new ScriptManager();
     MegaManager.conductor = new backend.RConductor();
+    ProjectionProbeMain.write("Splash diagnostics: preference=" + backend.ClientPrefs.data.splashSkin + ", default="
+      + backend.ClientPrefs.defaultData.splashSkin + ", postfix=" + objects.notes.NoteSplash.getSplashSkinPostfix()
+      + ", root image=" + Paths.fileExists("images/noteSplashes.png", IMAGE)
+      + ", root xml=" + Paths.fileExists("images/noteSplashes.xml", TEXT)
+      + ", root atlas=" + (Paths.getSparrowAtlas("noteSplashes") != null));
     label = new FlxText(24, 20, 1220, "", 20);
     add(label);
     validatePlaneTransform();
@@ -247,6 +255,8 @@ class ProjectionProbeState extends FlxState
     lastAnimFrame = -1;
     totalUpdate = maxUpdate = totalDraw = maxDraw = 0;
     snapshots = 0;
+    previousHoldRoots = [];
+    holdMeshMoved = false;
     ProjectionProbeMain.write("CASE " + cases[phase]);
   }
 
@@ -299,6 +309,16 @@ class ProjectionProbeState extends FlxState
       if (Math.abs(hold.headCenterX - expectedCenter) > 0.00001)
         throw "Sustain center did not match the actual note head";
     }
+    var splash = line.constructNoteSplash(0);
+    if (splash == null || !splash.visible || splash.animation.curAnim == null)
+      throw "Gameplay note splash did not start an animation: " + Json.stringify({
+        nullSplash: splash == null,
+        visible: splash?.visible,
+        texture: splash?.texture,
+        noteData: splash?.noteData,
+        animations: splash?.animation?.getNameList(),
+        noteDataMap: splash == null ? null : [for (key => value in splash.noteDataMap) key + "=" + value]
+      });
     line.mods.updateSpecialMods();
     line.mods.updateStrums();
   }
@@ -340,8 +360,21 @@ class ProjectionProbeState extends FlxState
     for (hold in line.sustainNotes.members)
     {
       hold.strumTime = 200 + ((hold.noteData * 160 + tick * 6) % 750);
-      hold.updateClipping_mods(0);
+    }
+    // Use the same production update path as gameplay; calling the mesh builder
+    // directly here would hide a broken Strumline sustain update.
+    line.updateNotes();
+    for (i in 0...line.sustainNotes.members.length)
+    {
+      var hold = line.sustainNotes.members[i];
       for (value in hold.vertices) checkFinite(value, "hold vertices");
+      if (hold.vertices.length >= 2)
+      {
+        if (i < previousHoldRoots.length && (Math.abs(hold.vertices[0] - previousHoldRoots[i][0]) > 0.01
+          || Math.abs(hold.vertices[1] - previousHoldRoots[i][1]) > 0.01)) holdMeshMoved = true;
+        if (i >= previousHoldRoots.length) previousHoldRoots.push([hold.vertices[0], hold.vertices[1]]);
+        else previousHoldRoots[i] = [hold.vertices[0], hold.vertices[1]];
+      }
     }
     if (line.drawArrowPaths)
     {
@@ -422,8 +455,10 @@ class ProjectionProbeState extends FlxState
     if (tick >= 150)
     {
       if (animatedFrames < 2) throw "Receptor animation did not advance";
+      if (!holdMeshMoved) throw "Sustain mesh did not follow changing note positions";
       ProjectionProbeMain.results.push({name: cases[phase], samples: samples, updateMeanMs: totalUpdate / samples,
-        updateMaxMs: maxUpdate, drawMeanMs: totalDraw / samples, drawMaxMs: maxDraw, animationFrameChanges: animatedFrames, screenshots: snapshots});
+        updateMaxMs: maxUpdate, drawMeanMs: totalDraw / samples, drawMaxMs: maxDraw, animationFrameChanges: animatedFrames,
+        holdMeshMoved: holdMeshMoved, screenshots: snapshots});
       ProjectionProbeMain.write(Json.stringify(ProjectionProbeMain.results[ProjectionProbeMain.results.length - 1]));
       nextCase();
     }
