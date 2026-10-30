@@ -206,8 +206,8 @@ class PlayState extends MusicBeatState
 
 	// For the new stuff
 	public var allStrumlines(get, set):Array<Strumline>;
-	public var opponentStrumline(get, set):Strumline;
-	public var playerStrumline(get, set):Strumline;
+	public var opponentStrumline(get, default):Strumline;
+	public var playerStrumline(get, default):Strumline;
 
 	// For Psych Compat.
 	public var strumLineNotes(get, default):FlxTypedSpriteGroup<StrumNote>;
@@ -264,11 +264,11 @@ class PlayState extends MusicBeatState
 	}
 	private function get_strumLineNotes():FlxTypedSpriteGroup<StrumNote> {
 		var globalStrumGroup:FlxTypedSpriteGroup<StrumNote> = new FlxTypedSpriteGroup<StrumNote>();
-		for (line in playfield.allStrumLines) {
+		/*for (line in playfield.allStrumLines) {
 			for (strum in line.strumLineNotes.members) {
 				globalStrumGroup.add(strum);
 			}
-		}
+		}*/
 		return globalStrumGroup;
 	}
 	private function get_opponentStrums():FlxTypedSpriteGroup<StrumNote> {
@@ -288,15 +288,7 @@ class PlayState extends MusicBeatState
 	private function get_opponentStrumline():Strumline {
 		return playfield.opponentStrums;
 	}
-	private function set_opponentStrumline(value:Strumline):Strumline {
-		playfield.opponentStrums = value;
-		return playfield.opponentStrums;
-	}
 	private function get_playerStrumline():Strumline {
-		return playfield.playerStrums;
-	}
-	private function set_playerStrumline(value:Strumline):Strumline {
-		playfield.playerStrums = value;
 		return playfield.playerStrums;
 	}
 	private function get_grpNoteSplashes():FlxTypedGroup<NoteSplash> {
