@@ -716,7 +716,7 @@ class Strumline extends FlxSpriteGroup
           noteSplashSetPos(splash, splash.noteData);
         }
       }
-      updatePerspective();
+      //updatePerspective();
     }
     else
     {
@@ -1625,12 +1625,14 @@ class Strumline extends FlxSpriteGroup
       cover = new SustainSplash();
       cover.alpha = 0.0001;
       cover.visible = false;
+      cover.cameras = holdNote.cameras;
     } else this.holdSplashes.recycle(SustainSplash);
 
     if (cover != null)
     {
       cover.sustainNote = holdNote;
       holdNote.cover = cover;
+      cover.cameras = holdNote.cameras;
       cover.visible = true;
 
       cover.setupSusSplash(holdNote.parentStrumline.getByColumn(holdNote.noteData), holdNote, ClientPrefs.getGameplaySetting('songspeed'));
@@ -1650,10 +1652,10 @@ class Strumline extends FlxSpriteGroup
       else
       {
         cover.x = holdNote.parentStrumline.getByColumn(holdNote.noteData).x;
-        //cover.x += -12; // hardcoded adjustment, because we are evil.
+        cover.x += -12; // hardcoded adjustment, because we are evil.
 
         cover.y = holdNote.parentStrumline.getByColumn(holdNote.noteData).y;
-        //cover.y += -96; // hardcoded adjustment, because we are evil.
+        cover.y += -96; // hardcoded adjustment, because we are evil.
       }
     }
   }

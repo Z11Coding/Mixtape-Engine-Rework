@@ -118,7 +118,7 @@ class PlayfieldManager {
   public var customZspritesGroup:FlxTypedSpriteGroup<ZSprite>;
 
   // If true, will enable the modchart logic. If false, the game should act identical to Vanilla.
-  public var isModchartSong:Bool = true;
+  public var isModchartSong:Bool = false;
 
   // basic flxSprite that can be used by lua for AFT purposes.
   public var luaAFT_sprite:HazardAFTSpriteTest;
@@ -209,7 +209,7 @@ class PlayfieldManager {
   /*
   * Changes the way notes are rendered (kinda) so now all the sprites are in one big group for them to have their z's sorted properly!
   */
-  public var noteRenderMode(default, set):Bool = false;
+  public var noteRenderMode(default, set):Bool = true;
 
   function set_noteRenderMode(v:Bool):Bool
   {
@@ -368,8 +368,6 @@ class PlayfieldManager {
     if (grpHoldSplashes != null) grpHoldSplashes.clear();
 
     MegaManager.scriptManager.callOnScripts('onChangeMania', [ExtraKeys.mania, daOldMania]);
-
-
     MegaManager.scriptManager.setOnScripts('mania', ExtraKeys.mania);
 
     for (strum in allStrumLines) {
@@ -382,13 +380,13 @@ class PlayfieldManager {
     MegaManager.scriptManager.callOnScripts('preReceptorGeneration'); // backwards compat, deprecated
     MegaManager.scriptManager.callOnScripts('onReceptorGeneration');
 
+    initStrumlines();
 
-
-    for (i in 0...opponentStrums.length) {
+    for (i in 0...opponentStrums.strumLineNotes.length) {
       MegaManager.scriptManager.setOnScripts('defaultOpponentStrumX' + i, opponentStrums.getByColumn(i).x);
       MegaManager.scriptManager.setOnScripts('defaultOpponentStrumY' + i, opponentStrums.getByColumn(i).y);
     }
-    for (i in 0...playerStrums.length) {
+    for (i in 0...playerStrums.strumLineNotes.length) {
       MegaManager.scriptManager.setOnScripts('defaultPlayerStrumX' + i, playerStrums.getByColumn(i).x);
       MegaManager.scriptManager.setOnScripts('defaultPlayerStrumY' + i, playerStrums.getByColumn(i).y);
     }
@@ -561,7 +559,7 @@ class PlayfieldManager {
   public function addNotes() {
     grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.data.maxSplashLimit != 0 ? ClientPrefs.data.maxSplashLimit : 10000));
 
-    SustainSplash.startCrochet = Conductor.stepCrochet;
+    SustainSplash.startCrochet = MegaManager.conductor.stepLengthMs;
 		SustainSplash.frameRate = Math.floor(24 / 100 * SONG.bpm);
     var splash:SustainSplash = new SustainSplash();
     grpHoldSplashes.add(splash);
@@ -569,7 +567,7 @@ class PlayfieldManager {
     splash.alpha = 0.0001;
 
 		initStrumlines();
-    playerStrums.visible = opponentStrums.visible = ClientPrefs.data.showNotes; //that was easier than expected
+    //playerStrums.visible = opponentStrums.visible = ClientPrefs.data.showNotes; //that was easier than expected
 
     if (isModchartSong)
     {
@@ -664,7 +662,7 @@ class PlayfieldManager {
       trace('in-chart events DOESN\'T EXSIST FOR SONG ${this.songName}!');
     }
 
-    var currentBPMLol:Float = Conductor.bpm = songData.bpm;
+    var currentBPMLol:Float = songData.bpm;
 		var stepCrochet:Float = 15000 / currentBPMLol;
 		var currentMultiplier:Float = 1;
 		var gottaHitNote:Bool = false;
@@ -1143,7 +1141,7 @@ class PlayfieldManager {
 						noteTypeMap.set(swagNote.noteType, true);
 					}
 
-          swagNote.row = Conductor.secsToRow(daStrumTime);
+          swagNote.row = RConductor.secsToRow(daStrumTime);
 
 					unspawnNotes.push(swagNote);
           if (playerStrums != null && opponentStrums != null) {
@@ -2844,7 +2842,7 @@ class PlayfieldManager {
 		if (note != null) {
 			var strum:StrumNote = (note.parentStrumline ?? (isDad ? playerStrums : opponentStrums)).getByColumn(note.noteData);
 			final susLength:Float = (!note.isSustainNote ? note.sustainLength : note.parentSL);
-			final tailLength:Int = Math.floor(susLength / Conductor.stepCrochet);
+			final tailLength:Int = Math.floor(susLength / MegaManager.conductor.stepLengthMs);
 
 			if(strum != null && tailLength != 0)
 				spawnHoldSplash(note);
@@ -2873,7 +2871,7 @@ class PlayfieldManager {
     unspawnNotes = [];
 
     // cleanup
-    isModchartSong = true;
+    isModchartSong = false;
     modchartEventHandler = null;
     modchartTweenList = null;
     if (allStrumSprites != null)
@@ -3184,7 +3182,7 @@ class PlayfieldManager {
     opponentStrums.heightWas = opponentStrums.height;
     opponentStrums.y = getStrumlineY(opponentStrums);
 
-    opponentStrums.zIndex = 1000;
+    opponentStrums.zIndex = 1001;
     opponentStrums.cameras = [PlayState.instance?.camHUD];
 
     if (isModchartSong)
@@ -3195,8 +3193,6 @@ class PlayfieldManager {
       if (playerStrums.mods != null) {
         playerStrums.mods.customTweenerName = "player";
       }
-      opponentStrums.cameras = [camNotes];
-      playerStrums.cameras = [camNotes];
 
       modchartEventHandler = new ModEventHandler();
       customStrumLines = [];
