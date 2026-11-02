@@ -33,6 +33,32 @@ package objects.notes;
 	public var row:Int = 0;
 	@:optional public var rgbShader:RGBData;
 
+	public function unregisterFromNoteRow():Void
+	{
+		var playfield = MegaManager.playfield;
+		if (playfield == null || row < 0) return;
+
+		var rows = playfield.noteRows[mustPress ? 0 : 1];
+		if (row < rows.length && rows[row] != null)
+		{
+			rows[row].remove(this);
+			if (rows[row].length == 0)
+				rows[row] = null;
+		}
+	}
+
+	public function registerInNoteRow():Void
+	{
+		var playfield = MegaManager.playfield;
+		if (playfield == null || row < 0) return;
+
+		var rows = playfield.noteRows[mustPress ? 0 : 1];
+		if (rows[row] == null)
+			rows[row] = [];
+		if (!rows[row].contains(this))
+			rows[row].push(this);
+	}
+
 	public function dispose() {
 		// will be cleared by the GC later
 		for (field in Reflect.fields(this)) {

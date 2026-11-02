@@ -53,7 +53,8 @@ class ProjectionProbeMain
     #end
     write("Starting isolated renderer probe (no input, audio, save loading or desktop capture).");
     FlxG.autoPause = false;
-    var state:Class<FlxState> = Sys.getEnv("MIXTAPE_FIELD_DEMO") == "1" ? FieldProjectionDemo : ProjectionProbeState;
+    var state:Class<FlxState> = Sys.getEnv("MIXTAPE_SUSTAIN_PROBE") == "1" ? SustainRegressionState
+      : Sys.getEnv("MIXTAPE_FIELD_DEMO") == "1" ? FieldProjectionDemo : ProjectionProbeState;
     Lib.current.addChild(new FlxGame(1280, 720, state, 60, 60, true, false));
   }
 
@@ -154,8 +155,60 @@ class ProjectionProbeState extends FlxState
     label = new FlxText(24, 20, 1220, "", 20);
     add(label);
     validatePlaneTransform();
+    validateMultikeyPixelNotes();
     FlxG.signals.postDraw.add(afterDraw);
     nextCase();
+  }
+
+  /** Exercise the actual 18-lane pixel note and hold setup used by multikey charts. */
+  function validateMultikeyPixelNotes():Void
+  {
+    var oldMania = ExtraKeys.mania;
+    var oldStageUI = PlayState.stageUI;
+    ExtraKeys.mania = 17; // Engine index 17 is the 18-key layout.
+    PlayState.stageUI = "pixel";
+    var multikeyLine = new Strumline({strumlinePos: FlxPoint.get(100, 100), player: 1}, false, 1, true);
+    multikeyLine.active = false;
+    multikeyLine.x = 100;
+    if (multikeyLine.strumLineNotes.length != 18) throw "18-key layout did not create all receptors";
+
+    var letters:Array<String> = ExtraKeys.keysShit.get(17).get("letters");
+    var pixelIndices:Array<Int> = ExtraKeys.keysShit.get(17).get("pixelAnimIndex");
+    var targetScale = PlayState.daPixelZoom * ExtraKeys.pixelScales[17];
+    for (lane in 0...18)
+    {
+      var note = new Note(0, lane, multikeyLine);
+      note.setupNoteData({strumTime: 1000 + lane, noteData: lane, row: -1});
+      if (note.animation.curAnim == null || note.animation.curAnim.name != letters[lane])
+        throw "18-key pixel note animation missing for lane " + lane;
+      if (note.animation.curAnim.frames[0] != pixelIndices[lane] + 18)
+        throw "18-key pixel note used the wrong atlas cell for lane " + lane;
+      var expectedNoteWidth = note.frameWidth * targetScale;
+      if (Math.abs(note.width - expectedNoteWidth) > Math.max(4, expectedNoteWidth * 0.05))
+        throw "18-key pixel note rendered at the wrong width for lane " + lane + ": " + note.width + " (expected about " + expectedNoteWidth + ")";
+
+      var hold = new SustainNote(1200 + lane, lane, 420, multikeyLine);
+      hold.setupNoteData({strumTime: 1200 + lane, noteData: lane, sustainLength: 420, parentST: 1200 + lane,
+        parentSL: 420, isSustainNote: true, isSustainEnd: false, row: -1});
+      if (hold.animation.curAnim == null || hold.animation.curAnim.name != letters[lane] + " hold")
+        throw "18-key pixel sustain animation missing for lane " + lane;
+      if (hold.animation.curAnim.frames[0] != pixelIndices[lane])
+        throw "18-key pixel sustain used the wrong atlas cell for lane " + lane + ": got " + hold.animation.curAnim.frames[0]
+          + ", expected " + pixelIndices[lane] + ", texture=" + hold.publicTexture + ", frameCount=" + hold.frames.frames.length;
+      var expectedHoldWidth = hold.frameWidth * targetScale;
+      if (Math.abs(hold.width - expectedHoldWidth) > Math.max(4, expectedHoldWidth * 0.05))
+        throw "18-key pixel sustain rendered at the wrong width for lane " + lane + ": " + hold.width + " (expected about " + expectedHoldWidth + ")";
+      var splash = multikeyLine.constructNoteSplash(lane, null, note);
+      if (splash == null || !splash.visible || splash.animation.curAnim == null)
+        throw "18-key note splash did not animate for lane " + lane;
+      note.destroy();
+      hold.destroy();
+      splash.kill();
+    }
+    multikeyLine.destroy();
+    ExtraKeys.mania = oldMania;
+    PlayState.stageUI = oldStageUI;
+    ProjectionProbeMain.write("PASS: all 18 pixel lanes resolve note/sustain frames and animated splashes with one correct pixel scale.");
   }
 
   function validatePlaneTransform():Void

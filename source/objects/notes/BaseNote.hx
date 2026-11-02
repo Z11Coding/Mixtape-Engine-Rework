@@ -96,7 +96,7 @@ class BaseNote extends ZSpriteProjected
 
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
-	public var copyAngle:Bool = false;
+	public var copyAngle:Bool = true;
 	public var copyAlpha:Bool = true;
 	public var copyScaleX:Bool = true;
 	public var copyScaleY:Bool = true;
@@ -166,31 +166,5 @@ class BaseNote extends ZSpriteProjected
 		super();
 
 		noteModData = new NoteData();
-	}
-
-	public function unregisterFromNoteRow():Void
-	{
-		var playfield = MegaManager.playfield;
-		if (playfield == null || row < 0) return;
-
-		var rows = playfield.noteRows[mustPress ? 0 : 1];
-		if (row < rows.length && rows[row] != null)
-		{
-			rows[row].remove(this);
-			if (rows[row].length == 0)
-				rows[row] = null;
-		}
-	}
-
-	public function registerInNoteRow():Void
-	{
-		var playfield = MegaManager.playfield;
-		if (playfield == null || row < 0) return;
-
-		var rows = playfield.noteRows[mustPress ? 0 : 1];
-		if (rows[row] == null)
-			rows[row] = [];
-		if (!rows[row].contains(this))
-			rows[row].push(this);
 	}
 }

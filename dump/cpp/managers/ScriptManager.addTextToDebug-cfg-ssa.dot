@@ -1,0 +1,31 @@
+digraph graphname {
+	node [shape=plaintext];
+n28711790[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(28711790) BKConditional</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n28711789[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(28711789) BKConditional</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n28711788[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(28711788) BKConditional</td></tr>
+	<tr><td port="e0" align="left">var newText</td></tr>
+	<tr><td port="e1" align="left">var newText = this.luaDebugGroup.length == 0</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n28711787[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(28711787) BKFunctionEnd</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n28711786[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(28711786) BKFunctionBegin</td></tr>
+	<tr><td port="e0" align="left">var _hx_tmp = ! backend.ClientPrefs.data.disableDebugTraces</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n1[label=<<table BORDER="0" CELLBORDER="1" CELLSPACING="0">
+	<tr><td port="in" bgcolor="lightgray">(1) BKRoot</td></tr>
+	<tr><td port="out"></td></tr>
+</table>>];
+n1:out -> n28711786:in[label="CFGFunction"];
+}

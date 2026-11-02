@@ -571,10 +571,8 @@ class Strumline extends FlxSpriteGroup
 				}
 			}
 
-      if (PlayState.isPixelStage)
-        babyArrow.setGraphicSize(Std.int(babyArrow.width * PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]));
-      else
-        babyArrow.setGraphicSize(Std.int(babyArrow.width * ExtraKeys.scales[ExtraKeys.mania]));
+      // StrumNote.reloadNote already applies the native skin/mania scale.
+      // Scaling the hitbox again also cached a wrong targetScale for modcharts.
 
 			this.strumLineNotes.add(babyArrow);
 			this.strumLineNotesAlt.push(babyArrow);
@@ -1072,8 +1070,12 @@ class Strumline extends FlxSpriteGroup
   {
     strumLineNotes.forEach(function(note:StrumNote):Void
     {
-      var styleScale = 0.7;
+      // A hardcoded 0.7 makes pixel receptors tiny and extended layouts oversized.
+      var styleScale = PlayState.isPixelStage ? PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]
+        : ExtraKeys.scales[ExtraKeys.mania];
       note.scale.set(styleScale * scale.x, styleScale * scale.y);
+      note.updateHitbox();
+      note.targetScale = note.scale.x;
     });
     setNoteSpacing(noteSpacingScale);
   }
@@ -1214,6 +1216,8 @@ class Strumline extends FlxSpriteGroup
     if (mods != null)
       noteSplashSetPos(splash, data);
 
+    splash.cameras = this.cameras;
+
     return splash;
   }
 
@@ -1349,12 +1353,13 @@ class Strumline extends FlxSpriteGroup
       if (holdNote.missedNote && conductorInUse.musicPosition >= renderWindowEnd)
       {
         // Hold note is offscreen, kill it.
-        holdNote.visible = false;
-        holdNote.kill(); // Do not destroy! Recycling is faster.
+        //holdNote.visible = false;
+        //holdNote.kill(); // Do not destroy! Recycling is faster.
+        //continue; // kill resets the lane; do not sample that dead ribbon below.
       }
       else if (holdNote.hitNote && holdNote.sustainLength <= 0)
       {
-        if (holdNote.cover != null && isPlayerControlled)
+        /*if (holdNote.cover != null && isPlayerControlled)
         {
           holdNote.cover.playEnd();
         }
@@ -1367,6 +1372,7 @@ class Strumline extends FlxSpriteGroup
 
         holdNote.visible = false;
         holdNote.kill();
+        continue;*/
       }
       else if (holdNote.missedNote && (holdNote.fullSustainLength > holdNote.sustainLength))
       {
@@ -1411,6 +1417,11 @@ class Strumline extends FlxSpriteGroup
       // by changing its sprite position alone. Re-sample its hold path after the
       // hit/clip state above so modchart and plain gameplay use the same current
       // note positions. updateClipping defers to draw when a drawFunc requests it.
+      if(mods == null)
+      {
+        final receptor = getByColumn(holdNote.noteData);
+        if(receptor != null) holdNote.followStrum(receptor, scrollSpeed);
+      }
       holdNote.updateClipping(conductorInUse.musicPosition);
 
       // The modded mesh vertices are already in playfield coordinates. Keep the
@@ -1579,11 +1590,13 @@ class Strumline extends FlxSpriteGroup
     playConfirm(note.noteData);
     note.hasBeenHit = true;
 
-    if (removeNote)
+    // A whole sustain is a live ribbon, not a disposable note head. Killing it
+    // here resets its time/length before the hold state can consume it.
+    if (removeNote && !(note is SustainNote))
     {
       killNote(note);
     }
-    else
+    else if (!(note is SustainNote))
     {
       note.alpha = 0.5;
       note.desaturate();

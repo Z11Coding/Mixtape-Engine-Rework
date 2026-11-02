@@ -60,8 +60,8 @@ class APSettingsSubState extends MusicBeatSubstate {
         var includeSecrets = true;
 
         // Try to get the filtering settings from the game settings
-        if (APEntryState.gameSettings != null && APEntryState.gameSettings.FNF != null) {
-            var settings = APEntryState.gameSettings.FNF;
+        if (APInfo.gameSettings != null && APInfo.gameSettings.FNF != null) {
+            var settings = APInfo.gameSettings.FNF;
 
             // Use the settings if they exist, otherwise default to true
             if (Reflect.hasField(settings, "include_vanilla")) {
@@ -96,14 +96,14 @@ class APSettingsSubState extends MusicBeatSubstate {
         trace('Base songs added to list: ${globalSongList.length} songs');
 
         var tempSongList:Map<String, Bool> = new Map();
-        // trace("Mods present: " + Mods.parseList().enabled);
-        // trace("Weeks present: " + WeekData.weeksList);
-        // trace("Mods enabled: " + APEntryState.gameSettings.FNF.mods_enabled);
+        trace("Mods present: " + Mods.parseList().enabled);
+        trace("Weeks present: " + WeekData.weeksList);
+        trace("Mods enabled: " + APInfo.gameSettings.FNF.mods_enabled);
 
         WeekData.reloadWeekFiles(false);
 
 
-        if (APEntryState.gameSettings.FNF.mods_enabled) {
+        if (APInfo.gameSettings.FNF.mods_enabled) {
             for (i in 0...WeekData.weeksList.length) {
                 var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
                 trace("Week: " + leWeek.folder + " - " + leWeek);
@@ -190,32 +190,32 @@ class APSettingsSubState extends MusicBeatSubstate {
     }
 
     function setDefaults() {
-        progression_balancing.selectedLabel = APEntryState.gameSettings.FNF.progression_balancing;
-        accessibility.selectedLabel = APEntryState.gameSettings.FNF.accessibility;
-        unlockType.selectedLabel = APEntryState.gameSettings.FNF.unlock_type;
-        unlockMethod.selectedLabel = APEntryState.gameSettings.FNF.unlock_method;
-        deathlink.checked = APEntryState.gameSettings.FNF.deathlink;
-        ticketPercent.value = APEntryState.gameSettings.FNF.ticket_percentage;
-        ticketWinPercent.value = APEntryState.gameSettings.FNF.ticket_win_percentage;
+        progression_balancing.selectedLabel = APInfo.gameSettings.FNF.progression_balancing;
+        accessibility.selectedLabel = APInfo.gameSettings.FNF.accessibility;
+        unlockType.selectedLabel = APInfo.gameSettings.FNF.unlock_type;
+        unlockMethod.selectedLabel = APInfo.gameSettings.FNF.unlock_method;
+        deathlink.checked = APInfo.gameSettings.FNF.deathlink;
+        ticketPercent.value = APInfo.gameSettings.FNF.ticket_percentage;
+        ticketWinPercent.value = APInfo.gameSettings.FNF.ticket_win_percentage;
         allowMods.checked = false;
-        gradeRequirement.selectedLabel = APEntryState.gameSettings.FNF.graderequirement;
-        accRequirement.selectedLabel = APEntryState.gameSettings.FNF.accrequirement;
-        trapAmount.value = APEntryState.gameSettings.FNF.trapAmount;
-        bbcWeight.value = APEntryState.gameSettings.FNF.bbcWeight;
-        ghostChatWeight.value = APEntryState.gameSettings.FNF.ghostChatWeight;
-        tutorialWeight.value = APEntryState.gameSettings.FNF.tutorialWeight;
-        songswitchWeight.value = APEntryState.gameSettings.FNF.songswitchWeight;
-        resistanceWeight.value = APEntryState.gameSettings.FNF.resistanceWeight;
-        unoWeight.value = APEntryState.gameSettings.FNF.unoWeight;
-        pongWeight.value = APEntryState.gameSettings.FNF.pongWeight;
-        ultConfusionWeight.value = APEntryState.gameSettings.FNF.ultConfusionWeight;
-        svcWeight.value = APEntryState.gameSettings.FNF.svcWeight;
-        chartmodifierchance.value = APEntryState.gameSettings.FNF.chart_modifier_change_chance;
-        shieldWeight.value = APEntryState.gameSettings.FNF.shieldWeight;
-        MHPWeight.value = APEntryState.gameSettings.FNF.MHPWeight;
-        MHPDWeight.value = APEntryState.gameSettings.FNF.MHPDWeight;
-        exLifeWeight.value = APEntryState.gameSettings.FNF.exLifeWeight;
-        songLimit.value = APEntryState.gameSettings.FNF.song_limit;
+        gradeRequirement.selectedLabel = APInfo.gameSettings.FNF.graderequirement;
+        accRequirement.selectedLabel = APInfo.gameSettings.FNF.accrequirement;
+        trapAmount.value = APInfo.gameSettings.FNF.trapAmount;
+        bbcWeight.value = APInfo.gameSettings.FNF.bbcWeight;
+        ghostChatWeight.value = APInfo.gameSettings.FNF.ghostChatWeight;
+        tutorialWeight.value = APInfo.gameSettings.FNF.tutorialWeight;
+        songswitchWeight.value = APInfo.gameSettings.FNF.songswitchWeight;
+        resistanceWeight.value = APInfo.gameSettings.FNF.resistanceWeight;
+        unoWeight.value = APInfo.gameSettings.FNF.unoWeight;
+        pongWeight.value = APInfo.gameSettings.FNF.pongWeight;
+        ultConfusionWeight.value = APInfo.gameSettings.FNF.ultConfusionWeight;
+        svcWeight.value = APInfo.gameSettings.FNF.svcWeight;
+        chartmodifierchance.value = APInfo.gameSettings.FNF.chart_modifier_change_chance;
+        shieldWeight.value = APInfo.gameSettings.FNF.shieldWeight;
+        MHPWeight.value = APInfo.gameSettings.FNF.MHPWeight;
+        MHPDWeight.value = APInfo.gameSettings.FNF.MHPDWeight;
+        exLifeWeight.value = APInfo.gameSettings.FNF.exLifeWeight;
+        songLimit.value = APInfo.gameSettings.FNF.song_limit;
     }
 
     function addMainSettings()
@@ -226,36 +226,36 @@ class APSettingsSubState extends MusicBeatSubstate {
 
         progression_balancing = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, prog:String)
         {
-            APEntryState.gameSettings.FNF.progression_balancing = prog;
+            APInfo.gameSettings.FNF.progression_balancing = prog;
         });
 
         accessibility = new PsychUIDropDownMenu(objX + 150, objY, [''], function(id:Int, acc:String)
         {
-            APEntryState.gameSettings.FNF.accessibility = acc;
+            APInfo.gameSettings.FNF.accessibility = acc;
         });
 
         objY += 50;
         unlockType = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, unlock:String)
         {
-            APEntryState.gameSettings.FNF.unlock_type = unlock;
+            APInfo.gameSettings.FNF.unlock_type = unlock;
         });
 
         unlockMethod = new PsychUIDropDownMenu(objX + 150, objY, [''], function(id:Int, unlock:String)
         {
-            APEntryState.gameSettings.FNF.unlock_method = unlock;
+            APInfo.gameSettings.FNF.unlock_method = unlock;
         });
 
         objY += 70;
-        deathlink = new PsychUICheckBox(objX, objY, 'DeathLink', 100, function() APEntryState.gameSettings.FNF.deathlink = deathlink.checked);
+        deathlink = new PsychUICheckBox(objX, objY, 'DeathLink', 100, function() APInfo.gameSettings.FNF.deathlink = deathlink.checked);
 
         objY += 50;
-        ticketPercent = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.ticket_percentage = Std.int(v));
+        ticketPercent = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.ticket_percentage = Std.int(v));
         ticketPercent.decimals = 0;
         ticketPercent.min = 10;
         ticketPercent.max = 50;
 
         objY += 50;
-        ticketWinPercent = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.ticket_win_percentage = Std.int(v));
+        ticketWinPercent = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.ticket_win_percentage = Std.int(v));
         ticketWinPercent.decimals = 0;
         ticketWinPercent.min = 50;
         ticketWinPercent.max = 100;
@@ -284,7 +284,7 @@ class APSettingsSubState extends MusicBeatSubstate {
         allowMods = new PsychUICheckBox(objX, objY, 'Allow Mods', 100,
         function()
         {
-            APEntryState.gameSettings.FNF.mods_enabled = allowMods.checked;
+            APInfo.gameSettings.FNF.mods_enabled = allowMods.checked;
             generateSongList();
             songLimit.max = globalSongList.length;
             if (songLimit.value > songLimit.max)
@@ -294,20 +294,20 @@ class APSettingsSubState extends MusicBeatSubstate {
         objY += 50;
         gradeRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, grade:String)
         {
-            APEntryState.gameSettings.FNF.graderequirement = grade;
+            APInfo.gameSettings.FNF.graderequirement = grade;
             trace(id);
         });
 
         objX += 150;
         accRequirement = new PsychUIDropDownMenu(objX, objY, [''], function(id:Int, accuracy:String)
         {
-            APEntryState.gameSettings.FNF.accrequirement = accuracy;
+            APInfo.gameSettings.FNF.accrequirement = accuracy;
             trace(id);
         });
 
         objX -= 150;
         objY += 50;
-        songLimit = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.song_limit = Std.int(v));
+        songLimit = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.song_limit = Std.int(v));
         songLimit.decimals = 0;
         songLimit.min = 5;
         songLimit.max = globalSongList.length;
@@ -327,99 +327,99 @@ class APSettingsSubState extends MusicBeatSubstate {
         var objX = 10;
         var objY = 20;
 
-        trapAmount = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.trapAmount = Std.int(v));
+        trapAmount = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.trapAmount = Std.int(v));
         trapAmount.min = 0;
         trapAmount.max = 60;
         trapAmount.decimals = 0;
 
         objY += 40;
-        bbcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.bbcWeight = Std.int(v));
+        bbcWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.bbcWeight = Std.int(v));
         bbcWeight.min = 0;
         bbcWeight.max = 10;
         bbcWeight.decimals = 0;
 
         objY += 40;
-        ghostChatWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.ghostChatWeight = Std.int(v));
+        ghostChatWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.ghostChatWeight = Std.int(v));
         ghostChatWeight.min = 0;
         ghostChatWeight.max = 10;
         ghostChatWeight.decimals = 0;
 
         objY += 40;
-        tutorialWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.tutorialWeight = Std.int(v));
+        tutorialWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.tutorialWeight = Std.int(v));
         tutorialWeight.min = 0;
         tutorialWeight.max = 10;
         tutorialWeight.decimals = 0;
 
         objY += 40;
-        songswitchWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.songswitchWeight = Std.int(v));
+        songswitchWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.songswitchWeight = Std.int(v));
         songswitchWeight.min = 0;
         songswitchWeight.max = 10;
         songswitchWeight.decimals = 0;
 
         objY += 40;
-        resistanceWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.resistanceWeight = Std.int(v));
+        resistanceWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.resistanceWeight = Std.int(v));
         resistanceWeight.min = 0;
         resistanceWeight.max = 10;
         resistanceWeight.decimals = 0;
 
         objY += 40;
-        unoWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.unoWeight = Std.int(v));
+        unoWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.unoWeight = Std.int(v));
         unoWeight.min = 0;
         unoWeight.max = 10;
         unoWeight.decimals = 0;
 
         objY += 40;
-        pongWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.pongWeight = Std.int(v));
+        pongWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.pongWeight = Std.int(v));
         pongWeight.min = 0;
         pongWeight.max = 10;
         pongWeight.decimals = 0;
 
         objX += 40;
         objY = 20;
-        ultConfusionWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.pongWeight = Std.int(v));
+        ultConfusionWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.pongWeight = Std.int(v));
         ultConfusionWeight.min = 0;
         ultConfusionWeight.max = 10;
         ultConfusionWeight.decimals = 0;
 
         objY += 40;
-        svcWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.svcWeight = Std.int(v));
+        svcWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.svcWeight = Std.int(v));
         svcWeight.min = 0;
         svcWeight.max = 10;
         svcWeight.decimals = 0;
 
         objY += 40;
-        fakeTransWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.fakeTransWeight = Std.int(v));
+        fakeTransWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.fakeTransWeight = Std.int(v));
         fakeTransWeight.min = 0;
         fakeTransWeight.max = 10;
         fakeTransWeight.decimals = 0;
-        fakeTransWeight.value = APEntryState.gameSettings.FNF.fakeTransWeight;
+        fakeTransWeight.value = APInfo.gameSettings.FNF.fakeTransWeight;
 
         objY += 40;
-        chartmodifierchance = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.chart_modifier_change_chance = Std.int(v));
+        chartmodifierchance = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.chart_modifier_change_chance = Std.int(v));
         chartmodifierchance.min = 0;
         chartmodifierchance.max = 10;
         chartmodifierchance.decimals = 0;
 
         objY += 40;
-        shieldWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.shieldWeight = Std.int(v));
+        shieldWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.shieldWeight = Std.int(v));
         shieldWeight.min = 0;
         shieldWeight.max = 10;
         shieldWeight.decimals = 0;
 
         objY += 40;
-        MHPWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.MHPWeight = Std.int(v));
+        MHPWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.MHPWeight = Std.int(v));
         MHPWeight.min = 0;
         MHPWeight.max = 10;
         MHPWeight.decimals = 0;
 
         objY += 40;
-        MHPDWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.MHPDWeight = Std.int(v));
+        MHPDWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.MHPDWeight = Std.int(v));
         MHPDWeight.min = 0;
         MHPDWeight.max = 10;
         MHPDWeight.decimals = 0;
 
         objY += 40;
-        exLifeWeight = new PsychUISlider(objX, objY, function(v:Float) APEntryState.gameSettings.FNF.exLifeWeight = Std.int(v));
+        exLifeWeight = new PsychUISlider(objX, objY, function(v:Float) APInfo.gameSettings.FNF.exLifeWeight = Std.int(v));
         exLifeWeight.min = 0;
         exLifeWeight.max = 10;
         exLifeWeight.decimals = 0;
@@ -464,28 +464,28 @@ class APSettingsSubState extends MusicBeatSubstate {
         CustomAPLogic.APHScriptProcessor.processAllMods();
 
         var yamlThing = {}
-        for (thing in Reflect.fields(APEntryState.gameSettings.FNF))
+        for (thing in Reflect.fields(APInfo.gameSettings.FNF))
         {
-            Reflect.setField(yamlThing, thing, Reflect.field(APEntryState.gameSettings.FNF, thing));
+            Reflect.setField(yamlThing, thing, Reflect.field(APInfo.gameSettings.FNF, thing));
         }
 
         while (globalSongList.length == 0) {
             generateSongList();
         }
-        APEntryState.gameSettings.FNF.songList = globalSongList;
+        APInfo.gameSettings.FNF.songList = globalSongList;
 
-        if (APEntryState.gameSettings.FNF.songList.length == 0) {
-            while (APEntryState.gameSettings.FNF.songList.length == 0) {
+        if (APInfo.gameSettings.FNF.songList.length == 0) {
+            while (APInfo.gameSettings.FNF.songList.length == 0) {
                 generateSongList();
-                APEntryState.gameSettings.FNF.songList = globalSongList;
+                APInfo.gameSettings.FNF.songList = globalSongList;
             }
         }
 
         // for that true random type beat
-        FlxG.random.shuffle(APEntryState.gameSettings.FNF.songList);
+        FlxG.random.shuffle(APInfo.gameSettings.FNF.songList);
 
 
-        var mainSettings = {name: APEntryState.yamlName, description: APEntryState.gameSettings.description, game: APEntryState.gameSettings.game};
+        var mainSettings = {name: APEntryState.yamlName, description: APInfo.gameSettings.description, game: APInfo.gameSettings.game};
         var document = Yaml.render(mainSettings, Renderer.options().setFlowLevel(1));
 		trace(document);
 
@@ -541,24 +541,24 @@ class APSettingsSubState extends MusicBeatSubstate {
 
         comment += "# This YAML file was generated by Mixtape Engine.\n";
         comment += "# The amount of songs in this YAML is " + Reflect.field(yamlThing, "songList").length + ".\n";
-        comment += "# The amount of checks (total) possible is " + APEntryState.gameSettings.FNF.songList.length * 5 + ".\n";
-        comment += "# The amount of checks (total) if just Song Completion is used is " + APEntryState.gameSettings.FNF.songList.length * 2 + ".\n";
-        comment += "# The amount of checks (total) if just Note Checks is used is " + APEntryState.gameSettings.FNF.songList.length * 3 + ".\n";
-        comment += "# The amount of checks (currently) possible is " + ((APEntryState.gameSettings.FNF.songList.length * 5) - APEntryState.gameSettings.FNF.song_limit) + ".\n";
-        comment += "# The amount of checks (currently) if just Song Completion is used is " + ((APEntryState.gameSettings.FNF.songList.length * 2) - APEntryState.gameSettings.FNF.song_limit) + ".\n";
-        comment += "# The amount of checks (currently) if just Note Checks is used is " + ((APEntryState.gameSettings.FNF.songList.length * 3) - APEntryState.gameSettings.FNF.song_limit) + ".\n";
+        comment += "# The amount of checks (total) possible is " + APInfo.gameSettings.FNF.songList.length * 5 + ".\n";
+        comment += "# The amount of checks (total) if just Song Completion is used is " + APInfo.gameSettings.FNF.songList.length * 2 + ".\n";
+        comment += "# The amount of checks (total) if just Note Checks is used is " + APInfo.gameSettings.FNF.songList.length * 3 + ".\n";
+        comment += "# The amount of checks (currently) possible is " + ((APInfo.gameSettings.FNF.songList.length * 5) - APInfo.gameSettings.FNF.song_limit) + ".\n";
+        comment += "# The amount of checks (currently) if just Song Completion is used is " + ((APInfo.gameSettings.FNF.songList.length * 2) - APInfo.gameSettings.FNF.song_limit) + ".\n";
+        comment += "# The amount of checks (currently) if just Note Checks is used is " + ((APInfo.gameSettings.FNF.songList.length * 3) - APInfo.gameSettings.FNF.song_limit) + ".\n";
         var songLimitChecks = 0;
-        switch (APEntryState.gameSettings.FNF.unlock_method) {
+        switch (APInfo.gameSettings.FNF.unlock_method) {
             case "Song Completion":
-            songLimitChecks = APEntryState.gameSettings.FNF.song_limit * 2;
+            songLimitChecks = APInfo.gameSettings.FNF.song_limit * 2;
             case "Note Checks":
-            songLimitChecks = APEntryState.gameSettings.FNF.song_limit * 3;
+            songLimitChecks = APInfo.gameSettings.FNF.song_limit * 3;
             case "Both":
-            songLimitChecks = APEntryState.gameSettings.FNF.song_limit * 5;
+            songLimitChecks = APInfo.gameSettings.FNF.song_limit * 5;
             default:
-            songLimitChecks = APEntryState.gameSettings.FNF.song_limit;
+            songLimitChecks = APInfo.gameSettings.FNF.song_limit;
         }
-        comment += "# From the song limit of " + APEntryState.gameSettings.FNF.song_limit + ", you will have exactly " + songLimitChecks + " checks.\n";
+        comment += "# From the song limit of " + APInfo.gameSettings.FNF.song_limit + ", you will have exactly " + songLimitChecks + " checks.\n";
         comment += " # you have exactly " + Mods.parseList().enabled.length + " mods.\n";
         var modCount = Mods.parseList().enabled.length;
         var modComment = "";

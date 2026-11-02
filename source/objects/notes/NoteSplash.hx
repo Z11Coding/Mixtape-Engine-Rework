@@ -91,6 +91,32 @@ class NoteSplash extends ZSprite
 		return colors;
 	}
 
+	/** Extend four-direction splash packs across multikey layouts by lane color. */
+	function mapExtraManiaLanes():Void
+	{
+		if (config == null || config.animations == null) return;
+		var keyCount = ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length ? ExtraKeys.ammo[ExtraKeys.mania] : 4;
+		var colors = getSplashColors(keyCount);
+		for (lane in 0...keyCount)
+		{
+			if (noteDataMap.exists(lane)) continue;
+			var laneColor = colors[lane].toLowerCase();
+			var animationName:String = null;
+			var bestNoteData = 0x3FFFFFFF;
+			for (anim in config.animations)
+			{
+				if (anim.prefix != null && anim.prefix.toLowerCase().indexOf(laneColor) >= 0 && anim.noteData < bestNoteData)
+				{
+					animationName = anim.name;
+					bestNoteData = anim.noteData;
+				}
+			}
+			// Custom splash packs often use direction names rather than colors.
+			if (animationName == null) animationName = noteDataMap.get(lane % 4);
+			if (animationName != null && animation.exists(animationName)) noteDataMap.set(lane, animationName);
+		}
+	}
+
 	public function new(?x:Float = 0, ?y:Float = 0, ?strum:Int = 0, ?splash:String)
 	{
 		super(x, y);
@@ -160,29 +186,33 @@ class NoteSplash extends ZSprite
 		if (configs.exists(path))
 		{
 			this.config = configs.get(path);
-			for (anim in this.config.animations)
+			if (noteDataMap.keys().hasNext())
 			{
-				if (anim.noteData % 4 == 0)
-					maxAnims++;
+				for (anim in this.config.animations)
+					if (anim.noteData % 4 == 0) maxAnims++;
+				mapExtraManiaLanes();
+				return;
 			}
-			return;
+			// A cached JSON can belong to the nested legacy atlas while the actual
+			// sheet only contains uncolored frames. Discard that unusable mapping.
+			configs.remove(path);
 		}
-		else if (Paths.fileExists('$path.json', TEXT))
+		if (Paths.fileExists('$path.json', TEXT))
 		{
-			var config:Dynamic = haxe.Json.parse(Paths.getTextFromFile('$path.json'));
-			if (config != null)
+			var jsonConfig:Dynamic = haxe.Json.parse(Paths.getTextFromFile('$path.json'));
+			if (jsonConfig != null)
 			{
 				var tempConfig:NoteSplashConfig = {
 					animations: new Map(),
-					scale: config.scale,
-					allowRGB: config.allowRGB,
-					allowPixel: config.allowPixel,
-					rgb: config.rgb
+					scale: jsonConfig.scale,
+					allowRGB: jsonConfig.allowRGB,
+					allowPixel: jsonConfig.allowPixel,
+					rgb: jsonConfig.rgb
 				}
 
-				for (i in Reflect.fields(config.animations))
+				for (i in Reflect.fields(jsonConfig.animations))
 				{
-					var anim:NoteSplashAnim = Reflect.field(config.animations, i);
+					var anim:NoteSplashAnim = Reflect.field(jsonConfig.animations, i);
 					tempConfig.animations.set(i, anim);
 				}
 
@@ -204,9 +234,26 @@ class NoteSplash extends ZSprite
 				}
 
 				this.config = tempConfig;
-				configs.set(path, this.config);
-				return;
+				if (noteDataMap.keys().hasNext())
+				{
+					configs.set(path, this.config);
+					mapExtraManiaLanes();
+					return;
+				}
 			}
+		}
+
+		// The legacy nested default atlas has a JSON config for colored animation
+		// names, but its XML contains only generic frames. Use the real shared
+		// colored atlas in that case so default splashes still animate.
+		if (!noteDataMap.keys().hasNext() && texture != 'noteSplashes')
+		{
+			texture = 'noteSplashes';
+			frames = Paths.getSparrowAtlas(texture);
+			path = 'images/$texture';
+			this.config = null;
+			maxAnims = 0;
+			if (frames == null) return;
 		}
 
 		// Splashes with no json
@@ -281,6 +328,7 @@ class NoteSplash extends ZSprite
 		}
 
 		this.config = tempConfig;
+		mapExtraManiaLanes();
 		configs.set(path, this.config);
 	}
 
@@ -487,6 +535,13 @@ class NoteSplash extends ZSprite
 	public function playDefaultAnim()
 	{
 		var anim:String = noteDataMap.get(noteData);
+		if (anim == null)
+		{
+			var keyCount = ExtraKeys.mania >= 0 && ExtraKeys.mania < ExtraKeys.ammo.length ? ExtraKeys.ammo[ExtraKeys.mania] : 4;
+			var lane = noteData % keyCount;
+			if (lane < 0) lane += keyCount;
+			anim = noteDataMap.get(lane);
+		}
 		// Standard splash atlases only define the four base directions. Extra-key
 		// layouts can still show a base animation instead of a blank atlas frame.
 		if (anim == null || !animation.exists(anim))
@@ -612,7 +667,12 @@ class NoteSplash extends ZSprite
 				else
 					animation.addByPrefix(key, i.prefix, animFPS, false);
 
-				noteDataMap.set(i.noteData, key);
+				// Flixel accepts prefixes that match no frames. Mapping them anyway
+				// makes spawnSplashNote select an empty animation and leaves a blank
+				// sprite in the recycled pool.
+				var added = animation.getByName(key);
+				if (added != null && added.frames != null && added.frames.length > 0)
+					noteDataMap.set(i.noteData, key);
 
 				// Debug output to verify animations are being loaded
 				#if debug

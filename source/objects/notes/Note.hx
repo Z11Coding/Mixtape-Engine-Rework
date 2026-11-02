@@ -62,10 +62,10 @@ class Note extends BaseNote
 
 	private function set_texture(value:String):String {
 		if (value.length == 0) value = Paths.defaultSkin;
-		if (!pixelNote && texture != value)
+		if (!pixelNote && (texture != value || Paths.noteSkinAnimationMania.get(value) != ExtraKeys.mania))
 		{
 			changeSize = false;
-			if (!Paths.noteSkinFramesMap.exists(value)) Paths.initNote(value);
+			Paths.ensureNoteSkin(value);
 			if (frames != @:privateAccess Paths.noteSkinFramesMap.get(value)) frames = @:privateAccess Paths.noteSkinFramesMap.get(value);
 			if (animation != @:privateAccess Paths.noteSkinAnimsMap.get(value)) animation.copyFrom(@:privateAccess Paths.noteSkinAnimsMap.get(value));
 
@@ -90,9 +90,16 @@ class Note extends BaseNote
 	{
 		if (rgbShader == null) return;
 
-		noteColor = !PlayState.isPixelStage ? ClientPrefs.data.arrowRGBExtra[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] : ClientPrefs.data.arrowRGBPixelExtra[ExtraKeys.keysShit.get(ExtraKeys.mania).get('pixelAnimIndex')[noteData]];
+		final keyData = ExtraKeys.keysShit.get(ExtraKeys.mania);
+		if(keyData == null || noteData < 0) return;
+		final laneIndices:Array<Int> = cast keyData.get(PlayState.isPixelStage ? 'pixelAnimIndex' : 'colArray');
+		final palette = PlayState.isPixelStage ? ClientPrefs.data.arrowRGBPixelExtra : ClientPrefs.data.arrowRGBExtra;
+		if(laneIndices == null || noteData >= laneIndices.length) return;
+		final colorIndex = laneIndices[noteData];
+		if(colorIndex < 0 || colorIndex >= palette.length) return;
+		noteColor = palette[colorIndex];
 
-    if (noteColor != null && noteData > -1 && noteData <= ExtraKeys.mania) {
+    if (noteColor != null && noteColor.length >= 3) {
       rgbShader.r = noteColor[0];
       rgbShader.g = noteColor[1];
       rgbShader.b = noteColor[2];
@@ -423,11 +430,9 @@ class Note extends BaseNote
 			if (isSustainNote)
 			{
 				animation.add(animName + ' hold', [colorIndex]);
-				animation.add(animName + ' tail', [colorIndex + (ExtraKeys.pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0] * 2)]);
+				animation.add(animName + ' tail', [colorIndex + ExtraKeys.pixelNotesDivisionValue[graphic.width == 126 ? 1 : 0]]);
 			}
 		}
-		setGraphicSize(Std.int(width * PlayState.daPixelZoom * ExtraKeys.pixelScales[ExtraKeys.mania]));
-		updateHitbox();
 	}
 
 	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
@@ -578,7 +583,6 @@ class Note extends BaseNote
 
 	public override function destroy()
 	{
-		unregisterFromNoteRow();
 		// This function should ONLY get called as you leave PlayState entirely.
     // Otherwise, we want the game to keep reusing note sprites to save memory.
 		super.destroy();
@@ -714,7 +718,6 @@ class Note extends BaseNote
 	var shouldCenterOffsets:Bool = true;
 	public function setupNoteData(chartNoteData:PreloadNotes):Void
 	{
-		unregisterFromNoteRow();
 		hsvShader.hue = 1;
 		hsvShader.saturation = 1;
 		hsvShader.value = 1;
@@ -744,6 +747,7 @@ class Note extends BaseNote
 			useRGBShader = (ClientPrefs.data.enableColorShader && PlayfieldManager.SONG != null && !PlayfieldManager.SONG.disableNoteRGB);
 			shouldCenterOffsets = useRGBShader;
 		}
+		if (!pixelNote && Paths.noteSkinAnimationMania.get(texture) != ExtraKeys.mania) this.texture = texture;
 
 		stealthGlow = 0.0;
     stealthGlowBlue = 1.0;
@@ -768,7 +772,7 @@ class Note extends BaseNote
 		mustPress = chartNoteData.mustPress;
 		doOppStuff = chartNoteData.oppNote;
 		gfNote = chartNoteData.gfNote;
-		isSustainNote = chartNoteData.isSustainNote;
+		isSustainNote = false;
 		isSustainEnd = chartNoteData.isSustainEnd;
 		lowPriority = chartNoteData.lowPriority;
 		multAlpha = chartNoteData.multAlpha;
@@ -849,6 +853,9 @@ class Note extends BaseNote
 				animToPlay = ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]];
 				animation.play(animToPlay + 'Scroll');
 			}
+			// Extended layouts can select a different-sized head from the atlas.
+			// Refresh its bounds before centering and before the ribbon uses them.
+			updateHitbox();
 			if (!copyAngle) copyAngle = true;
 			offsetX = 0; //Just in case we recycle a sustain note to a regular note
 			if (useRGBShader && shouldCenterOffsets)
@@ -872,7 +879,6 @@ class Note extends BaseNote
 		}
 		if (flipY) flipY = false;
 
-		registerInNoteRow();
 		syncNoteShader();
 
 		targetScale = this.scale.x;
@@ -902,7 +908,6 @@ class Note extends BaseNote
 
 	override public function kill():Void
   {
-    unregisterFromNoteRow();
     super.kill();
     vwooshing = false;
   }

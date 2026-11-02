@@ -1,0 +1,11 @@
+digraph graphname {
+n28711790 [shape=box,label="(28711790)"];
+n28711789 [shape=box,label="(28711789)"];
+n28711788 [shape=box,label="(28711788)\nvar newText\nvar newText = this.luaDebugGroup.length == 0"];
+n28711787 [shape=box,label="<function-end>
+(28711787)"];
+n28711786 [shape=box,label="<function-begin>
+(28711786)\nvar _hx_tmp = ! backend.ClientPrefs.data.disableDebugTraces"];
+n1 [shape=box,label="<root>
+(1)"];
+}

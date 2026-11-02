@@ -553,7 +553,7 @@ class APPlayState extends PlayState {
 
                 for (strum in allStrumlines) {
                     for (daNote in strum.unspawnNotes) {
-                        if (daNote == null) continue;
+                        if (daNote == null || daNote?.rgbShader == null) continue;
                         if (daNote.strumTime >= Conductor.songPosition && !daNote.isSustainNote) {
                             daNote.rgbShader.r = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];
                             daNote.rgbShader.g = FlxColor.getHSBColorWheel()[FlxG.random.int(0, 360)];

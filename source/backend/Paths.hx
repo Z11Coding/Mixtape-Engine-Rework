@@ -74,6 +74,14 @@ class Paths
 
   public static var noteSkinFramesMap:Map<String, FlxFramesCollection> = new Map();
   public static var noteSkinAnimsMap:Map<String, FlxAnimationController> = new Map();
+  public static var noteSkinAnimationMania:Map<String, Int> = new Map();
+
+  /** Animation aliases depend on the lane layout, even when the image is shared. */
+  public static function ensureNoteSkin(noteSkin:String):Void
+  {
+    if (!noteSkinFramesMap.exists(noteSkin) || noteSkinAnimationMania.get(noteSkin) != ExtraKeys.mania)
+      initNote(noteSkin);
+  }
 
   public static var defaultSkin = 'noteSkins/NOTE_assets' + Note.getNoteSkinPostfix();
 
@@ -113,6 +121,7 @@ class Paths
 		}
     noteSkinFramesMap.set(noteSkin, spr.frames);
     noteSkinAnimsMap.set(noteSkin, spr.animation);
+    noteSkinAnimationMania.set(noteSkin, ExtraKeys.mania);
   }
 
 	static function attemptToAddAnimationByPrefix(obj:FlxSprite, name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
