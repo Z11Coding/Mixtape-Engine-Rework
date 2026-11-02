@@ -292,7 +292,8 @@ class Strumline extends FlxSpriteGroup
 
   public var sustainNotesVwoosh:FlxTypedSpriteGroup<SustainNote>;
 
-  var noteSpacingScale:Float = 0.7;
+  var noteSpacingScale:Float = 1;
+  var layoutLaneWidth:Float = 112;
 
   /**
    * The scale of the strumline. Use this to resize it rather than setting the scale directly.
@@ -350,10 +351,10 @@ class Strumline extends FlxSpriteGroup
    * @param strumTime The strumtime of the note.
    * @return The Y position of the note.
    */
-  public function calculateNoteYPos(strumTime:Float):Float
+  public function calculateNoteYPos(strumTime:Float, multSpeed:Float = 1):Float
   {
     #if FEATURE_WITF_USE_TIME_DELTA
-    return GRhythmUtil.getNoteY(strumTime, scrollSpeed, isDownscroll, conductorInUse);
+    return GRhythmUtil.getNoteY(strumTime, scrollSpeed * multSpeed, isDownscroll, conductorInUse);
     #else
     return Constants.PIXELS_PER_MS * (conductorInUse.musicPosition - strumTime) * scrollSpeed * (isDownscroll ? 1 : -1);
     #end
@@ -584,6 +585,10 @@ class Strumline extends FlxSpriteGroup
     #end
     MusicBeatState.getState()?.callOnScripts('onPlayerReceptorGenerationPost');
 
+    layoutLaneWidth = 0;
+    for (receptor in strumLineNotes.members)
+      layoutLaneWidth = Math.max(layoutLaneWidth, receptor.frameWidth * receptor.targetScale);
+    if (layoutLaneWidth <= 0) layoutLaneWidth = BaseNote.swagWidth;
 		strumLine.put();
     trace("Finished Note Generation!");
 	}
@@ -622,7 +627,7 @@ class Strumline extends FlxSpriteGroup
   {
     if (strumlineScale == null) strumlineScale = new FlxCallbackPoint(strumlineScaleCallback);
 
-    return (ExtraKeys.mania+1) * (Strumline.NOTE_SPACING/ExtraKeys.xPosButBetter2[ExtraKeys.mania]) * noteSpacingScale * strumlineScale.x;
+    return laneSpacing() * ExtraKeys.mania + layoutLaneWidth * strumlineScale.x;
   }
 
   // This can be changed to make the arrowpath segment into smaller chunks, making it less likely to memory leak when really long and detailed
@@ -1093,9 +1098,8 @@ class Strumline extends FlxSpriteGroup
       var note = getByColumn(i);
       if (note != null) {
         note.y = this.strumLineNotes.y;
-        note.x = 0;
-        note.postAddedToGroup();
-        //note.x *= noteSpacingScale;
+        note.x = strumLineNotes.x + getXPos(i);
+        note.formerPosition.set(note.x, note.y);
       }
     }
   }
@@ -1353,17 +1357,17 @@ class Strumline extends FlxSpriteGroup
       if (holdNote.missedNote && conductorInUse.musicPosition >= renderWindowEnd)
       {
         // Hold note is offscreen, kill it.
-        //holdNote.visible = false;
-        //holdNote.kill(); // Do not destroy! Recycling is faster.
-        //continue; // kill resets the lane; do not sample that dead ribbon below.
+        holdNote.visible = false;
+        holdNote.kill(); // Do not destroy! Recycling is faster.
+        continue; // kill resets the lane; do not sample that dead ribbon below.
       }
       else if (holdNote.hitNote && holdNote.sustainLength <= 0)
       {
-        /*if (holdNote.cover != null && isPlayerControlled)
+        if (holdNote.cover != null && holdNote.cover.sustainNote == holdNote && isPlayerControlled)
         {
           holdNote.cover.playEnd();
         }
-        else if (holdNote.cover != null)
+        else if (holdNote.cover != null && holdNote.cover.sustainNote == holdNote)
         {
           // *lightning* *zap* *crackle*
           holdNote.cover.visible = false;
@@ -1372,7 +1376,7 @@ class Strumline extends FlxSpriteGroup
 
         holdNote.visible = false;
         holdNote.kill();
-        continue;*/
+        continue;
       }
       else if (holdNote.missedNote && (holdNote.fullSustainLength > holdNote.sustainLength))
       {
@@ -1497,7 +1501,7 @@ class Strumline extends FlxSpriteGroup
    */
   public function pressKey(dir:Int, keyCode:Int):Void
   {
-    heldKeys[dir].push(keyCode);
+    if (dir >= 0 && dir < heldKeys.length && !heldKeys[dir].contains(keyCode)) heldKeys[dir].push(keyCode);
   }
 
   /**
@@ -1508,6 +1512,7 @@ class Strumline extends FlxSpriteGroup
    */
   public function releaseKey(dir:Int, ?keyCode:Int):Void
   {
+    if (dir < 0 || dir >= heldKeys.length) return;
     if (keyCode == null)
     {
       heldKeys[dir].clear();
@@ -1561,7 +1566,8 @@ class Strumline extends FlxSpriteGroup
       cover.kill();
     }
 
-    heldKeys = [[], [], [], []];
+    heldKeys = [for (lane in 0...strumLineNotes.length) []];
+    PlayfieldManager.pressedGameplayKeys = [];
 
     resetScrollSpeed();
 
@@ -1587,42 +1593,32 @@ class Strumline extends FlxSpriteGroup
    */
   public function hitNote(note:Dynamic, removeNote:Bool = true):Void
   {
+    if (note == null || !note.alive) return;
+    // Dispatch judgement before recycling: kill() clears noteData and timestamps.
+    if (note.parentStrumline != null)
+    {
+      if (note.mustPress) PlayState.instance?.goodNoteHit(note, null, this);
+      else if (note.parentStrumline.playerNum == 0) PlayState.instance?.opponentNoteHit(note, null, this);
+      else PlayState.instance?.goodNoteCustom(note, this);
+    }
+    if (!note.alive) return; // The regular head callback already removes its sprite.
+    if (PlayState.instance != null && note.mustPress && !note.wasGoodHit) return; // A script cancelled judgement.
     playConfirm(note.noteData);
     note.hasBeenHit = true;
-
-    // A whole sustain is a live ribbon, not a disposable note head. Killing it
-    // here resets its time/length before the hold state can consume it.
-    if (removeNote && !(note is SustainNote))
-    {
-      killNote(note);
-    }
-    else if (!(note is SustainNote))
-    {
-      note.alpha = 0.5;
-      note.desaturate();
-    }
-
     if (note is SustainNote)
     {
       note.hitNote = true;
       note.missedNote = false;
       note.visible = true;
-      note.sustainLength = Math.min(
-        note.fullSustainLength,
-        (note.strumTime + note.fullSustainLength) - conductorInUse.musicPosition
-      );
+      note.sustainLength = Math.min(note.fullSustainLength,
+        (note.strumTime + note.fullSustainLength) - conductorInUse.musicPosition);
     }
+    else if (removeNote) killNote(note);
+    else { note.alpha = 0.5; note.desaturate(); }
 
     ghostTapTimer = Constants.GHOST_TAP_DELAY;
 
-    if (note.parentStrumline != null) {
-      if (note.parentStrumline.defaultPlayerControl)
-        PlayState.instance?.goodNoteHit(note, null, this);
-      else if (note.parentStrumline.playerNum == 0)
-        PlayState.instance?.opponentNoteHit(note, null, this);
-      else
-        PlayState.instance?.goodNoteCustom(note, this);
-    }
+
   }
 
   /**
@@ -1633,13 +1629,15 @@ class Strumline extends FlxSpriteGroup
   {
     if (!showNotesplash) return;
 
+    if (holdNote == null || !holdNote.alive) return;
+    final receptor = getByColumn(holdNote.noteData);
+    if (receptor == null) return;
     var cover:SustainSplash = null;
-    if (this.holdSplashes.length == 0) {
-      cover = new SustainSplash();
-      cover.alpha = 0.0001;
-      cover.visible = false;
-      cover.cameras = holdNote.cameras;
-    } else this.holdSplashes.recycle(SustainSplash);
+    for (candidate in holdSplashes.members)
+      if (candidate != null && candidate.alive && candidate.strumNote == receptor
+        && candidate.animation.curAnim?.name == 'hold') { cover = candidate; break; }
+    if (cover == null) cover = holdSplashes.recycle(SustainSplash);
+    holdNote.noteHoldSplash = cover;
 
     if (cover != null)
     {
@@ -1736,6 +1734,7 @@ class Strumline extends FlxSpriteGroup
 
     var noteStyleScale:Float = 1;
     var whichStrumNote:StrumNote = cover.strumNote;
+    if (whichStrumNote == null) return;
 
     if (cover.sustainNote?.alive ?? null != null)
     {
@@ -1819,24 +1818,10 @@ class Strumline extends FlxSpriteGroup
         cover.scale.y += whichStrumNote.strumExtraModData.strumScaleDifY;
       }
 
-      // default holdCover positioning
-      cover.x = this.x;
-      cover.x += getXPos(cover.strumNote.noteData);
-      cover.x += STRUMLINE_SIZE / 2;
-      cover.x -= cover.width / 2;
-      //cover.x += noteStyle.getHoldCoverOffsets()[0] * cover.scale.x;
-      cover.x += -12; // hardcoded adjustment, because we are evil.
-      cover.y = this.y;
-      cover.y += INITIAL_OFFSET;
-      cover.y += STRUMLINE_SIZE / 2;
-      //cover.y += noteStyle.getHoldCoverOffsets()[1] * cover.scale.y;
-      cover.y += -96; // hardcoded adjustment, because we are evil.
-
-      // Move the cover to where the strum is
-      var strumStartX:Float = whichStrumNote.formerPosition.x;
-      var strumStartY:Float = whichStrumNote.formerPosition.y;
-      cover.x += (whichStrumNote.x - strumStartX);
-      cover.y += (whichStrumNote.y - strumStartY);
+      // setupSusSplash already supplies the atlas offsets. Follow the actual
+      // receptor just like the plain path; rebuilding a 4K lane position shifts it.
+      cover.x = whichStrumNote.x;
+      cover.y = whichStrumNote.y;
       cover.alpha = ay;
       cover.z = whichStrumNote.z;
 
@@ -1935,21 +1920,33 @@ class Strumline extends FlxSpriteGroup
    * @param direction The direction to input.
    * @return The x position this noteDirection is!
    */
+  function laneSpacing():Float
+  {
+    final scale = strumlineScale == null ? 1.0 : strumlineScale.x;
+    final count = ExtraKeys.mania + 1;
+    final nativeWidth = layoutLaneWidth * scale;
+    final desired = (ExtraKeys.mania == 3 ? BaseNote.swagWidth * scale : nativeWidth + 8 * scale) * noteSpacingScale;
+    final room = FlxG.width / 2 - 8;
+    return count > 1 ? Math.min(desired, Math.max(1, (room - nativeWidth) / (count - 1))) : 0;
+  }
+
   public function getXPos(direction:Int):Float
   {
-    var pos:Float = 0;
-    switch (ExtraKeys.mania)
-		{
-			case 0 | 1 | 2: pos += getByColumn(direction).width * direction;
-			case 3: pos += (BaseNote.swagWidth * direction);
-			default: pos += ((getByColumn(direction).width - ExtraKeys.lessX[ExtraKeys.mania]) * direction);
-		}
-		pos += 50;
-		pos += ExtraKeys.xtra[ExtraKeys.mania];
-		pos += ((FlxG.width / 2) * playerNum);
-		pos -= ExtraKeys.posRest[ExtraKeys.mania];
-		pos += (ExtraKeys.xPosButBetterOff[ExtraKeys.mania]/2);
-    return pos;
+    final half = FlxG.width / 2;
+    final fieldWidth = laneSpacing() * ExtraKeys.mania + layoutLaneWidth * strumlineScale.x;
+    var start = ExtraKeys.mania == 3 ? PlayfieldManager.STRUM_X + 100 : (half - fieldWidth) / 2;
+    if (ClientPrefs.data.middleScroll)
+    {
+      if (playerNum == 1) start = (FlxG.width - fieldWidth) / 2 - half;
+      else
+      {
+        // Split CPU lanes into equal banks, independent of whether this is 4K.
+        final split = Std.int(Math.ceil((ExtraKeys.mania + 1) / 2));
+        return direction < split ? 8 + laneSpacing() * direction
+          : FlxG.width - 8 - layoutLaneWidth * strumlineScale.x - laneSpacing() * (ExtraKeys.mania - direction);
+      }
+    }
+    return start + half * playerNum + laneSpacing() * direction;
   }
 
   /**
@@ -1965,7 +1962,7 @@ class Strumline extends FlxSpriteGroup
     final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
     if (mods != null)
     {
-      arrow.strumExtraModData.introTweenPercentage = 0;
+      arrow.strumExtraModData.introTweenPercentage = skipIntro() ? 1 : 0;
       FlxTween.tween(arrow.strumExtraModData, {
         introTweenPercentage: 1
       }, 1, {
@@ -1977,7 +1974,7 @@ class Strumline extends FlxSpriteGroup
     {
       FlxTween.tween(arrow, {
         y: (ClientPrefs.data.downScroll) ? FlxG.height - 150 : 50,
-        alpha: 1,
+        alpha: playerNum == 0 ? (ClientPrefs.data.opponentStrums ? (ClientPrefs.data.middleScroll ? ClientPrefs.data.oppNoteAlpha : 1) : 0) : 1,
         angle: 0
       }, 1, {
         ease: FlxEase.circOut,
@@ -2007,8 +2004,19 @@ class Strumline extends FlxSpriteGroup
    * Play a fade in animation on all arrows in the strumline.
    * Used when starting a song in Freeplay mode.
    */
+  function skipIntro():Bool return MegaManager.playfield.skipArrowStartTween;
+
   public function fadeInArrows():Void
   {
+    if (skipIntro())
+    {
+      for (arrow in strumLineNotes.members)
+      {
+        arrow.strumExtraModData.introTweenPercentage = 1;
+        arrow.alpha = playerNum == 0 ? (ClientPrefs.data.opponentStrums ? (ClientPrefs.data.middleScroll ? ClientPrefs.data.oppNoteAlpha : 1) : 0) : 1;
+      }
+      return;
+    }
     for (index => arrow in this.strumLineNotes.members.keyValueIterator())
     {
       fadeInArrow(index, arrow);

@@ -3140,6 +3140,13 @@ class PlayState extends MusicBeatState
 	public var countdownReady:FlxSprite;
 	public var countdownSet:FlxSprite;
 	public var countdownGo:FlxSprite;
+  public function startReceptorIntro():Void
+  {
+    if (playerStrumline != null) playerStrumline.fadeInArrows();
+    if (opponentStrumline != null) opponentStrumline.fadeInArrows();
+    for (line in playfield.customStrumLines) line.fadeInArrows();
+  }
+
 	public static var startOnTime:Float = 0;
 
 	function cacheCountdown()
@@ -3185,12 +3192,7 @@ class PlayState extends MusicBeatState
 			#end
 
 			if (callOnScripts('onModifierRegister') != LuaUtils.Function_Stop) {
-				if (playerStrumline != null)
-					playerStrumline.fadeInArrows();
-				if (playerStrumline != null)
-					playerStrumline.fadeInArrows();
-				for (customStrummer in playfield.customStrumLines)
-					customStrummer.fadeInArrows();
+				startReceptorIntro();
 				playfield.setStrumAlpha();
 			}
 
@@ -5101,11 +5103,26 @@ class PlayState extends MusicBeatState
 					goodNoteHit(daNote, null, daNote.parentStrumline);
 			}
 			if (!daNote.exists) return;
+			if(daNote is SustainNote)
+			{
+				final hold:SustainNote = cast daNote;
+				// Autoplay/opponent callbacks also need to enter the ribbon's held state.
+				if((hold.wasGoodHit || hold.hitByOpponent) && !hold.missedNote) hold.hitNote = true;
+				if(conductor.musicPosition > noteKillOffset + hold.strumTime && !hold.wasGoodHit && !hold.hitByOpponent && !hold.hasMissed)
+				{
+					hold.hasMissed = hold.missedNote = true;
+					if(hold.mustPress && !cpuControlled && !hold.ignoreNote && !endingSong) noteMiss(hold);
+				}
+				// Strumline owns clipping and the tail-time lifetime; head expiry must
+				// not destroy a still-held ribbon after a few hundred milliseconds.
+				return;
+			}
+
 			amountOfRenderedNotes += daNote.noteDensity;
 			if (maxRenderedNotes < amountOfRenderedNotes) maxRenderedNotes = amountOfRenderedNotes;
 			final noteStrumline:Strumline = daNote.parentStrumline ?? (daNote.mustPress ? playerStrumline : opponentStrumline);
-			if (noteStrumline != null && noteStrumline.strumLineNotes.members.length >= (ExtraKeys.mania+1) && noteStrumline.mods == null)
-				daNote.followStrum(noteStrumline.getByColumn(daNote.noteData), songSpeed);
+			if (!(daNote is SustainNote) && noteStrumline != null && noteStrumline.strumLineNotes.members.length >= (ExtraKeys.mania+1) && noteStrumline.mods == null)
+				daNote.followStrum(noteStrumline.getByColumn(daNote.noteData), noteStrumline.scrollSpeed);
 			// Sustain meshes follow and clip once in Strumline.updateNotes. Legacy
 			// sprite stretching/clipRect changes must not reposition them afterwards.
 
@@ -8656,7 +8673,7 @@ class PlayState extends MusicBeatState
 			var result:Dynamic = callOnLuas('opponentNoteHit', [(customStrummer ?? (note.parentStrumline ?? opponentStrumline)).notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnHScript('opponentNoteHit', [note]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('opponentNoteHit', [note]);
-			invalidateNote(note);
+			if (!(note is SustainNote)) invalidateNote(note);
 			return;
 		}
 
@@ -9011,7 +9028,7 @@ class PlayState extends MusicBeatState
 			var result:Dynamic = callOnLuas('goodNoteHit', [(customStrummer ?? (note.parentStrumline ?? playerStrumline)).notes.members.indexOf(note), leData, leType, isSus]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopAll) result = callOnHScript('goodNoteHit', [note]);
 			if(result != LuaUtils.Function_Stop && result != LuaUtils.Function_StopHScript && result != LuaUtils.Function_StopYScript && result != LuaUtils.Function_StopAll) callOnYScript('goodNoteHit', [note]);
-			invalidateNote(note);
+			if (!(note is SustainNote)) invalidateNote(note);
 			return;
 		}
 
@@ -9282,24 +9299,28 @@ class PlayState extends MusicBeatState
 	public function playAnim(note:Dynamic, char:Character, ?animToPlay:String, ?forceAnim:Bool = false) {
 		if(char != null && note != null)
 		{
-			char.holdTimer = 0;
+      char.holdTimer = 0;
+      final rows = playfield.noteRows[note.mustPress ? 0 : 1];
+      final chord = note.row >= 0 && note.row < rows.length ? rows[note.row] : null;
+      // Rows contain chart records; a recycled live sprite has a different identity.
+      var chordIndex = -1;
+      if (chord != null) for (i in 0...chord.length)
+        if (chord[i].noteData == note.noteData && chord[i].noteType == note.noteType) { chordIndex = i; break; }
 			if (!note.isSustainNote
-				&& playfield.noteRows[note.mustPress ? 0 : 1][note.row] != null
-				&& playfield.noteRows[note.mustPress ? 0 : 1][note.row].length > 1
+				&& chord != null && chord.length > 1 && chordIndex >= 0
 				&& note.noteType != "Ghost Note" && ghostsAllowed) {
 				// potentially have jump anims?
-				var chord = playfield.noteRows[note.mustPress ? 0 : 1][note.row];
 				var animNote = chord[0];
 				var realAnim = playfield.singAnimations[Std.int(Math.abs(animNote.noteData))] + note.animSuffix;
 				if (char.mostRecentRow != note.row)
 					char.playAnim(realAnim, true);
 
 				if(note.nextNote != null && note.prevNote != null){
-					if (note != animNote && !(note.nextNote is SustainNote) && !(note.prevNote is SustainNote) && callOnScripts('onGhostAnim', [animToPlay, note]) != LuaUtils.Function_Stop) {
-						char.playGhostAnim(chord.indexOf(note), animToPlay, true);
+					if (chordIndex != 0 && !(note.nextNote is SustainNote) && !(note.prevNote is SustainNote) && callOnScripts('onGhostAnim', [animToPlay, note]) != LuaUtils.Function_Stop) {
+						char.playGhostAnim(chordIndex, animToPlay, true);
 					}else if((note.nextNote is SustainNote) || note.isSustainNote){
 						char.playAnim(realAnim, true);
-						char.playGhostAnim(chord.indexOf(note), animToPlay, true);
+						char.playGhostAnim(chordIndex, animToPlay, true);
 					}
 				}
 				char.mostRecentRow = note.row;

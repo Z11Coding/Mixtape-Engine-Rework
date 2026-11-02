@@ -408,16 +408,18 @@ class Note extends BaseNote
 	}
 
   function loadNoteAnims() {
-		for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters').length)
-		{
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
-			attemptToAddAnimationByPrefix(ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray4k[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[noteData]] + '0');
-		}
-
-		setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
-		updateHitbox();
-	}
+    final mapping = ExtraKeys.keysShit.get(ExtraKeys.mania);
+    final letters:Array<String> = mapping.get('letters');
+    final colors:Array<Int> = mapping.get('colArray');
+    for (i in 0...letters.length)
+    {
+      // Every recycled alias belongs to its own lane, not the sprite's old lane.
+      if (!attemptToAddAnimationByPrefix(letters[i], letters[i] + '0'))
+        attemptToAddAnimationByPrefix(letters[i], ExtraKeys.colArray[colors[i]] + '0');
+    }
+    setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
+    updateHitbox();
+  }
 
 	function loadPixelNoteAnims() {
 		// Optimize Anim Loading.
@@ -435,20 +437,14 @@ class Note extends BaseNote
 		}
 	}
 
-	function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
-	{
-		try {
-			var animFrames = [];
-			@:privateAccess
-			animation.findByPrefix(animFrames, prefix); // adds valid frames to animFrames
-			if(animFrames.length < 1) return;
-
-			animation.addByPrefix(name, prefix, framerate, doLoop);
-		}
-		catch(e){
-			//trace("Anim was null!: " + prefix);
-		}
-	}
+  function attemptToAddAnimationByPrefix(name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true):Bool
+  {
+    var animFrames = [];
+    @:privateAccess animation.findByPrefix(animFrames, prefix);
+    if (animFrames.length == 0) return false;
+    animation.addByPrefix(name, prefix, framerate, doLoop);
+    return true;
+  }
 
 	override function update(elapsed:Float)
 	{
@@ -498,8 +494,7 @@ class Note extends BaseNote
 			updateHitbox();
 		}
 
-		distance = (0.45 * (MegaManager.conductor.musicPosition - strumTime) * songSpeed * multSpeed);
-		if (!ClientPrefs.data.downScroll) distance *= -1;
+		distance = backend.funkin.util.GRhythmUtil.getNoteY(strumTime, songSpeed * multSpeed, strum.downScroll, parentStrumline?.conductorInUse);
 
 		if (copyAngle)
 			angle = strum.direction - 90 + strum.angle + offsetAngle;

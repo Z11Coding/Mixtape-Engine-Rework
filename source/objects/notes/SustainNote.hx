@@ -737,14 +737,16 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   }
 
   var previousScrollSpeed:Float = 1;
+  var previousMultSpeed:Float = 1;
 
   override function update(elapsed):Void
   {
-    if (previousScrollSpeed != getBaseScrollSpeed())
+    if (previousScrollSpeed != (parentStrumline?.scrollSpeed ?? 1.0) || previousMultSpeed != multSpeed)
     {
       triggerRedraw();
     }
-    previousScrollSpeed = getBaseScrollSpeed();
+    previousScrollSpeed = parentStrumline?.scrollSpeed ?? 1.0;
+    previousMultSpeed = multSpeed;
 
     if (Main.isPlayState() && PlayState.instance.cpuControlled) return;
     super.update(elapsed);
@@ -777,16 +779,15 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
   inline public function followStrum(strum:StrumNote, songSpeed:Float = 1):Void
 	{
+		refreshGraphicExtent();
 		// Mesh vertices already contain the skin scale and the sustain length.
 		// Legacy sprite stretching and its magic Y offsets must not be applied again.
 		flipY = strum.downScroll;
-		final now = parentStrumline?.conductorInUse?.musicPosition ?? MegaManager.conductor.musicPosition;
-		distance = 0.45 * (now - strumTime) * songSpeed * multSpeed;
-		if(!flipY) distance *= -1;
+		distance = backend.funkin.util.GRhythmUtil.getNoteY(strumTime, songSpeed * multSpeed, flipY, parentStrumline?.conductorInUse);
 		if(copyAlpha) alpha = strum.alpha * multAlpha;
 		if(copyX) x = strum.x + headCenterX - graphicWidth / 2 + offsetX + Math.cos(strum.direction * Math.PI / 180) * distance;
-    if(copyY) y = strum.y + headCenterY + offsetY + Math.sin(strum.direction * Math.PI / 180) * distance - (flipY ? graphicHeight : 0);
-    if(copyAngle) angle = strum.direction - 90 + strum.angle + offsetAngle;
+		if(copyY) y = strum.y + headCenterY + offsetY + Math.sin(strum.direction * Math.PI / 180) * distance - (flipY ? graphicHeight : 0);
+		return;
 	}
 
 	public function clipToStrumNote(myStrum:StrumNote)
@@ -855,11 +856,18 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     return this.sustainLength;
   }
 
+  public function refreshGraphicExtent():Void
+  {
+    final extent = sustainHeight(fullSustainLength > 0 ? fullSustainLength : sustainLength,
+      (parentStrumline?.scrollSpeed ?? 1.0) * multSpeed);
+    if (graphicHeight != extent) { graphicHeight = extent; updateHitbox(); }
+  }
+
   function triggerRedraw():Void
   {
     // Keep the original ribbon extent stable while the live remaining duration
     // shrinks. Otherwise the clip offset shrinks with it and the root drifts.
-    graphicHeight = sustainHeight(fullSustainLength > 0 ? fullSustainLength : sustainLength, getBaseScrollSpeed());
+    graphicHeight = sustainHeight(fullSustainLength > 0 ? fullSustainLength : sustainLength, (parentStrumline?.scrollSpeed ?? 1.0) * multSpeed);
     if (!usingHazModHolds) // Don't update cuz we updateClipping every frame anyway in Strumline.hx
       updateClipping(); // Commenting this out = holds don't render for 1 frame when being hit. Keeping this means the hold renders incorrectly... what?
     updateHitbox();
@@ -915,7 +923,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
       headCenterX = Math.floor(headGraphic.width / columns) * skinScale / 2;
       headCenterY = Math.floor(headGraphic.height / 5) * skinScale / 2;
     }
-    graphicHeight = sustainHeight(fullSustainLength > 0 ? fullSustainLength : sustainLength, getBaseScrollSpeed());
+    graphicHeight = sustainHeight(fullSustainLength > 0 ? fullSustainLength : sustainLength, (parentStrumline?.scrollSpeed ?? 1.0) * multSpeed);
     if (parentStrumline != null)
     {
       if (parentStrumline.sustainGraphicWidth == null)
@@ -966,6 +974,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
    */
   public function updateClipping(?songTime:Float):Void
   {
+    refreshGraphicExtent();
     final clippingTime:Float = songTime ?? ModConstants.getSongPosition();
     if (getAnimationFrame(animation?.curAnim?.name) == null || customVertexData)
     {
@@ -1020,7 +1029,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     if (this.hsvShader == null) return;
     var strumTimmy:Float = t - whichStrumNote?.strumExtraModData?.strumPos ?? 0.0;
 
-    var notePos:Float = parentStrumline.calculateNoteYPos(strumTimmy);
+    var notePos:Float = parentStrumline.calculateNoteYPos(strumTimmy, multSpeed);
     distanceFromReceptor_unscaledpos = notePos;
     updateStealthGlowV2();
   }
@@ -1083,7 +1092,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     final holdPosFromReceptor:Float = (distanceFromReceptor_unscaledpos - (whichStrumNote?.noteModData?.curPos_unscaled ?? 0)) * (flipY ? -1 : 1);
 
-    final magicNumber:Float = Constants.PIXELS_PER_MS * getBaseScrollSpeed();
+    final magicNumber:Float = Constants.PIXELS_PER_MS * (parentStrumline?.scrollSpeed ?? 1.0) * multSpeed;
 
     final spacingBetweenEachUVpiece:Float = /*this.fullSustainLength*/ this.bodyLength * magicNumber;
 
@@ -1263,7 +1272,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   function susSample(strumTimmy:Float, isRoot:Bool = false, dumbHeight:Float = 0):Void
   {
     strumTimmy = strumTimmy - whichStrumNote?.strumExtraModData?.strumPos ?? 0;
-    var notePos:Float = parentStrumline.calculateNoteYPos(strumTimmy);
+    var notePos:Float = parentStrumline.calculateNoteYPos(strumTimmy, multSpeed);
 
     if (
       parentStrumline.mods.mathCutOffCheck(notePos, noteData % (ExtraKeys.mania+1))
@@ -1309,7 +1318,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // receptor directly, avoiding a second layout calculation and allocation.
     noteModData.x = whichStrumNote.x + headCenterX - graphicWidth / 2;
 
-    var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime) * scrollMult;
+    var sillyPos:Float = parentStrumline.calculateNoteYPos(noteModData.strumTime, multSpeed) * scrollMult;
     // calculateNoteYPos already resolves up/downscroll. Match the same native
     // head center as Note, instead of adding a fixed 4K-only lane offset.
     noteModData.y = whichStrumNote.y + sillyPos + headCenterY;
@@ -1602,7 +1611,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     longHolds += 1;
 
     final endPixelSize:Float = getCapPixelHeight() * endOffset;
-    final scroll:Float = getBaseScrollSpeed();
+    final scroll:Float = (parentStrumline?.scrollSpeed ?? 1.0) * multSpeed;
     final endCapTime:Float = endPixelSize / (Constants.PIXELS_PER_MS * scroll);
 
     // bodyLength refers to the entire sustainLength MINUS the end cap.
@@ -1663,7 +1672,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
     // Strumline stores the remaining duration once the player is holding the
     // note. Do not subtract elapsed time a second time in that case.
     final clipLength:Float = hitNote ? sustainLength : sustainLength - (songTimmy - strumTime);
-    var clipHeight:Float = FlxMath.bound(sustainHeight(clipLength, getBaseScrollSpeed()), 0, graphicHeight);
+    var clipHeight:Float = FlxMath.bound(sustainHeight(clipLength, (parentStrumline?.scrollSpeed ?? 1.0) * multSpeed), 0, graphicHeight);
     if (clipHeight <= 0.05)
     {
       visible = false;
@@ -2115,7 +2124,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   public function updateClipping_Vanilla(songTime:Float = 0):Void
   {
     final clipLength:Float = hitNote ? sustainLength : sustainLength - (songTime - strumTime);
-    var clipHeight:Float = sustainHeight(clipLength, getBaseScrollSpeed()).clamp(0, graphicHeight);
+    var clipHeight:Float = sustainHeight(clipLength, (parentStrumline?.scrollSpeed ?? 1.0) * multSpeed).clamp(0, graphicHeight);
     if (clipHeight <= 0.1)
     {
       visible = false;
@@ -2387,7 +2396,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 		hitCausesMiss = chartNoteData.hitCausesMiss ?? false;
 		ignoreNote = chartNoteData.ignoreNote;
 		blockHit = chartNoteData.blockHit;
-		multSpeed = chartNoteData.multSpeed;
+		multSpeed = chartNoteData.multSpeed ?? 1;
+    if (!Math.isFinite(multSpeed) || multSpeed <= 0) multSpeed = 1;
 		noteDensity = chartNoteData.noteDensity;
 		row = chartNoteData.row;
 
@@ -2481,7 +2491,8 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
   {
     super.kill();
 
-    if (!((cover?.animation?.name ?? '').startsWith('holdCoverEnd'))) cover?.animation.play('end', true, false, 0);
+    // A later segment may already own this lane's recycled cover.
+    if (cover != null && cover.sustainNote == this && cover.animation.curAnim?.name != 'end') cover.playEnd();
     strumTime = 0;
     noteData = 0;
     sustainLength = 0;
@@ -2496,7 +2507,7 @@ class SustainNote extends ZSprite // doesn't use the correct base (ZSpriteProjec
 
     if (cover != null)
     {
-      cover.sustainNote = null;
+      if (cover.sustainNote == this) cover.sustainNote = null;
       this.cover = null;
     }
   }

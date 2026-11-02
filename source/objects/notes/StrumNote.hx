@@ -241,46 +241,21 @@ class StrumNote extends ZSpriteProjected
       antialiasing = ClientPrefs.data.antialiasing;
 			setGraphicSize(Std.int(width * ExtraKeys.scales[ExtraKeys.mania]));
 
-			// Get the appropriate animation name for this column from the mania mapping
-			var strumAnim:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get("strumAnims")[noteData % (ExtraKeys.mania+1)]; // This is the strumAnims value
-			var letterAnim:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get("letters")[noteData % (ExtraKeys.mania+1)]; // This is the letters value
-
-			// First try the hardcoded switch for traditional 4K animations (backwards compatibility)
-			switch (Math.abs(noteData))
-			{
-				case 0:
-					attemptToAddAnimationByPrefix('static', 'arrowLEFT', 24, true);
-					attemptToAddAnimationByPrefix('pressed', 'left press');
-					attemptToAddAnimationByPrefix('confirm', 'left confirm');
-				case 1:
-					attemptToAddAnimationByPrefix('static', 'arrowDOWN', 24, true);
-					attemptToAddAnimationByPrefix('pressed', 'down press');
-					attemptToAddAnimationByPrefix('confirm', 'down confirm');
-				case 2:
-					attemptToAddAnimationByPrefix('static', 'arrowUP', 24, true);
-					attemptToAddAnimationByPrefix('pressed', 'up press');
-					attemptToAddAnimationByPrefix('confirm', 'up confirm');
-				case 3:
-					attemptToAddAnimationByPrefix('static', 'arrowRIGHT', 24, true);
-					attemptToAddAnimationByPrefix('pressed', 'right press');
-					attemptToAddAnimationByPrefix('confirm', 'right confirm');
-			}
-
-			// Then try using the mania-specific animations (for extended mania support)
-			// First try with the original strumAnim, only fall back to UP if SPACE animation doesn't exist
-			var staticAdded:Bool = attemptToAddAnimationByPrefix('static', 'arrow' + strumAnim, 24, true);
-			if (!staticAdded && strumAnim == 'SPACE') {
-				// If SPACE animation doesn't exist, fall back to UP for visual consistency
-				attemptToAddAnimationByPrefix('static', 'arrow' + 'UP', 24, true);
-			}
-			attemptToAddAnimationByPrefix('pressed', letterAnim + ' press');
-			attemptToAddAnimationByPrefix('confirm', letterAnim + ' confirm');
-
-			// For noteskins that only have 4K support, try using the proper directional confirm animations
-			// based on the strumAnim value instead of letterAnim
-			var confirmDirection:String = strumAnim.toLowerCase();
-			if (confirmDirection == 'space') confirmDirection = 'up'; // Handle SPACE -> UP mapping
-			attemptToAddAnimationByPrefix('confirm', confirmDirection + ' confirm');
+      final mapping = ExtraKeys.keysShit.get(ExtraKeys.mania);
+      final lane = noteData % (ExtraKeys.mania + 1);
+      final shape:String = mapping.get('strumAnims')[lane];
+      final letter:String = mapping.get('letters')[lane];
+      final direction:String = mapping.get('anims')[lane];
+      // Resolve each state from the same lane map, including 4K-only skins in multikey.
+      for (state in ['static', 'pressed', 'confirm'])
+      {
+        final suffix = state == 'pressed' ? ' press' : ' confirm';
+        final candidates = state == 'static'
+          ? ['arrow' + shape, letter + '0', 'arrow' + direction]
+          : [letter + suffix, shape.toLowerCase() + suffix, direction.toLowerCase() + suffix];
+        for (prefix in candidates)
+          if (attemptToAddAnimationByPrefix(state, prefix, 24, state == 'static')) break;
+      }
 		}
 		updateHitbox();
 

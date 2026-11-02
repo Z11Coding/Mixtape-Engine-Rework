@@ -102,8 +102,9 @@ class SustainSplash extends ZSprite
 		final timeToGet:Float = !daNote.isSustainNote ? daNote.strumTime : daNote.parentST;
 		final timeThingy:Float = (startCrochet * lengthToGet + (timeToGet - Conductor.songPosition + ClientPrefs.data.ratingOffset)) / playbackRate * .001;
 
+		animation.finishCallback = null;
 		animation.play('hold', true, false, 0);
-		animation.curAnim.frameRate = frameRate;
+		animation.curAnim.frameRate = frameRate > 0 ? frameRate : 24;
 		animation.curAnim.looped = true;
 
 		shader = (ClientPrefs.data.enableColorShader ? rgbShader.shader : null);
@@ -170,6 +171,24 @@ class SustainSplash extends ZSprite
       this.origin.set(holdOrigin.x, holdOrigin.y); // Magic numbers which make it rotate from the center properly!
     }
 	}
+
+  override public function kill():Void
+  {
+    timer?.cancel();
+    timer = null;
+    strumNote = null;
+    sustainNote = null;
+    super.kill();
+  }
+
+  override public function destroy():Void
+  {
+    timer?.cancel();
+    timer = null;
+    strumNote = null;
+    sustainNote = null;
+    super.destroy();
+  }
 
 	public static function getSplashSkinPostfix()
 	{

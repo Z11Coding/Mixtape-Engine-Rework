@@ -759,7 +759,7 @@ class ModHandler
     note.noteModData.whichStrumNote = strum.getByColumn(note.noteModData.direction);
     var timmy:Float = note.noteModData.strumTime - note.noteModData.whichStrumNote.strumExtraModData.strumPos;
 
-    note.noteModData.curPos_unscaled = strum.calculateNoteYPos(timmy);
+    note.noteModData.curPos_unscaled = strum.calculateNoteYPos(timmy, note.multSpeed);
 
     for (mod in this.mods_speed)
     {
@@ -773,7 +773,7 @@ class ModHandler
       note.noteModData.speedMod *= mod.speedMath(note.noteModData.direction, note.noteModData.curPos_unscaled, strum, false);
     }
 
-    note.noteModData.curPos = strum.calculateNoteYPos(timmy) * note.noteModData.speedMod;
+    note.noteModData.curPos = strum.calculateNoteYPos(timmy, note.multSpeed) * note.noteModData.speedMod;
 
     note.scale.set(note.targetScale, note.targetScale);
     note.noteModData.scaleX = note.scale.x;
@@ -890,7 +890,7 @@ class ModHandler
     note.y = p[1];
     note.z = p[2];
 
-    note.alpha = 1;
+    note.alpha = strum.playerNum == 0 ? (ClientPrefs.data.opponentStrums ? (ClientPrefs.data.middleScroll ? ClientPrefs.data.oppNoteAlpha : 1) : 0) : 1;
     note.angle = 0;
     note.scale.set(note.targetScale, note.targetScale);
 
@@ -900,7 +900,7 @@ class ModHandler
     if (note.strumExtraModData.introTweenPercentage != 1)
     {
       var p:Float = note.strumExtraModData.introTweenPercentage;
-      note.alpha = p;
+      note.alpha *= p;
       p = 1 - p;
       note.y -= p * -10;
     }

@@ -53,7 +53,10 @@ class ProjectionProbeMain
     #end
     write("Starting isolated renderer probe (no input, audio, save loading or desktop capture).");
     FlxG.autoPause = false;
-    var state:Class<FlxState> = Sys.getEnv("MIXTAPE_SUSTAIN_PROBE") == "1" ? SustainRegressionState
+    var state:Class<FlxState> = Sys.getEnv("MIXTAPE_DIRECTION_PROBE") == "1" ? NoteDirectionRegressionState
+      : Sys.getEnv("MIXTAPE_FULL_GAMEPLAY_PROBE") == "1" ? SustainFullGameplayProbe
+      : Sys.getEnv("MIXTAPE_GAMEPLAY_PROBE") == "1" ? SustainGameplayRegressionState
+      : Sys.getEnv("MIXTAPE_SUSTAIN_PROBE") == "1" ? SustainRegressionState
       : Sys.getEnv("MIXTAPE_FIELD_DEMO") == "1" ? FieldProjectionDemo : ProjectionProbeState;
     Lib.current.addChild(new FlxGame(1280, 720, state, 60, 60, true, false));
   }

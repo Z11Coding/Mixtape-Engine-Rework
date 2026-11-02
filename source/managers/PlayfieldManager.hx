@@ -75,7 +75,17 @@ class PlayfieldManager {
 		return (value || ClientPrefs.getGameplaySetting('showcase', false));
 	}
 
-	public var songSpeed:Float = 1;
+	public var songSpeed(default, set):Float = 1;
+  function set_songSpeed(value:Float):Float
+  {
+    if (!Math.isFinite(value) || value <= 0) return songSpeed;
+    final previous = songSpeed;
+    songSpeed = value;
+    // Follow global speed changes, preserving deliberate per-line overrides.
+    if (allStrumLines != null) for (line in allStrumLines)
+      if (line != null && Math.abs(line.scrollSpeed - previous) < 0.00001) line.scrollSpeed = value;
+    return value;
+  }
 	public var songSpeedType:String = "multiplicative";
 
   //Input
@@ -622,6 +632,8 @@ class PlayfieldManager {
     final startTime = haxe.Timer.stamp();
 
     var songData = SONG;
+    // The manager is constructed before SONG is assigned; never keep its old 4K lane count.
+    totalColumns = ExtraKeys.ammo[songData.mania != null ? songData.mania : ExtraKeys.mania];
     songName = Paths.formatToSongPath(SONG.song).toLowerCase();
     final noteData:Array<SwagSection> = songData.notes;
 
@@ -1185,9 +1197,9 @@ class PlayfieldManager {
 
 					if (swagNote.sustainLength < 1) continue;
 
-					final roundSus:Int = Math.round(swagNote.sustainLength / stepCrochet);
+					final roundSus:Int = Math.ceil(swagNote.sustainLength / stepCrochet);
 					if (roundSus > 0) {
-						for (susNote in 0...roundSus + 1) {
+						for (susNote in 0...roundSus) {
 							final sustainNote:PreloadNotes = {
 								strumTime: daStrumTime + (stepCrochet * susNote),
 								noteData: daNoteData,
@@ -1199,8 +1211,8 @@ class PlayfieldManager {
                 exNote: songNotes[3] == 'EX Note' || (section.exSection && songNotes[1] < ExtraKeys.mania+1),
 								noAnimation: songNotes[3] == 'No Animation',
 								isSustainNote: true,
-								isSustainEnd: susNote == roundSus,
-								sustainLength: stepCrochet,
+								isSustainEnd: susNote == roundSus - 1,
+								sustainLength: Math.min(stepCrochet, swagNote.sustainLength - stepCrochet * susNote),
 								parentST: swagNote.strumTime,
 								parentSL: swagNote.sustainLength,
 								hitHealth: 0.023,
@@ -2406,7 +2418,7 @@ class PlayfieldManager {
 			if (pressed.contains(eventKey))
 				pressed.remove(eventKey);
 
-			if (key != -1) keyReleased(key);
+			if (key != -1) keyReleased(key, eventKey);
       (!opponentmode ? playerStrums : opponentStrums).releaseKey(key, eventKey);
 		} else {
 			#if debug
@@ -2419,7 +2431,7 @@ class PlayfieldManager {
 					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 					if (pressed.contains(eventKey)) return;
 					pressed.push(eventKey);
-					if (key != -1) keyPressed(key);
+					if (key != -1) keyPressed(key, eventKey);
 				}
 			}
 			else {
@@ -2428,18 +2440,29 @@ class PlayfieldManager {
 				if (pressed.contains(eventKey)) return;
 				pressed.push(eventKey);
         if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-        if (key != -1) keyPressed(key);
+        if (key != -1) keyPressed(key, eventKey);
 			}
 		}
 	}
 
-  private function keyPressed(key:Int)
+  // Recycled note sprites may be inactive; judgement cannot depend on their
+  // animation update running or on a cached flag from the previous frame.
+  public static function refreshNoteWindow(note:Dynamic, line:Strumline):Void
+  {
+    final now = line.conductorInUse.musicPosition;
+    note.canBeHit = note.mustPress && note.strumTime > now - RConductor.safeZoneOffset * note.lateHitMult
+      && note.strumTime < now + RConductor.safeZoneOffset * note.earlyHitMult;
+    note.tooLate = note.mustPress && !note.wasGoodHit && !note.ignoreNote
+      && note.strumTime < now - RConductor.safeZoneOffset;
+  }
+
+  private function keyPressed(key:Int, ?inputCode:Int)
 	{
     if (APInfo.inArchipelagoMode && APInfo.inHardMode && !APInfo.hasItem("BF's Mic"))
 			return;
 
     @:privateAccess
-		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= playerStrums.strumLineNotes.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
+		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || PlayState.instance?.paused || PlayState.instance?.inCutscene || key < 0 || key >= (opponentmode ? opponentStrums : playerStrums).strumLineNotes.length || !PlayState.instance?.generatedMusic || PlayState.instance?.endingSong) return;
 		if (strumsBlocked[key]) return;
 
     // Early script callback optimization - only call if scripts exist
@@ -2451,7 +2474,7 @@ class PlayfieldManager {
     if (key > -1)
 		{
 
-      (!opponentmode ? playerStrums : opponentStrums).pressKey(key, key);
+      (!opponentmode ? playerStrums : opponentStrums).pressKey(key, inputCode ?? key);
 
       //more accurate hit time for the ratings?
       var lastTime:Float = MegaManager.conductor.musicPosition;
@@ -2459,12 +2482,18 @@ class PlayfieldManager {
 
       // obtain notes that the player can hit
       var plrInputNotes:Array<Dynamic> = (!opponentmode ? playerStrums : opponentStrums).notes.members.filter(function(n:Note):Bool {
-        var canHit:Bool = n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
+        if (n == null || !n.alive) return false;
+        refreshNoteWindow(n, opponentmode ? opponentStrums : playerStrums);
+        var canHit:Bool = !strumsBlocked[n.noteData] && n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
         // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
         return n != null && n.exists && canHit && n.noteData == key;
       });
-      plrInputNotes.concat((!opponentmode ? playerStrums : opponentStrums).sustainNotes.members.filter(function(n:SustainNote):Bool {
-        return n != null && n.exists && n.noteData == key;
+      plrInputNotes = plrInputNotes.concat((!opponentmode ? playerStrums : opponentStrums).sustainNotes.members.filter(function(n:SustainNote):Bool {
+        if (n == null || !n.alive) return false;
+        refreshNoteWindow(n, opponentmode ? opponentStrums : playerStrums);
+        var canHit:Bool = n.canBeHit && n.mustPress && !n.tooLate && !n.wasGoodHit && !n.blockHit;
+        // trace('[keyPressed] Note? ${n != null}, noteData=${n.noteData}, strumTime=${n.strumTime}, canHit=$canHit, mustPress=${n.mustPress}, tooLate=${n.tooLate}, wasGoodHit=${n.wasGoodHit}, Conductor=${Conductor.songPosition}');
+        return n != null && n.exists && canHit && n.noteData == key;
       }));
       plrInputNotes.sort(PlayState.sortHitNotes);
 
@@ -2475,7 +2504,8 @@ class PlayfieldManager {
           var doubleNote:Dynamic = plrInputNotes[1];
 
           //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-          if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
+          if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff
+            && (doubleNote is SustainNote) == (funnyNote is SustainNote)) {
             // if the note has a 0ms distance (is on top of the current note), kill it
             if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
               PlayState.instance?.invalidateNote(doubleNote);
@@ -2486,8 +2516,8 @@ class PlayfieldManager {
             }
           }
           else {
-            PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-            //(!opponentmode ? playerStrums : opponentStrums).hitNote(doubleNote);
+             //otherwise, hit doubleNote instead of killing it
+            (!opponentmode ? playerStrums : opponentStrums).hitNote(doubleNote);
             if (customStrumLines.length > 0) {
               for (customStrummer in customStrumLines) {
                 customStrummer.hitNote(doubleNote);
@@ -2497,8 +2527,8 @@ class PlayfieldManager {
 
           }
         }
-        PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-        //(!opponentmode ? playerStrums : opponentStrums).hitNote(funnyNote);
+
+        (!opponentmode ? playerStrums : opponentStrums).hitNote(funnyNote);
         if (customStrumLines.length > 0) {
           for (customStrummer in customStrumLines) {
             customStrummer.hitNote(funnyNote);
@@ -2507,58 +2537,8 @@ class PlayfieldManager {
         }
         if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
           for (i in 1...plrInputNotes.length) {
-            PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-            //(!opponentmode ? playerStrums : opponentStrums).hitNote(plrInputNotes[i]);
-            if (customStrumLines.length > 0) {
-              for (customStrummer in customStrumLines) {
-                customStrummer.hitNote(plrInputNotes[i]);
-                PlayState.instance?.goodNoteCustom(plrInputNotes[i], customStrummer);
-              }
-            }
-          }
-        }
-      }
-      else if (plrInputNotes.length != 0) {
-        var funnyNote:Dynamic = plrInputNotes[0]; // front note
 
-        if (plrInputNotes.length > 1) {
-          var doubleNote:Dynamic = plrInputNotes[1];
-
-          //if the note has the same notedata and doOppStuff indicator as funnynote, then do the check
-          if (doubleNote.noteData == funnyNote.noteData && doubleNote.doOppStuff == funnyNote.doOppStuff) {
-            // if the note has a 0ms distance (is on top of the current note), kill it
-            if (Math.abs(doubleNote.strumTime - funnyNote.strumTime) < 1.0)
-              PlayState.instance?.invalidateNote(doubleNote);
-            else if (doubleNote.strumTime < funnyNote.strumTime)
-            {
-              // replace the note if its ahead of time (or at least ensure "doubleNote" is ahead)
-              funnyNote = doubleNote;
-            }
-          }
-          else {
-            PlayState.instance?.goodNoteHit(doubleNote, null, doubleNote.parentStrumline); //otherwise, hit doubleNote instead of killing it
-            //(!opponentmode ? playerStrums : opponentStrums).hitNote(doubleNote);
-            if (customStrumLines.length > 0) {
-              for (customStrummer in customStrumLines) {
-                customStrummer.hitNote(doubleNote);
-                PlayState.instance?.goodNoteCustom(doubleNote, customStrummer);
-              }
-            }
-
-          }
-        }
-        PlayState.instance?.goodNoteHit(funnyNote, null, funnyNote.parentStrumline);
-        //(!opponentmode ? playerStrums : opponentStrums).hitNote(funnyNote);
-        if (customStrumLines.length > 0) {
-          for (customStrummer in customStrumLines) {
-            customStrummer.hitNote(funnyNote);
-            PlayState.instance?.goodNoteCustom(funnyNote, customStrummer);
-          }
-        }
-        if (plrInputNotes.length > 2 && ClientPrefs.data.ezSpam) {
-          for (i in 1...plrInputNotes.length) {
-            PlayState.instance?.goodNoteHit(plrInputNotes[i], null, plrInputNotes[i].parentStrumline);
-            //(!opponentmode ? playerStrums : opponentStrums).hitNote(plrInputNotes[i]);
+            (!opponentmode ? playerStrums : opponentStrums).hitNote(plrInputNotes[i]);
             if (customStrumLines.length > 0) {
               for (customStrummer in customStrumLines) {
                 customStrummer.hitNote(plrInputNotes[i]);
@@ -2573,7 +2553,7 @@ class PlayfieldManager {
         if (canMiss) PlayState.instance?.noteMissPress(key);
       }
 
-      var spr:StrumNote = playerStrums.getByColumn(key);
+      var spr:StrumNote = (opponentmode ? opponentStrums : playerStrums).getByColumn(key);
       if(strumsBlocked[key] != true && spr != null && spr.animation != null && spr.animation.curAnim.name != 'confirm')
       {
         spr.playAnim('pressed');
@@ -2627,13 +2607,13 @@ class PlayfieldManager {
 				if (!Controls.instance.controllerMode)
 				{
 					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
-					if (keyDirection != -1) keyPressed(keyDirection);
+					if (keyDirection != -1) keyPressed(keyDirection, key);
 				}
 			}
 			else {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (MegaManager.scriptManager.callOnScripts("onKeyDown", [keyDirection]) == LuaUtils.Function_Stop) return;
-        if (key != -1) keyPressed(keyDirection);
+        if (key != -1) keyPressed(keyDirection, key);
       }
 		}
 	}
@@ -2646,17 +2626,17 @@ class PlayfieldManager {
 				if (!Controls.instance.controllerMode)
 				{
 					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
-					if (direction != -1) keyPressed(direction);
+					if (direction != -1) keyPressed(direction, key);
           (!opponentmode ? playerStrums : opponentStrums).pressKey(direction, key);
 				}
 			}
 			else {
 				if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 				if (MegaManager.scriptManager.callOnScripts("onKeyDown", [direction]) == LuaUtils.Function_Stop) return;
-        if (direction != -1) keyPressed(direction);
+        if (direction != -1) keyPressed(direction, key);
 			}
 		} else {
-			if (direction != -1) keyReleased(direction);
+			if (direction != -1) keyReleased(direction, key);
 		}
 		// trace('released: ' + controlArray);
 	}
@@ -2677,7 +2657,7 @@ class PlayfieldManager {
 					if (PlayState.instance?.paused || !PlayState.instance?.startedCountdown || PlayState.instance?.inCutscene) return;
 					if (pressed.contains(eventKey)) return;
 					pressed.push(eventKey);
-					if (key != -1) keyPressed(key);
+					if (key != -1) keyPressed(key, eventKey);
           (!opponentmode ? playerStrums : opponentStrums).pressKey(key, eventKey);
 				}
 			}
@@ -2687,26 +2667,28 @@ class PlayfieldManager {
 				pressed.push(eventKey);
         if (MusicBeatState.getState() == PlayState.instance)
           if (MegaManager.scriptManager.callOnScripts("onKeyDown", [event]) == LuaUtils.Function_Stop) return;
-        if (key != -1) keyPressed(key);
+        if (key != -1) keyPressed(key, eventKey);
 			}
 		} else {
 			if (pressed.contains(eventKey))
 				pressed.remove(eventKey);
 
-			if (key != -1) keyReleased(key);
+			if (key != -1) keyReleased(key, eventKey);
 		}
 	}
 
-	private function keyReleased(key:Int)
+	private function keyReleased(key:Int, ?inputCode:Int)
 	{
-		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || !PlayState.instance?.startedCountdown || PlayState.instance?.paused || key < 0 || key >= playerStrums.length) return;
+    final controlledLine = opponentmode ? opponentStrums : playerStrums;
+    if (controlledLine != null) controlledLine.releaseKey(key, inputCode ?? key);
+		if(cpuControlled || ClientPrefs.getGameplaySetting('showcase', false) || !PlayState.instance?.startedCountdown || PlayState.instance?.paused || key < 0 || key >= (opponentmode ? opponentStrums : playerStrums).strumLineNotes.length) return;
 
     if (MusicBeatState.getState() == PlayState.instance) {
       var ret:Dynamic = MegaManager.scriptManager.callOnScripts('onKeyReleasePre', [key]);
   		if(ret == LuaUtils.Function_Stop) return;
     }
 
-		var spr:StrumNote = playerStrums.getByColumn(key);
+		var spr:StrumNote = (opponentmode ? opponentStrums : playerStrums).getByColumn(key);
 		if (spr != null)
 		{
 			spr.playAnim('static');
@@ -2768,6 +2750,27 @@ class PlayfieldManager {
 	private static var _cachedPressArray:Array<Bool> = [];
 	private static var _cachedReleaseArray:Array<Bool> = [];
 
+
+  public function updateSustainInput(line:Strumline):Void
+  {
+    if (line == null) return;
+    final now = line.conductorInUse.musicPosition;
+    for (hold in line.sustainNotes.members)
+    {
+      if (hold == null || !hold.alive || !hold.mustPress || hold.ignoreNote || hold.blockHit) continue;
+      refreshNoteWindow(hold, line);
+      final lane = hold.noteData;
+      final held = strumsBlocked[lane] != true && line.isKeyHeld(lane);
+      if (hold.hitNote && !hold.missedNote && !held && now < hold.strumTime + hold.fullSustainLength)
+      {
+        hold.missedNote = true;
+        if (hold.cover != null) { hold.cover.kill(); hold.cover = null; }
+      }
+      if (held && !hold.wasGoodHit && !hold.tooLate && hold.canBeHit && now >= hold.strumTime)
+        line.hitNote(hold);
+    }
+  }
+
 	private function keysCheck():Void
 	{
 		if (ClientPrefs.data.inputSystem == 'Native-old') {
@@ -2789,9 +2792,9 @@ class PlayfieldManager {
 			// Use direct indexing instead of push
 			for (i in 0...keyArrayLength) {
 				var key = keysArray[ExtraKeys.mania][i];
-				holdArray[i] = Controls.instance.pressed(key);
-				pressArray[i] = Controls.instance.justPressed(key);
-				releaseArray[i] = Controls.instance.justReleased(key);
+				holdArray[i] = FlxG.keys.anyPressed(cast key) || (i < controlArray.length && Controls.instance.pressed(controlArray[i].toLowerCase()));
+				pressArray[i] = FlxG.keys.anyJustPressed(cast key) || (i < controlArray.length && Controls.instance.justPressed(controlArray[i].toLowerCase()));
+				releaseArray[i] = FlxG.keys.anyJustReleased(cast key) || (i < controlArray.length && Controls.instance.justReleased(controlArray[i].toLowerCase()));
 			}
       pressedGameplayKeys = holdArray;
 
@@ -2837,7 +2840,9 @@ class PlayfieldManager {
 			}
 		} else {
 			// HOLDING
-			var parsedHoldArray:Array<Bool> = parseKeys();
+			var parsedHoldArray:Array<Bool> = [];
+      for (lane => laneKeys in keysArray[ExtraKeys.mania])
+        parsedHoldArray.push(FlxG.keys.anyPressed(cast laneKeys) || (lane < controlArray.length && Controls.instance.pressed(controlArray[lane].toLowerCase())));
 			pressedGameplayKeys = parsedHoldArray;
 			// FlxG.watch.addQuick('asdfa', upP);
       if (MusicBeatState.getState() == PlayState.instance) {
@@ -2882,6 +2887,12 @@ class PlayfieldManager {
 				}
 			}
 		}
+	    // Sustain segments keep the chart's original judgement times. Holding a
+    // lane consumes its due segments; releasing stops further consumption.
+    @:privateAccess
+    if (!cpuControlled && PlayState.instance != null && !PlayState.instance.paused
+      && PlayState.instance.startedCountdown && PlayState.instance.generatedMusic && !PlayState.instance.inCutscene)
+      updateSustainInput(opponentmode ? opponentStrums : playerStrums);
 	}
 
   public function spawnHoldSplashOnNote(note:Dynamic, ?isDad:Bool = false) {
@@ -2900,13 +2911,11 @@ class PlayfieldManager {
 		}
 	}
 
-	public function spawnHoldSplash(note:Dynamic) {
-		var end:Dynamic = note;
-		var splash:SustainSplash = note.parentStrumline.holdSplashes.recycle(SustainSplash);
-    final playbackRate:Float = ClientPrefs.getGameplaySetting('songspeed');
-		splash.setupSusSplash((note.parentStrumline ?? (note.mustPress ? playerStrums : opponentStrums)).getByColumn(note.noteData), note, playbackRate);
-		(note.parentStrumline ?? (note.mustPress ? playerStrums : opponentStrums)).holdSplashes.add(end.noteHoldSplash = splash);
-	}
+  public function spawnHoldSplash(note:Dynamic) {
+    if (!(note is SustainNote)) return;
+    final line = note.parentStrumline ?? (note.mustPress ? playerStrums : opponentStrums);
+    if (line != null) line.playNoteHoldCover(cast note);
+  }
 
 	public function spawnNoteSplashOnNote(note:Dynamic, ?isDad:Bool) {
 		if(ClientPrefs.data.noteSplashes && note != null) {

@@ -102,42 +102,34 @@ class Paths
     var spr:FlxSprite = new FlxSprite();
     spr.frames = getSparrowAtlas(noteSkin.length > 1 ? noteSkin : defaultSkin);
 
-    // Use a for loop for adding all of the animations in the note spritesheet, otherwise it won't find the animations for the next recycle
-    for (i in 0...ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters').length)
-		{
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + '0');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + '0');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i], ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + '0');
-
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold end');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold piece');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail');
-
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', 'pruple end hold');
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' tail', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold end');
-
-			attemptToAddAnimationByPrefix(spr, ExtraKeys.keysShit.get(ExtraKeys.mania).get('letters')[i] + ' hold', ExtraKeys.colArray[ExtraKeys.keysShit.get(ExtraKeys.mania).get('colArray')[i]] + ' hold piece');
-		}
+    final mapping = ExtraKeys.keysShit.get(ExtraKeys.mania);
+    final letters:Array<String> = mapping.get('letters');
+    final colors:Array<Int> = mapping.get('colArray');
+    for (i in 0...letters.length)
+    {
+      final letter = letters[i], color = ExtraKeys.colArray[colors[i]];
+      // Prefer the skin's dedicated lane art; a fallback must never overwrite it.
+      if (!attemptToAddAnimationByPrefix(spr, letter, letter + '0'))
+        attemptToAddAnimationByPrefix(spr, letter, color + '0');
+      if (!attemptToAddAnimationByPrefix(spr, letter + ' hold', letter + ' hold'))
+        attemptToAddAnimationByPrefix(spr, letter + ' hold', color + ' hold piece');
+      if (!attemptToAddAnimationByPrefix(spr, letter + ' tail', letter + ' tail'))
+        if (!attemptToAddAnimationByPrefix(spr, letter + ' tail', color + ' hold end'))
+          attemptToAddAnimationByPrefix(spr, letter + ' tail', color + ' end hold');
+    }
     noteSkinFramesMap.set(noteSkin, spr.frames);
     noteSkinAnimsMap.set(noteSkin, spr.animation);
     noteSkinAnimationMania.set(noteSkin, ExtraKeys.mania);
   }
 
-	static function attemptToAddAnimationByPrefix(obj:FlxSprite, name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true)
-	{
-		try {
-			var animFrames = [];
-			@:privateAccess
-			obj.animation.findByPrefix(animFrames, prefix); // adds valid frames to animFrames
-			if(animFrames.length < 1) return;
-
-			obj.animation.addByPrefix(name, prefix, framerate, doLoop);
-		}
-		catch(e){
-			//trace("Anim was null!: " + prefix);
-		}
-	}
+  static function attemptToAddAnimationByPrefix(obj:FlxSprite, name:String, prefix:String, framerate:Float = 24, doLoop:Bool = true):Bool
+  {
+    var animFrames = [];
+    @:privateAccess obj.animation.findByPrefix(animFrames, prefix);
+    if (animFrames.length == 0) return false;
+    obj.animation.addByPrefix(name, prefix, framerate, doLoop);
+    return true;
+  }
 
 	// Troll Engine Things
 	public static function getFileWithExtensions(scriptPath:String, extensions:Array<String>) {
