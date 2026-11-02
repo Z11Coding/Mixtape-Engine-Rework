@@ -96,7 +96,7 @@ class HourGlassAngleZ extends HourGlassModBase
     super(name);
   }
 
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {

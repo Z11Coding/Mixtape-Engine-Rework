@@ -33,7 +33,7 @@ class SawtoothModBase extends Modifier
     offsetSubmod = createSubMod("offset", 0.0);
   }
 
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   var offsetSubmod:ModifierSubValue;
   var multSubmod:ModifierSubValue;
 }

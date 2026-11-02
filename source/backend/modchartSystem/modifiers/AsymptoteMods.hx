@@ -26,7 +26,7 @@ class AsymptoteModBase extends Modifier
     return altCurposSubmod.value >= 0.5;
   }
 
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   public function new(name:String)
   {

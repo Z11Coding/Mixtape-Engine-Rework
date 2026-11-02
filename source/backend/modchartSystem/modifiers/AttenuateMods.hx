@@ -7,7 +7,7 @@ import objects.notes.Strumline;
 
 class AttenuateModBase extends Modifier
 {
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   var offset:ModifierSubValue;
   var altCurposSubmod:ModifierSubValue;
   var useUnscaledCurpos(get, never):Bool;

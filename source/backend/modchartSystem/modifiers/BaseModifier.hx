@@ -472,7 +472,7 @@ class Modifier
   {
   }
 
-  public dynamic function strumMath(data:NoteData, strumLine:Strumline):Void
+  public dynamic function currentValue(data:NoteData, strumLine:Strumline):Void
   {
   }
 

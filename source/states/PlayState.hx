@@ -8793,8 +8793,6 @@ class PlayState extends MusicBeatState
 			if (note.hitsoundVolume > 0 && !note.hitsoundDisabled)
 				FlxG.sound.play(Paths.sound(note.hitsound), note.hitsoundVolume);
 
-			trace('Was note a Sustain: ${note.isSustainNote}');
-
 			if(!note.hitCausesMiss) //Common notes
 			{
 				// Register note hit for TPS/NPS calculation
@@ -8958,7 +8956,6 @@ class PlayState extends MusicBeatState
 								mechanicsMod.restoreNoteHit();
 					}
 				}
-				trace('Was note a Sustain: ${note.isSustainNote}');
 			}
 			else //Notes that count as a miss if you hit them (Hurt notes for example)
 			{
@@ -8998,7 +8995,6 @@ class PlayState extends MusicBeatState
 					}
 				}
 
-				trace('Was note a Sustain: ${note.isSustainNote}');
 				noteMiss(note);
 				if (note.isSustainNote)
 					(customStrummer ?? (note.parentStrumline ?? playerStrumline)).playNoteHoldCover(note);

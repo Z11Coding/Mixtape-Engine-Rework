@@ -17,7 +17,7 @@ class BeatModBase extends Modifier
   var alternate:ModifierSubValue; // if 0.5 or higher, will alternate. otherwise, the beat will always move in one direction (never from side to side)
   // var cap:ModifierSubValue; // By default, the speed gets halved if the BPM is too high. However we don't have this behaviour making this obsolete
   // An array which represents each arrow direction. Used to undo the strum movement for the notes for the offset submod to function
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   public function new(name:String)
   {

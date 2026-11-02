@@ -650,3 +650,235 @@ class OldCustomPathMod extends Modifier
     data.z = FlxMath.lerp(data.z, newPosition.z + (offset.z * currentValue), doStrumLogicSubmod.value);
   }
 }
+
+// So that custom path mods can work without a file
+class TrollCustomPathMod extends Modifier
+{
+  function calculatePathDistances(path:List<TimeVector>):Float
+  {
+    @:privateAccess
+    var iterator_head = path.h;
+    var val = iterator_head.item;
+    iterator_head = iterator_head.next;
+    var last = val;
+    last.startDist = 0;
+    var dist = 0.0;
+    while (iterator_head != null)
+    {
+      var val = iterator_head.item;
+      iterator_head = iterator_head.next;
+      var current = val;
+      var result = new Vector4();
+      result.x = current.x - last.x;
+      result.y = current.y - last.y;
+      result.z = current.z - last.z;
+      var differential = result;
+      dist += Math.sqrt(differential.x * differential.x + differential.y * differential.y + differential.z * differential.z);
+      current.startDist = dist;
+      last.next = current;
+      last.endDist = current.startDist;
+      last = current;
+    }
+    return dist;
+  }
+
+  function getPointAlongPath(distance:Float):TimeVector
+  {
+    @:privateAccess
+    var _g_head = this._path.h;
+    while (_g_head != null)
+    {
+      var val = _g_head.item;
+      _g_head = _g_head.next;
+      var vec = val;
+      var Min = vec.startDist;
+      var Max = vec.endDist;
+      // looks like a FlxMath function could be that
+      if ((Min == 0 || distance >= Min) && (Max == 0 || distance <= Max) && vec.next != null)
+      {
+        var ratio = distance - vec.startDist;
+        var _this = vec.next;
+        var result = new Vector4();
+        result.x = _this.x - vec.x;
+        result.y = _this.y - vec.y;
+        result.z = _this.z - vec.z;
+        var ratio1 = ratio / Math.sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
+        var vec2 = vec.next;
+        var out1 = new Vector4(vec.x, vec.y, vec.z, vec.w);
+        var s = 1 - ratio1;
+        out1.x *= s;
+        out1.y *= s;
+        out1.z *= s;
+        var out2 = new Vector4(vec2.x, vec2.y, vec2.z, vec2.w);
+        out2.x *= ratio1;
+        out2.y *= ratio1;
+        out2.z *= ratio1;
+        var result1 = new Vector4();
+        result1.x = out1.x + out2.x;
+        result1.y = out1.y + out2.y;
+        result1.z = out1.z + out2.z;
+        return new TimeVector(result1.x, result1.y, result1.z, result1.w);
+      }
+    }
+    return _path.first();
+  }
+
+  public var _path:List<TimeVector> = null;
+  public var _pathDistance:Float = 0;
+
+  public function loadPath()
+  {
+    // Just for the custom mods
+  }
+
+  function executePath(curPos:Float, column:Int, isReceptor:Bool = false):Vector4
+  {
+    if (_path == null)
+    {
+      return new Vector4(0, 0, 0, 0);
+    }
+
+    if (posTypeSubMod.value <= -0.5) // classic / old style
+    {
+      curPos = Math.abs(curPos) * -1 / 0.47;
+      curPos = curPos / -1500.0 * _pathDistance;
+    }
+    else
+    {
+      curPos *= -1;
+    }
+
+    var offset:Float = offsetSubMod.value;
+    if (!isReceptor)
+    {
+      offset += driveSubMod.value;
+    }
+
+    var pathAtDist = getPointAlongPath(curPos + offset);
+
+    var pathAtZero = getPointAlongPath(0.0 + offset);
+
+    var offset = new Vector4(pathAtDist.x - pathAtZero.x, pathAtDist.y - pathAtZero.y, pathAtDist.z - pathAtZero.z, 0);
+
+    return offset;
+  }
+
+  /**
+   * Determines what curPos value to use.
+   * 1.0 = unscaled pos
+   * 0.0 = normal
+   * -1.0 = normal multiplied by path length (classic style)
+   * -2.0 = unscaled pos multiplied by path length (classic style)
+   */
+  public var posTypeSubMod:ModifierSubValue;
+
+  /**
+   * Multiplies the size of the customPath by this amount.
+   */
+  public var sizeSubMod:ModifierSubValue;
+
+  public var sizeXSubMod:ModifierSubValue;
+  public var sizeYSubMod:ModifierSubValue;
+  public var sizeZSubMod:ModifierSubValue;
+
+  /**
+   * By default, the customPath modifier will try and cancel out the default note scroll movement.
+   * Same logic as linearY modifier
+   */
+  public var linearYsubMod:ModifierSubValue;
+
+  /**
+   * While Drive2 allows you to have the strums follow the path,
+   * the offset submod allows you 'scrub' through the path without the strums moving along it.
+   * Very useful if you're making an effect like 'line' from NotITG and want to keep the strums anchored (to avoid having to figure out camera movement)
+   */
+  public var offsetSubMod:ModifierSubValue;
+
+  /**
+   * Basically just a built-in drive2 modifier.
+   */
+  public var driveSubMod:ModifierSubValue;
+
+  public function new(name:String)
+  {
+    super(name, 0);
+    unknown = false;
+    notesMod = true;
+    holdsMod = true;
+    strumsMod = true;
+    pathMod = true;
+
+    posTypeSubMod = createSubMod("postype", 0.0, [
+      "pos",
+      "type",
+      "mode",
+      "curpos",
+      "curpostype"
+    ]);
+    driveSubMod = createSubMod("drive", 0.0);
+    offsetSubMod = createSubMod("offset", 0.0, ["scrub", "shift"]);
+    sizeXSubMod = createSubMod("scalex", 1.0, ["sizex"]);
+    sizeYSubMod = createSubMod("scaley", 1.0, ["sizey"]);
+    sizeZSubMod = createSubMod("scalez", 1.0, ["sizez"]);
+    sizeSubMod = createSubMod("size", 1.0, ["scale"]);
+
+    linearYsubMod = createSubMod("scroll", 1.0, [
+      "cancely",
+      "ytype",
+      "ymove",
+      "lineary",
+      "linearyblend",
+      "yblend",
+      "antiscroll",
+      "cancelscroll"
+    ]);
+
+    loadPath();
+  }
+
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
+  {
+    if (currentValue == 0) return;
+
+    var curPos:Float = data.curPos;
+    if (posTypeSubMod.value > 0.5 || posTypeSubMod.value < -1.5)
+    {
+      curPos = data.curPos_unscaled;
+    }
+    if (!ClientPrefs.data.downScroll)
+    {
+      curPos *= -1;
+    }
+
+    var newPosition:Vector4 = executePath(curPos, data.direction, false);
+    final scaleAmount:Float = sizeSubMod.value;
+    newPosition.x *= scaleAmount * sizeXSubMod.value;
+    newPosition.y *= scaleAmount * sizeYSubMod.value;
+    newPosition.z *= scaleAmount * sizeZSubMod.value;
+    data.x += newPosition.x * currentValue;
+    data.y += newPosition.y * currentValue;
+    data.z += newPosition.z * currentValue;
+
+    if (linearYsubMod.value == 0.0) return;
+    // automatically apply linearY mod to cancel the default y movement
+    var linearYValue:Float = Math.abs(currentValue);
+    if (linearYValue > 1.0) linearYValue = 1.0;
+    linearYValue *= -1.0;
+    data.y += data.curPos * linearYValue * linearYsubMod.value;
+  }
+
+  override function strumMath(data:NoteData, strumLine:Strumline):Void
+  {
+    if (driveSubMod.value == 0) return;
+    if (currentValue == 0) return;
+
+    var newPosition:Vector4 = executePath(driveSubMod.value * -1, data.direction, true);
+    final scaleAmount:Float = sizeSubMod.value;
+    newPosition.x *= scaleAmount * sizeXSubMod.value;
+    newPosition.y *= scaleAmount * sizeYSubMod.value;
+    newPosition.z *= scaleAmount * sizeZSubMod.value;
+    data.x += newPosition.x * currentValue;
+    data.y += newPosition.y * currentValue;
+    data.z += newPosition.z * currentValue;
+  }
+}

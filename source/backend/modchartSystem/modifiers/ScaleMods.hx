@@ -490,8 +490,8 @@ class ZoomModifier extends RotateModBase
     typeSubmod = createSubMod("type", 1.0, ["variant", "mode", "scale2"]);
   }
 
-  var strumResultX:Array<Float> = [0, 0, 0, 0];
-  var strumResultY:Array<Float> = [0, 0, 0, 0];
+  var strumResultX:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  var strumResultY:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   function getScalePivot_X(data:NoteData, strumLine:Strumline):Float
   {

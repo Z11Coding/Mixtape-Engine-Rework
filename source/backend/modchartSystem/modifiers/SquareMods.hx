@@ -15,7 +15,7 @@ class SquareModBase extends Modifier
   var offsetX:ModifierSubValue;
   var offsetY:ModifierSubValue;
   // An array which represents each arrow direction. Used to undo the strum movement for the notes for the offset submod to function
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   public function new(name:String)
   {

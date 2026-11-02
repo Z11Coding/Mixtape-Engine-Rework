@@ -7,7 +7,7 @@ import objects.notes.Strumline;
 class CircModBase extends Modifier
 {
   var offset:ModifierSubValue;
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   var altCurposSubmod:ModifierSubValue;
 
   public function new(name:String)

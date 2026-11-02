@@ -16,7 +16,7 @@ class LinearModifierBase extends Modifier
 
   var altCurposSubmod:ModifierSubValue;
   var offset:ModifierSubValue;
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   var useUnscaledCurpos(get, never):Bool;
 
   function get_useUnscaledCurpos():Bool

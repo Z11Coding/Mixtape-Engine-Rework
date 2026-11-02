@@ -9,7 +9,7 @@ class CubicModBase extends Modifier
 {
   var offset:ModifierSubValue;
   var altCurposSubmod:ModifierSubValue;
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   var useUnscaledCurpos(get, never):Bool;
 
   function get_useUnscaledCurpos():Bool

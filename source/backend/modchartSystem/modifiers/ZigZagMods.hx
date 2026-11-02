@@ -13,7 +13,7 @@ class ZigZagBaseMod extends Modifier
 {
   var mult:ModifierSubValue;
   var offset:ModifierSubValue;
-  var strumResult:Array<Float> = [0, 0, 0, 0];
+  var strumResult:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
   public function new(name:String)
   {
