@@ -475,7 +475,7 @@ class NotesColorSubState extends MusicBeatSubstate
 		{
 			if(FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER))
 			{
-				for (i in 0...3)
+				for (i in 0...17)
 				{
 					var strumRGB:RGBShaderReference = myNotes.members[curSelectedNote].rgbShader;
 					var color:FlxColor = !onPixel ? ClientPrefs.defaultData.arrowRGBExtra[curSelectedNote][i] :
@@ -619,7 +619,7 @@ class NotesColorSubState extends MusicBeatSubstate
 		add(skinNote);
 
 		var res:Int = !onPixel ? 160 : 17;
-		for (i in 0...3)
+		for (i in 0...17)
 		{
 			var newNote:FlxSprite = new FlxSprite(230 + (100 * i), 100).loadGraphic(Paths.image('noteColorMenu/' + (!onPixel ? 'note' : 'notePixel')), true, res, res);
 			newNote.antialiasing = ClientPrefs.data.antialiasing;
