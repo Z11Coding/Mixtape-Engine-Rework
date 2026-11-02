@@ -2176,7 +2176,6 @@ class PlayState extends MusicBeatState
 
 			setOnScripts('curSection', curSec);
 			callOnScripts('onSectionHit');
-			//trace('curSection: $curSec');
 		});
 
 		conductor.addBeatCallback((curBeat:Int, backward:Bool) ->
@@ -2428,7 +2427,6 @@ class PlayState extends MusicBeatState
 			setOnScripts('curBeat', curBeat);
 			callOnScripts('onBeatHit');
 			stagesFunc(function(stage:BaseStage) stage.beatHit());
-			//trace('curBeat: $curBeat');
 		});
 
 		conductor.addStepCallback((curStep:Int, backward:Bool) ->
@@ -2436,7 +2434,6 @@ class PlayState extends MusicBeatState
 			setOnScripts('curStep', curStep);
 			callOnScripts('onStepHit');
 			stagesFunc(function(stage:BaseStage) stage.stepHit());
-			//trace('curStep: $curStep');
 		});
 	}
 
