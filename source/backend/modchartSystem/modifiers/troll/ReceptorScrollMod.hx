@@ -5,7 +5,7 @@ import backend.modchartSystem.modifiers.BaseModifier;
 import flixel.math.FlxMath;
 import objects.notes.Strumline;
 
-// From Troll Engine: Swaps the position of the player and opponent strums
+// From Troll Engine: Makes the strums, come to the notes! (like Drive2, but the notes are pre-placed, and it goes both up AND down)
 class ReceptorScrollMod extends Modifier
 {
   public function new(name:String)
@@ -27,9 +27,9 @@ class ReceptorScrollMod extends Modifier
   {
     if (currentValue == 0) return; // skip math if mod is 0
 
-    var diff = strumPosition;
+    var diff = data.strumTime;
     var sPos = songTime;
-    var vDiff = -(diff - sPos) / scrollSpeed;
+    var vDiff = -(diff - sPos) / strumLine.scrollSpeed;
     var reversed = Math.floor(vDiff)%2 == 0;
 
     var startY = data.y;
@@ -38,7 +38,7 @@ class ReceptorScrollMod extends Modifier
     var upscrollOffset = 50;
     var downscrollOffset = FlxG.height - 150;
 
-    var endY = upscrollOffset + ((downscrollOffset - BaseNote.swagWidth * 0.5) * revPerc);
+    var endY = upscrollOffset + ((downscrollOffset - ModConstants.strumSize * 0.5) * revPerc);
 
     data.y = lerp(startY, endY, currentValue);
   }
@@ -47,9 +47,9 @@ class ReceptorScrollMod extends Modifier
   {
     if (currentValue == 0) return; // skip math if mod is 0
 
-    var diff = curPos;
+    var diff = data.curPos;
     var sPos = songTime;
-    var vDiff = -(diff - sPos) / scrollSpeed;
+    var vDiff = -(diff - sPos) / strumLine.scrollSpeed;
     var reversed = Math.floor(vDiff)%2 == 0;
 
     var startY = data.y;
@@ -58,12 +58,12 @@ class ReceptorScrollMod extends Modifier
     var upscrollOffset = 50;
     var downscrollOffset = FlxG.height - 150;
 
-    var endY = upscrollOffset + ((downscrollOffset - BaseNote.swagWidth * 0.5) * revPerc);
+    var endY = upscrollOffset + ((downscrollOffset - ModConstants.strumSize * 0.5) * revPerc);
 
     data.y = lerp(startY, endY, currentValue);
 
-    var songPos = sPos / scrollSpeed;
-		var notePos = -(diff - sPos) / scrollSpeed;
+    var songPos = sPos / strumLine.scrollSpeed;
+		var notePos = -(diff - sPos) / strumLine.scrollSpeed;
 
     if(Math.floor(songPos)!=Math.floor(notePos)){
 			data.alpha *= .1;

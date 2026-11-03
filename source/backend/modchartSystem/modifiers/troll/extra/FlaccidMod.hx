@@ -17,11 +17,11 @@ class FlaccidMod extends Modifier
     holdsMod = true;
   }
 
-  override function noteMath(data:NoteData, strumLine:Strumline):Void
+  override function noteMath(data:NoteData, strumLine:Strumline, ?isHoldNote = false, ?isArrowPath:Bool = false):Void
   {
     if (currentValue == 0) return; // skip math if mod is 0
 
-    var f = data.curPos / BaseNote.swagWidth;
+    var f = data.curPos / ModConstants.strumSize;
 		data.x += currentValue * f * f;
     // any pN > 0 should go right whereas any pN < 0 should go left
   }

@@ -468,11 +468,11 @@ class Modifier
   {
   }
 
-  public dynamic function specialMath(lane:Int, strumLine:Strumline):Void
+  public dynamic function strumMath(data:NoteData, strumLine:Strumline):Void
   {
   }
 
-  public dynamic function currentValue(data:NoteData, strumLine:Strumline):Void
+  public dynamic function specialMath(lane:Int, strumLine:Strumline):Void
   {
   }
 

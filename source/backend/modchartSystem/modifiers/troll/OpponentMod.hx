@@ -1,5 +1,6 @@
 package backend.modchartSystem.modifiers.troll;
 
+import backend.modchartSystem.ModConstants;
 import backend.modchartSystem.NoteData;
 import backend.modchartSystem.modifiers.BaseModifier;
 import objects.notes.Strumline;

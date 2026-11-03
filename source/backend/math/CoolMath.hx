@@ -20,9 +20,9 @@ class CoolMath/*Games*/{
 		var fAngle:Float = angle % (Math.PI * 2.0);
 		if (fAngle < 0.0)
 			fAngle += Math.PI * 2.0;
-		
+
 		var result:Float = fAngle / Math.PI;
-		
+
 		if (result < 0.5) {
 			return 2.0 * result;
 		}
@@ -59,7 +59,7 @@ class CoolMath/*Games*/{
 		var tempMult:Float = 1.0;
 		for (_ in 0...decimals)
 			tempMult *= 10.0;
-		
+
 		return Math.ffloor(value * tempMult) / tempMult;
 	}
 
@@ -78,5 +78,20 @@ class CoolMath/*Games*/{
 
 
 		return p;
+	}
+
+	// Just in case
+	@:pure
+	@:deprecated("Use Vector3.interpolate instead.")
+	inline public static function lerpVector3D(start:Vector3, end:Vector3, ratio:Float) {
+		if (ratio == 0)
+			return start;
+		if (ratio == 1)
+			return end;
+
+		final diff = end.subtract(start);
+		diff.scaleBy(ratio);
+
+		return start.add(diff);
 	}
 }

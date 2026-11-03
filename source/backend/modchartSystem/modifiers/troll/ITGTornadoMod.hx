@@ -1,5 +1,6 @@
 package backend.modchartSystem.modifiers.troll;
 
+import backend.math.CoolMath;
 import backend.modchartSystem.NoteData;
 import backend.modchartSystem.modifiers.BaseModifier;
 import objects.notes.Strumline;
@@ -43,7 +44,7 @@ class ITGTornadoMod extends Modifier
     var posBetween = CoolMath.scale(realPixel, minX, maxX, -1, 1);
 
     var rads = Math.acos(posBetween);
-    rads += (curPos + offset) * (6 + speed * 6) / FlxG.height;
+    rads += (data.curPos + offset.value) * (6 + speed.value * 6) / FlxG.height;
     var adjusted = CoolMath.scale(cos(rads), -1, 1, minX, maxX);
     data.x += (adjusted - realPixel) * currentValue;
   }
@@ -64,7 +65,7 @@ class ITGTornadoMod extends Modifier
     var posBetween = CoolMath.scale(realPixel, minX, maxX, -1, 1);
 
     var rads = Math.acos(posBetween);
-    rads += (curPos + offset) * (6 + speed * 6) / FlxG.height;
+    rads += (data.curPos + offset.value) * (6 + speed.value * 6) / FlxG.height;
     var adjusted = CoolMath.scale(cos(rads), -1, 1, minX, maxX);
     data.x += (adjusted - realPixel) * currentValue;
     // any pN > 0 should go right whereas any pN < 0 should go left
@@ -109,7 +110,7 @@ class ITGTornadoTanMod extends Modifier
     var posBetween = CoolMath.scale(realPixel, minX, maxX, -1, 1);
 
     var rads = Math.acos(posBetween);
-    rads += (curPos + offset) * (6 + speed * 6) / FlxG.height;
+    rads += (data.curPos + offset.value) * (6 + speed.value * 6) / FlxG.height;
     var adjusted = CoolMath.scale(tan(rads), -1, 1, minX, maxX);
     data.x += (adjusted - realPixel) * currentValue;
   }
@@ -130,7 +131,7 @@ class ITGTornadoTanMod extends Modifier
     var posBetween = CoolMath.scale(realPixel, minX, maxX, -1, 1);
 
     var rads = Math.acos(posBetween);
-    rads += (curPos + offset) * (6 + speed * 6) / FlxG.height;
+    rads += (data.curPos + offset.value) * (6 + speed.value * 6) / FlxG.height;
     var adjusted = CoolMath.scale(tan(rads), -1, 1, minX, maxX);
     data.x += (adjusted - realPixel) * currentValue;
     // any pN > 0 should go right whereas any pN < 0 should go left

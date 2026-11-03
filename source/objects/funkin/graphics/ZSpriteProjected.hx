@@ -22,9 +22,6 @@ import openfl.geom.Vector3D;
  */
 class ZSpriteProjected extends ZSprite
 {
-  // Makes the mesh all wobbly!
-  public var vibrateEffect:Float = 0.0;
-
   public var vertOffsetX:Array<Float> = [];
   public var vertOffsetY:Array<Float> = [];
   public var vertOffsetZ:Array<Float> = [];
@@ -418,7 +415,7 @@ class ZSpriteProjected extends ZSprite
       var offsetY:Float = this.frame.offset.y * scaleY;
       var offsetScaledY:Float = (frameHeight - h) * (scaleY - 1) / 2;
 
-      var displaced = vibrateEffect != 0;
+      var displaced = false;
       if (!displaced) for (value in vertOffsetX) if (value != 0) { displaced = true; break; }
       if (!displaced) for (value in vertOffsetY) if (value != 0) { displaced = true; break; }
       if (!displaced) for (value in vertOffsetZ) if (value != 0) { displaced = true; break; }
@@ -458,12 +455,6 @@ class ZSpriteProjected extends ZSprite
             curVertOffsetZ = vertOffsetZ[i];
           }
 
-          if (vibrateEffect != 0)
-          {
-            curVertOffsetX += FlxG.random.float(-1, 1) * vibrateEffect;
-            curVertOffsetY += FlxG.random.float(-1, 1) * vibrateEffect;
-            curVertOffsetZ += FlxG.random.float(-1, 1) * vibrateEffect;
-          }
           plane.transform(point3D, xPercent, yPercent, curVertOffsetX, curVertOffsetY, curVertOffsetZ, this);
           point3D = applyPerspective(point3D, xPercent, yPercent);
           if (cullCounter >= cullCounterCap) culled = true;

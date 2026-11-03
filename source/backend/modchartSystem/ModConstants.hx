@@ -47,6 +47,20 @@ import backend.modchartSystem.modifiers.TipsyMods;
 import backend.modchartSystem.modifiers.TornadoMods;
 import backend.modchartSystem.modifiers.WaveyMods;
 import backend.modchartSystem.modifiers.ZigZagMods;
+import backend.modchartSystem.modifiers.funkinmodchart.CarouselMod;
+import backend.modchartSystem.modifiers.funkinmodchart.DruggedMod;
+import backend.modchartSystem.modifiers.funkinmodchart.InfiniteAltMod;
+import backend.modchartSystem.modifiers.funkinmodchart.RadionicMod;
+import backend.modchartSystem.modifiers.shmoovin.CounterClockWiseMod;
+import backend.modchartSystem.modifiers.shmoovin.EyeShapeMod;
+import backend.modchartSystem.modifiers.shmoovin.SchmovinArrowShapeMod;
+import backend.modchartSystem.modifiers.shmoovin.VibrateMod;
+import backend.modchartSystem.modifiers.shmoovin.WiggleMod;
+import backend.modchartSystem.modifiers.troll.ITGTornadoMod;
+import backend.modchartSystem.modifiers.troll.OpponentMod;
+import backend.modchartSystem.modifiers.troll.ReceptorScrollMod;
+import backend.modchartSystem.modifiers.troll.extra.FlaccidMod;
+import backend.modchartSystem.modifiers.troll.extra.InfinitePathMod;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.effects.FlxSkewedSprite;
@@ -388,6 +402,19 @@ class ModConstants
     modName = StringTools.replace(modName, "threed", "3d");
     modName = StringTools.replace(modName, "3drenderer", "3d");
     modName = StringTools.replace(modName, "3dprojection", "3d");
+
+    modName = StringTools.replace(modName, "nitgtornado", "itgtornado");
+    modName = StringTools.replace(modName, "opponentswap", "opponent");
+    modName = StringTools.replace(modName, "strumscroll", "receptorscroll");
+    modName = StringTools.replace(modName, "erectiledisfunction", "flaccid");
+    modName = StringTools.replace(modName, "thefunneverends", "infinite");
+    modName = StringTools.replace(modName, "clockwise", "counterclockwise");
+    modName = StringTools.replace(modName, "eye", "eyeshape");
+    modName = StringTools.replace(modName, "arrowshape", "schmovinarrowshape");
+    modName = StringTools.replace(modName, "vibrator", "vibrate");
+    modName = StringTools.replace(modName, "high", "drugged");
+    modName = StringTools.replace(modName, "thefunstillneverends", "infinitealt");
+    modName = StringTools.replace(modName, "theworldrevolving", "radionic");
 
     // trace("out goes: " + modName);
 
@@ -1980,6 +2007,34 @@ class ModConstants
         newMod = new DebugTxtExtraShow(tag);
       case "showzerovalue":
         newMod = new DebugTxtZeroValueShow(tag);
+
+      // Extra Modifiers from other engines :D
+      case "itgtornado":
+        newMod = new ITGTornadoMod(tag);
+      case "itgtornadotan":
+        newMod = new ITGTornadoTanMod(tag);
+      case "opponent":
+        newMod = new OpponentMod(tag);
+      case "receptorscroll":
+        newMod = new ReceptorScrollMod(tag);
+      case "flaccid":
+        newMod = new FlaccidMod(tag);
+      case "infinite":
+        newMod = new InfinitePathMod(tag);
+      case "counterclockwise":
+        newMod = new CounterClockWiseMod(tag);
+      case "eyeshape":
+        newMod = new EyeShape(tag);
+      case "schmovinarrowshape":
+        newMod = new SchmovinArrowShape(tag);
+      case "vibrate":
+        newMod = new VibrateMod(tag);
+      case "drugged":
+        newMod = new Drugged(tag);
+      case "infinitealt":
+        newMod = new InfiniteAltMod(tag);
+      case "radionic":
+        newMod = new RadionicMod(tag);
 
       // default: // Not recognised, assume it's a custom mod
       //  newMod = new CustomModifier(tag);
