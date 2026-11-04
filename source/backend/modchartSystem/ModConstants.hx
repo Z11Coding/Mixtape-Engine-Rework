@@ -520,7 +520,7 @@ class ModConstants
       var ease = getEaseFromString(str);
       if (ease == null)
       {
-        MegaManager.scriptManager.addTextToDebug("'" + str + "' ease not valid! Defaulting to linear.", FlxColor.ORANGE);
+        ScriptManager.addTextToDebug("'" + str + "' ease not valid! Defaulting to linear.", FlxColor.ORANGE);
         return return FlxEase.linear;
       }
 
@@ -670,7 +670,7 @@ class ModConstants
         var a:Null<Float->Float> = Reflect.field(HazardEase, str);
         if (a == null)
         {
-          MegaManager.scriptManager.addTextToDebug("ease '" + str + "' not valid. Defaulting to linear.", FlxColor.ORANGE);
+          ScriptManager.addTextToDebug("ease '" + str + "' not valid. Defaulting to linear.", FlxColor.ORANGE);
         }
         return Reflect.field(HazardEase, str);
     }
@@ -754,7 +754,7 @@ class ModConstants
       }
     }
 
-    MegaManager.scriptManager.addTextToDebug("Player '" + playerTarget + "' not found! Defaulting to BF.", FlxColor.ORANGE);
+    ScriptManager.addTextToDebug("Player '" + playerTarget + "' not found! Defaulting to BF.", FlxColor.ORANGE);
 
     return modsTarget;
   }
@@ -848,7 +848,7 @@ class ModConstants
 
     if (testIfModAlreadyExists != null || ModConstants.isTagSub(modName))
     {
-      if (MegaManager.scriptManager != null) MegaManager.scriptManager.addTextToDebug(name + " is not a valid mod name", FlxColor.RED);
+      if (MegaManager.scriptManager != null) ScriptManager.addTextToDebug(name + " is not a valid mod name", FlxColor.RED);
       else
         trace(name + " is not a valid mod name ");
       return null;
@@ -1723,7 +1723,7 @@ class ModConstants
       case "linearskewy":
         newMod = new LinearSkewYMod(tag);
       case "scalelinear":
-        if (MegaManager.scriptManager != null && notif) MegaManager.scriptManager.addTextToDebug("'scalelinear' is outdated! Use 'linearScale' instead!", FlxColor.ORANGE);
+        if (MegaManager.scriptManager != null && notif) ScriptManager.addTextToDebug("'scalelinear' is outdated! Use 'linearScale' instead!", FlxColor.ORANGE);
         newMod = new ScaleLinearLegacyMod(tag);
 
       // circ mods
@@ -2045,7 +2045,7 @@ class ModConstants
         // newMod.fuck = true;
         if (notif)
         {
-          if (MegaManager.scriptManager != null) MegaManager.scriptManager.addTextToDebug(tag + " mod is unknown", FlxColor.ORANGE);
+          if (MegaManager.scriptManager != null) ScriptManager.addTextToDebug(tag + " mod is unknown", FlxColor.ORANGE);
           trace(tag + " mod is unknown");
         }
         return null;

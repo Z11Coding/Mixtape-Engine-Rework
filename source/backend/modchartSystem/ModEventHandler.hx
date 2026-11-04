@@ -123,7 +123,7 @@ class ModEventHandler
     // check if the name is valid. For now, just checks if its sub lol
     if (ModConstants.isTagSub(mod.tag))
     {
-      MegaManager.scriptManager.addTextToDebug(mod.tag + ' is not a valid custom mod name!', FlxColor.RED);
+      ScriptManager.addTextToDebug(mod.tag + ' is not a valid custom mod name!', FlxColor.RED);
       return;
     }
 
@@ -272,7 +272,7 @@ class ModEventHandler
       final mod:Modifier = target.modifiers.get(subModArr[0]);
       if (mod == null)
       {
-        MegaManager.scriptManager.addTextToDebug(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
+        ScriptManager.addTextToDebug(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
         return null;
       }
       else
@@ -312,7 +312,7 @@ class ModEventHandler
           }
           else
           {
-            MegaManager.scriptManager.addTextToDebug(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
+            ScriptManager.addTextToDebug(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
             return null;
           }
 
@@ -400,7 +400,7 @@ class ModEventHandler
       final mod:Modifier = target.modifiers.get(subModArr[0]);
       if (mod == null)
       {
-        MegaManager.scriptManager.addTextToDebug(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
+        ScriptManager.addTextToDebug(subModArr[0] + " is not a valid mod name!", FlxColor.RED);
         return null;
       }
       else
@@ -443,7 +443,7 @@ class ModEventHandler
           }
           else
           {
-            MegaManager.scriptManager.addTextToDebug(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
+            ScriptManager.addTextToDebug(subModArr[1] + " is not a valid submod name!", FlxColor.RED);
             return null;
           }
 
@@ -529,7 +529,7 @@ class ModEventHandler
       catch (e)
       {
         modResetFuncs.remove(resetFunc);
-        MegaManager.scriptManager.addTextToDebug(e.toString(), FlxColor.RED);
+        ScriptManager.addTextToDebug(e.toString(), FlxColor.RED);
         return;
       }
     }
@@ -655,7 +655,7 @@ class ModEventHandler
           }
           catch (e)
           {
-            MegaManager.scriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
+            ScriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
           }
           return true;
 
@@ -678,12 +678,12 @@ class ModEventHandler
           }
           else
           {
-            MegaManager.scriptManager.addTextToDebug('Tween set error! \n' + modEvent.modName, 0xFFFF7300);
+            ScriptManager.addTextToDebug('Tween set error! \n' + modEvent.modName, 0xFFFF7300);
             setModVal(modEvent.target, modEvent.modName, modEvent.gotoValue, true);
           }
           return true;
         default:
-          MegaManager.scriptManager.addTextToDebug('Unknown event type!', 0xFFFF7300);
+          ScriptManager.addTextToDebug('Unknown event type!', 0xFFFF7300);
           return true;
       }
     }
@@ -730,7 +730,7 @@ class ModEventHandler
           }
           catch (e)
           {
-            MegaManager.scriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
+            ScriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
           }
 
           return true;
@@ -758,7 +758,7 @@ class ModEventHandler
             }
             catch (e)
             {
-              MegaManager.scriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
+              ScriptManager.addTextToDebug(e.toString(), 0xFFFF0000);
             }
           });
           if (tweenTagged) modchartTweens.set(modEvent.modName.toLowerCase(), tween);
@@ -954,7 +954,7 @@ class ModEventHandler
     if (target == null)
     {
       target = MegaManager.playfield.playerStrums.mods;
-      MegaManager.scriptManager.addTextToDebug('null target for valueTween,\ndefaulting to player.', FlxColor.ORANGE);
+      ScriptManager.addTextToDebug('null target for valueTween,\ndefaulting to player.', FlxColor.ORANGE);
     }
 
     final timeEventTest:ModTimeEvent = new ModTimeEvent();
@@ -962,7 +962,7 @@ class ModEventHandler
     if (modName != null) timeEventTest.modName = modName.toLowerCase();
     else
     {
-      MegaManager.scriptManager.addTextToDebug('No mod name for value tween?', FlxColor.ORANGE);
+      ScriptManager.addTextToDebug('No mod name for value tween?', FlxColor.ORANGE);
       timeEventTest.modName = "";
     }
     timeEventTest.target = target;
@@ -975,7 +975,7 @@ class ModEventHandler
     if (ease == null)
     {
       ease = FlxEase.linear;
-      MegaManager.scriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
+      ScriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
     }
     timeEventTest.easeToUse = ease;
     timeEventTest.style = 'value';
@@ -1006,7 +1006,7 @@ class ModEventHandler
     if (target == null)
     {
       target = MegaManager.playfield.playerStrums.mods;
-      MegaManager.scriptManager.addTextToDebug('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
+      ScriptManager.addTextToDebug('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
     }
     timeEventTest.target = target;
     timeEventTest.startingBeat = startTime;
@@ -1016,7 +1016,7 @@ class ModEventHandler
     if (ease == null)
     {
       ease = FlxEase.linear;
-      MegaManager.scriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
+      ScriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
     }
     timeEventTest.easeToUse = ease;
     timeEventTest.persist = persist;
@@ -1052,7 +1052,7 @@ class ModEventHandler
     if (target == null)
     {
       target = MegaManager.playfield.playerStrums.mods;
-      MegaManager.scriptManager.addTextToDebug('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
+      ScriptManager.addTextToDebug('null target for funcTween,\ndefaulting to player.', FlxColor.ORANGE);
     }
 
     timeEventTest.target = target;
@@ -1060,7 +1060,7 @@ class ModEventHandler
     if (ease == null)
     {
       ease = FlxEase.linear;
-      MegaManager.scriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
+      ScriptManager.addTextToDebug('no ease defined.\nDefaulting to linear.', FlxColor.ORANGE);
     }
     timeEventTest.easeToUse = ease;
 

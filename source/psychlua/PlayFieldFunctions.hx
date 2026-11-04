@@ -136,7 +136,7 @@ class PlayFieldFunctions
 
         if (modsTarget.strum == MegaManager.playfield.opponentStrums || modsTarget.strum == MegaManager.playfield.playerStrums)
         {
-          MegaManager.scriptManager.addTextToDebug("Changing player control only works for custom strumlines!", FlxColor.ORANGE);
+          ScriptManager.addTextToDebug("Changing player control only works for custom strumlines!", FlxColor.ORANGE);
         }
         else
         {
@@ -815,7 +815,7 @@ class PlayFieldFunctions
     {
       if (MegaManager.playfield.luaAFT_Capture == null)
       {
-        // MegaManager.scriptManager.addTextToDebug("No lua aft sprite!");
+        // ScriptManager.addTextToDebug("No lua aft sprite!");
         // trace("No lua aft!");
         FunkinLua.luaTrace("Lua AFT sprite not created!", FlxColor.RED);
         return;

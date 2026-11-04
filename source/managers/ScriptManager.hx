@@ -43,7 +43,7 @@ class ScriptManager {
   public var pyScriptArray:Array<yutautil.PyScript> = [];
   #end
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-	private var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
+	private static var luaDebugGroup:FlxTypedGroup<psychlua.DebugLuaText>;
 	#end
 
 	// Script existence flags for performance
@@ -59,20 +59,19 @@ class ScriptManager {
 
   public function new() {
 		instance = this;
-		luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
-		luaDebugGroup.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
-		FlxG.state?.add(luaDebugGroup);
 	}
 
-	public function addDebugText() {
-		FlxG.state?.remove(luaDebugGroup);
-		luaDebugGroup.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
-		FlxG.state?.add(luaDebugGroup);
+	public static function addDebugText() {
+		luaDebugGroup = new FlxTypedGroup<psychlua.DebugLuaText>();
+		FlxG.state.add(luaDebugGroup);
 	}
 
 	#if (LUA_ALLOWED || HSCRIPT_ALLOWED)
-	public function addTextToDebug(text:String, color:FlxColor) {
-		if (!ClientPrefs.data.disableDebugTraces) {
+	public static function addTextToDebug(text:String, color:FlxColor) {
+		if (luaDebugGroup == null || !luaDebugGroup.alive) addDebugText();
+
+		Sys.println(text);
+		if (!ClientPrefs.data.disableDebugTraces && luaDebugGroup != null) {
 			var newText:psychlua.DebugLuaText = (luaDebugGroup.length == 0 ? new psychlua.DebugLuaText() : luaDebugGroup.recycle(psychlua.DebugLuaText));
 			newText.text = text;
 			newText.color = color;
@@ -84,8 +83,6 @@ class ScriptManager {
 				spr.y += newText.height + 2;
 			});
 			luaDebugGroup.add(newText);
-
-			Sys.println(text);
 		}
 	}
 	#end
@@ -417,6 +414,12 @@ class ScriptManager {
 			}
 			modchartObjects.clear();
 		}
+
+		if (luaDebugGroup != null) {
+			if (luaDebugGroup.length != 0)
+				luaDebugGroup.clear();
+			luaDebugGroup = null;
+		}
 	}
 
 	#if LUA_ALLOWED
@@ -560,7 +563,13 @@ class ScriptManager {
 
 	public function callOnScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
 		// Early exit if no scripts exist
-		if (!hasLuaScripts && !hasHScripts && !hasPyScripts && !hasYScripts) {
+		#if LUA_ALLOWED
+		var hasAnyLuaScripts:Bool = (luaArray != null && luaArray.length > 0)
+			|| (legacyLuaArray != null && legacyLuaArray.length > 0);
+		#else
+		var hasAnyLuaScripts:Bool = false;
+		#end
+		if (!hasAnyLuaScripts && !hasHScripts && !hasPyScripts && !hasYScripts) {
 			return LuaUtils.Function_Continue;
 		}
 

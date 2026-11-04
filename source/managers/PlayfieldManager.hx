@@ -58,7 +58,7 @@ class PlayfieldManager {
 	public var totalNotes:Float = 0;
   public var jackingtime:Float = 0;
 
-  public var notesAboveHUD:Bool = true;
+  public var notesAboveHUD:Bool = false;
 
   public var splashesPerFrame:Array<Int> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   var multiChangeEvents:Array<Array<Float>> = [[], []];
@@ -559,7 +559,7 @@ class PlayfieldManager {
       catch (e)
       {
         perframeFunctions.remove(fun); // to avoid constantly spamming the broken function
-        MegaManager.scriptManager.addTextToDebug(e.toString(), FlxColor.RED);
+        ScriptManager.addTextToDebug(e.toString(), FlxColor.RED);
         trace("OH GOD OH FUCK IT NEARLY DIED CUZ OF: \n" + e.toString());
         return;
       }

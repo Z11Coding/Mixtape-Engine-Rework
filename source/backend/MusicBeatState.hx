@@ -331,6 +331,7 @@ class MusicBeatState extends FlxState
 		if (!_psychCameraInitialized)
 			initPsychCamera();
 
+		ScriptManager.addDebugText();
 		super.create();
 
 		// if (!(this is PlayState) && PlayState.instance != null)
@@ -463,7 +464,8 @@ class MusicBeatState extends FlxState
 		updateAPTags();
 		#end
 
-		scripts.addDebugText();
+		@:privateAccess
+		ScriptManager.luaDebugGroup.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
 
 	public static var firstRun:Bool = true;
@@ -1256,9 +1258,7 @@ class MusicBeatState extends FlxState
 
 	// Script Functions
 	public function addTextToDebug(text:String, ?color:FlxColor) {
-		if (!ClientPrefs.data.disableDebugTraces) {
-			scripts.addTextToDebug(text, color??FlxColor.WHITE);
-		}
+		ScriptManager.addTextToDebug(text, color??FlxColor.WHITE);
 	}
 
 	public function callOnScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {

@@ -94,7 +94,7 @@ class ModTimeEvent
     }
     catch (e:Dynamic)
     {
-      MegaManager.scriptManager.addTextToDebug(e, FlxColor.RED);
+      ScriptManager.addTextToDebug(e, FlxColor.RED);
     }
   }
 
@@ -111,7 +111,7 @@ class ModTimeEvent
     }
     catch (e:Dynamic)
     {
-      MegaManager.scriptManager.addTextToDebug(e, FlxColor.RED);
+      ScriptManager.addTextToDebug(e, FlxColor.RED);
     }
   }
 }

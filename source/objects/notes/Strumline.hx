@@ -728,6 +728,7 @@ class Strumline extends FlxSpriteGroup
       updateGhostTapTimer(elapsed);
       #end
     }
+
   }
 
   // used for the reverse math (or any other math which needs to know the strumline position from PlayState).

@@ -107,6 +107,7 @@ class LegacyFunkinLua {
 		}
 		scriptName = script;
 		states.PlayState.instance.legacyLuaArray.push(this);
+		states.PlayState.instance.scripts.updateScriptFlags();
 		initHaxeModule();
 
 		trace('lua file loaded succesfully:' + script);
@@ -2342,7 +2343,9 @@ class LegacyFunkinLua {
 			if (text3 == null) text3 = '';
 			if (text4 == null) text4 = '';
 			if (text5 == null) text5 = '';
-			luaTrace('' + text1 + text2 + text3 + text4 + text5, true, false);
+			var debugText:String = '' + text1 + text2 + text3 + text4 + text5;
+			Sys.println('[Lua debug] $debugText');
+			luaTrace(debugText, true, false);
 		});
 
 		Lua_helper.add_callback(lua, "close", function() {

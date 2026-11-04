@@ -1291,7 +1291,11 @@ class FunkinLua {
 		});
 		//
 
-		Lua_helper.add_callback(lua, "debugPrint", function(text:Dynamic = '', color:String = 'WHITE') PlayState.instance.addTextToDebug(text, CoolUtil.colorFromString(color)));
+		Lua_helper.add_callback(lua, "debugPrint", function(text:Dynamic = '', color:String = 'WHITE') {
+			var debugText:String = Std.string(text);
+			Sys.println('[Lua debug] $debugText');
+			luaTrace(debugText, true, false, CoolUtil.colorFromString(color));
+		});
 
 		addLocalCallback("close", function() {
 			closed = true;

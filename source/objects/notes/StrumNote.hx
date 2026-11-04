@@ -161,7 +161,7 @@ class StrumNote extends ZSpriteProjected
 
 		scrollFactor.set();
 
-		trace('STRUM $leData CREATED!');
+		//trace('STRUM $leData CREATED!');
 	}
 
   override function toString()
@@ -235,7 +235,7 @@ class StrumNote extends ZSpriteProjected
 				skin = "noteSkins/strums";
 			}
 
-			trace("Skin: " + skin);
+			//trace("Skin: " + skin);
 
 			frames = Paths.getAtlas(skin);
       antialiasing = ClientPrefs.data.antialiasing;

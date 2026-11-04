@@ -470,7 +470,8 @@ class PlayState extends MusicBeatState
 	public var hasPyScripts(get, never):Bool;
 	public var hasYScripts(get, never):Bool;
 	private function get_hasLuaScripts():Bool {
-		return scripts.hasLuaScripts;
+		return (scripts.luaArray != null && scripts.luaArray.length > 0)
+			|| (scripts.legacyLuaArray != null && scripts.legacyLuaArray.length > 0);
 	}
 	private function get_hasHScripts():Bool {
 		return scripts.hasHScripts;
@@ -1832,7 +1833,7 @@ class PlayState extends MusicBeatState
 
 		startingSong = true;
 
-		trace("Setting Up NoteType Scripts");
+		trace("Setting Up NoteType and Event Scripts");
 		#if LUA_ALLOWED
 		for (notetype in playfield.noteTypes)
 			startLuasNamed('custom_notetypes/' + notetype + '.lua');
@@ -3442,6 +3443,7 @@ class PlayState extends MusicBeatState
 
 	public function clearNotesBefore(time:Float)
 	{
+		playfield.killNotes = []; // So it doesn't crash
 		for (strum in playfield.allStrumLines) {
 			var allNotes:Array<Dynamic> = [strum.notes.members, strum.sustainNotes.members];
 			for (note in allNotes)

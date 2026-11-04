@@ -87,7 +87,7 @@ class CustomModifier extends Modifier
       }
       catch (e:Dynamic)
       {
-        MegaManager.scriptManager.addTextToDebug(tag + " strum math error - " + e, FlxColor.RED);
+        ScriptManager.addTextToDebug(tag + " strum math error - " + e, FlxColor.RED);
         strumMathBroke = true;
       }
     }
@@ -103,7 +103,7 @@ class CustomModifier extends Modifier
       }
       catch (e:Dynamic)
       {
-        MegaManager.scriptManager.addTextToDebug(tag + " note math error - " + e, FlxColor.RED);
+        ScriptManager.addTextToDebug(tag + " note math error - " + e, FlxColor.RED);
         noteMathBroke = true;
       }
     }
@@ -120,7 +120,7 @@ class CustomModifier extends Modifier
     }
     catch (e:Dynamic)
     {
-      MegaManager.scriptManager.addTextToDebug(tag + " speed math error - " + e, FlxColor.RED);
+      ScriptManager.addTextToDebug(tag + " speed math error - " + e, FlxColor.RED);
       speedMathBroke = true;
     }
     return r;
@@ -136,7 +136,7 @@ class CustomModifier extends Modifier
       }
       catch (e:Dynamic)
       {
-        MegaManager.scriptManager.addTextToDebug(tag + " special math error - " + e, FlxColor.RED);
+        ScriptManager.addTextToDebug(tag + " special math error - " + e, FlxColor.RED);
         specialMathBroke = true;
       }
     }
@@ -350,7 +350,7 @@ class Modifier
     if (sub != null) return sub.value;
     else
     {
-      MegaManager.scriptManager.addTextToDebug(name + " is not a valid subname!\nReturning 0.0...", FlxColor.RED);
+      ScriptManager.addTextToDebug(name + " is not a valid subname!\nReturning 0.0...", FlxColor.RED);
       return 0.0;
     }
   }
@@ -373,7 +373,7 @@ class Modifier
       }
       else
       {
-        MegaManager.scriptManager.addTextToDebug(name + " is not a valid subname!", FlxColor.RED);
+        ScriptManager.addTextToDebug(name + " is not a valid subname!", FlxColor.RED);
       }
     }
   }
@@ -398,7 +398,7 @@ class Modifier
     }
     else
     {
-      MegaManager.scriptManager.addTextToDebug(name + " is not a valid subname!", FlxColor.RED);
+      ScriptManager.addTextToDebug(name + " is not a valid subname!", FlxColor.RED);
     }
   }
 
@@ -428,7 +428,7 @@ class Modifier
       {
         if (subValuesAliasMap.exists(alias))
         {
-          MegaManager.scriptManager.addTextToDebug(
+          ScriptManager.addTextToDebug(
             "'" + alias + "' alias for the submod '" + name + "__" + this.tag + ")' is already taken by '" + subValuesAliasMap.get(alias) + "'",
             FlxColor.ORANGE
           );

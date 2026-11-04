@@ -210,7 +210,7 @@ class ModHandler
       else
       {
         addMod(subModArr[0]); // try and add the mod
-        MegaManager.scriptManager.addTextToDebug(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+        ScriptManager.addTextToDebug(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
 
         final mod:Modifier = modifiers.get(subModArr[0]);
         final subModName:String = mod.subModAliasConvert(subModArr[1]);
@@ -227,7 +227,7 @@ class ModHandler
     }
     else
     {
-      MegaManager.scriptManager.addTextToDebug(tagToUse + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+      ScriptManager.addTextToDebug(tagToUse + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
       var _m = addMod(tagToUse, val); // try and add the mod lol
       _m.setVal(val * (invertValues && _m.invertForDad ? -1 : 1));
       sortMods();
@@ -265,7 +265,7 @@ class ModHandler
       else
       {
         addMod(subModArr[0]); // try and add the mod
-        // MegaManager.scriptManager.addTextToDebug(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
+        // ScriptManager.addTextToDebug(subModArr[0] + " mod doesn't exist!\nTrying to add it now!", FlxColor.ORANGE);
 
         final mod:Modifier = modifiers.get(subModArr[0]);
         final subModName:String = mod.subModAliasConvert(subModArr[1]);
@@ -327,7 +327,7 @@ class ModHandler
       // we already have this!
       if (modifiers.exists(mod.tag))
       {
-        MegaManager.scriptManager.addTextToDebug(mod.tag + " already exists?", FlxColor.RED);
+        ScriptManager.addTextToDebug(mod.tag + " already exists?", FlxColor.RED);
         return;
       }
      */
@@ -349,7 +349,7 @@ class ModHandler
       }
       catch (e)
       {
-        MegaManager.scriptManager.addTextToDebug(e.toString(), FlxColor.RED);
+        ScriptManager.addTextToDebug(e.toString(), FlxColor.RED);
         return null;
       }
     }
@@ -857,7 +857,7 @@ class ModHandler
         }
         catch (e)
         {
-          MegaManager.scriptManager.addTextToDebug(e.toString(), FlxColor.RED);
+          ScriptManager.addTextToDebug(e.toString(), FlxColor.RED);
           return;
         }
       }
