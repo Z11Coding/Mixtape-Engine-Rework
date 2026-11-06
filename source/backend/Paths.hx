@@ -1558,7 +1558,17 @@ class Paths
 			if (NativeFileSystem.exists(levelPath))
 				return levelPath;
 		}
-		return mods('$modName/$key');
+		var directPath = mods('$modName/$key');
+		if (NativeFileSystem.exists(directPath))
+			return directPath;
+
+		// Funkin's Polymod mods mirror the game's assets/shared directory.
+		// Keep the existing direct lookup first so Psych mods retain priority.
+		var sharedPath = mods('$modName/shared/$key');
+		if (NativeFileSystem.exists(sharedPath))
+			return sharedPath;
+
+		return directPath;
 	}
 
 	#if ARCHIPELAGO_ALLOWED

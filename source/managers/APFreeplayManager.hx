@@ -87,6 +87,15 @@ class APFreeplayManager extends FreeplayManager {
 
     #end
 
+    public function new(?loadSongs:Bool = false, ?skipStateRefresh:Bool = false) {
+        // MegaManager creates this manager during normal startup, before an
+        // Archipelago session exists. Avoid dispatching into AP reload logic
+        // while its session data is still unavailable.
+        super(false, skipStateRefresh);
+        if (loadSongs && APInfo.inArchipelagoMode)
+            reloadFreeplay(true, skipStateRefresh);
+    }
+
     /////////////////////////////////////////////////////FUNCTIONS///////////////////////////////////////////////////////////////////////////////
 
     // Archipelago Stuff
@@ -565,8 +574,10 @@ class APFreeplayManager extends FreeplayManager {
 	override public function reloadFreeplay(refresh:Bool = false, ?skipStateFresh:Bool = false, searchText:String = '')
     {
         trace("Reloading Songs!");
+	    if (!APInfo.inArchipelagoMode)
+	        return;
 
-        songs = [];
+	    songs = [];
         {
             songsHidden = archipelago.APItem.unknownSongs;
 

@@ -291,6 +291,22 @@ class Song
 		if (jsonInput.endsWith(jsonInput))
 			alsoTryDash = true;
 
+		#if MODS_ALLOWED
+		var nativeDifficulty:String = 'normal';
+		var nativeSongId:String = Paths.formatToSongPath(folder);
+		var nativePrefix:String = nativeSongId + '-';
+		if (Paths.formatToSongPath(jsonInput).startsWith(nativePrefix))
+			nativeDifficulty = Paths.formatToSongPath(jsonInput).substr(nativePrefix.length);
+		var nativeSong:Null<SwagSong> = FunkinSongAdapter.loadChart(nativeSongId, nativeDifficulty, Mods.currentModDirectory);
+		if (nativeSong != null) {
+			PlayfieldManager.SONG = nativeSong;
+			loadedSongName = folder;
+			chartPath = 'funkin:${Mods.currentModDirectory}/$nativeSongId';
+			stages.StageData.loadDirectory(nativeSong);
+			return nativeSong;
+		}
+		#end
+
 		#if ARCHIPELAGO_ALLOWED
 		// Check for High Quality Trap replacement - only if trap is actively being used
 		var originalSong = folder;

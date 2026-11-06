@@ -807,6 +807,7 @@ class ModItem extends FlxSpriteGroup
 	// options
 	public var name:String = 'Unknown Mod';
 	public var desc:String = 'No description provided.';
+	public var engine:String = 'Psych/Mixtape';
 	public var iconFps:Int = 10;
 	public var bgColor:FlxColor = 0xFF665AFF;
 	public var pack:Dynamic = null;
@@ -856,12 +857,17 @@ class ModItem extends FlxSpriteGroup
 		add(text);
 
 		var isPixel = false;
+		var isVSlice = false;
 		var file:String = Paths.mods('$folder/pack.png');
 		if (!FileSystem.exists(file))
 		{
 			file = Paths.mods('$folder/pack-pixel.png');
-			isPixel = true;
+			if (!FileSystem.exists(file))
+			{
+				file = Paths.mods('$folder/_polymod_icon.png');
+			}
 		}
+
 
 		var bmp:BitmapData = null;
 		if (FileSystem.exists(file)) bmp = BitmapData.fromFile(file);
@@ -877,6 +883,7 @@ class ModItem extends FlxSpriteGroup
 		icon.updateHitbox();
 
 		this.name = folder;
+		this.engine = Mods.getModEngine(folder);
 		if(pack != null)
 		{
 			if(pack.name != null) this.name = pack.name;
@@ -890,7 +897,7 @@ class ModItem extends FlxSpriteGroup
 			}
 			this.mustRestart = (pack.restart == true);
 		}
-		text.text = this.name;
+		text.text = '${this.name} [${Mods.getEngineNickname(this.engine)}]';
 
 		if(bmp != null)
 		{

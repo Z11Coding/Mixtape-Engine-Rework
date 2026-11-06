@@ -38,8 +38,8 @@ class MegaManager {
     charaManager = CharacterManager.instance;
     comboManger = ComboManager.instance;
     omegaFreeplay = FreeplayManager.loadFPManager(true);
-    apFreeplay = new APFreeplayManager(true);
     regFreeplay = new FreeplayManager(true);
+    apFreeplay = new APFreeplayManager(true);
     playfield = PlayfieldManager.instance;
     scriptManager = ScriptManager.instance;
 

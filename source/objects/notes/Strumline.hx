@@ -590,7 +590,7 @@ class Strumline extends FlxSpriteGroup
       layoutLaneWidth = Math.max(layoutLaneWidth, receptor.frameWidth * receptor.targetScale);
     if (layoutLaneWidth <= 0) layoutLaneWidth = BaseNote.swagWidth;
 		strumLine.put();
-    trace("Finished Note Generation!");
+    trace("Finished Strum Generation!");
 	}
 
   public function setupModStuff():Void
@@ -1926,7 +1926,7 @@ class Strumline extends FlxSpriteGroup
     final scale = strumlineScale == null ? 1.0 : strumlineScale.x;
     final count = ExtraKeys.mania + 1;
     final nativeWidth = layoutLaneWidth * scale;
-    final desired = (ExtraKeys.mania == 3 ? BaseNote.swagWidth * scale : nativeWidth + 8 * scale) * noteSpacingScale;
+    final desired = (ExtraKeys.mania == 3 ? (BaseNote.swagWidth * scale) - 15 : nativeWidth + 8 * scale) * noteSpacingScale;
     final room = FlxG.width / 2 - 8;
     return count > 1 ? Math.min(desired, Math.max(1, (room - nativeWidth) / (count - 1))) : 0;
   }

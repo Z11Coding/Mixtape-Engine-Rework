@@ -562,17 +562,6 @@ class ScriptManager {
 	}
 
 	public function callOnScripts(funcToCall:String, args:Array<Dynamic> = null, ignoreStops = false, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
-		// Early exit if no scripts exist
-		#if LUA_ALLOWED
-		var hasAnyLuaScripts:Bool = (luaArray != null && luaArray.length > 0)
-			|| (legacyLuaArray != null && legacyLuaArray.length > 0);
-		#else
-		var hasAnyLuaScripts:Bool = false;
-		#end
-		if (!hasAnyLuaScripts && !hasHScripts && !hasPyScripts && !hasYScripts) {
-			return LuaUtils.Function_Continue;
-		}
-
 		var returnVal:Dynamic = LuaUtils.Function_Continue;
 		if(args == null) args = [];
 		if(exclusions == null) exclusions = [];

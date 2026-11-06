@@ -46,6 +46,7 @@ class FunkinLua {
 	public var scriptName:String = '';
 	public var modFolder:String = null;
 	public var closed:Bool = false;
+	var loggedUpdatePostDispatch:Bool = false;
 
 	#if HSCRIPT_ALLOWED
 	public var hscript:HScript = null;
@@ -1365,6 +1366,7 @@ class FunkinLua {
 
 		trace('lua file loaded succesfully:' + scriptName);
 
+		trace('[Lua dispatch] calling onCreate for $scriptName');
 		call('onCreate', []);
 	}
 
@@ -1381,6 +1383,11 @@ class FunkinLua {
 
 			Lua.getglobal(lua, func);
 			var type:Int = Lua.type(lua, -1);
+			if(func == 'onCreate' || (func == 'onUpdatePost' && !loggedUpdatePostDispatch))
+			{
+				if(func == 'onUpdatePost') loggedUpdatePostDispatch = true;
+				trace('[Lua dispatch] $scriptName -> $func (${LuaUtils.typeToString(type)})');
+			}
 
 			if (type != Lua.LUA_TFUNCTION) {
 				if (type > Lua.LUA_TNIL)

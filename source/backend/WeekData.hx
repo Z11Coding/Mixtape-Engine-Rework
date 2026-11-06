@@ -120,6 +120,24 @@ class WeekData {
 							weeksList.push(sexList[i]);
 						}
 					}
+				} else {
+					var altName:String = '${directories[j]}_${sexList[i]}';
+					trace("WEEK NAME WAS TAKEN! Altering name to push file: "+altName);
+					var week:WeekFile = getWeekFile(fileToCheck);
+					if(week != null) {
+						var weekFile:WeekData = new WeekData(week, altName);
+
+						#if MODS_ALLOWED
+						if(j >= originalLength) {
+							weekFile.folder = directories[j].substring(Paths.mods().length, directories[j].length-1);
+						}
+						#end
+
+						if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
+							weeksLoaded.set(altName, weekFile);
+							weeksList.push(altName);
+						}
+					}
 				}
 			}
 		}

@@ -69,6 +69,7 @@ class BaseNote extends ZSpriteProjected
 
 	public static final SUSTAIN_SIZE:Int = 44;
 	public static final swagWidth:Float = 160 * 0.7;
+	public static final swagWidthAlt:Float = 160; // Swag Width without the scale mult built-in
 	@:noCompletion private static function set_swagWidth(val:Float){
 		halfWidth = val * 0.5;
 		return val;

@@ -38,6 +38,14 @@ to start you off, disabling Videos should be simple, simply Delete the line `"VI
 
 same goes for *Lua Scripts*, comment out or delete the line with `LUA_ALLOWED`, this and other customization options are all available within the `Project.xml` file
 
+## Funkin mod compatibility
+
+Mods made for [Friday Night Funkin'](https://github.com/FunkinCrew/Funkin) can be placed directly in this engine's `mods/` directory. The loader recognizes Funkin's `_polymod_meta.json` metadata, discovers songs listed by `data/levels/*.json`, converts their charts to the engine's existing chart format, and loads their `data/` and `songs/` files. Packs without level files retain direct `data/songs/` discovery. Funkin's `shared/` asset directory is also supported, while existing Psych-style `pack.json` and direct asset paths remain unchanged.
+
+The Mods menu labels each mod with its detected target engine. Funkin mods are identified from `_polymod_meta.json`; explicit `engine`, `modEngine`, or `format` fields in `pack.json` are also recognized.
+
+Funkin scripted classes (`.hxc`) are not executable here because they depend on Funkin-specific APIs; use the engine's existing Lua, HScript, or YScript APIs for custom behavior.
+
 ## Credits:
 * Shadow Mario - Head Developer, Programmer.
 * Riveren - Main Artist.

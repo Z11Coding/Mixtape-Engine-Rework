@@ -6,7 +6,9 @@ import openfl.utils.Assets;
 typedef ModsList = {
 	enabled:Array<String>,
 	disabled:Array<String>,
-	all:Array<String>
+	all:Array<String>,
+	vslice:Array<String>,
+	psych:Array<String>
 };
 
 class Mods
@@ -151,6 +153,12 @@ class Mods
 		if(folder == null) folder = (useAlt ? Mods.currentModDirectoryAlt : Mods.currentModDirectory);
 
 		var path = Paths.mods(folder + '/pack.json');
+		var isPolymodMetadata:Bool = false;
+		if(!FileSystem.exists(path)) {
+			// Funkin uses Polymod metadata instead of Psych Engine's pack.json.
+			path = Paths.mods(folder + '/_polymod_meta.json');
+			isPolymodMetadata = true;
+		}
 		if(FileSystem.exists(path)) {
 			try {
 				#if sys
@@ -158,7 +166,12 @@ class Mods
 				#else
 				var rawJson:String = Assets.getText(path);
 				#end
-				if(rawJson != null && rawJson.length > 0) return tjson.TJSON.parse(rawJson);
+				if(rawJson != null && rawJson.length > 0) {
+					var pack:Dynamic = tjson.TJSON.parse(rawJson);
+					if (isPolymodMetadata && pack.name == null && pack.title != null)
+						pack.name = pack.title;
+					return pack;
+				}
 			} catch(e:Dynamic) {
 				trace(e);
 			}
@@ -167,10 +180,40 @@ class Mods
 		return null;
 	}
 
+	public static function getModEngine(folder:String):String
+	{
+		#if MODS_ALLOWED
+		var metadataPath:String = Paths.mods(folder + '/_polymod_meta.json');
+		if (FileSystem.exists(metadataPath))
+			return 'VSlice';
+
+		var pack:Dynamic = getPack(folder);
+		if (pack != null) {
+			if (pack.engine != null) return Std.string(pack.engine);
+			if (pack.modEngine != null) return Std.string(pack.modEngine);
+			if (pack.format != null) return Std.string(pack.format);
+		}
+		#end
+		return 'Mixtape'; // Until Engine Mods are a thing, default to mixtape
+	}
+
+	public static function getEngineNickname(name:String):String
+	{
+		return switch (name)
+		{
+			case "VSlice":
+				"V-Slice";
+			case "Mixtape":
+				"Psych";
+			default:
+				"Mixtape";
+		}
+	}
+
 	public static var updatedOnState:Bool = false;
 	inline public static function parseList():ModsList {
 		if(!updatedOnState) updateModList();
-		var list:ModsList = {enabled: [], disabled: [], all: []};
+		var list:ModsList = {enabled: [], disabled: [], all: [], vslice: [], psych: []};
 
 		#if MODS_ALLOWED
 		try {
@@ -185,6 +228,13 @@ class Mods
 					list.enabled.push(dat[0]);
 				else
 					list.disabled.push(dat[0]);
+
+				switch (dat[2]) {
+					case "psych":
+						list.psych.push(dat[0]);
+					case "vslice":
+						list.vslice.push(dat[0]);
+				}
 			}
 		} catch(e) {
 			trace(e);
@@ -207,7 +257,7 @@ class Mods
 				if(folder.trim().length > 0 && FileSystem.exists(Paths.mods(folder)) && FileSystem.isDirectory(Paths.mods(folder)) && !added.contains(folder))
 				{
 					added.push(folder);
-					list.push([folder, (dat[1] == "1")]);
+					list.push([folder, (dat[1] == "1"), dat[2]]);
 				}
 			}
 		} catch(e) {
@@ -221,7 +271,7 @@ class Mods
 			!ignoreModFolders.contains(folder.toLowerCase()) && !added.contains(folder))
 			{
 				added.push(folder);
-				list.push([folder, true]); //i like it false by default. -bb //Well, i like it True! -Shadow Mario (2022)
+				list.push([folder, true, getModEngine(folder)]); //i like it false by default. -bb //Well, i like it True! -Shadow Mario (2022)
 				//Shadow Mario (2023): What the fuck was bb thinking
 			}
 		}
@@ -231,7 +281,7 @@ class Mods
 		for (values in list)
 		{
 			if(fileStr.length > 0) fileStr += '\n';
-			fileStr += values[0] + '|' + (values[1] ? '1' : '0');
+			fileStr += values[0] + '|' + (values[1] ? '1' : '0') + '|' + values[2];
 		}
 
 		File.saveContent('modsList.txt', fileStr);

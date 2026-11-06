@@ -278,6 +278,9 @@ class FreeplayManager {
         else return;
 
         WeekData.reloadWeekFiles(false);
+        #if MODS_ALLOWED
+        backend.FunkinSongAdapter.registerSyntheticWeeks();
+        #end
         for (i in 0...WeekData.weeksList.length) {
             var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
 
@@ -783,6 +786,9 @@ class FreeplayManager {
         trace("Reloading Songs!");
         // Always populate the main songs array for all freeplay menus
         songs = [];
+        #if MODS_ALLOWED
+        backend.FunkinSongAdapter.registerSyntheticWeeks();
+        #end
 
         if (songListGlobal?.length > 0) {
             for (song in songListGlobal) {
@@ -838,6 +844,7 @@ class FreeplayManager {
                 if (leWeek.songs != null) {
                     for (song in leWeek.songs)
                     {
+                        var isFunkinWeek:Bool = leWeek.fileName != null && leWeek.fileName.startsWith('__funkin__');
                         var categoryWhaat:Array<String> = Std.isOfType(leWeek.category, String) ?
                             (cast leWeek.category:String).split(',').map(function(cat:String):String {
                                 return cat.trim().toLowerCase();
@@ -957,7 +964,7 @@ class FreeplayManager {
                             }*/
                         }
 
-                        if ((ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (searchText == null || searchText == '') && (leWeek.folder != '' || leWeek.folder != null)))
+                        if (isFunkinWeek || (ClientPrefs.data.showMods && leWeek.folder.toLowerCase() == CategoryState.loadWeekForce.toLowerCase()) || (CategoryState.loadWeekForce == "all" && (searchText == null || searchText == '') && (leWeek.folder != '' || leWeek.folder != null)))
                         {
                             addSong(song[0], i, song[1], [colors, [FlxColor.fromRGB(colors[0], colors[1], colors[2])]]);
                         }

@@ -3444,6 +3444,7 @@ class PlayState extends MusicBeatState
 	public function clearNotesBefore(time:Float)
 	{
 		playfield.killNotes = []; // So it doesn't crash
+		noteKill = null;
 		for (strum in playfield.allStrumLines) {
 			var allNotes:Array<Dynamic> = [strum.notes.members, strum.sustainNotes.members];
 			for (note in allNotes)

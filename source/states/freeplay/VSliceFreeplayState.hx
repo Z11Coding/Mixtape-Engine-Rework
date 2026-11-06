@@ -461,6 +461,9 @@ class VSliceFreeplayState extends MusicBeatSubstate
 		// ? Init psych's weeks
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
+		#if MODS_ALLOWED
+		backend.FunkinSongAdapter.registerSyntheticWeeks();
+		#end
 
 		if(WeekData.weeksList.length < 1)
 		{
