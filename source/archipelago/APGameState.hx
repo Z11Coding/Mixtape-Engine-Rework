@@ -4000,10 +4000,10 @@ class APGameState
 		MusicBeatState.switchState(new APEntryState());
 	}
 
-		private function onReconnect():Void
-		{
-			MusicBeatState.switchState(new archipelago.APCategoryState(this, APEntryState.ap));
-		}
+	private function onReconnect():Void
+	{
+		MusicBeatState.switchState(new archipelago.APCategoryState(this, APEntryState.ap));
+	}
 
 	/**
 	 * Validates and synchronizes the death link state between ClientPrefs and the AP client

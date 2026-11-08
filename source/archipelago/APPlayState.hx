@@ -1972,7 +1972,7 @@ class APPlayState extends PlayState {
 		timeBar.y = (timeTxt.y + (timeTxt.height / 4)) + 4;
         //playfield.modManager.queueEase(MegaManager.conductor.currentStep, MegaManager.conductor.currentStep+3, 'reverse',  effectiveDownScroll ? 1 : 0, "sineInOut");
 		healthBar.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
-		healthBarOverflow.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
+		if (healthBarOverflow != null) healthBarOverflow.y = (effectiveDownScroll ? FlxG.height * 0.1 : FlxG.height * 0.875) + 4;
 		iconP1.y = healthBar.y - (iconP1.height / 2);
 		iconP2.y = healthBar.y - (iconP2.height / 2);
 		scoreTxt.y = (effectiveDownScroll ? FlxG.height * 0.1 - 72 : FlxG.height * 0.9 + 36);
@@ -2951,39 +2951,43 @@ class APPlayState extends PlayState {
     public var check:Int = 0;
     override function goodNoteHit(note:Dynamic, noteAlt:PreloadNotes = null, customStrummer:Strumline):Void
     {
-        if (note.specialNote)
-		{
-            COD.setPresetCOD(note);
-			specialNoteHit(note);
-			return;
-		}
-
-        try {
-            @:privateAccess
-            if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
-                ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
-                checkedNotes.push(note);
+        if (note != null) {
+            if (note.specialNote)
+            {
+                COD.setPresetCOD(note);
+                specialNoteHit(note);
+                return;
             }
-        } catch(e) {
-            trace("\"NOTE CHECK\" CHECK FAILED!\n"+e);
+
+            try {
+                @:privateAccess
+                if ((note.isCheck || apNotes.contains(cast note)) && !note.ignoreNote) {
+                    ArchPopup.startPopupCustom('You Found A Check!', 'One of em anyway', 'archColor'); // test
+                    checkedNotes.push(note);
+                }
+            } catch(e) {
+                trace("\"NOTE CHECK\" CHECK FAILED!\n"+e);
+            }
         }
 
         super.goodNoteHit(note, noteAlt, customStrummer);
 
-        if (releasethebeast && !note.gfNote) {
-            if (resistanceAmount > 0) resistanceAmount -= 0.0080;
-            if (note.noteType == 'Anti-Horny Note') resistanceAmount -= 0.03;
-            if (note.noteType == 'Bat Note') resistanceAmount -= 0.5;
+        if (note != null) {
+            if (releasethebeast && !note.gfNote) {
+                if (resistanceAmount > 0) resistanceAmount -= 0.0080;
+                if (note.noteType == 'Anti-Horny Note') resistanceAmount -= 0.03;
+                if (note.noteType == 'Bat Note') resistanceAmount -= 0.5;
 
-            var animToPlay:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get('singAnims')[note.noteData] + "-alt";
-            if(note.isSustainNote)
-            {
-                var holdAnim:String = animToPlay + '-hold';
-                if(zenetta?.animation.exists(holdAnim)) animToPlay = holdAnim;
+                var animToPlay:String = ExtraKeys.keysShit.get(ExtraKeys.mania).get('singAnims')[note.noteData] + "-alt";
+                if(note.isSustainNote)
+                {
+                    var holdAnim:String = animToPlay + '-hold';
+                    if(zenetta?.animation.exists(holdAnim)) animToPlay = holdAnim;
+                }
+
+                zenetta?.playAnim(animToPlay, true);
+                zenetta.holdTimer = 0;
             }
-
-            zenetta?.playAnim(animToPlay, true);
-            zenetta.holdTimer = 0;
         }
     }
 

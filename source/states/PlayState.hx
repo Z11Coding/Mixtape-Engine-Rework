@@ -8823,7 +8823,6 @@ class PlayState extends MusicBeatState
 							if(gf.getAnimationName() == holdAnim || gf.getAnimationName() == holdAnim + '-loop') canPlay = false;
 						}
 
-						trace('canPlay: $canPlay');
 						if(canPlay) gf.playAnim(animToPlay, true);
 						gf.holdTimer = 0;
 					}
@@ -8845,7 +8844,6 @@ class PlayState extends MusicBeatState
 
 						if(canPlay) playAnim(note, char, animToPlay, true);
 						char.holdTimer = 0;
-						trace('canPlay: $canPlay');
 
 						if(note.noteType == 'Hey!')
 						{

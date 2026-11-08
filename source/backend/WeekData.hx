@@ -120,24 +120,6 @@ class WeekData {
 							weeksList.push(sexList[i]);
 						}
 					}
-				} else {
-					var altName:String = '${directories[j]}_${sexList[i]}';
-					trace("WEEK NAME WAS TAKEN! Altering name to push file: "+altName);
-					var week:WeekFile = getWeekFile(fileToCheck);
-					if(week != null) {
-						var weekFile:WeekData = new WeekData(week, altName);
-
-						#if MODS_ALLOWED
-						if(j >= originalLength) {
-							weekFile.folder = directories[j].substring(Paths.mods().length, directories[j].length-1);
-						}
-						#end
-
-						if(weekFile != null && (isStoryMode == null || (isStoryMode && !weekFile.hideStoryMode) || (!isStoryMode && !weekFile.hideFreeplay))) {
-							weeksLoaded.set(altName, weekFile);
-							weeksList.push(altName);
-						}
-					}
 				}
 			}
 		}
@@ -145,6 +127,7 @@ class WeekData {
 		#if MODS_ALLOWED
 		for (i in 0...directories.length) {
 			var directory:String = directories[i] + 'weeks/';
+			var directoryVSlice:String = directories[i] + 'data/levels/';
 			if(FileSystem.exists(directory)) {
 				var listOfWeeks:Array<String> = CoolUtil.coolTextFile(directory + 'weekList.txt');
 				for (daWeek in listOfWeeks)
@@ -165,12 +148,24 @@ class WeekData {
 					}
 				}
 			}
+
+			if(FileSystem.exists(directoryVSlice)) {
+				for (file in FileSystem.readDirectory(directoryVSlice))
+				{
+					var path = haxe.io.Path.join([directoryVSlice, file]);
+					if (!FileSystem.isDirectory(path) && file.endsWith('.json'))
+					{
+						addWeek(file.substr(0, file.length - 5), path, directories[i], i, originalLength);
+					}
+				}
+			}
 		}
 		#end
 	}
 
 	private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)
 	{
+		var foundWeek:Bool = false;
 		if(!weeksLoaded.exists(weekToCheck)) {
 			var week:WeekFile = getWeekFile(path).funcAndReturn(function(wk) {
 			if(wk != null) {
@@ -201,6 +196,7 @@ class WeekData {
 					weeksLoaded.set(weekToCheck, weekFile);
 					weeksList.push(weekToCheck);
 				}
+				foundWeek = true;
 			}
 		}
 	}

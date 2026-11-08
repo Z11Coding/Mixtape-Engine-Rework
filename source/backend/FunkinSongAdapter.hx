@@ -30,7 +30,7 @@ class FunkinSongAdapter {
 	#if MODS_ALLOWED
 	public static function discover():Array<FunkinSongInfo> {
 		var result:Array<FunkinSongInfo> = [];
-		for (mod in Mods.parseList().enabled) {
+		for (mod in Mods.parseList().vslice) {
 			var discoveredSongs:Map<String, Bool> = new Map<String, Bool>();
 			var levelsPath:String = Paths.mods('$mod/data/levels');
 			if (FileSystem.exists(levelsPath) && FileSystem.isDirectory(levelsPath)) {

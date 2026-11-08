@@ -1099,7 +1099,7 @@ class Strumline extends FlxSpriteGroup
       var note = getByColumn(i);
       if (note != null) {
         note.y = this.strumLineNotes.y;
-        note.x = strumLineNotes.x + getXPos(i);
+        note.x = this.strumLineNotes.x + getXPos(i);
         note.formerPosition.set(note.x, note.y);
       }
     }
@@ -1926,7 +1926,7 @@ class Strumline extends FlxSpriteGroup
     final scale = strumlineScale == null ? 1.0 : strumlineScale.x;
     final count = ExtraKeys.mania + 1;
     final nativeWidth = layoutLaneWidth * scale;
-    final desired = (ExtraKeys.mania == 3 ? (BaseNote.swagWidth * scale) - 15 : nativeWidth + 8 * scale) * noteSpacingScale;
+    final desired = (ExtraKeys.mania == 3 ? (BaseNote.swagWidth * scale) - 25 : nativeWidth + 8 * scale) * noteSpacingScale;
     final room = FlxG.width / 2 - 8;
     return count > 1 ? Math.min(desired, Math.max(1, (room - nativeWidth) / (count - 1))) : 0;
   }
