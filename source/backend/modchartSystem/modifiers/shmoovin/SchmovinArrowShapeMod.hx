@@ -9,6 +9,11 @@ import objects.notes.Strumline;
 class SchmovinArrowShape extends TrollCustomPathMod {
 	static inline var SCALE:Float = 200;
 
+	public function new(name:String)
+  {
+    super(name);
+	}
+
 	override function loadPath() {
 		var file = backend.CoolUtil.coolTextFile('assets/modchart/arrowShape.csv');
 		_path = new List<TimeVector>();

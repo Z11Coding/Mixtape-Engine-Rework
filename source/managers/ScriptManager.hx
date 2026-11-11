@@ -77,7 +77,7 @@ class ScriptManager {
 			newText.color = color;
 			newText.disableTime = 6;
 			newText.alpha = 1;
-			newText.setPosition(10, 8 - newText.height);
+			newText.setPosition(10, 15 - newText.height);
 
 			luaDebugGroup.forEachAlive(function(spr:psychlua.DebugLuaText) {
 				spr.y += newText.height + 2;

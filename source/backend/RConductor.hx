@@ -99,7 +99,7 @@ class RConductor extends FlxRhythmConductor {
     RConductor.instance.onMeasureHit.add(func);
 
   public inline static function secsToRow(sex:Float):Int
-		return Math.round(MegaManager.conductor.currentBeat * ROWS_PER_BEAT);
+		return Math.round(MegaManager.conductor.getCumulativeBeats(sex) * ROWS_PER_BEAT);
 
   public static function mapBPMChanges(song:SwagSong)
 	{

@@ -32,13 +32,13 @@ class BaseNote extends ZSpriteProjected
 	public var mustPress:Bool = false;
 	public var doOppStuff:Bool = false;
 	public var noteData:Int = 0;
-	public var canBeHit:Bool = false;
+	public var canBeHit:Bool = true;
 	public var tooLate:Bool = false;
 	public var tooEarly:Bool = true;
 	public var wasGoodHit:Bool = false;
 	public var hasBeenHit:Bool = false;
 	public var hasMissed:Bool = false;
-	public var mayHit:Bool = false;
+	public var mayHit:Bool = true;
 	public var missed:Bool = false;
 	public var ignoreNote:Bool = false;
 	public var hitByOpponent:Bool = false; //For Opponent notes

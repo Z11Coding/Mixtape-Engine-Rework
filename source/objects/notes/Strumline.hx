@@ -1923,10 +1923,10 @@ class Strumline extends FlxSpriteGroup
    */
   function laneSpacing():Float
   {
-    final scale = strumlineScale == null ? 1.0 : strumlineScale.x;
     final count = ExtraKeys.mania + 1;
+    final scale = ExtraKeys.scales[count];
     final nativeWidth = layoutLaneWidth * scale;
-    final desired = (ExtraKeys.mania == 3 ? (BaseNote.swagWidth * scale) - 25 : nativeWidth + 8 * scale) * noteSpacingScale;
+    final desired = (ExtraKeys.mania == 3 ? (BaseNote.swagWidth * scale) + 38 : nativeWidth + 8 * scale) * noteSpacingScale;
     final room = FlxG.width / 2 - 8;
     return count > 1 ? Math.min(desired, Math.max(1, (room - nativeWidth) / (count - 1))) : 0;
   }

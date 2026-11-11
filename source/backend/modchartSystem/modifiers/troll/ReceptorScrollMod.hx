@@ -8,7 +8,7 @@ import objects.notes.Strumline;
 // From Troll Engine: Makes the strums, come to the notes! (like Drive2, but the notes are pre-placed, and it goes both up AND down)
 class ReceptorScrollMod extends Modifier
 {
-  var moveSpeed:ModifierSubValue;
+  var moveSpeed:Float = Conductor.crochet * 4; // gotta keep da sustain segments together so it doesnt look so shit
   public function new(name:String)
   {
     super(name, 0);
@@ -18,7 +18,6 @@ class ReceptorScrollMod extends Modifier
     notesMod = true;
     holdsMod = true;
     pathMod = true;
-    moveSpeed = createSubMod("movespeed", beatTime * 4, ["speed"]);
   }
 
   inline function lerp(a:Float,b:Float,c:Float){
@@ -31,7 +30,7 @@ class ReceptorScrollMod extends Modifier
 
     var diff = data.strumTime;
     var sPos = songTime;
-    var vDiff = -(diff - sPos) / moveSpeed.value;
+    var vDiff = -(diff - sPos) / moveSpeed;
     var reversed = Math.floor(vDiff)%2 == 0;
 
     var startY = data.y;
@@ -49,15 +48,23 @@ class ReceptorScrollMod extends Modifier
   {
     if (currentValue == 0) return; // skip math if mod is 0
 
-    var speed = strumLine.scrollSpeed * data.speedMod;
+    var diff = data.curPos;
+    var sPos = songTime;
+    var vDiff = -(diff - sPos) / moveSpeed;
+    var reversed = Math.floor(vDiff)%2 == 0;
 
-		var timeDiff = (strumLine.conductorInUse.musicPosition - data.curPos);
+    var startY = data.y;
+    var revPerc = reversed ? 1-vDiff%1 : vDiff%1;
+    // haha perc 30
+    var upscrollOffset = 50;
+    var downscrollOffset = FlxG.height - 150;
 
-		var diff = timeDiff;
-		var sPos = strumLine.conductorInUse.musicPosition;
+    var endY = upscrollOffset + ((downscrollOffset - ModConstants.strumSize * 0.5) * revPerc);
 
-    var songPos = sPos / moveSpeed.value;
-		var notePos = -(diff - sPos) / moveSpeed.value;
+    data.y = -lerp(startY, endY, currentValue);
+
+    var songPos = sPos / moveSpeed;
+		var notePos = -(diff - sPos) / moveSpeed;
 
     if(Math.floor(songPos)!=Math.floor(notePos)){
 			data.alpha *= .1;

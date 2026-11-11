@@ -3265,7 +3265,7 @@ class PlayState extends MusicBeatState
 			{
 				setSongTime(0);
 				return true;
-			}
+			} else conductor.target.time = -5;
 			moveCameraSection();
 
 			trace("Started Countdown!");
@@ -8618,7 +8618,7 @@ class PlayState extends MusicBeatState
 
 				if(char != null)
 				{
-					var canPlay:Bool = (!note.isSustainNote || (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote));
+					var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 					if(note.isSustainNote)
 					{
 						var holdAnim:String = animToPlay + '-hold';
@@ -8736,7 +8736,7 @@ class PlayState extends MusicBeatState
 				if(char != null)
 				{
 					var canPlay:Bool = (!noteAlt.isSustainNote || (!(noteAlt is SustainNote) || ClientPrefs.data.oldSusStyle && (noteAlt is SustainNote)));
-					if((noteAlt is SustainNote))
+					if(noteAlt.isSustainNote)
 					{
 						var holdAnim:String = animToPlay + '-hold';
 						if(char.animation.exists(holdAnim)) animToPlay = holdAnim;
@@ -8829,7 +8829,7 @@ class PlayState extends MusicBeatState
 
 					if(char != null)
 					{
-						var canPlay:Bool = (!note.isSustainNote || (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote));
+						var canPlay:Bool = (!note.isSustainNote || ClientPrefs.data.oldSusStyle && note.isSustainNote);
 						if(note.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
@@ -9064,7 +9064,7 @@ class PlayState extends MusicBeatState
 
 					if (!noteAlt.exNote && !noteAlt.gfNote && noteAlt.noteType == 'GF Duet') {
 						var canPlay:Bool = (!noteAlt.isSustainNote || (!(noteAlt is SustainNote) || ClientPrefs.data.oldSusStyle && (noteAlt is SustainNote)));
-						if((noteAlt is SustainNote))
+						if(noteAlt.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
 							if(gf.animation.exists(holdAnim)) animToPlay = holdAnim;
@@ -9078,7 +9078,7 @@ class PlayState extends MusicBeatState
 					if(char != null)
 					{
 						var canPlay:Bool = (!noteAlt.isSustainNote || (!(noteAlt is SustainNote) || ClientPrefs.data.oldSusStyle && (noteAlt is SustainNote)));
-						if((noteAlt is SustainNote))
+						if(noteAlt.isSustainNote)
 						{
 							var holdAnim:String = animToPlay + '-hold';
 							if(char.animation.exists(holdAnim)) animToPlay = holdAnim;

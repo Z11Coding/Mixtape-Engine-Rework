@@ -537,6 +537,8 @@ class TitleState extends MusicBeatState
 			initialized = true;
 
 		// credGroup.add(credTextShit);
+
+		conductor.target.time = -1;
 	}
 
 	// JSON data
@@ -901,7 +903,7 @@ class TitleState extends MusicBeatState
 		}
 	}
 
-	public var sickBeats:Int = -1; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
+	public var sickBeats:Int = -2; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
 	public static var closedState:Bool = false;
 	var skippedIntro:Bool = false;
 	var increaseVolume:Bool = false;

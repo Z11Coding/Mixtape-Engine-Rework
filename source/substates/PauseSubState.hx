@@ -107,13 +107,13 @@ class PauseSubState extends MusicBeatSubstate
 
 		menuItems = menuItemsOG;
 
-		if (!archipelago.APItem.unknownSongs && !ClientPrefs.data.confusionLocksDifficulty)
-		for (i in 0...Difficulty.list.length) {
-			var diff:String = Difficulty.getString(i);
-			difficultyChoices.push(diff);
+		if (APInfo.inArchipelagoMode && !archipelago.APItem.unknownSongs && !ClientPrefs.data.confusionLocksDifficulty) {
+			for (i in 0...Difficulty.list.length) {
+				var diff:String = Difficulty.getString(i);
+				difficultyChoices.push(diff);
+			}
 		}
-		else
-			difficultyChoices.push('???');
+		else difficultyChoices.push('???');
 		difficultyChoices.push('BACK');
 
 		pauseMusic = new FlxSound();
