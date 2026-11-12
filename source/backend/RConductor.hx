@@ -105,13 +105,17 @@ class RConductor extends FlxRhythmConductor {
 	{
 		var event:MusicTimeChangeEvent = new MusicTimeChangeEvent(
       0,
-      song.bpm
+      song.bpm,
+      song.notes[0].sectionSteps,
+      song.notes[0].sectionBeats,
     );
     MegaManager.conductor.timeChanges.push(event);
 
 		var curBPM:Float = song.bpm;
 		var totalSteps:Int = 0;
 		var totalPos:Float = 0;
+    var lastNum:Int = 4;
+    var lastDen:Int = 4;
 		for (i in 0...song.notes.length)
 		{
 			if(song.notes[i].changeBPM && song.notes[i].bpm != curBPM)
@@ -119,7 +123,9 @@ class RConductor extends FlxRhythmConductor {
 				curBPM = song.notes[i].bpm;
 				var event:MusicTimeChangeEvent = new MusicTimeChangeEvent(
 					(totalPos == 0 ? 0.01 : totalPos),
-					curBPM
+					curBPM,
+          song.notes[i].sectionSteps,
+          song.notes[i].sectionBeats
         );
 				MegaManager.conductor.timeChanges.push(event);
 			}
@@ -135,6 +141,17 @@ class RConductor extends FlxRhythmConductor {
           'Linear'
         );
 				MegaManager.conductor.timeChanges.push(tween);
+			}
+
+      if(!song.notes[i].changeBPM && !song.notes[i].bpmT && (song.notes[i].sectionSteps != lastNum || song.notes[i].sectionSteps != lastDen))
+			{
+				var event:MusicTimeChangeEvent = new MusicTimeChangeEvent(
+					(totalPos == 0 ? 0.01 : totalPos),
+					curBPM,
+          song.notes[i].sectionSteps,
+          song.notes[i].sectionBeats
+        );
+				MegaManager.conductor.timeChanges.push(event);
 			}
 
 			var deltaSteps:Int = Math.round(getSectionSteps(song, i) * getSectionBeats(song, i));

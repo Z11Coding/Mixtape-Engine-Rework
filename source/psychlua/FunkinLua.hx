@@ -1403,6 +1403,7 @@ class FunkinLua {
 			// Checks if it's not successful, then show a error.
 			if (status != Lua.LUA_OK) {
 				var error:String = getErrorMessage(status);
+				Sys.println('[Lua error] $scriptName::$func: $error');
 				luaTrace("ERROR (" + func + "): " + error, false, false, FlxColor.RED);
 				return LuaUtils.Function_Continue;
 			}

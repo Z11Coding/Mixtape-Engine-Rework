@@ -15,6 +15,7 @@ class ReflectionFunctions
 	public static function implement(funk:FunkinLua)
 	{
 		var lua:State = funk.lua;
+		var loggedReceptorWrite:Bool = false;
 		Lua_helper.add_callback(lua, "getProperty", function(variable:String, ?allowMaps:Bool = false) {
 			var split:Array<String> = variable.split('.');
 			if(split.length > 1)
@@ -128,6 +129,19 @@ class ReflectionFunctions
 			else
 				realObject = Reflect.getProperty(LuaUtils.getTargetInstance(), group);
 
+			var isStrumPositionWrite:Bool = !loggedReceptorWrite
+				&& funk.lastCalledFunction == 'onUpdatePost'
+				&& (group == 'opponentStrums' || group == 'playerStrums')
+				&& (variable == 'x' || variable == 'y');
+			if (isStrumPositionWrite)
+			{
+				loggedReceptorWrite = true;
+				var members:Array<Dynamic> = realObject != null ? cast Reflect.field(realObject, 'members') : null;
+				var target:Dynamic = members != null && index >= 0 && index < members.length ? members[index] : null;
+				var before:Dynamic = target != null ? Reflect.getProperty(target, variable) : null;
+				Sys.println('[Lua receptor] ${funk.scriptName} ${group}[$index].$variable before=$before value=$value target=${target == null ? "null" : Type.getClassName(Type.getClass(target))}');
+			}
+
 			if(realObject != null)
 			{
 				switch(Type.typeof(realObject))
@@ -149,6 +163,14 @@ class ReflectionFunctions
 				}
 			}
 			else FunkinLua.luaTrace('setPropertyFromGroup: Group/Array $group doesn\'t exist!', false, false, FlxColor.RED);
+
+			if (isStrumPositionWrite)
+			{
+				var members:Array<Dynamic> = realObject != null ? cast Reflect.field(realObject, 'members') : null;
+				var target:Dynamic = members != null && index >= 0 && index < members.length ? members[index] : null;
+				var after:Dynamic = target != null ? Reflect.getProperty(target, variable) : null;
+				Sys.println('[Lua receptor] after=$after');
+			}
 			return value;
 		});
 		Lua_helper.add_callback(lua, "addToGroup", function(group:String, tag:String, ?index:Int = -1) {

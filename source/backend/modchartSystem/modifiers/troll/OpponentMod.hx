@@ -25,7 +25,7 @@ class OpponentMod extends Modifier
 
     var distX = FlxG.width / MegaManager.playfield.allStrumLines.length;
 
-		data.x += distX * sign((strumLine.playerNum + 1) * 2 - 3) * currentValue;
+		data.x += distX * sign((strumLine.playerNum + 1) * 2 - 3) * -currentValue;
     // any pN > 0 should go right whereas any pN < 0 should go left
   }
 }
