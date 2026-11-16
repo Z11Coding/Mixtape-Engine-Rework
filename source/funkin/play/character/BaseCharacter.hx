@@ -1,0 +1,948 @@
+package funkin.play.character;
+
+import flixel.math.FlxPoint;
+import funkin.modding.events.ScriptEvent;
+import funkin.data.IRegistryEntry;
+import funkin.data.character.CharacterData;
+import funkin.data.character.CharacterRegistry;
+import funkin.data.character.CharacterData.CharacterRenderType;
+import funkin.play.stage.Bopper;
+import funkin.play.notes.NoteDirection;
+import funkin.data.song.SongData.SongNoteData;
+import funkin.play.notes.notekind.NoteKind;
+import funkin.play.notes.notekind.NoteKindManager;
+import funkin.play.stage.Stage;
+import funkin.graphics.FunkinAnimationController;
+//
+// ~PATHS~
+//
+import funkin.assets.ValidatedPaths as Paths;
+import funkin.assets.Paths.AssetPath;
+import funkin.assets.Assets.AssetType;
+
+/**
+ * A Character is a stage prop which bops to the music as well as controlled by the strumlines.
+ *
+ * Remember: The character's origin is at its FEET. (horizontal center, vertical bottom)
+ */
+class BaseCharacter extends Bopper implements IRegistryEntry<CharacterData>
+{
+  // Metadata about a character.
+  public final id:String;
+  public var characterId(get, never):String;
+
+  function get_characterId():String
+  {
+    // Backwards compatibility from before characters were moved to a registry.
+    return id;
+  }
+
+  public var characterName(default, null):String;
+
+  /**
+   * Whether the player is an active character (Boyfriend) or not.
+   */
+  public var characterType(default, set):CharacterType = OTHER;
+
+  function set_characterType(value:CharacterType):CharacterType
+  {
+    return this.characterType = value;
+  }
+
+  /**
+   * Tracks how long, in seconds, the character has been playing the current `sing` animation.
+   * This is used to ensure that characters play the `sing` animations for at least one beat,
+   *   preventing them from reverting to the `idle` animation between notes.
+   */
+  public var holdTimer:Float = 0;
+
+  /**
+   * Set to true when the character dead. Part of the handling for death animations.
+   */
+  public var isDead:Bool = false;
+
+  /**
+   * Set to true when the character being used in a special way.
+   * This includes the Chart Editor and the Animation Editor.
+   *
+   * Used by scripts to ensure that they don't try to run code to interact with the stage when the stage doesn't actually exist.
+   */
+  public var debug:Bool = false;
+
+  /**
+   * If set, this stage will be used instead of the current stage in PlayState.
+   */
+  public var currentStage:Null<Stage> = null;
+
+  /**
+   * The current note kind.
+   */
+  public var curNoteKind:NoteKind;
+
+  /**
+   * This character plays a given animation when hitting these specific combo numbers.
+   */
+  public var comboNoteCounts(default, null):Array<Int>;
+
+  /**
+   * This character plays a given animation when dropping combos larger than these numbers.
+   */
+  public var dropNoteCounts(default, null):Array<Int>;
+
+  @:allow(funkin.ui.debug.anim.DebugBoundingState)
+  public final _data:CharacterData;
+
+  /**
+   * The amount of time, in seconds, that the character's singing animations should last for.
+   */
+  public final singTimeSteps:Float;
+
+  /**
+   * When set to true, the next animation to play will temporarily force the character's vocals to play.
+   */
+  public var tempVocals:Bool = false;
+
+  /**
+   * The offset between the corner of the sprite and the origin of the sprite (at the character's feet).
+   * cornerPosition = stageData - characterOrigin
+   */
+  public var characterOrigin(get, never):FlxPoint;
+
+  function get_characterOrigin():FlxPoint
+  {
+    var xPos = (width / 2); // Horizontal center
+    var yPos = (height); // Vertical bottom
+    return FlxPoint.weak(xPos, yPos);
+  }
+
+  /**
+   * The absolute position of the top-left of the character.
+   * @return
+   */
+  public var cornerPosition(get, set):FlxPoint;
+
+  function get_cornerPosition():FlxPoint
+  {
+    return FlxPoint.weak(x, y);
+  }
+
+  function set_cornerPosition(value:FlxPoint):FlxPoint
+  {
+    var xDiff:Float = value.x - this.x;
+    var yDiff:Float = value.y - this.y;
+
+    this.cameraFocusPoint.x += xDiff;
+    this.cameraFocusPoint.y += yDiff;
+
+    super.set_x(value.x);
+    super.set_y(value.y);
+
+    return value;
+  }
+
+  /**
+   * The absolute position of the character's feet, at the bottom-center of the sprite.
+   */
+  public var feetPosition(get, never):FlxPoint;
+
+  function get_feetPosition():FlxPoint
+  {
+    return FlxPoint.weak(x + characterOrigin.x, y + characterOrigin.y);
+  }
+
+  /**
+   * Returns the point the camera should focus on.
+   * Should be approximately centered on the character, and should not move based on the current animation.
+   *
+   * Set the position of this rather than reassigning it, so that anything referencing it will not be affected.
+   */
+  public var cameraFocusPoint(default, null):FlxPoint = FlxPoint.get(0, 0);
+
+  /**
+   * If the x position changes, other than via changing the animation offset,
+   *  then we need to update the camera focus point.
+   */
+  override function set_x(value:Float):Float
+  {
+    if (value == this.x) return value;
+
+    var xDiff = value - this.x;
+    this.cameraFocusPoint.x += xDiff;
+
+    return super.set_x(value);
+  }
+
+  /**
+   * If the y position changes, other than via changing the animation offset,
+   *  then we need to update the camera focus point.
+   */
+  override function set_y(value:Float):Float
+  {
+    if (value == this.y) return value;
+
+    var yDiff = value - this.y;
+    this.cameraFocusPoint.y += yDiff;
+
+    return super.set_y(value);
+  }
+
+  /**
+   * Retrieve a list of all the asset paths required to load the character.
+   *
+   * If you have a scripted class which initializes sprites, or plays sounds or something,
+   * make sure you extend this function and add them here so they get cached in the loading screen.
+   *
+   * @param type The type of asset to query
+   * @param id The character ID to query.
+   * @param params Optional. Char entry params.
+   * @return An array of asset paths, or empty if no assets of that type are required.
+   */
+  public static function queryAssets(type:AssetType, entryId:String, ?params:CharacterEntryParams):Array<AssetPath>
+  {
+    var results:Array<AssetPath> = queryBaseAssets(type, entryId, params);
+
+    var _data:Null<CharacterData> = CharacterRegistry.instance.fetchCharacterData(entryId);
+    if (_data != null)
+    {
+      switch (_data.renderType)
+      {
+        case CharacterRenderType.AnimateAtlas:
+          results = AnimateAtlasCharacter.queryAssets(type, entryId, params);
+        case CharacterRenderType.MultiAnimateAtlas:
+          results = MultiAnimateAtlasCharacter.queryAssets(type, entryId, params);
+        case CharacterRenderType.Sparrow:
+          results = SparrowCharacter.queryAssets(type, entryId, params);
+        case CharacterRenderType.MultiSparrow:
+          results = MultiSparrowCharacter.queryAssets(type, entryId, params);
+        case CharacterRenderType.Packer:
+          results = PackerCharacter.queryAssets(type, entryId, params);
+        default:
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Assets common to every character (like the health icon). Character subclasses `queryAssets` functions should call this,
+   * NOT `BaseCharacter.queryAssets`, to avoid infinite looping (the rooms).
+   *
+   * @param type The type of asset to query
+   * @param id The character ID to query.
+   * @param params Optional. Char entry params.
+   * @return An array of asset paths, or empty if no assets of that type are required.
+   */
+  public static function queryBaseAssets(type:AssetType, entryId:String, ?params:CharacterEntryParams):Array<AssetPath>
+  {
+    // Specific implementations handle figuring out which assets to load.
+
+    var results:Array<funkin.assets.Paths.AssetPath> = [];
+
+    var _data:Null<CharacterData> = CharacterRegistry.instance.fetchCharacterData(entryId);
+    if (_data == null) return results;
+
+    // Get the character's health icon path.
+    var healthIconId:String = _data?.healthIcon?.id ?? Constants.DEFAULT_HEALTH_ICON;
+    var healthIconPath:AssetPath = Paths.image('gameplay/characters/$healthIconId/icon-$healthIconId');
+
+    var results:Array<AssetPath> = [];
+
+    switch (type)
+    {
+      case IMAGE:
+        results.push(healthIconPath);
+      case XML:
+        results.push(healthIconPath.withAssetType(XML).orNull());
+      default:
+        // Nothing
+    }
+
+    return results.filterNull();
+  }
+
+  /**
+   * The render type of the character.
+   */
+  public var renderType(default, null):CharacterRenderType;
+
+  public function new(id:String, ?params:Dynamic)
+  {
+    super(CharacterData.DEFAULT_DANCEEVERY);
+
+    this.id = id;
+
+    ignoreExclusionPref = ['sing'];
+
+    _data = CharacterRegistry.instance.fetchCharacterData(this.id);
+
+    var expectedRenderType:CharacterRenderType = params?.renderType ?? _data.renderType;
+    if (_data == null)
+    {
+      throw 'Could not find character data for characterId: $id';
+    }
+    else if (_data.renderType != expectedRenderType)
+    {
+      throw 'Render type mismatch for character ($id): expected ${expectedRenderType}, got ${_data.renderType}';
+    }
+    else
+    {
+      this.characterName = _data.name;
+      this.name = _data.name;
+      this.danceEvery = _data.danceEvery;
+      this.singTimeSteps = _data.singTime;
+      this.globalOffsets = _data.offsets;
+      this.flipX = _data.flipX;
+      this.renderType = expectedRenderType;
+    }
+
+    if (PlayState.instance != null) currentStage = PlayState.instance.currentStage;
+
+    shouldBop = false;
+  }
+
+  public function getDeathCameraOffsets():Array<Float>
+  {
+    return _data.death?.cameraOffsets ?? [0.0, 0.0];
+  }
+
+  public function getBaseScale():Float
+  {
+    return _data.scale;
+  }
+
+  public function getDeathCameraZoom():Float
+  {
+    return _data.death?.cameraZoom ?? 1.0;
+  }
+
+  public function getDeathPreTransitionDelay():Float
+  {
+    return _data.death?.preTransitionDelay ?? 0.0;
+  }
+
+  /**
+   * Gets the value of flipX from the character data.
+   * `!getFlipX()` is the direction Boyfriend should face.
+   */
+  public function getDataFlipX():Bool
+  {
+    return _data.flipX;
+  }
+
+  function findCountAnimations(prefix:String):Array<Int>
+  {
+    var animNames:Array<String> = this.animation.getNameList();
+
+    var result:Array<Int> = [];
+
+    for (anim in animNames)
+    {
+      if (anim.startsWith(prefix))
+      {
+        var comboNum:Null<Int> = Std.parseInt(anim.substring(prefix.length));
+        if (comboNum != null)
+        {
+          result.push(comboNum);
+        }
+      }
+    }
+
+    // Sort numerically.
+    result.sort((a, b) -> a - b);
+    return result;
+  }
+
+  /**
+   * Reset the character so it can be used at the start of the level.
+   * Call this when restarting the level.
+   */
+  public function resetCharacter(resetCamera:Bool = true):Void
+  {
+    // Set the x and y to be their original values.
+    this.resetPosition();
+
+    // Resets danceEvery value to the original one.
+    this.danceEvery = _data.danceEvery;
+
+    this.dance(true); // Force to avoid the old animation playing with the wrong offset at the start of the song.
+    // Make sure we are playing the idle animation
+    // ...then update the hitbox so that this.width and this.height are correct.
+    this.updateHitbox();
+
+    // Reset the camera focus point while we're at it.
+    if (resetCamera) this.resetCameraFocusPoint();
+  }
+
+  /**
+   * Set the character's sprite scale to the appropriate value.
+   * @param scale The desired scale.
+   */
+  public function setScale(scale:Null<Float>):Void
+  {
+    if (scale == null) scale = 1.0;
+
+    var feetPos:FlxPoint = feetPosition;
+    this.scale.x = scale;
+    this.scale.y = scale;
+    this.updateHitbox();
+    // Reposition with newly scaled sprite.
+    this.x = feetPos.x - characterOrigin.x + globalOffsets[0];
+    this.y = feetPos.y - characterOrigin.y + globalOffsets[1];
+  }
+
+  /**
+   * The per-character camera offset.
+   */
+  var characterCameraOffsets(get, never):Array<Float>;
+
+  function get_characterCameraOffsets():Array<Float>
+  {
+    return _data.cameraOffsets;
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+
+    // Make sure we are playing the idle animation...
+    this.dance(true);
+    // ...then update the hitbox so that this.width and this.height are correct.
+    this.updateHitbox();
+    // Without the above code, width and height (and therefore character position)
+    // will be based on the first animation in the sheet rather than the default animation.
+
+    this.resetCameraFocusPoint();
+
+    // Child class should have created animations by now,
+    // so we can query which ones are available.
+    this.comboNoteCounts = findCountAnimations('combo'); // ex. combo50
+    this.dropNoteCounts = findCountAnimations('drop'); // ex. drop50
+    if (comboNoteCounts.length > 0) log('Character $id plays Combo animation at ${this.comboNoteCounts.join(', ')}');
+    if (dropNoteCounts.length > 0) log('Character $id plays Drop animation at ${this.dropNoteCounts.join(', ')}');
+
+    super.onCreate(event);
+  }
+
+  override function onAnimationFinished(animationName:String):Void
+  {
+    super.onAnimationFinished(animationName);
+
+    if
+      ((animationName.endsWith(Constants.ANIMATION_END_SUFFIX) && !animationName.startsWith('idle') && !animationName.startsWith('dance'))
+        || animationName.startsWith('combo')
+        || animationName.startsWith('drop')
+      )
+    {
+      // Force the character to play the idle after the animation ends.
+      this.dance(true);
+    }
+    if (tempVocals)
+    {
+      // stop the temporary vocals
+      if (characterType == BF && PlayState.instance.vocals.playerVolume == 1)
+      {
+        PlayState.instance.vocals.playerVolume = 0;
+      }
+
+      if (characterType == DAD && PlayState.instance.vocals.opponentVolume == 1)
+      {
+        PlayState.instance.vocals.opponentVolume = 0;
+      }
+      tempVocals = false;
+    }
+  }
+
+  public function resetCameraFocusPoint():Void
+  {
+    // Calculate the camera focus point
+    var charCenterX = this.originalPosition.x + this.width / 2;
+    var charCenterY = this.originalPosition.y + this.height / 2;
+    if (this.cameraFocusPoint == null) this.cameraFocusPoint = FlxPoint.get();
+    this.cameraFocusPoint.set(charCenterX + _data.cameraOffsets[0], charCenterY + _data.cameraOffsets[1]);
+  }
+
+  public function getHealthIconId():String
+  {
+    return _data?.healthIcon?.id ?? Constants.DEFAULT_HEALTH_ICON;
+  }
+
+  public function getDiscordRPCImage():String
+  {
+    return _data?.discordRPCImage ?? 'icon-${getHealthIconId()}';
+  }
+
+  public function initHealthIcon(isOpponent:Bool):Void
+  {
+    // Modders may want to use characters outside of PlayState and this still gets called, so we ignore it.
+    if (PlayState.instance == null) return;
+
+    if (!isOpponent)
+    {
+      if (PlayState.instance.iconP1 == null)
+      {
+        log(' WARNING '.warning() + ' Player 1 ($characterId) health icon not found!');
+        return;
+      }
+      PlayState.instance.iconP1.configure(_data?.healthIcon);
+      PlayState.instance.iconP1.flipX = !PlayState.instance.iconP1.flipX; // BF is looking the other way.
+    }
+    else
+    {
+      if (PlayState.instance.iconP2 == null)
+      {
+        log(' WARNING '.warning() + ' Player 2 ($characterId) health icon not found!');
+        return;
+      }
+      PlayState.instance.iconP2.configure(_data?.healthIcon);
+    }
+  }
+
+  override public function onUpdate(event:UpdateScriptEvent):Void
+  {
+    super.onUpdate(event);
+
+    // Reset hold timer for each note pressed.
+    if (justPressedNote() && this.characterType == BF)
+    {
+      // If the `noanim` noteKind is active, don't reset the holdTimer.
+      if (curNoteKind != null && curNoteKind.noanim) return;
+      else
+      {
+        holdTimer = 0;
+      }
+    }
+
+    if (isDead)
+    {
+      // playDeathAnimation
+      return;
+    }
+
+    // If there is an animation, and another animation with the same name + "-hold" exists,
+    // the second animation will play (and be looped if configured to do so) after the first animation finishes.
+    // This is good for characters that need to hold a pose while maintaining an animation, like the parents (this keeps their eyes flickering)
+    // and Darnell (this keeps the flame on his lighter flickering).
+    // Works for idle, singLEFT/RIGHT/UP/DOWN, alt singing animations, and anything else really.
+
+    if (
+      isAnimationFinished()
+      && !getCurrentAnimation().endsWith(Constants.ANIMATION_HOLD_SUFFIX)
+      && hasAnimation(getCurrentAnimation() + Constants.ANIMATION_HOLD_SUFFIX)
+    )
+    {
+      playAnimation(getCurrentAnimation() + Constants.ANIMATION_HOLD_SUFFIX);
+    }
+    else
+    {
+      if (isAnimationFinished())
+      {
+        // Not playing hold (${getCurrentAnimation()}) (${isAnimationFinished()}, ${getCurrentAnimation().endsWith(Constants.ANIMATION_HOLD_SUFFIX)}, ${hasAnimation(getCurrentAnimation() + Constants.ANIMATION_HOLD_SUFFIX)})
+      }
+    }
+
+    // Handle character note hold time.
+    if (isSinging())
+    {
+      // TODO: Rework this code (and all character animations ugh)
+      // such that the hold time is handled by padding frames,
+      // and reverting to the idle animation is done when `isAnimationFinished()`.
+      // This lets you add frames to the end of the sing animation to ease back into the idle!
+
+      holdTimer += event.elapsed;
+      var singTimeSec:Float = singTimeSteps * (Conductor.instance.stepLengthMs / Constants.MS_PER_SEC); // x beats, to ms.
+
+      if (getCurrentAnimation().endsWith('miss')) singTimeSec *= 2; // makes it feel more awkward when you miss???
+
+      // Without this check here, the player character would only play the `sing` animation
+      // for one beat, as opposed to holding it as long as the player is holding the button.
+      var shouldStopSinging:Bool = (this.characterType == BF) ? !isHoldingNote() : true;
+
+      var controller = cast(animation, FunkinAnimationController);
+      if (controller.shouldUseConductorSync && shouldStopSinging) shouldStopSinging = FlxG.sound.music != null && FlxG.sound.music.playing;
+
+      FlxG.watch.addQuick('singTimeSec-${characterId}', singTimeSec);
+      if (holdTimer > singTimeSec && shouldStopSinging)
+      {
+        holdTimer = 0;
+
+        var currentAnimation:String = getCurrentAnimation();
+        // Strip "-hold" from the end.
+        if (currentAnimation.endsWith(
+          Constants.ANIMATION_HOLD_SUFFIX
+        )) currentAnimation = currentAnimation.substring(0, currentAnimation.length - Constants.ANIMATION_HOLD_SUFFIX.length);
+
+        var endAnimation:String = currentAnimation + Constants.ANIMATION_END_SUFFIX;
+        if (hasAnimation(endAnimation))
+        {
+          // Play the '-end' animation, if one exists.
+          playAnimation(endAnimation);
+        }
+        else
+        {
+          // Play the idle animation.
+          dance(true);
+        }
+      }
+    }
+    else
+    {
+      holdTimer = 0;
+      // super.onBeatHit handles the regular `dance()` calls.
+    }
+    FlxG.watch.addQuick('holdTimer-${characterId}', holdTimer);
+  }
+
+  public function isSinging():Bool
+  {
+    var currentAnimation:String = getCurrentAnimation();
+    return currentAnimation.startsWith('sing') && !currentAnimation.endsWith(Constants.ANIMATION_END_SUFFIX);
+  }
+
+  override function dance(force:Bool = false):Void
+  {
+    // Prevent default dancing behavior.
+    if (isDead) return;
+
+    if (!force)
+    {
+      // Prevent dancing while a singing animation is playing.
+      if (isSinging()) return;
+
+      // Prevent dancing while a non-idle special animation is playing.
+      var currentAnimation:String = getCurrentAnimation();
+      if (!currentAnimation.startsWith('dance') && !currentAnimation.startsWith('idle') && !isAnimationFinished()) return;
+    }
+
+    // Otherwise, fallback to the super dance() method, which handles playing the idle animation.
+    super.dance();
+  }
+
+  /**
+   * Returns true if the player just pressed a note.
+   * Used when determining whether a player character should revert to the `idle` animation.
+   * On non-player characters, this should be ignored.
+   */
+  function justPressedNote(player:Int = 1):Bool
+  {
+    // Returns true if at least one of LEFT, DOWN, UP, or RIGHT is being held.
+    switch (player)
+    {
+      case 1:
+        return
+          PlayerSettings.player1.controls.NOTE_LEFT_P
+          || PlayerSettings.player1.controls.NOTE_DOWN_P
+          || PlayerSettings.player1.controls.NOTE_UP_P
+          || PlayerSettings.player1.controls.NOTE_RIGHT_P;
+      case 2:
+        return
+          PlayerSettings.player2.controls.NOTE_LEFT_P
+          || PlayerSettings.player2.controls.NOTE_DOWN_P
+          || PlayerSettings.player2.controls.NOTE_UP_P
+          || PlayerSettings.player2.controls.NOTE_RIGHT_P;
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if the player is holding a note.
+   * Used when determining whether a player character should revert to the `idle` animation.
+   * On non-player characters, this should be ignored.
+   */
+  function isHoldingNote(player:Int = 1):Bool
+  {
+    // Returns true if at least one of LEFT, DOWN, UP, or RIGHT is being held.
+    switch (player)
+    {
+      case 1:
+        return
+          PlayerSettings.player1.controls.NOTE_LEFT
+          || PlayerSettings.player1.controls.NOTE_DOWN
+          || PlayerSettings.player1.controls.NOTE_UP
+          || PlayerSettings.player1.controls.NOTE_RIGHT;
+      case 2:
+        return
+          PlayerSettings.player2.controls.NOTE_LEFT
+          || PlayerSettings.player2.controls.NOTE_DOWN
+          || PlayerSettings.player2.controls.NOTE_UP
+          || PlayerSettings.player2.controls.NOTE_RIGHT;
+    }
+    return false;
+  }
+
+  /**
+   * Play the appropriate singing animation based on the given note data.
+   * @param noteData The note data of the note.
+   */
+  public function playNoteSingAnimation(noteData:SongNoteData, judgement:Null<String> = null, comboCount:Int = 0):Void
+  {
+    curNoteKind = NoteKindManager.getNoteKind(noteData.kind);
+    // Let the character naturally transition back to their idle/dance animation
+    // if the notekind is set to noanim.
+    if (curNoteKind != null && curNoteKind.noanim) return;
+
+    if (noteData.getMustHitNote() && characterType == BF)
+    {
+      this.playSingAnimation(noteData.getDirection(), false, curNoteKind?.suffix ?? '');
+      holdTimer = 0;
+    }
+    else if (!noteData.getMustHitNote() && characterType == DAD)
+    {
+      this.playSingAnimation(noteData.getDirection(), false, curNoteKind?.suffix ?? '');
+      holdTimer = 0;
+    }
+    else if (characterType == GF && noteData.getMustHitNote() && judgement != null)
+    {
+      switch (judgement)
+      {
+        case 'sick' | 'good':
+          playComboAnimation(comboCount);
+        default:
+          playComboDropAnimation(comboCount);
+      }
+    }
+  }
+
+  /**
+   * Every time a note is hit, check if the note is from the same strumline.
+   * If it is, then play the sing animation.
+   */
+  override public function onNoteHit(event:HitNoteScriptEvent):Void
+  {
+    super.onNoteHit(event);
+    // If another script cancelled the event, don't do anything.
+    if (event.eventCanceled) return;
+
+    playNoteSingAnimation(event.note.noteData, event.judgement, event.comboCount);
+  }
+
+  /**
+   * Every time a hold note is held, check if it is of the same strumline before updating the hold timer.
+   */
+  public override function onNoteHoldHit(event:HoldNoteScriptEvent)
+  {
+    super.onNoteHoldHit(event);
+
+    // If another script cancelled the event, don't do anything.
+    if (event.eventCanceled) return;
+
+    if (event.holdNote.noteData.getMustHitNote() && characterType == BF)
+    {
+      holdTimer = 0;
+    }
+    else if (!event.holdNote.noteData.getMustHitNote() && characterType == DAD)
+    {
+      holdTimer = 0;
+    }
+  }
+
+  /**
+   * Every time a note is missed, check if the note is from the same strumline.
+   * If it is, then play the sing animation.
+   */
+  override public function onNoteMiss(event:NoteScriptEvent):Void
+  {
+    super.onNoteMiss(event);
+
+    // If another script cancelled the event, don't do anything.
+    if (event.eventCanceled) return;
+
+    if (event.note.noteData.getMustHitNote() && characterType == BF)
+    {
+      // If the note is from the same strumline, play the miss animation.
+      this.playSingAnimation(event.note.noteData.getDirection(), true);
+      holdTimer = 0;
+    }
+    else if (!event.note.noteData.getMustHitNote() && characterType == DAD)
+    {
+      // If the note is from the same strumline, play the miss animation.
+      this.playSingAnimation(event.note.noteData.getDirection(), true);
+      holdTimer = 0;
+    }
+    else if (event.note.noteData.getMustHitNote() && characterType == GF)
+    {
+      playComboDropAnimation(event.comboCount);
+    }
+  }
+
+  override public function onNoteHoldDrop(event:HoldNoteScriptEvent):Void
+  {
+    super.onNoteHoldDrop(event);
+
+    // If another script cancelled the event, don't do anything.
+    if (event.eventCanceled) return;
+
+    if (event.holdNote.noteData.getMustHitNote() && characterType == BF)
+    {
+      // If the note is from the same strumline, play the miss animation.
+      this.playSingAnimation(event.holdNote.noteData.getDirection(), true);
+      holdTimer = 0;
+    }
+    else if (!event.holdNote.noteData.getMustHitNote() && characterType == DAD)
+    {
+      // If the note is from the same strumline, play the miss animation.
+      this.playSingAnimation(event.holdNote.noteData.getDirection(), true);
+      holdTimer = 0;
+    }
+    else if (event.holdNote.noteData.getMustHitNote() && event.isComboBreak && characterType == GF)
+    {
+      playComboDropAnimation(event.comboCount);
+    }
+  }
+
+  function playComboAnimation(comboCount:Int):Void
+  {
+    var comboAnim = 'combo${comboCount}';
+    if (hasAnimation(comboAnim))
+    {
+      log('Playing combo animation "${comboAnim}"');
+      this.playAnimation(comboAnim, true, true);
+    }
+  }
+
+  function playComboDropAnimation(comboCount:Int):Void
+  {
+    var dropAnim:Null<String> = null;
+
+    // Choose the combo drop anim to play.
+    // If there are several (for example, drop10 and drop50) the highest one will be used.
+    // If the combo count is too low, no animation will be played.
+    for (count in dropNoteCounts)
+    {
+      if (comboCount >= count)
+      {
+        dropAnim = 'drop${count}';
+      }
+    }
+
+    if (dropAnim != null)
+    {
+      log('Playing combo drop animation "${dropAnim}"');
+      this.playAnimation(dropAnim, true, true);
+    }
+  }
+
+  /**
+   * Every time a wrong key is pressed, play the miss animation if we are Boyfriend.
+   */
+  override public function onNoteGhostMiss(event:GhostMissNoteScriptEvent):Void
+  {
+    super.onNoteGhostMiss(event);
+
+    if (event.eventCanceled || !event.playAnim)
+    {
+      // Skipping...
+      return;
+    }
+
+    if (characterType == BF)
+    {
+      // If the note is from the same strumline, play the sing animation.
+      this.playSingAnimation(event.dir, true);
+    }
+  }
+
+  override public function onDestroy(event:ScriptEvent):Void
+  {
+    this.characterType = OTHER;
+  }
+
+  /**
+   * Play the appropriate singing animation, for the given note direction.
+   * @param dir The direction of the note.
+   * @param miss If true, play the miss animation instead of the sing animation.
+   * @param suffix A suffix to append to the animation name, like `alt`.
+   */
+  public function playSingAnimation(dir:NoteDirection, miss:Bool = false, ?suffix:String = ''):Void
+  {
+    var anim:String = 'sing${dir.nameUpper}${miss ? 'miss' : ''}${suffix != '' ? '-${suffix}' : ''}';
+
+    // restart even if already playing, because the character might sing the same note twice.
+    holdTimer = 0;
+
+    playAnimation(anim, true);
+  }
+
+  override public function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false):Void
+  {
+    if (tempVocals && PlayState.instance != null)
+    {
+      // restart the character's vocals for the duration of the animation
+      if (characterType == BF && PlayState.instance.vocals.playerVolume == 0)
+      {
+        PlayState.instance.vocals.playerVolume = 1;
+      }
+      else if (characterType == DAD && PlayState.instance.vocals.opponentVolume == 0)
+      {
+        PlayState.instance.vocals.opponentVolume = 1;
+      }
+      else if (characterType != BF || characterType != DAD) tempVocals = false;
+    }
+
+    super.playAnimation(name, restart, ignoreOther, reversed);
+  }
+
+  public function getDeathQuote():Null<String>
+  {
+    return null;
+  }
+
+  override function destroy():Void
+  {
+    cameraFocusPoint.put();
+    super.destroy();
+  }
+
+  static function log(message:String):Void
+  {
+    trace(' CHARACTER '.bold().bg_blue() + ' $message');
+  }
+
+  public override function toString():String
+  {
+    return 'BaseCharacter($characterName ($characterId), pos=[$x, $y])';
+  }
+}
+
+/**
+ * The type of a given character sprite. Defines its default behaviors.
+ */
+enum CharacterType
+{
+  /**
+   * The BF character has the following behaviors.
+   * - At idle, dances with `danceLeft` and `danceRight` if available, or `idle` if not.
+   * - When the player hits a note, plays the appropriate `singDIR` animation until BF is done singing.
+   * - If there is a `singDIR-end` animation, the `singDIR` animation will play once before looping the `singDIR-end` animation until BF is done singing.
+   * - If the player misses or hits a ghost note, plays the appropriate `singDIR-miss` animation until BF is done singing.
+   */
+  BF;
+
+  /**
+   * The DAD character has the following behaviors.
+   * - At idle, dances with `danceLeft` and `danceRight` if available, or `idle` if not.
+   * - When the CPU hits a note, plays the appropriate `singDIR` animation until DAD is done singing.
+   * - If there is a `singDIR-end` animation, the `singDIR` animation will play once before looping the `singDIR-end` animation until DAD is done singing.
+   * - When the CPU misses a note (NOTE: This only happens via script, not by default),
+   *     plays the appropriate `singDIR-miss` animation until DAD is done singing.
+   */
+  DAD;
+
+  /**
+   * The GF character has the following behaviors.
+   * - At idle, dances with `danceLeft` and `danceRight` if available, or `idle` if not.
+   * - If available, `combo###` animations will play when certain combo counts are reached.
+   *   - For example, `combo50` will play when the player hits 50 notes in a row.
+   *   - Multiple combo animations can be provided for different thresholds.
+   * - If available, `drop###` animations will play when combos are dropped above certain thresholds.
+   *   - For example, `drop10` will play when the player drops a combo larger than 10.
+   *   - Multiple drop animations can be provided for different thresholds (i.e. dropping larger combos).
+   *   - No drop animation will play if one isn't applicable (i.e. if the combo count is too low).
+   */
+  GF;
+
+  /**
+   * The OTHER character will only perform the `danceLeft`/`danceRight` or `idle` animation by default, depending on what's available.
+   * Additional behaviors can be performed via scripts.
+   */
+  OTHER;
+}

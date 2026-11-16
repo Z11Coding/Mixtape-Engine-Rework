@@ -1,0 +1,36 @@
+package funkin.util.tools;
+
+#if FEATURE_MULTITHREADING
+import hx.concurrent.collection.SynchronizedMap;
+
+/**
+ * A static extension which provides utility functions for SynchronizedMaps.
+ */
+@:nullSafety
+class SynchronizedMapTools
+{
+  /**
+   * Alias from the standard `size` method to `length`.
+   * Why is this locked behind Haxe 5? IDK
+   */
+  public static inline function size<K, V>(map:SynchronizedMap<K, V>):Int
+  {
+    return map.length;
+  }
+
+  public static inline function values<K, V>(map:SynchronizedMap<K, V>):Array<V>
+  {
+    return[for (i in map.iterator()) i];
+  }
+
+  /**
+   * Return a list of keys from the map (as an array, rather than an iterator).
+   * TODO: Rename this?
+   */
+  public static function keyValues<K, T>(map:Null<Map<K, T>>):Array<K>
+  {
+    if (map == null) return [];
+    return[for (k => v in map) k];
+  }
+}
+#end

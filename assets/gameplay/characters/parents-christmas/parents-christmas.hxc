@@ -1,0 +1,25 @@
+import funkin.play.character.AnimateAtlasCharacter;
+import funkin.play.character.CharacterType;
+import funkin.play.PlayState;
+
+class ParentsChristmasCharacter extends AnimateAtlasCharacter
+{
+  public function new()
+  {
+    super('parents-christmas');
+  }
+
+  override function onNoteHit(event:HitNoteScriptEvent)
+  {
+    // Override the hit note animation.
+    switch (event.note.kind)
+    {
+      case "mom":
+        holdTimer = 0;
+        this.playSingAnimation(event.note.noteData.getDirection(), false, 'alt');
+        return;
+    }
+
+    super.onNoteHit(event);
+  }
+}

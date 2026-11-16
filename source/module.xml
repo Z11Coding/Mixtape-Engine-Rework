@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+	<!-- A module provides additional behavior and configuration for HaxeUI. -->
+	<components>
+		<!--
+			Ensure all components get included at compilation time.
+			This needs to be done HERE and not via the `include` macro because `Toolkit.init()`
+			reads this to build the component registry.
+		-->
+		<class package="haxe.ui.backend.flixel.components" loadAll="true" />
+		<class package="haxe.ui.components" loadAll="true" />
+		<class package="haxe.ui.containers.dialogs" loadAll="true" />
+		<class package="haxe.ui.containers.menus" loadAll="true" />
+		<class package="haxe.ui.containers.properties" loadAll="true" />
+		<class package="haxe.ui.containers" loadAll="true" />
+		<class package="haxe.ui.core" loadAll="true" />
+		<!-- Custom components. -->
+		<class package="funkin.ui.haxeui.components" loadAll="true" />
+		<class package="funkin.ui.haxeui.components.editors.camera" loadAll="true" />
+	</components>
+
+	<resources>
+        <resource path="assets/exclude/ui/editors/style" prefix="style" />
+  </resources>
+
+	<themes>
+		<funkin-dark parent="dark">
+			<!-- Be careful when editing these priorities! It can mess up how the style looks. -->
+			<style resource="style/buttons.css" priority="10" />
+			<style resource="style/compact.css" priority="10" />
+			<style resource="style/dialogs.css" priority="10" />
+			<style resource="style/notifs.css" priority="10" />
+			<style resource="style/text.css" priority="10" />
+			<style resource="style/general.css" priority="15" />
+
+			<!-- These take a higher priorities due to being chart editor specific. -->
+			<style resource="style/playbar.css" priority="20" />
+			<style resource="style/toolbox.css" priority="20" />
+		</funkin-dark>
+	</themes>
+</module>

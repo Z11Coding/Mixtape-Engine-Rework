@@ -1,0 +1,97 @@
+import funkin.play.character.MultiAnimateAtlasCharacter;
+import funkin.audio.FunkinSound;
+import funkin.play.character.CharacterType;
+import funkin.play.PlayState;
+//
+// ~Imports for the new Paths system.~
+// Temporary import aliases until we decide to remove backwards compatibility for mods.
+//
+import funkin.assets.Assets as NewAssets;
+import funkin.assets.Paths as NewPaths;
+
+class TankmanBloodyCharacter extends MultiAnimateAtlasCharacter
+{
+  var picoEndingSound:FunkinSound;
+
+  public function new()
+  {
+    super('tankman-bloody');
+  }
+
+  function queryAssets(type:AssetType):Array<AssetPath>
+  {
+    var results:Array<AssetPath> = super.queryAssets(type);
+
+    switch (type)
+    {
+      case 'SOUND':
+        results.push(NewPaths.sound('gameplay/songs/stress/pico/sounds/end-cutscene'));
+    }
+
+    return results;
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+
+    // Precache the ending cutscene sound.
+    NewAssets.cacheSound(NewPaths.sound('gameplay/songs/stress/pico/sounds/end-cutscene'));
+  }
+
+  var isBloody:Bool = false;
+
+  override function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false):Void
+  {
+    if (isBloody)
+    {
+      super.playAnimation(name + '-bloody', restart, ignoreOther);
+    }
+    else
+    {
+      super.playAnimation(name, restart, ignoreOther, reversed);
+    }
+
+    if (name == 'redheadsAnim') isBloody = true;
+
+    if (name == 'stressPicoEnding')
+    {
+      picoEndingSound = FunkinSound.load(NewPaths.sound('gameplay/songs/stress/pico/sounds/end-cutscene').toFlxSoundAsset(), 1.0, false, true, true);
+    }
+  }
+
+  override function onSongRetry(event:SongRetryEvent):Void
+  {
+    super.onSongRetry(event);
+
+    isBloody = false;
+  }
+
+  override function onNoteHit(event:HitNoteScriptEvent):Void
+  {
+    super.onNoteHit(event);
+
+    if (!event.note.noteData.getMustHitNote() && characterType == CharacterType.DAD)
+    {
+      // Override the hit note animation.
+      switch (event.note.kind)
+      {
+        case "ugh":
+          holdTimer = 0;
+          this.playAnimation('ugh', true, true);
+          return;
+        case "hehPrettyGood":
+          holdTimer = 0;
+          this.playAnimation('hehPrettyGood', true, true);
+          return;
+      }
+    }
+  }
+
+  override function destroy():Void
+  {
+    if (picoEndingSound != null) picoEndingSound.destroy();
+
+    super.destroy();
+  }
+}

@@ -1,0 +1,60 @@
+package funkin.util.plugins;
+
+import flixel.FlxBasic;
+import flixel.addons.transition.FlxTransitionableState;
+
+/**
+ * A plugin which adds functionality to display several universally important values
+ * in the Flixel variable watch window.
+ */
+class WatchPlugin extends FlxBasic
+{
+  public function new()
+  {
+    super();
+  }
+
+  /**
+   * Initialize the plugin.
+   */
+  public static function initialize():Void
+  {
+    FlxG.plugins.addPlugin(new WatchPlugin());
+  }
+
+  override public function update(elapsed:Float):Void
+  {
+    super.update(elapsed);
+
+    #if FLX_DEBUG
+    var stateClassName = Type.getClassName(Type.getClass(FlxG.state));
+    FlxG.watch.addQuick('currentState', stateClassName);
+    var subStateClassNames = [];
+    var subState = FlxG.state.subState;
+    while (subState != null)
+    {
+      subStateClassNames.push(Type.getClassName(Type.getClass(subState)));
+      subState = subState.subState;
+    }
+    FlxG.watch.addQuick('currentSubStates', subStateClassNames.join(', '));
+    FlxG.watch.addQuick('skipNextTransIn', FlxTransitionableState.skipNextTransIn);
+    FlxG.watch.addQuick('skipNextTransOut', FlxTransitionableState.skipNextTransOut);
+
+    FlxG.watch.addQuick('songPosition', Conductor.instance.songPosition);
+    FlxG.watch.addQuick('songPositionNoOffset', Conductor.instance.songPosition + Conductor.instance.instrumentalOffset);
+
+    FlxG.watch.addQuick('musicLength', FlxG.sound?.music?.length ?? 0.0);
+    FlxG.watch.addQuick('musicTime', FlxG.sound?.music?.time ?? 0.0);
+
+    FlxG.watch.addQuick('bpm', Conductor.instance.bpm);
+    FlxG.watch.addQuick('currentMeasureTime', Conductor.instance.currentMeasureTime);
+    FlxG.watch.addQuick('currentBeatTime', Conductor.instance.currentBeatTime);
+    FlxG.watch.addQuick('currentStepTime', Conductor.instance.currentStepTime);
+    #end
+  }
+
+  override public function destroy():Void
+  {
+    super.destroy();
+  }
+}

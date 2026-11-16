@@ -1,0 +1,857 @@
+package funkin.ui.quickpanel;
+
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.math.FlxMath;
+import flixel.text.FlxText;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import funkin.assets.Assets;
+import funkin.assets.ValidatedPaths as Paths;
+import funkin.graphics.FunkinSprite;
+import funkin.graphics.shaders.QuickPanelShader;
+import funkin.group.FunkinGroup;
+import funkin.ui.UIStateMachine.UIState;
+import funkin.ui.quickpanel.QuickPanelTypes;
+import funkin.util.PropertyAnimator;
+
+/**
+ * Group containing quick panel visuals
+ */
+class QuickPanelGroup extends FunkinSpriteGroup
+{
+  /**
+   * Distance in pixels between the closed and open positions.
+   */
+  public static final OPEN_DISTANCE:Float = 467;
+
+  /**
+   * Lowest alpha the pull tab fades to while idle.
+   */
+  public static final TAB_MIN_ALPHA:Float = 0.25;
+
+  /**
+   * The padding for each button
+   */
+  static final BUTTON_PADDING:Float = 20;
+
+  /**
+   * The button angle range
+   */
+  static final BUTTON_ANGLE_RANGE:Float = 5;
+
+  /**
+   * The button angle distance
+   */
+  static final BUTTON_ANGLE_DISTANCE:Float = 20;
+
+  /**
+   * The slice angle distance
+   */
+  static final SLICE_ANGLE_RANGE:Float = 4.45;
+
+  /**
+   * How many buttons fit in the panel at once. With more than this, the panel scrolls.
+   */
+  public static final VISIBLE_COUNT:Int = 5;
+
+  /**
+   * At this many buttons or more, the panel flips a whole page of VISIBLE_COUNT at a time
+   * instead of scrolling one button at a time.
+   */
+  public static final PAGING_THRESHOLD:Int = VISIBLE_COUNT * 2;
+
+  /**
+   * Roughly how long a button takes to glide into a new slot when the view scrolls or flips.
+   */
+  static final BUTTON_SLIDE_DURATION:Float = 0.25;
+
+  /**
+   * Z-index for background
+   */
+  static final Z_BELOW:Int = 10;
+
+  /**
+   * Z-index for foreground
+   */
+  static final Z_ABOVE:Int = 11;
+
+  /**
+   * Z-index for the buttons
+   */
+  static final Z_BUTTONS:Int = 12;
+
+  /**
+   * Z-index for the hitboxes.
+   */
+  static final Z_HITBOX:Int = 200;
+
+  /**
+   * Frames (at 24fps) between panel boil steps.
+   */
+  static final PANEL_BOIL_INTERVAL:Int = 4;
+
+  /**
+   * The hint color
+   */
+  static final HINT_COLOR_NORMAL:FlxColor = 0xFFEEEEEE;
+
+  /**
+   * The hint color, darkened
+   */
+  static final HINT_COLOR_DARK:FlxColor = 0xFFCCCCCC;
+
+  /**
+   * The animated panel background.
+   */
+  public var panelSprite(default, null):FlxSprite;
+
+  /**
+   * The visible tab you pull or tap.
+   */
+  public var pullTabVisual(default, null):QuickPanelPullTab;
+
+  /**
+   * Invisible, larger hit area for the tab.
+   */
+  public var pullTabHitbox(default, null):FlxSprite;
+
+  /**
+   * Collection of buttons this panel has.
+   */
+  public var buttons(default, null):Array<QuickPanelButton> = [];
+
+  /**
+   * Index of the first button in the scroll window.
+   */
+  public var windowStart(default, null):Int = 0;
+
+  public var bodyActive(default, set):Bool = true;
+
+  /**
+   * Whether the panel background and buttons have been built.
+   */
+  public var bodyBuilt(default, null):Bool = false;
+
+  /**
+   * Whether the panel is docked to the left edge of the screen.
+   */
+  public var left(default, null):Bool = false;
+
+  /**
+   * Group x when fully closed.
+   */
+  public var closedX(get, never):Float;
+
+  /**
+   * Group x when fully open.
+   */
+  public var openX(get, never):Float;
+
+  /**
+   * Solid fill trailing behind the panel so over-pulling never shows a gap.
+   */
+  var pullExtra:FlxSprite;
+
+  /**
+   * The pull hint text.
+   */
+  var pullHint:FlxText;
+
+  /**
+   * The panel shader
+   */
+  var panelShader:QuickPanelShader;
+
+  /**
+   * A group containing the buttons this panel has,
+   */
+  var grpButtons:FunkinGroup<QuickPanelButton>;
+
+  /**
+   * A collection of button data associated with the buttons we have currently.
+   */
+  var buttonData:Array<QuickPanelButtonData>;
+
+  /**
+   * Gets called when a button gets tapped.
+   */
+  var onButtonTapped:QuickPanelButton->Void;
+
+  /**
+   * Where each button is gliding to, in order.
+   */
+  var buttonTargets:Array<ButtonTarget> = [];
+
+  /**
+   * Slots in the scroll window: the button count when they all fit, VISIBLE_COUNT otherwise.
+   */
+  var visibleSlots(get, never):Int;
+
+  /**
+   * Hint slide / fade animations.
+   */
+  var paHint:PropertyAnimator;
+
+  /**
+   * Panel shader slice animations (scroll bumps, accept, deny).
+   */
+  var paScroll:PropertyAnimator;
+
+  /**
+   * Slice colour breathing.
+   */
+  var paColor:PropertyAnimator;
+
+  /**
+   * Whether the hint is currently doing the breathing flair
+   */
+  var hintBreathing:Bool = false;
+
+  /**
+   * Helper variable for the hint breathing flair.
+   */
+  var hintBreatheTimer:Float = 0;
+
+  /**
+   * Helper variable for the panel boiling
+   */
+  var panelBoilTimer:Float = 0;
+
+  var bodyRevealFrames:Int = 0;
+
+  /**
+   * Callback of the deny animation that is currently playing, if any.
+   */
+  var pendingDenyDone:Null<Void->Void> = null;
+
+  /**
+   * Creates a new QuickPanelGroup
+   * @param buttonData Buttons to build in `buildBody()`.
+   * @param onButtonTapped Forwarded to every button.
+   */
+  public function new(buttonData:Array<QuickPanelButtonData>,
+    onButtonTapped:QuickPanelButton->Void,
+    hidePullTab:Bool = false)
+  {
+    super();
+
+    this.buttonData = buttonData;
+    this.onButtonTapped = onButtonTapped;
+
+    pullExtra = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
+    pullExtra.scrollFactor.set(0, 0);
+    pullExtra.scale.set(FlxG.width, FlxG.height);
+    pullExtra.updateHitbox();
+    // Both scale and localScale need setting here.
+    pullExtra.localScale.x = FlxG.width;
+    pullExtra.localScale.y = FlxG.height;
+    pullExtra.localY = 0;
+    pullExtra.visible = false; // Nothing to trail behind until the panel exists.
+    add(pullExtra);
+
+    pullHint = new FlxText(0, 0, 600, "How the fuck did you get here?", 30);
+    pullHint.setFormat(funkin.assets.Paths.font('ui/fonts/FunkinOptions', 'otf'), 38, HINT_COLOR_NORMAL, RIGHT);
+    pullHint.localY = (FlxG.height / 2) - (pullHint.height / 2);
+    pullHint.localAlpha = 0;
+    add(pullHint);
+
+    var _tabKey:Bool = !hidePullTab;
+    #if FEATURE_TOUCH_CONTROLS
+    _tabKey = false;
+    #end
+    pullTabVisual = new QuickPanelPullTab(0, 0, _tabKey);
+    pullTabVisual.localY = (FlxG.height / 2) - (pullTabVisual.height / 2);
+    pullTabVisual.playIdle(PanelClosed);
+    pullTabVisual.zIndex = Z_ABOVE;
+    if (hidePullTab) pullTabVisual.localAlpha = 0;
+    add(pullTabVisual);
+
+    pullTabHitbox = new FlxSprite().makeGraphic(200, 280, 0xFFFF9191);
+    pullTabHitbox.scrollFactor.set(0, 0);
+    pullTabHitbox.localAlpha = 0;
+    pullTabHitbox.updateHitbox();
+    pullTabHitbox.zIndex = Z_HITBOX;
+    pullTabHitbox.localY = (FlxG.height / 2) - (pullTabHitbox.height / 2);
+    add(pullTabHitbox);
+
+    setupHintAnims();
+    setSide(left);
+    refresh();
+  }
+
+  /**
+   * Builds the panel background, shader and buttons.
+   */
+  public function buildBody():Void
+  {
+    if (bodyBuilt) return;
+    bodyBuilt = true;
+
+    panelSprite = new FlxSprite();
+    panelSprite.frames = Assets.getSparrowAtlas(Paths.image('ui/quick-panel/panel-bg'));
+    panelSprite.animation.addByIndices('idle', 'thingidle instance 10', [for (i in 0...16) i], '', 12, true);
+    panelSprite.animation.play('idle');
+    panelSprite.updateHitbox();
+    panelSprite.scrollFactor.set(0, 0);
+    panelSprite.localY = 0;
+    panelSprite.zIndex = Z_BELOW;
+    panelSprite.active = bodyActive;
+    panelSprite.visible = false; // show after brames
+    add(panelSprite);
+
+    panelShader = new QuickPanelShader();
+    panelSprite.shader = panelShader;
+    panelSprite.animation.onFrameChange.add((_, _, _) -> panelShader.updateFrameInfo(panelSprite.frame));
+    panelShader.updateFrameInfo(panelSprite.frame);
+
+    grpButtons = new FunkinGroup<QuickPanelButton>();
+    grpButtons.zIndex = Z_BUTTONS;
+    grpButtons.active = bodyActive;
+    grpButtons.visible = false; // show after brames
+    add(grpButtons);
+
+    for (index => data in buttonData)
+    {
+      var button = new QuickPanelButton(data);
+      button.curIndex = index;
+      button.onTapped = onButtonTapped;
+      grpButtons.add(button);
+      buttons.push(button);
+      buttonTargets.push({
+        x: 0,
+        y: 0,
+        angle: 0,
+        alpha: 1
+      });
+    }
+
+    setupBodyAnims();
+
+    bodyRevealFrames = 2;
+    setSide(left);
+    refresh();
+  }
+
+  /**
+   * Mirrors every member for the given screen edge.
+   * @param left Whether to mirror left or right
+   */
+  public function setSide(left:Bool):Void
+  {
+    this.left = left;
+
+    pullTabVisual.localX = left ? 120 - pullTabVisual.width : -120;
+    pullTabHitbox.localX = left ? 145 - pullTabHitbox.width : -145;
+    pullTabVisual.flipX = left;
+
+    var panelWidth:Float = panelSprite != null ? panelSprite.width : 0;
+    var overlap:Float = panelSprite != null ? 5 : 0;
+    pullExtra.localX = left ? -(pullExtra.width + panelWidth) + overlap : panelWidth - overlap;
+    // pullExtra.localX = left ? -(pullExtra.width + panelWidth) + 5 : panelWidth - 5;
+
+    if (panelSprite != null)
+    {
+      panelSprite.localX = left ? -panelSprite.width : 0;
+      panelSprite.flipX = left;
+    }
+
+    pullHint.localX = left ? 135 : -135 - pullHint.width;
+    pullHint.alignment = left ? LEFT : RIGHT;
+
+    layoutButtons(true);
+  }
+
+  /**
+   * Hint animations.
+   */
+  function setupHintAnims():Void
+  {
+    paHint = new PropertyAnimator(pullHint);
+
+    final fadeIn = [
+      0.0,
+      0.0,
+      0.5,
+      0.5,
+      0.7,
+      0.7,
+      0.9,
+      0.9,
+      0.95,
+      0.95,
+      1.0,
+      1.0
+    ];
+    final fadeOut = [
+      1.0,
+      1.0,
+      0.95,
+      0.95,
+      0.9,
+      0.9,
+      0.7,
+      0.7,
+      0.5,
+      0.5,
+      0.0,
+      0.0
+    ];
+    final slide = [
+      10.0,
+      10.0,
+      5.0,
+      5.0,
+      2.0,
+      2.0,
+      1.0,
+      1.0,
+      0.05,
+      0.05,
+      0.0,
+      0.0
+    ];
+
+    paHint.addAnimationByName('slideLeft', 30);
+    paHint.addProperty('slideLeft', 'offset.x', [for (v in slide) -v]);
+    paHint.addProperty('slideLeft', 'localAlpha', fadeIn.copy());
+
+    paHint.addAnimationByName('slideRight', 30);
+    paHint.addProperty('slideRight', 'offset.x', slide.copy());
+    paHint.addProperty('slideRight', 'localAlpha', fadeIn.copy());
+
+    paHint.addAnimationByName('disappear', 30);
+    paHint.addProperty('disappear', 'localAlpha', fadeOut);
+
+    paHint.setDefaultProperties();
+  }
+
+  /**
+   * Panel shader animations.
+   */
+  function setupBodyAnims():Void
+  {
+    // Slice movement
+    paScroll = new PropertyAnimator(panelShader);
+
+    final bumpFat = [
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      0.3,
+      -0.25,
+      -0.25,
+      -0.05,
+      -0.05,
+      0.0
+    ];
+
+    paScroll.addAnimationByName('bumpUp', 30);
+    paScroll.addProperty('bumpUp', 'dirExtra', [
+      -0.2,
+      -0.2,
+      -0.03,
+      -0.03,
+      -0.01,
+      -0.01,
+      0.0
+    ]);
+    paScroll.addProperty('bumpUp', 'fatExtra', bumpFat.copy());
+
+    paScroll.addAnimationByName('bumpDown', 30);
+    paScroll.addProperty('bumpDown', 'dirExtra', [
+      0.2,
+      0.2,
+      0.03,
+      0.03,
+      0.01,
+      0.01,
+      0.0
+    ]);
+    paScroll.addProperty('bumpDown', 'fatExtra', bumpFat.copy());
+
+    paScroll.addAnimationByName('bumpNeutral', 30);
+    paScroll.addProperty('bumpNeutral', 'fatExtra', bumpFat.copy());
+
+    paScroll.addAnimationByName('accept', 24);
+    paScroll.addProperty('accept', 'fatExtra', [
+      1.05,
+      1.05,
+      1.1,
+      1.1,
+      1.0,
+      1.0,
+      -0.05,
+      -0.05,
+      -0.05,
+      -0.05,
+      0.0
+    ]);
+    paScroll.addProperty('accept', 'sliceColor', [
+      0xFFFF596A,
+      0xFFFF596A,
+      0xffF3E63A,
+      0xffF3E63A,
+      0xFFFF596A,
+      0xFFFF596A,
+      0xffF3E63A,
+      0xffF3E63A,
+      0xFFFF596A,
+      0xFFFF596A,
+      0xffF3E63A
+    ]);
+
+    paScroll.addAnimationByName('deny', 30);
+    paScroll.addProperty('deny', 'sliceColor', [0xFF7C6969, 0xFF7C6969, 0xff6f6969, 0xff6f6969]);
+    paScroll.addProperty('deny', 'dirExtra', [
+      0.2,
+      0.2,
+      -0.2,
+      -0.2,
+      0.1,
+      0.1,
+      -0.1,
+      -0.1,
+      0.0
+    ]);
+
+    paScroll.setDefaultProperties();
+
+    // Slice colour breathing
+    paColor = new PropertyAnimator(panelShader);
+    paColor.addAnimationByName('breathe', 12, true);
+    paColor.addProperty('breathe', 'sliceLerp', [
+      0.0, 0.0, 0.1, 0.1, 0.2, 0.2, 0.5, 0.5, 0.8, 0.8, 0.9, 0.9,
+      1.0, 1.0, 0.9, 0.9, 0.8, 0.8, 0.5, 0.5, 0.2, 0.2, 0.1, 0.1
+    ]);
+    paColor.setDefaultProperties();
+    paColor.playAnimation('breathe');
+  }
+
+  /**
+   * Fans the buttons along the panel's curved edge.
+   * @param snap Jump straight to the targets instead of gliding there.
+   */
+  function layoutButtons(snap:Bool = false):Void
+  {
+    if (buttons.length == 0 || panelSprite == null) return;
+
+    var slots:Int = visibleSlots;
+    var centerSlot:Float = (slots - 1) / 2;
+    var angleStep:Float = BUTTON_ANGLE_RANGE / 2;
+    var fullHeight:Float = (QuickPanelButton.ITEM_HEIGHT * slots) + (BUTTON_PADDING * (slots - 1));
+    var startY:Float = (FlxG.height / 2) - (fullHeight / 2);
+    var baseX:Float = left ? -panelSprite.width + 58 : 98;
+
+    for (index => button in buttons)
+    {
+      var slot:Int = index - windowStart;
+      var inView:Bool = slot >= 0 && slot < slots;
+
+      var edgeSlot:Int = Std.int(FlxMath.bound(slot, 0, slots - 1));
+      var targetAngle:Float = angleStep * (centerSlot - edgeSlot);
+      var dist:Float = Math.abs(Math.cos(targetAngle) * BUTTON_ANGLE_DISTANCE);
+
+      var target:ButtonTarget = buttonTargets[index];
+      target.x = left ? baseX + dist : baseX - dist;
+      target.y = startY + ((QuickPanelButton.ITEM_HEIGHT + BUTTON_PADDING) * slot);
+      target.angle = left ? -targetAngle : targetAngle;
+      target.alpha = inView ? 1 : 0;
+
+      button.inView = inView;
+      button.repositionSide(left);
+
+      if (snap) moveButton(button, target, 1);
+    }
+  }
+
+  /**
+   * Moves the scroll window so the button at the given index is inside it.
+   * @param index The index associated to the button we want.
+   * @return Whether the window moved.
+   */
+  function scrollTo(index:Int):Bool
+  {
+    var count:Int = buttons.length;
+    var previousStart:Int = windowStart;
+
+    if (count <= VISIBLE_COUNT) windowStart = 0;
+    else if (count >= PAGING_THRESHOLD) windowStart = Std.int(index / VISIBLE_COUNT) * VISIBLE_COUNT;
+    else if (index < windowStart) windowStart = index;
+    else if (index >= windowStart + VISIBLE_COUNT) windowStart = index - VISIBLE_COUNT + 1;
+
+    return windowStart != previousStart;
+  }
+
+  /**
+   * Glides every button toward its target.
+   * @param elapsed Elapsed.
+   */
+  function updateButtonSlide(elapsed:Float):Void
+  {
+    var t:Float = 1 - Math.pow(0.01, elapsed / BUTTON_SLIDE_DURATION);
+    for (index => button in buttons) moveButton(button, buttonTargets[index], t);
+  }
+
+  /**
+   * Moves the button a fraction of the way to its target, then hides it.
+   * @param button The button to move
+   * @param target The button target
+   * @param t Fraction
+   */
+  function moveButton(button:QuickPanelButton, target:ButtonTarget, t:Float):Void
+  {
+    button.localX = FlxMath.lerp(button.localX, target.x, t);
+    button.localY = FlxMath.lerp(button.localY, target.y, t);
+    button.localAngle = FlxMath.lerp(button.localAngle, target.angle, t);
+    button.viewAlpha = FlxMath.lerp(button.viewAlpha, target.alpha, t);
+    button.visible = button.viewAlpha > 0.01;
+  }
+
+  /**
+   * Puts the pull tab above / below the panel sprite.
+   * @param top Whether its uptop and down below.
+   */
+  public function setTabOnTop(top:Bool):Void
+  {
+    if (panelSprite != null) panelSprite.zIndex = top ? Z_BELOW : Z_ABOVE;
+    pullTabVisual.zIndex = top ? Z_ABOVE : Z_BELOW;
+    refresh();
+  }
+
+  /**
+   * Highlights one button and points the shader slice at it.
+   * @param index The index of the button to highlight.
+   * @param disabled Whether button is disabled or not.
+   */
+  public function showSelection(index:Int, disabled:Bool):Void
+  {
+    if (!bodyBuilt) return;
+
+    if (scrollTo(index)) layoutButtons();
+
+    for (i => button in buttons) if (i == index || button.selected) button.selected = (i == index);
+
+    var step:Float = SLICE_ANGLE_RANGE / 2;
+    var centerSlot:Float = (visibleSlots - 1) / 2;
+
+    panelShader.sliceVisible = true;
+    panelShader.doLerp = true;
+    panelShader.dir = -90 + step * (centerSlot - (index - windowStart));
+    panelShader.sliceColorStart = disabled ? QuickPanelShader.START_COLOR_DISABLED : QuickPanelShader.START_COLOR_NORMAL;
+    panelShader.sliceColorEnd = disabled ? QuickPanelShader.END_COLOR_DISABLED : QuickPanelShader.END_COLOR_NORMAL;
+    paColor.playAnimation('breathe');
+  }
+
+  /**
+   * Deselects every button and hides the shader slice.
+   */
+  public function clearSelection():Void
+  {
+    finishDeny();
+
+    for (button in buttons) if (button.selected) button.selected = false;
+
+    if (!bodyBuilt) return;
+
+    paColor.stop();
+    panelShader.sliceVisible = false;
+  }
+
+  /**
+   * Plays the scroll bump animation.
+   * @param direction -1 = moved up, 1 = moved down, 0 = no movement.
+   */
+  public function playScrollBump(direction:Int):Void
+  {
+    if (!bodyBuilt) return;
+
+    finishDeny();
+    paScroll.playAnimation(direction < 0 ? 'bumpUp' : (direction > 0 ? 'bumpDown' : 'bumpNeutral'));
+  }
+
+  /**
+   * Shakes the slice and greys it out.
+   * @param onDone Called once the denying is done
+   */
+  public function playDeny(onDone:Void->Void):Void
+  {
+    if (!bodyBuilt)
+    {
+      // Still release the caller's lock.
+      if (onDone != null) onDone();
+      return;
+    }
+
+    finishDeny();
+
+    pendingDenyDone = onDone;
+    panelShader.doLerp = false;
+    paScroll.playAnimation('deny', true);
+    paScroll.onFinish = finishDeny;
+  }
+
+  /**
+   * Widens and flickers the slice, bumps the accepted button and fades the rest.
+   * @param selectedIndex The index
+   */
+  public function playAccept(selectedIndex:Int, transitioning:Bool = true):Void
+  {
+    if (!bodyBuilt) return;
+
+    finishDeny();
+    paScroll.playAnimation('accept', true);
+    panelShader.doLerp = false;
+
+    for (i => button in buttons)
+    {
+      if (i == selectedIndex) button.paScale.playAnimation('bumpBig');
+      else if (transitioning) button.paFade.playAnimation('fade');
+    }
+  }
+
+  public function settleAccept():Void
+  {
+    if (!bodyBuilt) return;
+
+    paScroll.stop();
+    panelShader.doLerp = true;
+  }
+
+  /**
+   * Slides the hint in next to the tab.
+   * @param open Whether the panel is open.
+   * @param canPull For touch, whether the user is able to pull the pull-tab or not.,
+   */
+  public function showHint(open:Bool, canPull:Bool = true):Void
+  {
+    var action:String = #if FEATURE_TOUCH_CONTROLS canPull ? 'PULL' : 'TAP' #else 'TAB' #end;
+
+    pullHint.text = '($action) to ${open ? 'close' : 'open'} quick menu';
+    pullHint.color = HINT_COLOR_NORMAL;
+    hintBreathing = false;
+    hintBreatheTimer = 0;
+
+    paHint.playAnimation(left ? 'slideRight' : 'slideLeft');
+    paHint.onFinish = () ->
+    {
+      paHint.onFinish = null;
+      hintBreathing = true;
+    };
+  }
+
+  /**
+   * Fades the hint out.
+   */
+  public function hideHint():Void
+  {
+    hintBreathing = false;
+    paHint.onFinish = null;
+    paHint.playAnimation('disappear');
+    pullHint.color = HINT_COLOR_NORMAL;
+  }
+
+  override public function update(elapsed:Float):Void
+  {
+    super.update(elapsed);
+
+    if (bodyRevealFrames > 0 && --bodyRevealFrames == 0) revealBody();
+
+    if (bodyBuilt && bodyActive)
+    {
+      updateButtonSlide(elapsed);
+
+      panelBoilTimer -= elapsed;
+      if (panelBoilTimer <= 0)
+      {
+        panelBoilTimer += PANEL_BOIL_INTERVAL / 24;
+        panelShader.updateBoil();
+      }
+    }
+
+    if (hintBreathing)
+    {
+      hintBreatheTimer += elapsed;
+      pullHint.color = FlxColor.interpolate(HINT_COLOR_DARK, HINT_COLOR_NORMAL, (Math.cos(hintBreatheTimer * 2) / 2) + 0.5);
+    }
+  }
+
+  override public function destroy():Void
+  {
+    if (paHint != null) paHint.onFinish = null;
+    if (paScroll != null) paScroll.onFinish = null;
+    pendingDenyDone = null;
+    if (pullTabVisual != null) FlxTween.cancelTweensOf(pullTabVisual);
+    FlxTween.cancelTweensOf(this);
+    if (paScroll != null) paScroll.destroy();
+    if (paColor != null) paColor.destroy();
+    if (paHint != null) paHint.destroy();
+    buttons = [];
+    buttonTargets = [];
+
+    super.destroy();
+  }
+
+  /**
+   * duuuddeeee im soooo fucked rnnn i made the group reveal its body brroooo fuuucckkk
+   */
+  function revealBody():Void
+  {
+    panelSprite.visible = true;
+    grpButtons.visible = true;
+    pullExtra.visible = true;
+  }
+
+  function set_bodyActive(value:Bool):Bool
+  {
+    if (grpButtons != null) grpButtons.active = value;
+    if (panelSprite != null) panelSprite.active = value;
+    return bodyActive = value;
+  }
+
+  function get_visibleSlots():Int
+  {
+    return buttons.length < VISIBLE_COUNT ? buttons.length : VISIBLE_COUNT;
+  }
+
+  // Helpers
+
+  /**
+   * Ends the current deny, if any, and runs its callback.
+   */
+  function finishDeny():Void
+  {
+    if (paScroll != null) paScroll.onFinish = null;
+
+    var done = pendingDenyDone;
+    if (done == null) return;
+    pendingDenyDone = null;
+
+    if (panelShader != null) panelShader.doLerp = true;
+    done();
+  }
+
+  inline function get_closedX():Float return left ? 0 : FlxG.width;
+
+  inline function get_openX():Float return xForOpenness(OPEN_DISTANCE);
+
+  /**
+   * Converts "pixels open" (0 = closed, OPEN_DISTANCE = open) into a group x position.
+   */
+  public inline function xForOpenness(openness:Float):Float return closedX + (left ? openness : -openness);
+
+  /**
+   * Inverse of xForOpenness.
+   */
+  public inline function opennessOf(groupX:Float):Float return (groupX - closedX) * (left ? 1 : -1);
+}
+
+typedef ButtonTarget =
+{
+  var x:Float;
+  var y:Float;
+  var angle:Float;
+  var alpha:Float;
+}

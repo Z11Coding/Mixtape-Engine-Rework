@@ -1,0 +1,145 @@
+package funkin.ui.freeplay;
+
+import funkin.data.freeplay.album.AlbumData;
+import funkin.data.animation.AnimationData;
+import funkin.data.IRegistryEntry;
+import flixel.graphics.FlxGraphic;
+import funkin.assets.Paths;
+import funkin.assets.Assets;
+import funkin.data.freeplay.album.AlbumRegistry;
+
+/**
+ * A class representing the data for an album as displayed in Freeplay.
+ */
+@:nullSafety
+class Album implements IRegistryEntry<AlbumData>
+{
+  /**
+   * Retrieve a list of all the asset paths required to load the album.
+   *
+   * If you have a scripted class which initializes sprites, or plays sounds or something,
+   * make sure you add them here so they get cached in the loading screen.
+   *
+   * @param type The type of asset to query
+   * @param entryId The album ID, used to look up the specific assets.
+   * @param params The entry parameters, if any.
+   * @return An array of asset paths, or empty if no assets of that type are required.
+   */
+  public static function queryAssets(type:AssetType, entryId:String, ?params:AlbumEntryParams):Array<AssetPath>
+  {
+    trace('Querying assets for album $entryId');
+    var results:Array<Null<AssetPath>> = [];
+
+    var entry:Null<Album> = AlbumRegistry.instance.fetchEntry(entryId);
+    if (entry == null) return [];
+
+    switch (type)
+    {
+      case IMAGE:
+        results.append([
+          Paths.image(entry.getAlbumArtAssetKey()),
+          Paths.image(entry.getAlbumTitleAssetKey())
+        ]);
+
+      case XML:
+        results.append([
+          Paths.xml(entry.getAlbumArtAssetKey(), false).orNull(),
+          Paths.xml(entry.getAlbumTitleAssetKey(), false).orNull(),
+        ]);
+
+      default:
+        // Nothing
+    }
+
+    return results.filterNull();
+  }
+
+  public function new(id:String, ?params:Dynamic)
+  {
+    this.id = id;
+    this._data = _fetchData(id);
+
+    if (_data == null)
+    {
+      throw 'Could not parse album data for id: $id';
+    }
+  }
+
+  /**
+   * @return The name of the album.
+   */
+  public function getAlbumName():String
+  {
+    return _data?.name ?? "Unknown";
+  }
+
+  /**
+   * Return the artists of the album.
+   * @return The list of artists
+   */
+  public function getAlbumArtists():Array<String>
+  {
+    return _data?.artists ?? ["None"];
+  }
+
+  /**
+   * Get the asset key for the album art.
+   * @return The asset key
+   */
+  public function getAlbumArtAssetKey():String
+  {
+    return funkin.assets.Paths.formatRelative(_data?.albumArtAsset ?? 'ui/freeplay/albums/volume1', 'ui/freeplay/albums', Constants.EXT_IMAGE);
+  }
+
+  /**
+   * Get the album art as a graphic, ready to apply to a sprite.
+   * @return The built graphic
+   */
+  public function getAlbumArtGraphic():FlxGraphic
+  {
+    return FlxG.bitmap.add(Paths.image(getAlbumArtAssetKey()).toFlxGraphicAsset());
+  }
+
+  /**
+   * Get the asset key for the album title.
+   */
+  public function getAlbumTitleAssetKey():String
+  {
+    return funkin.assets.Paths.formatRelative(_data?.albumTitleAsset ?? "ui/freeplay/albums/volume1-text", 'ui/freeplay/albums', Constants.EXT_IMAGE);
+  }
+
+  /**
+   * Get the offsets for the album title.
+   */
+  public function getAlbumTitleOffsets():Null<Array<Float>>
+  {
+    return _data?.albumTitleOffsets ?? [0, 0];
+  }
+
+  public function hasAlbumTitleAnimations():Bool
+  {
+    if (_data == null || _data.albumTitleAnimations == null) return false;
+    return _data.albumTitleAnimations.length > 0;
+  }
+
+  public function getAlbumTitleAnimations():Array<AnimationData>
+  {
+    return _data?.albumTitleAnimations ?? [];
+  }
+
+  /**
+   * @return A name to display for the OST in Freeplay. Will be `null` if not set.
+   */
+  public function getAlbumOSTName():Null<String>
+  {
+    return _data?.albumOSTName;
+  }
+
+  /**
+   * @return An external image link for the album, used for Discord Rich Presence. Will be `null` if not set.
+   */
+  public function getDiscordRPCImage():Null<String>
+  {
+    return _data?.discordRPCImage;
+  }
+}

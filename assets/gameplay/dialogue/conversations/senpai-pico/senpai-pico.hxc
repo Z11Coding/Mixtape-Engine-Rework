@@ -1,0 +1,32 @@
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import funkin.play.cutscene.dialogue.Conversation;
+
+class SenpaiPicoConversation extends Conversation
+{
+  public function new()
+  {
+    super('senpai-pico');
+  }
+
+  override function showCurrentSpeaker():Void
+  {
+    super.showCurrentSpeaker();
+
+    // Funny moment; stop the music for dramatic effect.
+    switch (currentSpeaker.id)
+    {
+      case 'senpai-bwuh':
+        if (this.music != null)
+        {
+          this.music.destroy();
+          this.music = null;
+        }
+      case 'senpai':
+        if (this.music == null)
+        {
+          this.setupMusic();
+        }
+    }
+  }
+}

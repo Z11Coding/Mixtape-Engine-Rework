@@ -1,0 +1,38 @@
+import funkin.play.song.Song;
+import funkin.save.Save;
+import funkin.assets.Assets.AssetType;
+import funkin.assets.Assets as NewAssets;
+import funkin.assets.Paths as NewPaths;
+
+class EggnogSong extends Song
+{
+  public function new()
+  {
+    super('eggnog');
+  }
+
+  override function listAltInstrumentalIds(difficultyId:String, variationId:String):Array<String>
+  {
+    var results:Array<String> = super.listAltInstrumentalIds(difficultyId, variationId);
+
+    if (difficultyId == 'easy' || difficultyId == 'normal' || difficultyId == 'hard')
+    {
+      var hasBeatenPicoMix = Save.instance.hasBeatenSong(this.id, null, 'pico');
+
+      if (!hasBeatenPicoMix) results = [for (id in results) if (id != 'pico') id];
+    }
+
+    return results;
+  }
+
+  public static function queryAssets(type:funkin.assets.Assets.AssetType, entryId:String, ?params:SongEntryParams):Array<AssetPath>
+  {
+    var results:Array<AssetPath> = Song.queryAssets(type, entryId, params);
+    switch (type)
+    {
+      case 'SOUND':
+        results.push(NewPaths.sound('gameplay/stages/mallEvil/sounds/lights-off'));
+    }
+    return results;
+  }
+}

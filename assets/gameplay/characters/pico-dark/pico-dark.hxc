@@ -1,0 +1,61 @@
+import funkin.data.character.CharacterRegistry;
+import funkin.play.character.PicoPlayerBaseCharacter;
+import funkin.play.character.MultiAnimateAtlasCharacter;
+
+class PicoDarkCharacter extends PicoPlayerBaseCharacter
+{
+  public static function queryAssets(type:AssetType, charId:String):Array<AssetPath>
+  {
+    var results = MultiAnimateAtlasCharacter.queryAssets(type, charId);
+    results = results.concat(CharacterRegistry.instance.queryAssets(type, "pico-playable"));
+    return results;
+  }
+
+  public function new()
+  {
+    super('pico-dark');
+  }
+
+  var normalChar:BaseCharacter;
+
+  override function set_alpha(val:Float):Float
+  {
+    super.set_alpha(val);
+
+    if (normalChar != null)
+    {
+      if (val != 1) normalChar.alpha = 1;
+      else
+        normalChar.alpha = 0.0001;
+    }
+
+    return val;
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+
+    if (!this.debug)
+    {
+      normalChar = CharacterRegistry.instance.fetchEntry('pico-playable');
+      normalChar.zIndex = 199;
+      normalChar.alpha = 0.0001;
+      normalChar.flipX = false;
+
+      currentStage.add(normalChar);
+      currentStage.refresh(); // Apply z-index.
+    }
+  }
+
+  override function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false):Void
+  {
+    super.playAnimation(name, restart, ignoreOther, reversed);
+
+    if (normalChar != null)
+    {
+      normalChar.playAnimation(name, restart, ignoreOther);
+      normalChar.setPosition(this.x, this.y);
+    }
+  }
+}

@@ -1,0 +1,134 @@
+package funkin.ui.charSelect;
+
+#if html5
+import funkin.graphics.video.FlxVideo;
+#end
+#if hxvlc
+import funkin.graphics.video.FunkinVideoSprite;
+#end
+import funkin.ui.MusicBeatSubState;
+import funkin.save.Save;
+
+/**
+ * When you first enter the character select state, it will play an introductory video opening up the lights.
+ */
+@:nullSafety
+class IntroSubState extends MusicBeatSubState
+{
+  static final LIGHTS_VIDEO_PATH:String = funkin.assets.Paths.video('ui/character-select/intro').toString();
+
+  override public function create():Void
+  {
+    if (Save.instance.oldChar.value)
+    {
+      onLightsEnd();
+      return;
+    }
+    // Pause existing music.
+    if (FlxG.sound.music != null)
+    {
+      FlxG.sound.music.destroy();
+      @:nullSafety(Off)
+      FlxG.sound.music = null;
+    }
+
+    #if html5
+    trace('Playing web video ${LIGHTS_VIDEO_PATH}');
+    playVideoHTML5(LIGHTS_VIDEO_PATH);
+    #end
+
+    #if hxvlc
+    trace('Playing native video ${LIGHTS_VIDEO_PATH}');
+    playVideoNative(LIGHTS_VIDEO_PATH);
+    #end
+
+    #if NO_FEATURE_VIDEO_PLAYBACK
+    onLightsEnd();
+    #end
+  }
+
+  #if html5
+  var vid:Null<FlxVideo>;
+
+  function playVideoHTML5(filePath:String):Void
+  {
+    // Video displays OVER the FlxState.
+    vid = new FlxVideo(filePath);
+
+    vid.scrollFactor.set();
+    if (vid != null)
+    {
+      vid.zIndex = 0;
+
+      vid.finishCallback = onLightsEnd;
+
+      add(vid);
+    }
+    else
+    {
+      trace('ALERT: Video is null! Could not play cutscene!');
+    }
+  }
+  #end
+
+  #if hxvlc
+  var vid:Null<FunkinVideoSprite>;
+
+  function playVideoNative(filePath:String):Void
+  {
+    // Video displays OVER the FlxState.
+    vid = new FunkinVideoSprite(0, 0);
+
+    vid.scrollFactor.set();
+
+    if (vid != null)
+    {
+      vid.zIndex = 0;
+      vid.active = false;
+      vid.bitmap?.onEncounteredError.add(function(msg:String):Void
+      {
+        trace('[VLC] Encountered an error: $msg');
+
+        onLightsEnd();
+      });
+      vid.bitmap?.onEndReached.add(onLightsEnd);
+      vid.bitmap?.onFormatSetup.add(() ->
+      {
+        vid?.setGraphicSize(FlxG.initialWidth, FlxG.initialHeight);
+        vid?.updateHitbox();
+        vid.screenCenter();
+      });
+
+      add(vid);
+      if (vid.load(filePath)) vid.play();
+    }
+    else
+    {
+      trace('ALERT: Video is null! Could not play cutscene!');
+    }
+  }
+  #end
+
+  /**
+   * When the lights video finishes, it will close the substate
+   */
+  function onLightsEnd():Void
+  {
+    #if (html5 || hxvlc)
+    if (vid != null)
+    {
+      #if hxvlc
+      vid.stop();
+      #end
+      remove(vid);
+      vid.destroy();
+      @:nullSafety(Off)
+      vid = null;
+    }
+    #end
+
+    FlxG.camera.zoom = 1;
+
+    close();
+  }
+}

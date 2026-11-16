@@ -1,0 +1,138 @@
+import flixel.math.FlxAngle;
+import funkin.play.PlayState;
+import funkin.play.stage.Stage;
+import funkin.graphics.shaders.DropShadowShader;
+import funkin.play.character.CharacterType;
+import openfl.display.BitmapData;
+import flixel.graphics.FlxGraphic;
+import funkin.assets.Paths as NewPaths;
+
+class TankmanBattlefieldErectStage extends Stage
+{
+  public function new()
+  {
+    super('tankmanBattlefieldErect');
+  }
+
+  public static function queryAssets(type:String, id:String, params:Dynamic):Array<AssetPath>
+  {
+    var results = Stage.queryAssets(type, id, params);
+    switch (type)
+    {
+      case 'IMAGE':
+        results.push(NewPaths.image('gameplay/stages/tankmanBattlefieldErect/masks/mask-tankman-bloody'));
+        results.push(NewPaths.image('gameplay/stages/tankmanBattlefieldErect/masks/mask-gf-tankmen'));
+        results.push(NewPaths.image('gameplay/stages/tankmanBattlefieldErect/masks/mask-nene-tankmen'));
+        
+      default:
+        // nothing
+    }
+
+    return results;
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+  }
+
+  var tankmanRim:DropShadowShader;
+
+  override function onGameOver(event:ScriptEvent)
+  {
+    super.onGameOver(event);
+    getBoyfriend().shader = null;
+  }
+
+  override function addCharacter(character:BaseCharacter, charType:CharacterType):Void
+  {
+    // Apply the shader automatically to each character as it gets added.
+    super.addCharacter(character, charType);
+    trace('Applied stage shader to ' + character.characterName);
+
+    var rim = new DropShadowShader();
+    rim.setAdjustColor(-46, -38, -25, -20);
+    rim.color = 0xFFDFEF3C;
+    character.shader = rim;
+    rim.attachedSprite = character;
+
+    switch (charType)
+    {
+      case CharacterType.BF:
+        rim.angle = 90;
+
+      case CharacterType.GF:
+        rim.angle = 90;
+
+        if (getGirlfriend().characterId == 'gf-tankmen' || getGirlfriend().characterId == 'nene-tankmen')
+        {
+          if (getGirlfriend().characterId == 'gf-tankmen') rim.loadAltMask(Paths.image('gameplay/stages/tankmanBattlefieldErect/masks/mask-gf-tankmen'));
+          else
+            rim.loadAltMask(Paths.image('gameplay/stages/tankmanBattlefieldErect/masks/mask-nene-tankmen'));
+          rim.maskThreshold = 0.4;
+          rim.useAltMask = true;
+        }
+
+      case CharacterType.DAD:
+        rim.angle = 25;
+        rim.threshold = 0.3;
+
+        if (getDad().characterId == 'tankman-bloody')
+        {
+          rim.loadAltMask('assets/gameplay/stages/tankmanBattlefieldErect/masks/mask-tankman-bloody.png');
+          rim.maskThreshold = 1;
+          rim.useAltMask = false;
+        }
+
+        // need to save this for later for when the mask is needed
+        tankmanRim = rim;
+
+      default:
+        // Do nothing.
+    }
+
+    // TODO: This is here because of a Polymod bug!!
+    var character_persist:BaseCharacter = character;
+
+    character.animation.onFrameChange.add(function()
+    {
+      if (character_persist != null)
+      {
+        rim.updateFrameInfo(character_persist.frame);
+      }
+    });
+  }
+
+  /**
+   * Called when the chart hits a song event.
+   */
+  override function onSongEvent(scriptEvent:SongEventScriptEvent)
+  {
+    super.onSongEvent(scriptEvent);
+
+    if (scriptEvent.eventData.eventKind == "EnableMask" && tankmanRim != null)
+    {
+      tankmanRim.useAltMask = true;
+    }
+  }
+
+  override function onBeatHit(event:SongTimeScriptEvent):Void
+  {
+    super.onBeatHit(event);
+
+    if (FlxG.random.bool(2))
+    {
+      getNamedProp('sniper').playAnimation('sip', false, true);
+    }
+  }
+
+  override function onSongRetry(event:ScriptEvent)
+  {
+    super.onSongRetry(event);
+
+    if (tankmanRim != null)
+    {
+      tankmanRim.useAltMask = false;
+    }
+  }
+}

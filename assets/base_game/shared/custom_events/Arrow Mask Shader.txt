@@ -1,3 +1,0 @@
-v1:
-'on' for enable
-'off' for disable

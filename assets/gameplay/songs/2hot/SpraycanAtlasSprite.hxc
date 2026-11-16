@@ -1,0 +1,108 @@
+import flixel.FlxSprite;
+import flixel.graphics.frames.FlxFramesCollection;
+import flixel.math.FlxPoint;
+import funkin.graphics.FunkinSprite;
+import funkin.play.PlayState;
+
+class SpraycanAtlasSprite extends FunkinSprite
+{
+  public var STATE_ARCING:Int = 2; // In the air.
+  public var STATE_SHOT:Int = 3; // Hit by the player.
+  public var STATE_IMPACTED:Int = 4; // Impacted the player.
+  public var currentState:Int = 2;
+
+  override function set_frames(frames:FlxFramesCollection):FlxFramesCollection
+  {
+    super.set_frames(frames);
+
+    if (frames != null)
+    {
+      // BACKWARDS COMPATIBILITY: Reload the animations if a mod changes the texture atlas.
+      loadAnimations();
+    }
+
+    return frames;
+  }
+
+  public function new(x:Float, y:Float, ?atlasPath:String)
+  {
+    super(x, y);
+
+    atlasPath ??= 'gameplay/songs/2hot/spraycan';
+
+    loadTextureAtlas(atlasPath, null, {
+      swfMode: true
+    });
+    loadAnimations();
+
+    animation.onFinish.add(finishCanAnimation);
+    animation.onFrameChange.add(onCanFrame);
+  }
+
+  function loadAnimations():Void
+  {
+    animation.addByFrameLabel('can-start', 'Can Start', 24, false);
+    animation.addByFrameLabel('can-shot', 'Can Shot', 24, false);
+    animation.addByFrameLabel('can-hit', 'Hit Pico', 24, false);
+  }
+
+  function finishCanAnimation(name:String):Void
+  {
+    switch (name)
+    {
+      case 'can-start':
+        playHitPico();
+      case 'can-shot':
+        this.kill();
+      case 'can-hit':
+        playHitExplosion();
+        this.kill();
+    }
+  }
+
+  function onCanFrame(name:String, frameNumber:Int, frameIndex:Int):Void
+  {
+    if (frameNumber == 3 && name == 'can-shot')
+    {
+      var explode:FunkinSprite = new FunkinSprite(this.x + 150, this.y - 250).loadSparrow('gameplay/songs/2hot/graphics/spraycan-explosion');
+      explode.animation.addByPrefix('idle', 'Explosion 1 movie0', 24, false);
+      PlayState.instance.currentStage.add(explode);
+
+      explode.animation.play('idle');
+      explode.animation.onFinish.add(() ->
+      {
+        explode.kill();
+      });
+    }
+  }
+
+  var explodeEZ:FunkinSprite;
+  function playHitExplosion():Void
+  {
+    explodeEZ = new FunkinSprite(this.x + 750, this.y - 100).loadSparrow('gameplay/songs/2hot/graphics/spraycan-explosion-ez');
+    explodeEZ.animation.addByPrefix('idle', 'explosion round 1 short0', 24, false);
+    explodeEZ.animation.play('idle');
+
+    PlayState.instance.currentStage.add(explodeEZ);
+    explodeEZ.animation.finishCallback = () ->
+    {
+      explodeEZ.kill();
+    };
+  }
+
+  function playCanStart():Void
+  {
+    this.animation.play('can-start');
+    trace('playCanStart(): ${getCurrentAnimation()}');
+  }
+
+  function playCanShot():Void
+  {
+    this.animation.play('can-shot');
+  }
+
+  function playHitPico():Void
+  {
+    this.animation.play('can-hit');
+  }
+}

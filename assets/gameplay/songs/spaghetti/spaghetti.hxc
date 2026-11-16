@@ -1,0 +1,15 @@
+import funkin.play.song.Song;
+import funkin.save.Save;
+
+class SpaghettiSong extends Song
+{
+  public function new()
+  {
+    super('spaghetti');
+  }
+
+  override function isSongNew(currentDifficulty:String, currentVariation:String):Bool
+  {
+    return !Save.instance.hasSongScore(this.id, null, this.variation);
+  }
+}

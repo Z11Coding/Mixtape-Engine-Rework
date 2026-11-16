@@ -1,0 +1,150 @@
+import flixel.math.FlxAngle;
+import flixel.tweens.FlxEase;
+import funkin.play.PlayState;
+import funkin.play.stage.Stage;
+import funkin.graphics.FunkinTiledSprite;
+import funkin.tweens.FunkinTween;
+import funkin.tweens.FunkinVarTween;
+import funkin.Conductor;
+
+class TankmanBattlefieldStage extends Stage
+{
+  public function new()
+  {
+    super('tankmanBattlefield');
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+  }
+
+  var clouds:FunkinTiledSprite;
+
+  override function buildStage()
+  {
+    super.buildStage();
+
+    clouds = new FunkinTiledSprite(Paths.image('gameplay/stages/tankmanBattlefield/tank-clouds'), 3200, 235, true, false);
+    clouds.setPosition(-1100, 20);
+    clouds.scrollFactor.set(0.25, 0.25);
+    clouds.zIndex = 12;
+    clouds.velocity.x = 8;
+    clouds.vcamPoint = vcamPoint;
+
+    add(clouds);
+    refresh();
+
+    tankSpeed = FlxG.random.float(5, 7);
+    tankStartMs = 0;
+  }
+
+  var tankSpeed:Float = 6.0;
+  var tankStartMs:Float = 0.0;
+  var tankX:Float = 400;
+
+  static inline var ONSCREEN_MIN:Float = 40.0;
+  static inline var ONSCREEN_MAX:Float = 130.0;
+  static inline var OFFSCREEN_MARGIN:Float = 20.0;
+
+  var _tweenTarget:
+    {angle:Float} = {
+      angle: 0.0
+    };
+  var _exitTween:FunkinVarTween = null;
+
+  function getTankAngle():Float
+  {
+    if (Conductor.instance == null) return 0;
+    var elapsedSeconds:Float = (Conductor.instance.songPosition - tankStartMs) / 1000.0;
+    return elapsedSeconds * tankSpeed;
+  }
+
+  function applyTankPosition(tankAngle:Float):Void
+  {
+    var daAngleOffset:Float = 1;
+    var tankRolling = getNamedProp('tankRolling');
+    if (tankRolling == null) return;
+
+    tankRolling.angle = tankAngle - 90 + 15;
+    tankRolling.x = tankX + Math.cos(FlxAngle.asRadians((tankAngle * daAngleOffset) + 180)) * 1500;
+    tankRolling.y = 1300 + Math.sin(FlxAngle.asRadians((tankAngle * daAngleOffset) + 180)) * 1100;
+  }
+
+  function normaliseAngle(a:Float):Float
+  {
+    a = a % 360.0;
+    if (a < 0) a += 360.0;
+    return a;
+  }
+
+  function startExitTween():Void
+  {
+    if (_exitTween != null)
+    {
+      _exitTween.cancel();
+      _exitTween = null;
+    }
+
+    var currentAngle:Float = normaliseAngle(getTankAngle());
+
+    var distToMin:Float = Math.abs(currentAngle - ONSCREEN_MIN);
+    var distToMax:Float = Math.abs(currentAngle - ONSCREEN_MAX);
+
+    var targetAngle:Float = (distToMin <= distToMax) ? ONSCREEN_MIN - OFFSCREEN_MARGIN : ONSCREEN_MAX + OFFSCREEN_MARGIN;
+
+    var angularDistance:Float = Math.abs(targetAngle - currentAngle);
+
+    var duration:Float = Math.min(angularDistance / 60.0, 0.6);
+
+    _tweenTarget.angle = currentAngle;
+
+    _exitTween = FunkinTween.createTween(_tweenTarget, {
+      angle: targetAngle
+    }, {
+      shouldUseConductorSync: false,
+      ease: FlxEase.quadIn,
+      onComplete: function(_)
+      {
+        tankStartMs = 0;
+        _exitTween = null;
+      }
+    });
+
+    trace(_exitTween.active);
+  }
+
+  override function onUpdate(event:UpdateScriptEvent):Void
+  {
+    super.onUpdate(event);
+
+    if (_exitTween != null && _exitTween.active) applyTankPosition(_tweenTarget.angle);
+    else
+      applyTankPosition(getTankAngle());
+  }
+
+  override function onBeatHit(event:SongTimeScriptEvent):Void
+  {
+    super.onBeatHit(event);
+  }
+
+  override function onSongStart(event:ScriptEvent):Void
+  {
+    super.onSongStart(event);
+
+    if (_exitTween != null)
+    {
+      _exitTween.cancel();
+      _exitTween = null;
+    }
+
+    tankStartMs = 0;
+  }
+
+  override function onSongRetry(event)
+  {
+    super.onSongRetry(event);
+    trace('Retrying song, starting exit tween');
+    startExitTween();
+  }
+}

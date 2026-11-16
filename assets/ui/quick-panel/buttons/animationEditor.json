@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "text": "Animation Editor",
+  "icon": "animation-editor",
+  "description": "Edit positions and offsets for characters.",
+  "action": "none",
+  "panel": "mainmenu",
+  "order": 2
+}

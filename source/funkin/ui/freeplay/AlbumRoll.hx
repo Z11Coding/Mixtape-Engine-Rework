@@ -1,0 +1,302 @@
+package funkin.ui.freeplay;
+
+import funkin.graphics.FunkinSprite;
+import flixel.group.FlxSpriteGroup;
+import flixel.util.FlxSort;
+import flixel.util.FlxTimer;
+import funkin.data.freeplay.album.AlbumRegistry;
+import funkin.graphics.FunkinSprite;
+import funkin.util.SortUtil;
+import funkin.assets.Paths;
+import funkin.assets.Assets;
+
+/**
+ * The graphic for the album roll in the FreeplayState.
+ * Simply set `albumID` to fetch the required data and update the textures.
+ */
+@:nullSafety
+class AlbumRoll extends FlxSpriteGroup
+{
+  /**
+   * The ID of the album to display.
+   * Modify this value to automatically update the album art and title.
+   */
+  public var albumId(default, set):Null<String>;
+
+  function set_albumId(value:Null<String>):Null<String>
+  {
+    if (this.albumId != value || value == null)
+    {
+      this.albumId = value;
+      updateAlbum();
+    }
+
+    return value;
+  }
+
+  final ALBUM_ART_SYMBOL:String = 'album art placeholder';
+  var newAlbumArt:FunkinSprite;
+  var albumTitle:Null<FunkinSprite> = null;
+  var difficultyStars:DifficultyStars;
+  var _exitMovers:Null<FreeplayState.ExitMoverData>;
+  var _exitMoversCharSel:Null<FreeplayState.ExitMoverData>;
+  var albumData:Null<Album> = null;
+
+  /**
+   * Return a list of all AssetPaths that this UI element depends on to load.
+   * NOTE: You don't need to include assets which get fetched asynchronously.
+   * @param type The type of AssetPath to return a list of paths for
+   * @return The list of assets
+   */
+  public static function queryAssets(type:AssetType):Array<funkin.assets.Paths.AssetPath>
+  {
+    var results:Array<funkin.assets.Paths.AssetPath> = [];
+
+    results.append(AlbumRegistry.instance.queryAllAssets(type));
+
+    switch (type)
+    {
+      case IMAGE:
+        results.append(Paths.animateAtlas('ui/freeplay/interface/freeplay-album').image());
+
+      case JSON:
+        results.append(Paths.animateAtlas('ui/freeplay/interface/freeplay-album').json());
+
+      default:
+        // Do nothing.
+    }
+
+    return results;
+  }
+
+  public function new()
+  {
+    super();
+
+    newAlbumArt = new FunkinSprite((FlxG.width + -360) - FullScreenScaleMode.gameNotchSize.x, 220).loadTextureAtlas('ui/freeplay/interface/freeplay-album');
+    newAlbumArt.anim.addByFrameLabel('intro', 'intro', 24, false);
+    newAlbumArt.anim.addByFrameLabel('idle', 'idle', 24);
+    newAlbumArt.anim.addByFrameLabel('switch', 'switch', 24, false);
+
+    newAlbumArt.visible = false;
+
+    difficultyStars = new DifficultyStars((FlxG.width - 330) - FullScreenScaleMode.gameNotchSize.x, 209);
+    difficultyStars.visible = false;
+
+    add(newAlbumArt);
+    add(difficultyStars);
+
+    buildAlbumTitle('ui/freeplay/albums/volume1-text');
+    if (albumTitle != null) albumTitle.visible = false;
+
+    newAlbumArt.animation.onFinish.add(onAlbumFinish);
+  }
+
+  function onAlbumFinish(animName:String):Void
+  {
+    // Play the idle animation for the current album.
+    if (animName != 'idle')
+    {
+      newAlbumArt.animation.play('idle', true);
+    }
+  }
+
+  /**
+   * Load the album data by ID and update the textures.
+   */
+  function updateAlbum():Void
+  {
+    if (albumId == null)
+    {
+      this.visible = false;
+      albumData = null;
+      return;
+    }
+    else
+      this.visible = true;
+
+    albumData = AlbumRegistry.instance.fetchEntry(albumId);
+
+    if (albumData == null)
+    {
+      FlxG.log.warn('Could not find album data for album ID: ${albumId}');
+      return;
+    };
+
+    // Update the album art.
+    var albumGraphic:String = Paths.image(albumData.getAlbumArtAssetKey()).toFlxGraphicAsset();
+    newAlbumArt.replaceSymbolGraphic(ALBUM_ART_SYMBOL, albumGraphic);
+
+    buildAlbumTitle(albumData.getAlbumTitleAssetKey(), albumData.getAlbumTitleOffsets());
+    applyExitMovers();
+    refresh();
+  }
+
+  public function refresh():Void
+  {
+    sort(SortUtil.byZIndex, FlxSort.ASCENDING);
+  }
+
+  /**
+   * Apply exit movers for the album roll.
+   * @param exitMovers The exit movers to apply.
+   */
+  public function applyExitMovers(?exitMovers:FreeplayState.ExitMoverData,
+    ?exitMoversCharSel:FreeplayState.ExitMoverData):Void
+  {
+    if (exitMovers == null)
+    {
+      exitMovers = _exitMovers;
+    }
+    else
+    {
+      _exitMovers = exitMovers;
+    }
+
+    if (exitMovers == null) return;
+
+    if (exitMoversCharSel == null)
+    {
+      exitMoversCharSel = _exitMoversCharSel;
+    }
+    else
+    {
+      _exitMoversCharSel = exitMoversCharSel;
+    }
+
+    if (exitMoversCharSel == null) return;
+
+    exitMovers.set([newAlbumArt, difficultyStars], {
+      x: FlxG.width,
+      speed: 0.4,
+      wait: 0
+    });
+
+    exitMoversCharSel.set([newAlbumArt, difficultyStars], {
+      y: -175,
+      speed: 0.8,
+      wait: 0.1
+    });
+  }
+
+  /**
+   * Play the intro animation on the album art.
+   */
+  public function playIntro():Void
+  {
+    this.visible = true;
+
+    if (albumTitle != null) albumTitle.visible = false;
+    newAlbumArt.visible = true;
+    newAlbumArt.animation.play('intro', true);
+
+    difficultyStars.visible = false;
+    difficultyStars.flameCheck();
+
+    new FlxTimer().start(0.75, function(_)
+    {
+      showTitle();
+      showStars();
+      if (albumTitle != null) albumTitle.animation.play('switch');
+    });
+  }
+
+  public function skipIntro():Void
+  {
+    this.visible = true;
+
+    newAlbumArt.animation.play('switch', true);
+    if (albumTitle != null) albumTitle.animation.play('switch');
+  }
+
+  public function showTitle():Void
+  {
+    if (albumTitle != null && albumTitle.frames != null) albumTitle.visible = true;
+  }
+
+  public function buildAlbumTitle(assetKey:String,
+    ?titleOffsets:Null<Array<Float>>):Void
+  {
+    if (albumTitle != null)
+    {
+      remove(albumTitle);
+      albumTitle = null;
+    }
+
+    if (titleOffsets == null)
+    {
+      titleOffsets = [0, 0];
+    }
+
+    albumTitle = new FunkinSprite((FlxG.width - 355) - FullScreenScaleMode.gameNotchSize.x, 500).loadSparrow(assetKey);
+    albumTitle.visible = this.visible && (albumTitle.frames != null && newAlbumArt.visible) && difficultyStars.visible;
+    albumTitle.animation.addByPrefix('idle', 'idle0', 24, true);
+    albumTitle.animation.addByPrefix('switch', 'switch0', 24, false);
+    add(albumTitle);
+
+    albumTitle.animation.onFinish.add(function(name)
+    {
+      if (name == 'switch' && albumTitle != null) albumTitle.animation.play('idle');
+    });
+    albumTitle.animation.play('idle');
+
+    albumTitle.zIndex = 1000;
+
+    albumTitle.x += titleOffsets[0];
+    albumTitle.y += titleOffsets[1];
+
+    if (_exitMovers != null) _exitMovers.set([albumTitle], {
+      x: FlxG.width,
+      speed: 0.4,
+      wait: 0
+    });
+
+    if (_exitMoversCharSel != null) _exitMoversCharSel.set([albumTitle], {
+      y: -190,
+      speed: 0.8,
+      wait: 0.1
+    });
+  }
+
+  public function setDifficultyStars(?difficulty:Int):Void
+  {
+    if (difficulty == null) return;
+    difficultyStars.difficulty = difficulty;
+  }
+
+  /**
+   * Make the album stars visible.
+   */
+  public function showStars():Void
+  {
+    difficultyStars.visible = true;
+    difficultyStars.flameCheck();
+  }
+
+  /**
+   * Returns the name for the OST associated with the album.
+   * If not specified, returns the default name if this is a base game album.
+   * @return Null<String>
+   */
+  public function getOSTNameOverride():Null<String>
+  {
+    var ostOverride:Null<String> = albumData?.getAlbumOSTName();
+    if (ostOverride != null)
+    {
+      return ostOverride;
+    }
+    else if (albumId == null || AlbumRegistry.instance.listBaseGameEntryIds().contains(albumId))
+    {
+      return Constants.DEFAULT_OST_NAME;
+    }
+
+    return null;
+  }
+
+  override function destroy():Void
+  {
+    newAlbumArt.replaceSymbolGraphic(ALBUM_ART_SYMBOL, null);
+
+    super.destroy();
+  }
+}

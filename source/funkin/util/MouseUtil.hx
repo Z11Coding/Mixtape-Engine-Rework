@@ -1,0 +1,90 @@
+package funkin.util;
+
+import flixel.math.FlxPoint;
+#if FEATURE_HAXEUI
+import haxe.ui.core.Screen;
+#end
+
+/**
+ * Utility functions related to the mouse.
+ */
+@:nullSafety
+class MouseUtil
+{
+  static var prevMousePosition:FlxPoint = new FlxPoint();
+  static var middleMouseDragCursorActive:Bool = false;
+
+  /**
+   * Used to be for general camera middle click dragging, now generalized for any click and drag type shit!
+   * Listen I don't make the rules here
+   * @param target what you want to be dragged, defaults to CAMERA SCROLL
+   * @param justPressed the "justPressed", should be a button of some sort
+   * @param pressed the "pressed", which should be the same button as `justPressed`
+   */
+  public static function mouseCamDrag(?target:FlxPoint, ?justPressed:Bool, ?pressed:Bool):Void
+  {
+    target ??= FlxG.camera.scroll;
+    justPressed ??= FlxG.mouse.justPressedMiddle;
+    pressed ??= FlxG.mouse.pressedMiddle;
+
+    if (justPressed)
+    {
+      prevMousePosition.set(FlxG.mouse.gameX, FlxG.mouse.gameY);
+    }
+
+    if (pressed)
+    {
+      var zoom:Float = FlxG.camera.zoom;
+      if (zoom <= 0) zoom = 1;
+
+      target.x -= (FlxG.mouse.gameX - prevMousePosition.x) / zoom;
+      target.y -= (FlxG.mouse.gameY - prevMousePosition.y) / zoom;
+      prevMousePosition.set(FlxG.mouse.gameX, FlxG.mouse.gameY);
+    }
+  }
+
+  public static function updateMiddleMouseDragCursor(isDragging:Bool):Void
+  {
+    if (isDragging)
+    {
+      middleMouseDragCursorActive = true;
+      #if FEATURE_HAXEUI
+      Screen.instance.setCursor("grabbing");
+      #end
+    }
+    else if (middleMouseDragCursorActive)
+    {
+      middleMouseDragCursorActive = false;
+      #if FEATURE_HAXEUI
+      Screen.instance.setCursor("default");
+      #end
+    }
+  }
+
+  static final MOUSE_ZOOM_DEFAULT_INTENSITY:Float = 0.1;
+
+  /**
+   * Increment the zoom level of the current camera by the mouse wheel scroll value.
+   *
+   * @param intensityMult The intensity multiplier, defaults to 0.1
+   * @param customWheel If specified, use a custom override value for the scroll wheel.
+  **/
+  public static function mouseWheelZoom(?intensityMult:Float, customWheel:Float = 0):Void
+  {
+    FlxG.camera.zoom += mouseWheelZoomData(intensityMult, customWheel);
+  }
+
+  /**
+   * Get the zoom increment value based on the mouse wheel scroll, with an optional intensity multiplier and custom wheel value.
+   * @param intensityMult The intensity multiplier
+   * @param customWheel If specified, use a custom override value for the scroll wheel.
+   * @return Float The calculated zoom increment value
+  **/
+  public static function mouseWheelZoomData(?intensityMult:Float, customWheel:Float = 0):Float
+  {
+    intensityMult ??= MOUSE_ZOOM_DEFAULT_INTENSITY;
+    if (customWheel == 0) customWheel = FlxG.mouse.deltaWheel.y;
+    if (customWheel != 0) customWheel *= (intensityMult * FlxG.camera.zoom);
+    return customWheel;
+  }
+}

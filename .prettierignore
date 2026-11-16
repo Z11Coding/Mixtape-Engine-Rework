@@ -1,0 +1,4 @@
+# Ignore artifacts
+export
+
+assets/ui/credits/credits.json

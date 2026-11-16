@@ -1,0 +1,31 @@
+<box id="bottomBar" width="100%" height="48" styleName="bottomBar" verticalAlign="bottom">
+  <style>
+    .bottomBar {
+      background-color: $solid-background-color;
+      padding: 8px;
+    }
+    .infoText {
+      font-size: 18px;
+      font-bold: true;
+      pointer-events: true;
+    }
+    .infoText:hover {
+      background-color: #CCCCCC;
+    }
+  </style>
+  <hbox horizontalAlign="left" verticalAlign="center">
+    <label id="bottomBarModeText" text="Assets" styleName="infoText" verticalAlign="center" tooltip="Click/TAB to swap between Character and Object modes."/>
+    <rule direction="vertical" height="80%" />
+    <label id="bottomBarSelectText" text="None" styleName="infoText" verticalAlign="center" tooltip="Click to change Focus on the Next or Previous Object/Character."/>
+    <rule direction="vertical" height="80%" />
+    <label id="bottomBarMoveStepText" text="1px" styleName="infoText" verticalAlign="center" tooltip="Move Step Level\nLeft Click to Increase\nRight Click to Decrease"/>
+    <rule direction="vertical" height="80%" />
+    <label id="bottomBarAngleStepText" text="15" styleName="infoText" verticalAlign="center" tooltip="Angle Step Level\nLeft Click to Increase\nRight Click to Decrease"/>
+  </hbox>
+
+  <hbox horizontalAlign="center">
+  </hbox>
+
+  <hbox horizontalAlign="right">
+  </hbox>
+</box>

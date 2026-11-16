@@ -1,0 +1,127 @@
+import funkin.play.character.SparrowCharacter;
+import funkin.play.PlayState;
+import funkin.play.GameOverSubState;
+import funkin.play.PauseSubState;
+import funkin.util.HapticUtil;
+import flixel.FlxSprite;
+import funkin.graphics.FunkinSprite;
+//
+// ~Imports for the new Paths system.~
+// Temporary import aliases until we decide to remove backwards compatibility for mods.
+//
+import funkin.assets.Assets as NewAssets;
+import funkin.assets.Paths as NewPaths;
+import funkin.assets.Assets.AssetType;
+
+class PicoPixelCharacter extends SparrowCharacter
+{
+  public function new()
+  {
+    super('pico-pixel');
+  }
+
+  public static function queryAssets(type:AssetType, charId:String):Array<AssetPath>
+  {
+    var results = SparrowCharacter.queryAssets(type, charId);
+
+    switch (type)
+    {
+      case 'IMAGE':
+        results.push(NewPaths.image('gameplay/characters/nene-pixel/nene-pixel-knifetoss'));
+      case 'XML':
+        results.push(NewPaths.xml('gameplay/characters/nene-pixel/nene-pixel-knifetoss'));
+    }
+
+    return results;
+  }
+
+  var deathSpriteNene:FunkinSprite;
+
+  /**
+   * Initialize and cache sprites used for the death animation,
+   * for use later.
+   */
+  function createDeathSprites():Void
+  {
+    var gf:BaseCharacter = currentStage.getGirlfriend();
+
+    if (deathSpriteNene != null && !deathSpriteNene.alive)
+    {
+      deathSpriteNene.revive();
+    }
+
+    deathSpriteNene = new FunkinSprite().loadSparrow('gameplay/characters/nene-pixel/nene-pixel-knifetoss');
+    deathSpriteNene.x = gf.originalPosition.x + 280 - (-gf.globalOffsets[0] * 6);
+    deathSpriteNene.y = gf.originalPosition.y + 170 - (-gf.globalOffsets[1] * 6);
+    deathSpriteNene.animation.addByPrefix('throw', 'knifetosscolor0', 24, false);
+    deathSpriteNene.scale.set(6, 6);
+    deathSpriteNene.antialiasing = false;
+    deathSpriteNene.animation.onFinish.addOnce((_) ->
+    {
+      deathSpriteNene.kill();
+    });
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+
+    GameOverSubState.musicSuffix = '-pixel-pico';
+    GameOverSubState.blueBallSuffix = '-pixel-pico';
+
+    PauseSubState.musicSuffix = '-pixel';
+
+    // Precache death sprites.
+    NewAssets.cacheFlxGraphic(NewPaths.image('gameplay/characters/nene-pixel/nene-pixel-knifetoss'));
+  }
+
+  override function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false):Void
+  {
+    if (name == 'firstDeath')
+    {
+      this.shader = null;
+      createDeathSprites();
+
+      GameOverSubState.instance.add(deathSpriteNene);
+      deathSpriteNene.animation.play('throw');
+    }
+
+    super.playAnimation(name, restart, ignoreOther, reversed);
+  }
+
+  override function onAnimationFrame(name:String, frameNumber:Int, frameIndex:Int)
+  {
+    super.onAnimationFrame(name, frameNumber, frameIndex);
+
+    if (name == 'firstDeath')
+    {
+      if (frameNumber == 36 - 1)
+      {
+        GameOverSubState.instance.startDeathMusic(1.0, false);
+      }
+      else if (frameNumber == this.animation.curAnim.numFrames - 1)
+      {
+        // force the deathloop to play before the anim fully ends
+        // this stops the GameOverSubState from running the original code while still keeping the original look
+        GameOverSubState.instance.boyfriend.playAnimation('deathLoop');
+      }
+    }
+
+    if (!HapticUtil.hapticsAvailable) return;
+
+    // Pico falls on his back.
+    if (name == 'firstDeath' && frameNumber == 20)
+    {
+      HapticUtil.vibrate(0, 0.1, 0.1, 1);
+    }
+
+    // Blood firework woohoo!!!!
+    if (name == 'deathLoop' && frameNumber % 2 == 0)
+    {
+      final randomAmplitude:Float = FlxG.random.float(0.1, 0.5);
+      final randomDuration:Float = FlxG.random.float(0.1, 0.3);
+
+      HapticUtil.vibrate(0, randomDuration, randomAmplitude);
+    }
+  }
+}

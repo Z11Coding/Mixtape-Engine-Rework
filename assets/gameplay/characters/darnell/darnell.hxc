@@ -1,0 +1,84 @@
+import funkin.play.character.AnimateAtlasCharacter;
+import funkin.play.character.CharacterType;
+import funkin.play.PlayState;
+import funkin.audio.FunkinSound;
+import funkin.Conductor;
+//
+// ~Imports for the new Paths system.~
+// Temporary import aliases until we decide to remove backwards compatibility for mods.
+//
+import funkin.assets.Assets as NewAssets;
+import funkin.assets.Paths as NewPaths;
+import funkin.assets.Assets.AssetType;
+
+class DarnellCharacter extends AnimateAtlasCharacter
+{
+  public function new()
+  {
+    super('darnell');
+  }
+
+  public static function queryAssets(type:AssetType, charId:String):Array<AssetPath>
+  {
+    var results = AnimateAtlasCharacter.queryAssets(type, charId);
+
+    switch (type)
+    {
+      case 'SOUND':
+        for (snd in ['darnell-lighter', 'kick-can-up', 'kick-can-forward'])
+        {
+          results.push(NewPaths.sound('gameplay/songs/2hot/sounds/$snd'));
+        }
+    }
+
+    return results;
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+  }
+
+  override function onNoteHit(event:HitNoteScriptEvent):Void
+  {
+    // Override the hit note animation.
+    switch (event.note.kind)
+    {
+      case 'weekend-1-lightcan':
+        holdTimer = 0;
+        playLightCanAnim();
+      case 'weekend-1-kickcan':
+        holdTimer = 0;
+        playKickCanAnim();
+      case 'weekend-1-kneecan':
+        holdTimer = 0;
+        playKneeCanAnim();
+      default:
+        super.onNoteHit(event);
+    }
+  }
+
+  /**
+   * Play the animation where Darnell kneels down to light the can.
+   */
+  function playLightCanAnim():Void
+  {
+    this.playAnimation('lightCan', true, true);
+  }
+
+  /**
+   * Play the animation where Darnell kicks the can into the air.
+   */
+  function playKickCanAnim():Void
+  {
+    this.playAnimation('kickCan', true, false);
+  }
+
+  /**
+   * Play the animation where Darnell knees the can in Pico's direction.
+   */
+  function playKneeCanAnim():Void
+  {
+    this.playAnimation('kneeCan', true, true);
+  }
+}

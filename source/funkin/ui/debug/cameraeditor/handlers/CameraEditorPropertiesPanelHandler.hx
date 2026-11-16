@@ -1,0 +1,281 @@
+package funkin.ui.debug.cameraeditor.handlers;
+
+#if FEATURE_CAMERA_EDITOR
+import funkin.data.event.SongEventRegistry;
+import funkin.play.event.SongEvent;
+import funkin.ui.debug.cameraeditor.components.BaseEventContainer;
+import funkin.ui.debug.cameraeditor.components.EditorContainer;
+import funkin.ui.debug.cameraeditor.components.FocusCameraContainer;
+import funkin.ui.debug.cameraeditor.components.CustomEventContainer;
+import funkin.ui.debug.cameraeditor.components.PlayAnimationContainer;
+import funkin.ui.debug.cameraeditor.components.SharedPropertiesContainer;
+import funkin.ui.debug.cameraeditor.components.ZoomCameraContainer;
+import haxe.ui.containers.VBox;
+import haxe.ui.core.Component;
+
+/**
+ * Handles the properties panel on the right of the camera editor.
+ *
+ * Uses a `Map<String, Class<EditorContainer>>` registry to dispatch from
+ * `SongEventData.eventKind` to the matching properties container. To add a
+ * new event-kind editor:
+ *   1. Create a new container under `components/` extending `BaseEventContainer`
+ *      (recommended — inherits `cameraEditorState`, `updateCameraPreview()`,
+ *      `updateBlockVisuals()`, the ease-preview teardown hook, and the
+ *      `bind/loadFloatField` / `bind/loadStringField` / `bind/loadBoolField`
+ *      helpers). The constructor must accept `(state:CameraEditorState)`;
+ *      `loadCurrentEventData()` is abstract on the base. Override
+ *      `getEasePreview()` to return your ease preview so the base can call
+ *      `cleanup()` on destroy (omit the override entirely if your event has
+ *      no ease/duration — the base's `null` default short-circuits the
+ *      cleanup, as in `PlayAnimationContainer`).
+ *   2. Add one line to `initialize()`: `registerContainer('YourKind', YourContainer);`
+ *
+ * Reference implementations:
+ *   - `FocusCameraContainer` / `ZoomCameraContainer` — Float fields + ease preview.
+ *   - `PlayAnimationContainer` — String / Bool fields, no ease, no duration.
+ *
+ * Containers with no shared concerns can also implement `EditorContainer`
+ * directly, but most camera-event kinds want the `BaseEventContainer` plumbing.
+ *
+ * The `using` statement in `import.hx` allows you to call these functions on the CameraEditorState instance directly.
+ */
+@:nullSafety
+@:access(funkin.ui.debug.cameraeditor.CameraEditorState)
+class CameraEditorPropertiesPanelHandler
+{
+  /**
+   * Registry of properties-panel containers, keyed by `SongEventData.eventKind`.
+   *
+   * Populated once by `initialize()` at editor startup. Each registered class
+   * MUST implement `EditorContainer` and expose a constructor
+   * `new(state:CameraEditorState)`.
+   */
+  static final containers:Map<String, Class<EditorContainer>> = new Map();
+
+  /**
+   * The panel used when the selected events are of different kinds.
+   */
+  static inline var SHARED_KIND:String = '__shared__';
+
+  /**
+   * Bootstrap the registry. Called once from `CameraEditorState.create()`.
+   */
+  public static function initialize():Void
+  {
+    registerContainer('FocusCamera', FocusCameraContainer);
+    registerContainer('ZoomCamera', ZoomCameraContainer);
+    registerContainer('PlayAnimation', PlayAnimationContainer);
+    registerContainer('CustomEvent', CustomEventContainer);
+    registerContainer(SHARED_KIND, SharedPropertiesContainer);
+  }
+
+  /**
+   * Register an editor container class for a given event kind.
+   *
+   * @param eventKind The event kind to register.
+   * @param containerClass The container class to register.
+   */
+  public static function registerContainer(eventKind:String,
+    containerClass:Class<EditorContainer>):Void
+  {
+    containers.set(eventKind, containerClass);
+  }
+
+  /**
+   * Initialize the properties panel when first opening the Camera Editor.
+   * @param state The CameraEditorState to target.
+   */
+  public static function initializePropertiesPanel(state:CameraEditorState):Void
+  {
+    var hideButton = state.propertiesPanel.findComponent('propertiesPanelActionHide');
+    if (hideButton != null)
+    {
+      hideButton.onClick = function(_)
+      {
+        hidePropertiesPanel(state);
+      }
+    }
+
+    for (eventKind in containers.keys()) getContainer(state, eventKind);
+
+    hidePropertiesPanel(state);
+  }
+
+  /**
+   * The panels built for the current editor.
+   */
+  static var builtContainers:Map<String, Component> = [];
+
+  static var builtFor:Null<CameraEditorState> = null;
+
+  static function getContainer(state:CameraEditorState, eventKind:String):Null<Component>
+  {
+    if (builtFor != state)
+    {
+      builtContainers = [];
+      builtFor = state;
+    }
+
+    var container:Null<Component> = builtContainers.get(eventKind);
+    if (container != null) return container;
+
+    var containerClass:Null<Class<EditorContainer>> = containers.get(eventKind);
+    if (containerClass == null) return null;
+
+    container = cast Type.createInstance(containerClass, [state]);
+    setContainerShown(container, false);
+    state.propertiesPanel.addComponent(container);
+    builtContainers.set(eventKind, container);
+    return container;
+  }
+
+  /**
+   * Hidden panels are also switched off, so they skip their per-frame update.
+   */
+  static function setContainerShown(container:Component, shown:Bool):Void
+  {
+    if (container.hidden == shown) container.hidden = !shown;
+    if (container.active != shown) container.active = shown;
+  }
+
+  /**
+   * Update the state of the Properties panel. Call this every frame.
+   * @param state The CameraEditorState to target.
+   * @param elapsed The elapsed time in seconds since the last frame.
+   */
+  public static function updatePropertiesPanel(state:CameraEditorState, elapsed:Float):Void
+  {
+  }
+
+  /**
+   * Hides the Properties panel and disables input.
+   * @param state The CameraEditorState to target.
+   */
+  public static function hidePropertiesPanel(state:CameraEditorState):Void
+  {
+    if (builtFor == state)
+    {
+      for (container in builtContainers) setContainerShown(container, false);
+    }
+    state.propertiesPanel.hidden = true;
+  }
+
+  /**
+   * Set the title of the Properties panel.
+   * @param state The CameraEditorState to target.
+   * @param title The title to use.
+   */
+  public static function setPropertiesContainerTitle(state:CameraEditorState, title:String):Void
+  {
+    if (state.propertiesPanel != null)
+    {
+      state.propertiesPanel.text = title;
+    }
+    else
+    {
+      trace(' ERROR '.error() + 'Could not locate properties container.');
+    }
+  }
+
+  /**
+   * Remove the contents of the Properties panel, clearing the space to add new fields.
+   * @param state The CameraEditorState to target.
+   */
+  public static function removePropertiesContainer(state:CameraEditorState):Void
+  {
+    var propertiesContainer:Null<VBox> = state.propertiesPanel.findComponent('propertiesContainer');
+    if (propertiesContainer != null)
+    {
+      var contentContainer = propertiesContainer.parentComponent;
+
+      contentContainer.removeComponent(propertiesContainer);
+      propertiesContainer.destroy();
+    }
+    else
+    {
+      // No complaining, you're trying to remove something that's already been removed!
+    }
+  }
+
+  /**
+   * Load the selected song event into the Properties panel.
+   * @param state The CameraEditorState to target.
+   */
+  public static function loadSelectedSongEvent(state:CameraEditorState):Void
+  {
+    var events:Array<funkin.data.song.SongData.SongEventData> = state.selectedSongEvents;
+    if (events.length == 0)
+    {
+      hidePropertiesPanel(state);
+      return;
+    }
+
+    var selected:funkin.data.song.SongData.SongEventData = events[0];
+    for (event in events)
+    {
+      if (event.eventKind != selected.eventKind)
+      {
+        // Different kinds of events share a panel with the fields they all have.
+        useContainer(state, SharedPropertiesContainer, SHARED_KIND, events.length);
+        return;
+      }
+    }
+
+    var containerClass:Null<Class<EditorContainer>> = containers.get(selected.eventKind);
+    if (containerClass == null)
+    {
+      hidePropertiesPanel(state);
+      return;
+    }
+
+    useContainer(state, containerClass, selected.eventKind, events.length);
+  }
+
+  /**
+   * Mount a properties container into the panel.
+   */
+  static function useContainer(state:CameraEditorState,
+    containerClass:Class<EditorContainer>,
+    eventKind:String,
+    count:Int = 1):Void
+  {
+    state.propertiesPanel.hidden = false;
+
+    var title:String = eventKind == SHARED_KIND ? '$count events' : resolveTitle(eventKind);
+    if (eventKind != SHARED_KIND && count > 1) title = '$title ($count events)';
+
+    var target:Null<Component> = getContainer(state, eventKind);
+    if (target == null) return;
+
+    for (container in builtContainers)
+    {
+      if (container != target) setContainerShown(container, false);
+    }
+    setContainerShown(target, true);
+
+    if (Std.isOfType(target, BaseEventContainer))
+    {
+      var panel:BaseEventContainer = cast target;
+      panel.reload();
+    }
+    else
+    {
+      var panel:EditorContainer = cast target;
+      panel.loadCurrentEventData();
+    }
+
+    state.setPropertiesContainerTitle(title);
+  }
+
+  /**
+   * Resolve the panel title from the SongEventRegistry, falling back to the
+   * eventKind string if the event isn't registered.
+   */
+  static function resolveTitle(eventKind:String):String
+  {
+    var event:Null<SongEvent> = SongEventRegistry.getEvent(eventKind);
+    return event != null ? event.getTitle() : eventKind;
+  }
+}
+#end

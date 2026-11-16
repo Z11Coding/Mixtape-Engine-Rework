@@ -1,7 +1,0 @@
-{
-	"cpp": {
-		"build_flags": [
-			"-I/C:/Program Files/Python313/include"
-		]
-	}
-}

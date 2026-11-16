@@ -1,13 +1,34 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Lime",
+      // Launch in native/CPP on Windows/OSX/Linux
+      // Builds the game first
+      "name": "Lime - Build and Debug",
       "type": "lime",
       "request": "launch"
+    },
+    {
+      // Launch in native/CPP on Windows/OSX/Linux
+      // Do not build before launching.
+      "name": "Lime - Debug (No Build)",
+      "type": "lime",
+      "request": "launch",
+      "preLaunchTask": null
+    },
+    {
+      // Compiles a Haxe build with debugging attached
+      // This allows for breakpoint debugging of macros
+      // Doesn't actually launch the game
+      "name": "Haxe - Macro Debug",
+      "type": "haxe-eval",
+      "request": "launch"
+    },
+    {
+      // Attach the HXCPP debugger to an already running game
+      "name": "Haxe - Attach to Game",
+      "type": "hxcpp",
+      "request": "attach"
     }
   ]
 }

@@ -1,0 +1,53 @@
+import funkin.play.character.MultiSparrowCharacter;
+import funkin.play.PlayState;
+import funkin.play.GameOverSubState;
+import funkin.play.PauseSubState;
+import funkin.util.HapticUtil;
+import flixel.FlxSprite;
+
+class BFPixelCharacter extends MultiSparrowCharacter
+{
+  public function new()
+  {
+    super('bf-pixel');
+  }
+
+  override function onAnimationFrame(name:String, frameNumber:Int, frameIndex:Int)
+  {
+    super.onAnimationFrame(name, frameNumber, frameIndex);
+
+    if (!HapticUtil.hapticsAvailable) return;
+
+    // BF's mic drops.
+    if (name == 'firstDeath' && frameNumber == 27)
+    {
+      HapticUtil.vibrate(0, 0.1, 0.1, 1);
+    }
+
+    // BF's balls pulsating.
+    if (name == 'deathLoop' && (frameNumber == 0 || frameNumber == 18))
+    {
+      HapticUtil.vibrate(0, 0.1, 0.1, 1);
+    }
+  }
+
+  override function onCreate(event:ScriptEvent)
+  {
+    super.onCreate(event);
+
+    GameOverSubState.musicSuffix = '-pixel';
+    GameOverSubState.blueBallSuffix = '-pixel';
+
+    PauseSubState.musicSuffix = '-pixel';
+  }
+
+  override function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false)
+  {
+    if (name == "firstDeath")
+    {
+      this.shader = null;
+    }
+
+    super.playAnimation(name, restart, ignoreOther, reversed);
+  }
+}

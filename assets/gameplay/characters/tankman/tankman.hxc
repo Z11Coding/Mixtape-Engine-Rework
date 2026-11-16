@@ -1,0 +1,29 @@
+import funkin.play.character.MultiAnimateAtlasCharacter;
+import funkin.play.character.CharacterType;
+import funkin.play.PlayState;
+
+class TankmanCharacter extends MultiAnimateAtlasCharacter
+{
+  public function new()
+  {
+    super('tankman');
+  }
+
+  override function onNoteHit(event:HitNoteScriptEvent)
+  {
+    // Override the hit note animation.
+    switch (event.note.kind)
+    {
+      case "ugh":
+        holdTimer = 0;
+        this.playAnimation('ugh', true, true);
+        return;
+      case "hehPrettyGood":
+        holdTimer = 0;
+        this.playAnimation('hehPrettyGood', true, true);
+        return;
+    }
+
+    super.onNoteHit(event);
+  }
+}

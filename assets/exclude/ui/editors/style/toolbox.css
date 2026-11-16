@@ -1,0 +1,31 @@
+#toolboxTools .dialog-title, #toolboxSong .dialog-title, #toolboxNotes .dialog-title, #toolboxEvents .dialog-title {
+	padding: 4px;
+}
+#toolboxSong .dialog-content {
+	padding: 0px;
+}
+
+.command-palette {
+	border-radius: 16px;
+}
+
+.command-palette-input {
+  font-family: 'Inconsolata';
+	font-size: 12px;
+}
+
+.command-palette-list-item {
+  pointer-events: true;
+}
+
+.command-palette-list-title {
+  font-family: 'Inconsolata';
+	color: #F9F9F9;
+	font-size: 12px;
+}
+
+.command-palette-list-subtitle {
+  font-family: 'Inconsolata';
+	font-size: 12px;
+	color: #666666;
+}

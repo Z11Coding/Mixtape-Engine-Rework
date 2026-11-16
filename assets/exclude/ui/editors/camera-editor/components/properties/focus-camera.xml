@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vbox width="100%" height="100%" id="propertiesContainer">
+  <LabeledRow text="Target">
+    <dropdown text="Target" width="160" id="focusCameraTarget">
+      <data>
+        <item id="-1" text="Position" />
+        <item id="0" text="Player" />
+        <item id="1" text="Opponent" />
+        <item id="2" text="Girlfriend" />
+      </data>
+    </dropdown>
+  </LabeledRow>
+  <LabeledRow text="X Position">
+    <number-stepper pos="0.0" step="10.0" width="160" id="focusCameraXPos" />
+  </LabeledRow>
+  <LabeledRow text="Y Position">
+    <number-stepper pos="0.0" step="10.0" width="160" id="focusCameraYPos" />
+  </LabeledRow>
+  <LabeledRow text="Duration">
+    <number-stepper pos="1.25" step="0.1" min="0.1" width="160" id="focusCameraDuration" />
+  </LabeledRow>
+  <EasePropertyFrame id="focusCameraEaseFrame" />
+</vbox>

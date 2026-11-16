@@ -1,0 +1,120 @@
+import funkin.play.character.AnimateAtlasCharacter;
+import funkin.play.character.CharacterType;
+import funkin.play.PlayState;
+import flixel.FlxSprite;
+import flixel.group.FlxTypedSpriteGroup;
+import animate.internal.elements.FlxSpriteElement;
+import funkin.graphics.FunkinSprite;
+import flixel.util.FlxSort;
+import funkin.Conductor;
+import funkin.util.SortUtil;
+import Lambda;
+#if FEATURE_CAMERA_EDITOR
+import funkin.ui.debug.cameraeditor.CameraEditorState;
+#end
+
+class SserafimYunjinCharacter extends AnimateAtlasCharacter
+{
+  var lipSyncSprite:SserafimLipSyncSprite;
+  var lipSyncElement:FlxSpriteElement;
+
+  /**
+   * A map of animation names to lip sync data.
+   * This is so it gets offset properly!
+   */
+  final LIP_SYNC_OFFSETS:Map<String, LipSyncData> = [
+    'idle' => {
+      offset: [8, 6],
+      angle: 23
+    },
+    'singUP' => {
+      offset: [6, 8],
+      angle: 22
+    },
+    'singRIGHT' => {
+      offset: [6, 8],
+      angle: 23
+    },
+    'singDOWN' => {
+      offset: [8, 6],
+      angle: 23
+    },
+    'singLEFT' => {
+      offset: [6, 8],
+      angle: 23
+    }
+  ];
+
+  public function new()
+  {
+    super('sserafim-yunjin');
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+
+    lipSyncSprite = new SserafimLipSyncSprite(0, 0, 'yunjin');
+
+    lipSyncElement = new FlxSpriteElement(lipSyncSprite);
+    lipSyncElement.active = false; // We disable the element here so we can control when it updates.
+    if (this.debug) lipSyncElement.owner = this;
+
+    for (frame in this.getFramesWithKeyword("mouth yunjin"))
+    {
+      frame.add(lipSyncElement);
+    }
+
+    applyLipSyncData('idle');
+  }
+
+  override function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false):Void
+  {
+    super.playAnimation(name, restart, ignoreOther, reversed);
+
+    applyLipSyncData(name);
+  }
+
+  function applyLipSyncData(name:String):Void
+  {
+    if (LIP_SYNC_OFFSETS.exists(name) && lipSyncSprite != null)
+    {
+      var data:LipSyncData = LIP_SYNC_OFFSETS.get(name);
+
+      lipSyncSprite.offset.set(data.offset[0], data.offset[1]);
+      lipSyncSprite.angle = data.angle;
+    }
+  }
+
+  override function destroy():Void
+  {
+    for (frame in this.getFramesWithKeyword("mouth yunjin"))
+    {
+      frame.remove(lipSyncElement);
+    }
+
+    super.destroy();
+  }
+
+  override function update(elapsed:Float):Void
+  {
+    super.update(elapsed);
+    lipSyncSprite.update(elapsed);
+    lipSyncSprite.shouldSing = this.characterType == CharacterType.BF && (!this.debug #if FEATURE_CAMERA_EDITOR || Std.isOfType(FlxG.state, CameraEditorState) #end);
+
+    synchronizeShader();
+  }
+
+  var currentShader = null;
+
+  function synchronizeShader():Void
+  {
+    if (currentShader == this.shader) return;
+
+    currentShader = this.shader;
+
+    lipSyncSprite.shader = currentShader;
+
+    trace("Synchronized shader between children!");
+  }
+}

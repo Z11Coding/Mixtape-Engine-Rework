@@ -1,0 +1,203 @@
+import funkin.play.character.MultiAnimateAtlasCharacter;
+import funkin.play.character.CharacterType;
+import funkin.play.PlayState;
+import flixel.FlxSprite;
+import flixel.group.FlxTypedSpriteGroup;
+import animate.internal.elements.FlxSpriteElement;
+import funkin.graphics.FunkinSprite;
+import flixel.util.FlxSort;
+import funkin.Conductor;
+import funkin.util.SortUtil;
+import Lambda;
+#if FEATURE_CAMERA_EDITOR
+import funkin.ui.debug.cameraeditor.CameraEditorState;
+#end
+
+class SserafimSakuraCharacter extends MultiAnimateAtlasCharacter
+{
+  var lipSyncSprite:SserafimLipSyncSprite;
+  var lipSyncElement:FlxSpriteElement;
+
+  /**
+   * A map of animation names to lip sync data.
+   * This is so it gets offset properly!
+   */
+  final LIP_SYNC_OFFSETS:Map<String, LipSyncData> = [
+    'idle' => {
+      offset: [7, 2],
+      angle: -14
+    },
+    'singUP' => {
+      offset: [8, 1],
+      angle: -15
+    },
+    'singRIGHT' => {
+      offset: [7, 2],
+      angle: -15
+    },
+    'singDOWN' => {
+      offset: [6, 3],
+      angle: -15
+    },
+    'singLEFT' => {
+      offset: [7, 2],
+      angle: -14
+    },
+    'singUP-joint' => {
+      offset: [10, -1],
+      angle: -14
+    },
+    'singRIGHT-joint' => {
+      offset: [6, 3],
+      angle: -15
+    },
+    'singDOWN-joint' => {
+      offset: [5, 5],
+      angle: -15
+    },
+    'singLEFT-joint' => {
+      offset: [7, 2],
+      angle: -16
+    }
+  ];
+
+  public function new()
+  {
+    super('sserafim-sakura');
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+
+    lipSyncSprite = new SserafimLipSyncSprite(0, 0);
+    lipSyncSprite.flipX = true;
+
+    lipSyncElement = new FlxSpriteElement(lipSyncSprite);
+    lipSyncElement.active = false; // We disable the element here so we can control when it updates.
+    if (this.debug) lipSyncElement.owner = this;
+
+    for (frame in this.getFramesWithKeyword("mouth edit"))
+    {
+      frame.add(lipSyncElement);
+    }
+
+    applyLipSyncData('idle');
+  }
+
+  override function onNoteHit(event:HitNoteScriptEvent)
+  {
+    // Override the hit note animation.
+    switch (event.note.kind)
+    {
+      case "sakura-joint": // joint animations, sakura and bf sing
+        holdTimer = 0;
+        this.playSingAnimation(event.note.noteData.getDirection(), false, 'joint');
+        return;
+      case "sakura-bf1": // bf animations, only bf sings
+        holdTimer = 0;
+        this.playSingAnimation(event.note.noteData.getDirection(), false, 'bf1');
+        return;
+      case "sakura-bf2": // alternate bf poses
+        holdTimer = 0;
+        this.playSingAnimation(event.note.noteData.getDirection(), false, 'bf2');
+        return;
+    }
+
+    super.onNoteHit(event);
+  }
+
+  override function onNoteMiss(event:NoteScriptEvent)
+  {
+    // Override the miss note animation.
+    switch (event.note.kind)
+    {
+      case "sakura-joint": // joint animations, sakura and bf sing
+        this.playSingAnimation(event.note.noteData.getDirection(), true, 'joint');
+        return;
+      case "sakura-bf1" | "sakura-bf2": // bf animations, only bf sings
+        this.playSingAnimation(event.note.noteData.getDirection(), true, 'bf2');
+        return;
+    }
+
+    super.onNoteMiss(event);
+  }
+
+  override function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false):Void
+  {
+    super.playAnimation(name, restart, ignoreOther, reversed);
+
+    applyLipSyncData(name);
+
+    if (name == "firstDeath")
+    {
+      if (!this.visible)
+      {
+        this.visible = true;
+      }
+
+      // Hide the opponent health icon so it doesn't show up briefly when the song restarts
+      PlayState.instance.iconP2.visible = false;
+
+      // Clear out any shaders this character might have.
+      this.shader = null;
+    }
+  }
+
+  function applyLipSyncData(name:String):Void
+  {
+    if (LIP_SYNC_OFFSETS.exists(name) && lipSyncSprite != null)
+    {
+      var data:LipSyncData = LIP_SYNC_OFFSETS.get(name);
+
+      lipSyncSprite.offset.set(data.offset[0], data.offset[1]);
+      lipSyncSprite.angle = data.angle;
+    }
+  }
+
+  override function destroy():Void
+  {
+    for (frame in this.getFramesWithKeyword("mouth edit"))
+    {
+      frame.remove(lipSyncElement);
+    }
+
+    super.destroy();
+  }
+
+  override function update(elapsed:Float):Void
+  {
+    super.update(elapsed);
+    lipSyncSprite.update(elapsed);
+    lipSyncSprite.shouldSing = this.characterType == CharacterType.BF && (!this.debug #if FEATURE_CAMERA_EDITOR || Std.isOfType(FlxG.state, CameraEditorState) #end);
+
+    synchronizeShader();
+  }
+
+  var currentShader = null;
+
+  function synchronizeShader():Void
+  {
+    if (currentShader == this.shader) return;
+
+    currentShader = this.shader;
+
+    lipSyncSprite.shader = currentShader;
+
+    trace("Synchronized shader between children!");
+  }
+
+  function hideDefaultMouth():Void
+  {
+    var symbolItem:SymbolItem = this.library.getSymbol('mouth default');
+    var layer:Layer = symbolItem.timeline.getLayer(0);
+
+    layer.forEachFrame((frame) ->
+    {
+      frame.forEachElement((element) ->
+      {
+        element.visible = false;
+      });
+    });
+  }
+}

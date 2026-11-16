@@ -1,0 +1,138 @@
+import funkin.audio.FunkinSound;
+import funkin.play.PlayState;
+import funkin.play.stage.Stage;
+import funkin.util.HapticUtil;
+//
+// ~Imports for the new Paths system.~
+// Temporary import aliases until we decide to remove backwards compatibility for mods.
+//
+import funkin.assets.Assets as NewAssets;
+import funkin.assets.Paths as NewPaths;
+
+class SpookyMansionStage extends Stage
+{
+  public function new()
+  {
+    super('spookyMansion');
+  }
+
+  function queryAssets(type:String):Array<AssetPath>
+  {
+    var results:Array<AssetPath> = super.queryAssets(type);
+
+    switch (type)
+    {
+      case 'SOUND':
+        results.push(Paths.sound('gameplay/stages/spookyMansion/sounds/thunder-1'));
+        results.push(Paths.sound('gameplay/stages/spookyMansion/sounds/thunder-2'));
+    }
+
+    return results;
+  }
+
+  override function onCreate(event:ScriptEvent):Void
+  {
+    super.onCreate(event);
+
+    // Precache the thunder sounds.
+    for (snd in ['thunder-1', 'thunder-2']) NewAssets.cacheSound(NewPaths.sound('gameplay/stages/spookyMansion/sounds/$snd'));
+  }
+
+  var lightningStrikeBeat:Int = 0;
+  var lightningStrikeOffset:Int = 8;
+
+  function doLightningStrike(playSound:Bool, beat:Int):Void
+  {
+    if (playSound)
+    {
+      FunkinSound.playOnce(NewPaths.soundRandom('gameplay/stages/spookyMansion/sounds/thunder-', 1, 2).toFlxSoundAsset(), 1.0);
+    }
+
+    getNamedProp('halloweenBG').animation.play('lightning');
+
+    lightningStrikeBeat = beat;
+    lightningStrikeOffset = FlxG.random.int(8, 24);
+
+    if (getBoyfriend() != null && getBoyfriend().hasAnimation('scared') && getBoyfriend().animation.name != 'cheer')
+    {
+      getBoyfriend().playAnimation('scared', true, true);
+    }
+
+    if (getGirlfriend() != null && getGirlfriend().hasAnimation('scared'))
+    {
+      getGirlfriend().playAnimation('scared', true, true);
+    }
+
+    triggerLightningHaptics();
+  }
+
+  var doPostShockHaptics:Bool = false;
+
+  function triggerLightningHaptics():Void
+  {
+    HapticUtil.vibrate(0, 0.05, 1);
+
+    doPostShockHaptics = true;
+  }
+
+  override function onBeatHit(event:SongTimeScriptEvent):Void
+  {
+    super.onBeatHit(event);
+
+    // Play lightning on sync at the start of this specific song.
+    // TODO: Rework this after chart format redesign.
+    if (PlayState.instance != null && PlayState.instance.currentSong != null)
+    {
+      if (event.beat == 4 && PlayState.instance.currentSong.id == 'spookeez')
+      {
+        doLightningStrike(false, event.beat);
+      }
+    }
+
+    // Play lightning at random intervals.
+    if (FlxG.random.bool(10) && event.beat > (lightningStrikeBeat + lightningStrikeOffset))
+    {
+      doLightningStrike(true, event.beat);
+    }
+  }
+
+  var postShockCounter:Int = 0;
+  var counterTargetNum:Int = 10;
+
+  override function onStepHit(event:SongTimeScriptEvent):Void
+  {
+    super.onStepHit(event);
+
+    if (doPostShockHaptics)
+    {
+      postShockCounter++;
+
+      var postShockAmplitude:Float = 0.05 * (counterTargetNum - postShockCounter) * 2.5;
+      HapticUtil.vibrate(0, 0.01, postShockAmplitude, 0);
+
+      if (postShockCounter == counterTargetNum)
+      {
+        doPostShockHaptics = false;
+        postShockCounter = 0;
+      }
+    }
+  }
+
+  override function onSongRetry(event:SongRetryEvent):Void
+  {
+    super.onSongRetry(event);
+
+    // Properly reset lightning when restarting the song.
+    lightningStrikeBeat = 0;
+    lightningStrikeOffset = 8;
+  }
+
+  override function onCountdownStart(event:CountdownScriptEvent):Void
+  {
+    super.onCountdownStart(event);
+
+    // Reset lightning variables at the start of every song
+    lightningStrikeBeat = 0;
+    lightningStrikeOffset = 8;
+  }
+}

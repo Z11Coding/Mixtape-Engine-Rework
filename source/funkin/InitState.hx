@@ -1,0 +1,758 @@
+package funkin;
+
+import funkin.ui.debug.cameraeditor.CameraEditorState;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.addons.transition.FlxTransitionSprite.GraphicTransTileDiamond;
+import flixel.addons.transition.TransitionData;
+import flixel.FlxSprite;
+import flixel.FlxState;
+import flixel.graphics.FlxGraphic;
+import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
+import flixel.system.debug.log.LogStyle;
+import flixel.util.FlxColor;
+import funkin.data.dialogue.ConversationRegistry;
+import funkin.data.dialogue.DialogueBoxRegistry;
+import funkin.data.dialogue.SpeakerRegistry;
+import funkin.data.freeplay.album.AlbumRegistry;
+import funkin.util.MemoryUtil;
+import funkin.data.freeplay.player.PlayerRegistry;
+import funkin.data.freeplay.style.FreeplayStyleRegistry;
+import funkin.data.notestyle.NoteStyleRegistry;
+import funkin.data.song.SongRegistry;
+import funkin.data.stickers.StickerRegistry;
+import funkin.util.plugins.SidePanelPlugin;
+import funkin.play.event.SongEventHelper;
+import funkin.data.event.SongEventRegistry;
+import funkin.data.stage.StageRegistry;
+import funkin.data.story.level.LevelRegistry;
+import funkin.modding.module.ModuleHandler;
+import funkin.data.character.CharacterRegistry;
+import funkin.play.notes.notekind.NoteKindManager;
+import funkin.play.PlayStatePlaylist;
+import funkin.ui.debug.charting.ChartEditorState;
+import funkin.ui.debug.stageeditor.StageEditorState;
+import funkin.ui.title.TitleState;
+import funkin.ui.transition.Transition;
+import funkin.util.CLIUtil;
+import funkin.util.CLIUtil.CLIParams;
+import funkin.util.macro.MacroUtil;
+import funkin.util.TrackerUtil;
+import funkin.util.WindowUtil;
+import openfl.display.BitmapData;
+import funkin.ui.debug.playtest.ChartPlaytestMenu;
+#if FEATURE_DISCORD_RPC
+import funkin.api.discord.DiscordClient;
+#end
+#if FEATURE_NEWGROUNDS
+import funkin.api.newgrounds.NewgroundsClient;
+#end
+
+/**
+ * A core class which performs initialization of the game.
+ * The initialization state has several functions:
+ * - Calls code to set up the game, including loading saves and parsing game data.
+ * - Chooses whether to start via debug or via launching normally.
+ *
+ * It should not contain any sprites or rendering.
+ */
+@:nullSafety
+class InitState extends FlxState
+{
+  /**
+   * Simply states whether the "core stuff" is ready or not.
+   * This is used to prevent re-initialization of specific core features.
+   */
+  @:noCompletion
+  static var _coreInitialized:Bool = false;
+
+  public static var customTitleState:Null<flixel.util.typeLimit.NextState> = null;
+  public static var customTitleStateAssetsQuery:Null<(funkin.assets.Assets.AssetType) -> Array<funkin.assets.Paths.AssetPath>> = null;
+
+  /**
+   * Perform a bunch of game setup, then immediately transition to the title screen.
+   */
+  override public function create():Void
+  {
+    // We probably just got out of the preloader state.
+    // That does a bunch of work, so we should do some garbage collection.
+    // This will probably make the game stutter a frame or two, but it cleans up a lot of memory.
+    #if cpp
+    funkin.util.MemoryUtil.compact();
+    #end
+
+    // Setup a bunch of important Flixel stuff.
+    setupShit();
+
+    // Load player options from save data.
+    // Flixel has already loaded the save data, so we can just use it.
+    Preferences.init();
+
+    // Load controls from save data.
+    PlayerSettings.init();
+
+    startGame();
+  }
+
+  /**
+   * Setup a bunch of important Flixel stuff.
+   */
+  function setupShit():Void
+  {
+    if (!_coreInitialized)
+    {
+      //
+      // GAME SETUP
+      //
+
+      // Setup window events (like callbacks for onWindowClose) and fullscreen keybind setup
+      WindowUtil.initWindowEvents();
+
+      #if FEATURE_DEBUG_TRACY
+      funkin.util.WindowUtil.initTracy();
+      #end
+
+      #if FEATURE_HAPTICS
+      // Setup Haptic feedback
+      extension.haptics.Haptic.initialize();
+      #end
+
+      #if FEATURE_MOBILE_ADVERTISEMENTS
+      // Setup Admob
+      funkin.util.mobile.AdMobUtil.init();
+      #end
+
+      #if FEATURE_MOBILE_IAP
+      // Setup In-App purchases
+      funkin.util.mobile.InAppPurchasesUtil.init();
+      #end
+
+      #if FEATURE_MOBILE_IAR
+      // Setup In-App reviews
+      funkin.util.mobile.InAppReviewUtil.init();
+      #end
+
+      #if FEATURE_MOBILE_WEBVIEW
+      // Setup WebView
+      funkin.util.mobile.WebViewUtil.init();
+      #end
+
+      #if FEATURE_MOBILE_AGESIGNALS
+      // Setup AgeSignals
+      funkin.util.mobile.AgeSignalsUtil.init();
+      #end
+
+      #if android
+      // Setup Callback util.
+      funkin.external.android.CallbackUtil.init();
+      #end
+
+      #if mobile
+      // Setup Mobile FNFC launcher.
+      funkin.util.mobile.FNFLoaderProvider.init();
+      #end
+
+      // This ain't a pixel art game! (most of the time)
+      FlxSprite.defaultAntialiasing = true;
+
+      // Disable default keybinds for volume (we manually control volume in MusicBeatState with custom binds)
+      FlxG.sound.volumeUpKeys = [];
+      FlxG.sound.volumeDownKeys = [];
+      FlxG.sound.muteKeys = [];
+
+      // A small jumpstart to the soundtray, it usually sets itself to inactive (somewhere...)
+      // but that makes our soundtray not show up on init if we have the game muted.
+      // We set it to active so it at least calls it's update function once (see FlxGame.onEnterFrame(), it's called there)
+      // and also see FunkinSoundTray.update() to see what we do and how we check if we are muted or not
+      #if !mobile
+      FlxG.game.soundTray.active = true;
+      #end
+
+      // Set the game to a lower frame rate while it is in the background.
+      FlxG.game.focusLostFramerate = 30;
+
+      // Persist controls inputs between states.
+      // Without this, the game would release your keybinds when you switch states,
+      // and then act like you released and re-pressed them the frame after.
+      FlxG.inputs.resetOnStateSwitch = false;
+
+      // Makes Flixel use frame times instead of locked movements per frame for things like tweens
+      FlxG.fixedTimestep = false;
+
+      setupFlixelDebug();
+
+      // SDL for some reason enables VSync on focus lost/gained in Android
+      // Since we don't really need VSync on Android we're gonna forcefully disable it on these signals for now
+      // This is fixed on SDL3 from what I've heared but that doodoo isn't working poperly for Android
+      #if android
+      FlxG.signals.focusLost.add(function()
+      {
+        WindowUtil.setVSyncMode(lime.ui.WindowVSyncMode.OFF);
+      });
+      FlxG.signals.focusGained.add(function()
+      {
+        WindowUtil.setVSyncMode(lime.ui.WindowVSyncMode.OFF);
+      });
+      #end
+
+      //
+      // NEWGROUNDS API SETUP
+      //
+      #if FEATURE_NEWGROUNDS
+      NewgroundsClient.instance.init();
+      #end
+
+      //
+      // DISCORD API SETUP
+      //
+      #if FEATURE_DISCORD_RPC
+      if (Preferences.enabledDiscordRPC)
+      {
+        DiscordClient.instance.init();
+      }
+
+      lime.app.Application.current.onExit.add(function(exitCode)
+      {
+        DiscordClient.instance.shutdown();
+      });
+      #end
+
+      #if FEATURE_LOST_FOCUS_VOLUME
+      FlxG.signals.focusLost.add(onLostFocus);
+      FlxG.signals.focusGained.add(onGainFocus);
+      #end
+      //
+      // ANDROID SETUP
+      //
+      #if android
+      FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
+      #end
+
+      //
+      // FLIXEL PLUGINS
+      //
+      // Plugins provide a useful interface for globally active Flixel objects,
+      // that receive update events regardless of the current state.
+      // TODO: Move scripted Module behavior to a Flixel plugin.
+      FlxG.plugins.drawOnTop = true;
+      #if FEATURE_DEBUG_FUNCTIONS
+      funkin.util.plugins.MemoryGCPlugin.initialize();
+      #end
+      #if FEATURE_SCREENSHOTS
+      funkin.util.plugins.ScreenshotPlugin.initialize();
+      #end
+      #if FEATURE_NEWGROUNDS
+      funkin.util.plugins.NewgroundsMedalPlugin.initialize();
+      #end
+      funkin.util.plugins.EvacuateDebugPlugin.initialize();
+      funkin.util.plugins.ForceCrashPlugin.initialize();
+      funkin.util.plugins.ReloadAssetsDebugPlugin.initialize();
+      #if !mobile
+      funkin.util.plugins.VolumePlugin.initialize();
+      #end
+      #if FLX_DEBUG
+      funkin.util.plugins.WatchPlugin.initialize();
+      #end
+      #if FEATURE_TOUCH_CONTROLS
+      funkin.util.plugins.TouchPointerPlugin.initialize();
+      funkin.touch.input.ControlsHandler.initInputTrackers();
+      #end
+      funkin.util.plugins.SidePanelPlugin.initialize();
+
+      _coreInitialized = true;
+    }
+
+    //
+    // GAME DATA PARSING
+    //
+
+    // If you're looking for registry initialization, it moved to the preloader :)
+
+    ModuleHandler.buildModuleCallbacks();
+    ModuleHandler.loadModuleCache();
+    ModuleHandler.callOnCreate();
+
+    funkin.input.Cursor.hide();
+  }
+
+  #if FEATURE_LOST_FOCUS_VOLUME
+  @:noCompletion
+  var _lastFocusVolume:Null<Float>;
+
+  function onLostFocus():Void
+  {
+    if (FlxG.sound.muted || FlxG.sound.volume == 0 || FlxG.autoPause) return;
+    _lastFocusVolume = FlxG.sound.volume;
+    FlxG.sound.volume *= Constants.LOST_FOCUS_VOLUME_MULTIPLIER;
+  }
+  #end
+
+  function onGainFocus():Void
+  {
+    #if !mobile
+    if (Preferences.unlockedFramerate)
+    {
+      FlxG.updateFramerate = 0;
+      FlxG.drawFramerate = 0;
+    }
+    else
+    {
+      FlxG.updateFramerate = Preferences.framerate;
+      FlxG.drawFramerate = Preferences.framerate;
+    }
+    #end
+
+    #if FEATURE_LOST_FOCUS_VOLUME
+    if (FlxG.sound.muted || FlxG.sound.volume == 0 || FlxG.autoPause) return;
+    if (_lastFocusVolume != null) FlxG.sound.volume = _lastFocusVolume;
+    #end
+  }
+
+  /**
+   * Start the game.
+   *
+   * By default, moves to the `TitleState`.
+   * But based on compile defines, the game can start immediately on a specific song,
+   * or immediately in a specific debug menu.
+   */
+  function startGame():Void
+  {
+    // Don't play transition in when entering the title state.
+    FlxTransitionableState.skipNextTransIn = true;
+
+    #if SONG
+    // -DSONG=bopeebo
+    startSong(defineSong(), defineDifficulty());
+    #elseif LEVEL
+    // -DLEVEL=week1 -DDIFFICULTY=hard
+    startLevel(defineLevel(), defineDifficulty());
+    #elseif FREEPLAY
+    // -DFREEPLAY
+    Transition.switchState(() -> new funkin.ui.freeplay.FreeplayState(), {
+      assetQuery: funkin.ui.freeplay.FreeplayState.queryAssets,
+      transition: None
+    });
+    #elseif DIALOGUE
+    // -DDIALOGUE
+    Transition.switchState(() -> new funkin.ui.debug.dialogue.ConversationDebugState(), {
+      assetQuery: funkin.ui.debug.dialogue.ConversationDebugState.queryAssets,
+      transition: None
+    });
+    #elseif ANIMATE
+    // -DANIMATE
+    Transition.switchState(() -> new funkin.ui.debug.anim.FlxAnimateTest(), {
+      assetQuery: funkin.ui.debug.anim.FlxAnimateTest.queryAssets,
+      transition: None
+    });
+    #elseif CHARTING
+    // -DCHARTING
+    Transition.switchState(() -> new funkin.ui.debug.charting.ChartEditorState(), {
+      assetQuery: funkin.ui.debug.charting.ChartEditorState.queryAssets,
+      transition: None
+    });
+    #elseif STAGING
+    // -DSTAGING
+    Transition.switchState(() -> new funkin.ui.debug.stageeditor.StageEditorState(), {
+      assetQuery: funkin.ui.debug.stageeditor.StageEditorState.queryAssets,
+      transition: None
+    });
+    #elseif EYESOFGOD
+    // -DEYESOFGOD
+    Transition.switchState(() -> new funkin.ui.debug.cameraeditor.CameraEditorState(), {
+      assetQuery: funkin.ui.debug.cameraeditor.CameraEditorState.queryAssets,
+      transition: None
+    });
+    #elseif RESULTS
+    // -DRESULTS
+    var params = {
+      storyMode: true,
+      title: 'Cum Song Erect by Kawai Sprite',
+      songId: 'cum',
+      characterId: 'pico',
+      difficultyId: 'hard',
+      isNewHighscore: true,
+      scoreData: {
+        score: 1_234_567,
+        tallies: {
+          sick: 130,
+          good: 60,
+          bad: 69,
+          shit: 69,
+          missed: 69,
+          combo: 69,
+          maxCombo: 69,
+          totalNotesHit: 140,
+          totalNotes: 240
+        }
+        // 2400 total notes = 7% = LOSS
+        // 275 total notes = 69% = NICE
+        // 240 total notes = 79% = GOOD
+        // 230 total notes = 82% = GREAT
+        // 210 total notes = 91% = EXCELLENT
+        // 190 total notes = PERFECT
+      },
+    };
+    Transition.switchState(() -> new funkin.play.ResultState(params), {
+      assetQuery: funkin.play.ResultState.queryAssets(_, params),
+      transition: None
+    });
+    #elseif ANIMDEBUG
+    // -DANIMDEBUG
+    Transition.switchState(() -> new funkin.ui.debug.anim.DebugBoundingState(), {
+      assetQuery: Transition.NO_ASSETS,
+      transition: None
+    });
+    #elseif LATENCY
+    // -DLATENCY
+    Transition.switchState(() -> new funkin.LatencyState(), {
+      assetQuery: Transition.NO_ASSETS,
+      transition: None
+    });
+    #else
+    startGameNormally();
+    #end
+  }
+
+  public static function resetTitleState():Void
+  {
+    customTitleState = null;
+    customTitleStateAssetsQuery = null;
+  }
+
+  /**
+   * Start the game by moving to the title state and play the game as normal.
+   */
+  function startGameNormally():Void
+  {
+    var params:CLIParams = CLIUtil.processArgs();
+
+    #if FEATURE_ONE_CLICK_INSTALL
+    // Claims the handoff lock, so any later launch forwards its link here instead of booting.
+    funkin.modding.install.OneClickInstallHandler.initialize();
+
+    #if mobile
+    final fnfModUrl:Null<String> = funkin.util.mobile.FNFLoaderProvider.queryFNFMOD();
+
+    if (fnfModUrl != null && fnfModUrl.length > 0)
+    {
+      funkin.modding.install.OneClickInstallHandler.handleLink(fnfModUrl);
+    }
+    #end
+
+    if (funkin.modding.install.OneClickInstallHandler.stashLaunchLink(params.oneClickUrl) || funkin.modding.install.OneClickInstallHandler.hasPendingLink())
+    {
+      Transition.switchState(() -> new funkin.ui.modmenu.ModMenuState(), {
+        assetQuery: funkin.ui.modmenu.ModMenuState.queryAssets,
+        transition: BlackScreen(None, Fade(South))
+      });
+      return;
+    }
+    #end
+
+    if (params.chart.shouldLoadChart)
+    {
+      #if FEATURE_CHART_EDITOR
+      var params = {
+        loadFromPath: params.chart.chartPath,
+      };
+      Transition.switchState(() -> new ChartEditorState(params), {
+        assetQuery: ChartEditorState.queryAssets.bind(_, params),
+        transition: BlackScreen(None, Fade(South))
+      });
+      #else
+      Transition.switchState(() -> new TitleState(), {
+        assetQuery: TitleState.queryAssets,
+        transition: None
+      });
+      #end
+    }
+    else if (params.camera.shouldLoadChart)
+    {
+      #if FEATURE_CAMERA_EDITOR
+      var params = {
+        loadFromPath: params.camera.chartPath,
+      };
+      Transition.switchState(() -> new CameraEditorState(params), {
+        assetQuery: Transition.NO_ASSETS, // CameraEditorState.queryAssets.bind(_, params),
+        transition: BlackScreen(None, Fade(South))
+      });
+      #else
+      Transition.switchState(() -> new TitleState(), {
+        assetQuery: TitleState.queryAssets,
+        transition: None
+      });
+      #end
+    }
+    else if (params.stage.shouldLoadStage)
+    {
+      #if FEATURE_STAGE_EDITOR
+      var params = {
+        fnfsTargetPath: params.stage.stagePath,
+      };
+
+      Transition.switchState(() -> new StageEditorState(params), {
+        assetQuery: Transition.NO_ASSETS,
+        transition: BlackScreen(None, Fade(South))
+      });
+      #else
+      Transition.switchState(() -> new TitleState(), {
+        assetQuery: TitleState.queryAssets,
+        transition: None
+      });
+      #end
+    }
+    else if (params.song.shouldLoadSong && params.song.songPath != null)
+    {
+      #if sys
+      Transition.switchState(() -> new ChartPlaytestMenu(params.song.songPath), {
+        assetQuery: Transition.NO_ASSETS,
+        transition: BlackScreen(None, Fade(South))
+      });
+      #else
+      Transition.switchState(() -> new TitleState(), {
+        assetQuery: TitleState.queryAssets,
+        transition: None
+      });
+      #end
+    }
+    else
+    {
+      #if mobile
+      funkin.util.mobile.FNFLoaderProvider.onFNFCOpen.add(function(fnfcFile:String)
+      {
+        flixel.tweens.FlxTween.globalManager.clear();
+        flixel.util.FlxTimer.globalManager.clear();
+        @:nullSafety(Off)
+        if (FlxG.sound.music != null)
+        {
+          FlxG.sound.music.destroy();
+          FlxG.sound.music = null;
+        }
+
+        Transition.switchState(() -> new ChartPlaytestMenu(fnfcFile), {
+          assetQuery: Transition.NO_ASSETS,
+          transition: BlackScreen(None, Fade(South))
+        });
+      });
+
+      final fnfcFile = funkin.util.mobile.FNFLoaderProvider.queryFNFC();
+      if (fnfcFile != null)
+      {
+        trace('launching FNFC from $fnfcFile');
+
+        Transition.switchState(() -> new ChartPlaytestMenu(fnfcFile), {
+          assetQuery: Transition.NO_ASSETS,
+          transition: BlackScreen(None, Fade(South))
+        });
+
+        return;
+      }
+      #end
+      if (customTitleState != null)
+      {
+        Transition.switchState(customTitleState, {
+          assetQuery: customTitleStateAssetsQuery,
+          transition: BlackScreen(Fade(North), Fade(South))
+        });
+        return;
+      }
+
+      Transition.switchState(() -> new TitleState(), {
+        assetQuery: TitleState.queryAssets,
+        transition: BlackScreen(Fade(North), Fade(South))
+      });
+    }
+  }
+
+  /**
+   * Start the game by directly loading into a specific song.
+   * @param songId
+   * @param difficultyId
+   */
+  function startSong(songId:String, difficultyId:String = 'normal'):Void
+  {
+    var songData:Null<funkin.play.song.Song> = funkin.data.song.SongRegistry.instance.fetchEntry(songId, {
+      variation: Constants.DEFAULT_VARIATION
+    });
+
+    if (songData == null)
+    {
+      startGameNormally();
+      return;
+    }
+
+    // TODO: Rework loading behavior so we don't have to do this.
+    switch (songId)
+    {
+      case 'tutorial' | 'bopeebo' | 'fresh' | 'dadbattle':
+        PlayStatePlaylist.campaignId = 'week1';
+      case 'spookeez' | 'south' | 'monster':
+        PlayStatePlaylist.campaignId = 'week2';
+      case 'pico' | 'philly-nice' | 'blammed':
+        PlayStatePlaylist.campaignId = 'week3';
+      case 'high' | 'satin-panties' | 'milf':
+        PlayStatePlaylist.campaignId = 'week4';
+      case 'cocoa' | 'eggnog' | 'winter-horrorland':
+        PlayStatePlaylist.campaignId = 'week5';
+      case 'senpai' | 'roses' | 'thorns':
+        PlayStatePlaylist.campaignId = 'week6';
+      case 'ugh' | 'guns' | 'stress':
+        PlayStatePlaylist.campaignId = 'week7';
+      case 'darnell' | 'lit-up' | '2hot' | 'blazin':
+        PlayStatePlaylist.campaignId = 'weekend1';
+    }
+
+    @:nullSafety(Off) // Cannot unify?
+    funkin.ui.transition.Transition.openPlayState({
+      targetSong: songData,
+      targetDifficulty: difficultyId
+    }, {
+      transition: None,
+    }, false);
+  }
+
+  /**
+   * Start the game by directly loading into a specific story mode level.
+   * @param levelId
+   * @param difficultyId
+   */
+  function startLevel(levelId:String, difficultyId:String = 'normal'):Void
+  {
+    var currentLevel:Null<funkin.ui.story.Level> = funkin.data.story.level.LevelRegistry.instance.fetchEntry(levelId);
+
+    if (currentLevel == null)
+    {
+      startGameNormally();
+      return;
+    }
+
+    PlayStatePlaylist.campaignId = levelId;
+
+    PlayStatePlaylist.playlistSongIds = currentLevel.getSongs();
+    PlayStatePlaylist.isStoryMode = true;
+    PlayStatePlaylist.campaignScore = 0;
+
+    var targetSongId:Null<String> = PlayStatePlaylist.playlistSongIds.shift();
+
+    var targetSong:Null<funkin.play.song.Song> = null;
+
+    if (targetSongId != null) targetSong = SongRegistry.instance.fetchEntry(targetSongId, {
+      variation: Constants.DEFAULT_VARIATION
+    });
+
+    if (targetSongId == null)
+    {
+      startGameNormally();
+      return;
+    }
+
+    @:nullSafety(Off)
+    funkin.ui.transition.Transition.openPlayState({
+      targetSong: targetSong,
+      targetDifficulty: difficultyId
+    }, {
+      transition: None,
+    }, false);
+  }
+
+  @:nullSafety(Off) // Meh, remove when flixel.system.debug.log.LogStyle is null safe
+  function setupFlixelDebug():Void
+  {
+    //
+    // FLIXEL DEBUG SETUP
+    //
+    #if (FEATURE_DEBUG_FUNCTIONS && !FLX_NO_DEBUG)
+    trace('Initializing Flixel debugger...');
+
+    #if !debug
+    // Make errors less annoying on release builds.
+    LogStyle.ERROR.openConsole = false;
+    LogStyle.ERROR.errorSound = null;
+    #end
+
+    // Make errors and warnings less annoying.
+    LogStyle.WARNING.openConsole = false;
+    LogStyle.WARNING.errorSound = null;
+
+    // Disable using ~ to open the console (we use that for the Editor menu)
+    FlxG.debugger.toggleKeys = [F2];
+    TrackerUtil.initTrackers();
+
+    // Adds a red button to the debugger.
+    // This pauses the game AND the music! This ensures the Conductor stops.
+    FlxG.debugger.addButton(CENTER, new BitmapData(20, 20, true, 0xFFCC2233), function()
+    {
+      if (FlxG.vcr.paused)
+      {
+        FlxG.vcr.resume();
+
+        for (snd in FlxG.sound.list)
+        {
+          snd.resume();
+        }
+
+        FlxG.sound.music.resume();
+      }
+      else
+      {
+        FlxG.vcr.pause();
+
+        for (snd in FlxG.sound.list)
+        {
+          snd.pause();
+        }
+
+        FlxG.sound.music.pause();
+      }
+    });
+
+    // Adds a blue button to the debugger.
+    // This skips forward in the song.
+    FlxG.debugger.addButton(CENTER, new BitmapData(20, 20, true, 0xFF2222CC), function()
+    {
+      FlxG.game.debugger.vcr.onStep();
+
+      for (snd in FlxG.sound.list)
+      {
+        snd.pause();
+        snd.time += FlxG.elapsed * 1000;
+      }
+
+      FlxG.sound.music.pause();
+      FlxG.sound.music.time += FlxG.elapsed * 1000;
+    });
+
+    // Adds an additional Close Debugger button.
+    // This big obnoxious white button is for MOBILE, so that you can press it
+    // easily with your finger when debug bullshit pops up during testing lol!
+    #if mobile
+    FlxG.debugger.addButton(LEFT, new BitmapData(200, 200), function()
+    {
+      FlxG.debugger.visible = false;
+
+      // Make errors and warnings less annoying.
+      // Forcing this always since I have never been happy to have the debugger to pop up
+      LogStyle.ERROR.openConsole = false;
+      LogStyle.ERROR.errorSound = null;
+      LogStyle.WARNING.openConsole = false;
+      LogStyle.WARNING.errorSound = null;
+    });
+    #end // mobile big butotn crap
+    #end
+  }
+
+  function defineSong():Null<String>
+  {
+    return MacroUtil.getDefine('SONG');
+  }
+
+  function defineLevel():Null<String>
+  {
+    return MacroUtil.getDefine('LEVEL');
+  }
+
+  function defineDifficulty():Null<String>
+  {
+    return MacroUtil.getDefine('DIFFICULTY');
+  }
+}

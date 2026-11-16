@@ -1,0 +1,53 @@
+.dialog-close-button {
+  resource: "assets/ui/editors/chart-editor/close.png";
+  vertical-align: "center";
+  cursor: "pointer";
+  pointer-events: true;
+  padding: 3px;
+  border-radius: 2px;
+}
+.dialog-close-button:hover {
+  resource: "assets/ui/editors/chart-editor/close.png";
+  background-color: $selection-background-color;
+}
+.dialog-minimize-button {
+  resource: "assets/ui/editors/chart-editor/minimize.png";
+  vertical-align: "center";
+  cursor: "pointer";
+  pointer-events: true;
+  padding: 3px;
+  border-radius: 2px;
+}
+.dialog-minimize-button:hover {
+  resource: "assets/ui/editors/chart-editor/minimize.png";
+  background-color: $selection-background-color;
+}
+.dialog-maximize-button {
+  resource: "assets/ui/editors/chart-editor/maximize.png";
+  vertical-align: "center";
+  cursor: "pointer";
+  pointer-events: true;
+  padding: 3px;
+  border-radius: 2px;
+}
+.dialog-maximize-button:hover {
+	resource: "assets/ui/editors/chart-editor/maximize.png";
+	background-color: $selection-background-color;
+}
+
+.comment-panel-header {
+  background-color: "#FFFFFF";
+}
+
+.color-picker-palette-item {
+  pointer-events: true;
+  width: 24px;
+  height: 24px;
+  background-color: "#FFFFFF";
+  border: $normal-border-size solid $normal-border-color;
+  border-radius: $normal-border-radius;
+}
+
+#colorPicker .controls-container .label {
+  width: 75px;
+}

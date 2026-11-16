@@ -1,0 +1,14 @@
+import funkin.ui.story.Level;
+
+class SserafimLevel extends Level
+{
+  public function new()
+  {
+    super('sserafim');
+  }
+
+  override function getSongDisplayNames(difficultyId:String):Array<String>
+  {
+    return ["SPAGHETTI", "(feat. j-hope of BTS)", "(Clean ver.)"];
+  }
+}

@@ -1,0 +1,34 @@
+import funkin.play.song.Song;
+import funkin.save.Save;
+
+class LitUpSong extends Song
+{
+  public function new()
+  {
+    super('lit-up');
+  }
+
+  override function listDifficulties(variationId:String, variationIds:Array<String>, showLocked:Bool):Array<String>
+  {
+    if (showLocked || Save.instance.hasBeatenLevel('weekend1'))
+    {
+      return super.listDifficulties(variationId, variationIds);
+    }
+
+    // Hide all difficulties if the player has not beaten the week.
+    return [];
+  }
+
+  override function listAltInstrumentalIds(difficultyId:String, variationId:String):Array<String>
+  {
+    var results:Array<String> = super.listAltInstrumentalIds(difficultyId, variationId);
+
+    if (difficultyId == 'easy' || difficultyId == 'normal' || difficultyId == 'hard')
+    {
+      // NOTE: Pico will not have access to Boyfriend Mix instrumentals, so remove the BF instrumental.
+      results = [for (id in results) if (id != 'bf') id];
+    }
+
+    return results;
+  }
+}

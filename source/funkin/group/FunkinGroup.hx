@@ -1,0 +1,1105 @@
+package funkin.group;
+
+import flixel.FlxCamera;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.graphics.frames.FlxFrame;
+import flixel.group.IFlxGroupable;
+import flixel.math.FlxPoint;
+import flixel.math.FlxRect;
+import flixel.util.FlxColor;
+import flixel.util.FlxDestroyUtil;
+import flixel.util.FlxSort;
+import funkin.graphics.FunkinRenderTexture;
+import funkin.graphics.FunkinSprite;
+import funkin.util.SortUtil;
+import openfl.filters.BitmapFilter;
+
+/**
+ * A FunkinGroup of FlxSprites.
+ */
+typedef FunkinSpriteGroup = FunkinGroup<FlxSprite>;
+
+/**
+ * FlxSpriteGroup but better. Kinda like if `FlxNestedSprite` and `FlxSpriteGroup` were merged.
+ */
+@:access(funkin.graphics.FunkinSprite)
+class FunkinGroup<T:FlxSprite> extends FlxSprite implements IFlxGroupable<T>
+{
+  /**
+   * A `FlxPoint` used by the Camera Editor to determine positioning.
+   */
+  public var vcamPoint:Null<FlxPoint> = null;
+
+  /**
+   * The children of this FunkinGroup.
+   */
+  public var children:Array<T>;
+
+  /**
+   * Alias for `this.children`.
+   */
+  @:deprecated("Use `this.children` instead.")
+  public var members(get, never):Array<T>;
+
+  function get_members():Array<T>
+  {
+    return children;
+  }
+
+  /**
+   * The size of this FunkinGroup. Read only.
+   */
+  public var size(get, never):Int;
+
+  /**
+   * If enabled, the group will render as one texture.
+   * This is useful for stuff like changing alpha, and shaders that require a flat texture.
+   */
+  public var useRenderTexture(default, set):Bool = false;
+
+  function set_useRenderTexture(value:Bool):Bool
+  {
+    if (!value) _renderTexture = FlxDestroyUtil.destroy(_renderTexture);
+
+    return useRenderTexture = value;
+  }
+
+  var _renderTexture:Null<FunkinRenderTexture> = null;
+  var _renderTextureRect:FlxRect = FlxRect.get();
+  var _renderTextureClipRect:FlxRect = FlxRect.get();
+
+  /**
+   * An array of bitmap filters to apply to this group.
+   */
+  public var filters(default, set):Null<Array<BitmapFilter>> = null;
+
+  function set_filters(value:Null<Array<BitmapFilter>>):Null<Array<BitmapFilter>>
+  {
+    if (value == filters) return value;
+
+    useRenderTexture = (value != null && value.length > 0);
+
+    return filters = value;
+  }
+
+  /**
+   * Small FunkinSprite we leech off of to move around Haxe's type-checking.
+   * Used for filters!
+   */
+  var filterBridge:FunkinSprite;
+
+  function get_size():Int
+  {
+    return children.length;
+  }
+
+  /**
+   * The length of this FunkinGroup. Read only.
+   *
+   * Alias to `size`.
+   */
+  public var length(get, never):Int;
+
+  function get_length():Int
+  {
+    return size;
+  }
+
+  /**
+   * The max size of this FunkinGroup. 0 and below is infinite.
+   */
+  public var maxSize(default, set):Int = 0;
+
+  function set_maxSize(value:Int):Int
+  {
+    if (value < 0) value = 0;
+
+    maxSize = value;
+
+    if (maxSize > 0)
+    {
+      while (size > maxSize) remove(children[size - 1]);
+    }
+
+    return maxSize;
+  }
+
+  /**
+   * If this is false, the FunkinGroup will update children normally. Otherwise,
+   * it will not (obviously).
+   *
+   * Useful for outside objects to modify this group's children. (Extending
+   * classes can just override updateChildren)
+   *
+   * `false` by default.
+   */
+  public var customChildUpdate:Bool = false;
+
+  /**
+   * Should this FunkinGroup treat itself more like one image (in scale terms).
+   *
+   * `true` by default.
+   */
+  public var preciseScale:Bool = true;
+
+  /**
+   * Should this FunkinGroup treat itself more like one image (in angle terms).
+   *
+   * `true` by default.
+   */
+  public var preciseAngle:Bool = true;
+
+  override function get_width():Float
+  {
+    updateChildren();
+
+    if (size < 1) return 0;
+
+    var minLeft:Float = Math.POSITIVE_INFINITY;
+    var maxRight:Float = Math.NEGATIVE_INFINITY;
+
+    for (child in children)
+    {
+      if (child == null || !child.alive || !child.localVisible) continue;
+
+      var left:Float;
+      var right:Float;
+
+      if (Std.isOfType(child, FunkinGroup))
+      {
+        var childGroup:FunkinGroup<Dynamic> = cast child;
+        var childW:Float = childGroup.width;
+        if (childW <= 0) continue;
+        left = child.localX * scale.x;
+        right = left + childW;
+      }
+      else
+      {
+        left = child.localX * scale.x;
+        right = left + child.frameWidth * child.scale.x;
+      }
+
+      if (left < minLeft) minLeft = left;
+      if (right > maxRight) maxRight = right;
+    }
+
+    if (minLeft == Math.POSITIVE_INFINITY) return 0;
+    return maxRight - minLeft;
+  }
+
+  override function get_height():Float
+  {
+    updateChildren();
+
+    if (size < 1) return 0;
+
+    var minTop:Float = Math.POSITIVE_INFINITY;
+    var maxBottom:Float = Math.NEGATIVE_INFINITY;
+
+    for (child in children)
+    {
+      if (child == null || !child.alive || !child.localVisible) continue;
+
+      var top:Float;
+      var bottom:Float;
+
+      if (Std.isOfType(child, FunkinGroup))
+      {
+        var childGroup:FunkinGroup<Dynamic> = cast child;
+        var childH:Float = childGroup.height;
+        if (childH <= 0) continue;
+        top = child.localY * scale.y;
+        bottom = top + childH;
+      }
+      else
+      {
+        if (child.scale.y != scale.y * child.localScale.y) continue;
+        top = child.localY * scale.y;
+        bottom = top + child.frameHeight * child.scale.y;
+      }
+
+      if (top < minTop) minTop = top;
+      if (bottom > maxBottom) maxBottom = bottom;
+    }
+
+    if (minTop == Math.POSITIVE_INFINITY) return 0;
+    return maxBottom - minTop;
+  }
+
+  override function set_clipRect(rect:FlxRect):FlxRect
+  {
+    useRenderTexture = (rect != null);
+
+    return super.set_clipRect(rect);
+  }
+
+  /**
+   * Sets this FunkinGroup's `origin` to the center of its complete graphic.
+   *
+   * Replacement for `centerOrigin`.
+   */
+  public function resetOrigin():Void
+  {
+    if (size < 1) return;
+
+    var upwardsMostSpr:T = sort(function(order:Int, a:T, b:T):Int
+    {
+      if (a == null || b == null) return 0;
+      return FlxSort.byValues(order, y + a.localY, y + b.localY);
+    }, false)[0];
+
+    var leftMostSpr:T = sort(function(order:Int, a:T, b:T):Int
+    {
+      if (a == null || b == null) return 0;
+      return FlxSort.byValues(order, x + a.localX, x + b.localX);
+    }, false)[0];
+
+    origin.set(leftMostSpr.localX + width / 2, upwardsMostSpr.localY + height / 2);
+  }
+
+  /**
+   * Constructor for FunkinGroup.
+   *
+   * @param x Starting X.
+   * @param y Starting Y.
+   * @param maxSize Starting max size.
+   * @param preciseScale Whether to treat the FunkinGroup like one image (with scale).
+   * @param preciseAngle Whether to treat the FunkinGroup like one image (with angle).
+   */
+  public function new(?x:Float, ?y:Float, ?maxSize:Int, ?preciseScale:Bool, ?preciseAngle:Bool)
+  {
+    super(x, y);
+
+    @:nullSafety(Off)
+    blendTarget = null;
+
+    children = [];
+
+    this.maxSize = maxSize ?? 0;
+
+    if (preciseScale != null) this.preciseScale = preciseScale;
+    if (preciseAngle != null) this.preciseAngle = preciseAngle;
+
+    filterBridge = new FunkinSprite().makeSolidColor(1, 1, 0x00000000);
+  }
+
+  /**
+   * Gets the child at an index.
+   *
+   * @param index The position.
+   * @return The child or null.
+   */
+  public inline function getChildAt(index:Int):Null<T>
+  {
+    if (index < 0 || index >= size) return null;
+
+    return children[index];
+  }
+
+  /**
+   * Gets the screen position of the sprite, taking into account the camera scroll and the `vcamPoint` if it exists.
+   * @param result An optional `FlxPoint` to store the result in. If null, a new `FlxPoint` will be created.
+   * @param camera The camera to calculate the screen position relative to. If null, the default camera will be used.
+   * @return The screen position of the sprite.
+   */
+  override function getScreenPosition(?result:FlxPoint, ?camera:FlxCamera):FlxPoint
+  {
+    if (result == null) result = FlxPoint.get();
+    if (camera == null) camera = getDefaultCamera();
+    result.set(x, y);
+    if (pixelPerfectPosition) result.floor();
+
+    if (vcamPoint != null) return result.subtract((vcamPoint.x * scrollFactor.x) + camera.scroll.x, (vcamPoint.y * scrollFactor.y) + camera.scroll.y);
+
+    return result.subtract(camera.scroll.x * scrollFactor.x, camera.scroll.y * scrollFactor.y);
+  }
+
+  /**
+   * Sets the child at an index.
+   *
+   * @param index The position.
+   * @param replacement A new child to replace the old one.
+   */
+  public inline function setChildAt(index:Int, replacement:T):Void
+  {
+    if (index < 0 || index >= size) return;
+
+    children[index] = replacement;
+  }
+
+  override public function update(elapsed:Float):Void
+  {
+    super.update(elapsed);
+
+    updateChildren();
+
+    for (child in children)
+    {
+      if (child != null && child.exists && child.active) child.update(elapsed);
+    }
+  }
+
+  /**
+   * Updates the children here. Uses the child's local variables like `localX` and `localY` to update the child's position. Like `FlxNestedSprite`!
+   * Can be overriden by outside classes with `customChildUpdate`.
+   */
+  public function updateChildren():Void
+  {
+    if (customChildUpdate) return;
+
+    final precise:Bool = preciseScale || preciseAngle;
+
+    var cos:Float = 1;
+    var sin:Float = 0;
+    if (preciseAngle && angle != 0)
+    {
+      final radians:Float = angle * (Math.PI / 180);
+      cos = Math.cos(radians);
+      sin = Math.sin(radians);
+    }
+
+    final scaleX:Float = preciseScale ? scale.x : 1;
+    final scaleY:Float = preciseScale ? scale.y : 1;
+
+    final pivot:Bool = precise && (scaleX != 1 || scaleY != 1 || sin != 0 || cos != 1);
+
+    final syncScroll:Bool = scrollFactor.x != 1 || scrollFactor.y != 1;
+
+    for (child in children)
+    {
+      if (child != null && child.exists)
+      {
+        child.angle = angle + child.localAngle;
+        child.scale.x = scale.x * child.localScale.x;
+        child.scale.y = scale.y * child.localScale.y;
+
+        if (syncScroll) child.scrollFactor.copyFrom(scrollFactor);
+
+        if (pivot)
+        {
+          final halfWidth:Float = child.width / 2;
+          final halfHeight:Float = child.height / 2;
+
+          final relX:Float = child.localX - origin.x + halfWidth;
+          final relY:Float = child.localY - origin.y + halfHeight;
+
+          child.x = x + (origin.x - halfWidth) + (scaleX * cos * relX) - (scaleY * sin * relY);
+          child.y = y + (origin.y - halfHeight) + (scaleY * cos * relY) + (scaleX * sin * relX);
+        }
+        else
+        {
+          child.x = x + child.localX;
+          child.y = y + child.localY;
+        }
+
+        child.alpha = alpha * child.localAlpha;
+        child.visible = visible && child.localVisible;
+        // force child cameras to the group's cameras.
+        if (child.cameras != cameras) child.cameras = cameras;
+      }
+    }
+  }
+
+  /**
+   * Adds a child to this FunkinGroup. Will also return said child for convenience.
+   * Can't add if `size` is at `maxSize`, instead returning null.
+   *
+   * @param child The child that the caller wants this FunkinGroup to add.
+   * @return The same child or null.
+   */
+  public function add(child:T):Null<T>
+  {
+    if (maxSize > 0 && size >= maxSize) return null;
+
+    children.push(child);
+    child.container = cast this;
+
+    return child;
+  }
+
+  /**
+   * Makes a child right in this FunkinGroup. Will also return said child for convenience.
+   * Can't create the child if `size` is at `maxSize`, instead returning null.
+   *
+   * @return The created child or null.
+   */
+  public function make():Null<T>
+  {
+    if (maxSize > 0 && size >= maxSize) return null;
+
+    var newChild:T = cast new FlxSprite();
+    children.push(newChild);
+    newChild.container = cast this;
+    return newChild;
+  }
+
+  /**
+   * Adds a child to this FunkinGroup at a given index. Will also return said child for convenience.
+   *
+   * @param child The child that the caller wants this FunkinGroup to add.
+   * @param index The position the caller wants the child to go in.
+   * @return The same child or null.
+   */
+  public function insert(child:T, index:Int):Null<T>
+  {
+    if (size < index) return null;
+    children.insert(index, child);
+    child.container = cast this;
+    return child;
+  }
+
+  /**
+   * Moves select children from another FunkinGroup into this one. Only works if both FunkinGroups contain the same type.
+   *
+   * @param grp The other group to take from.
+   * @param children The children to move.
+   */
+  public function move(grp:FunkinGroup<T>, children:Array<T>):Void
+  {
+    for (child in children)
+    {
+      if (grp.children.contains(child))
+      {
+        grp.remove(child);
+        add(child);
+        // update child's local position so the child stays where it was
+        child.localX = child.x - x;
+        child.localY = child.y - y;
+      }
+    }
+  }
+
+  override public function destroy():Void
+  {
+    clear();
+
+    _renderTexture = FlxDestroyUtil.destroy(_renderTexture);
+    _renderTextureRect = FlxDestroyUtil.put(_renderTextureRect);
+    _renderTextureClipRect = FlxDestroyUtil.put(_renderTextureClipRect);
+    filterBridge.destroy();
+
+    super.destroy();
+  }
+
+  /**
+   * Removes a child from the group, also returns it for convenience.
+   *
+   * @param child The child to remove.
+   * @param splice Unused: Only here because the interface mandates it.
+   * @return The removed child.
+   */
+  public function remove(child:T, splice:Bool = false):Null<T>
+  {
+    var index = children.indexOf(child);
+    if (index != -1) children.splice(index, 1);
+
+    if (child != null) child.container = null;
+
+    return child;
+  }
+
+  /**
+   * Applies a function to all children.
+   *
+   * @param func A function that modifies one child at a time.
+   */
+  public function forEach(func:T->Void):Void
+  {
+    for (child in children)
+    {
+      if (child != null)
+      {
+        func(child);
+      }
+    }
+  }
+
+  override public function draw():Void
+  {
+    if (useRenderTexture && drawRenderTexture()) return;
+
+    for (child in children)
+    {
+      if (child != null && child.exists && child.visible)
+      {
+        child.draw();
+      }
+    }
+  }
+
+  function drawRenderTexture():Bool
+  {
+    if (!updateRenderTextureSize()) return false;
+
+    var left:Float = x + _renderTextureRect.x;
+    var top:Float = y + _renderTextureRect.y;
+
+    _renderTexture.exactSize = (this.filters != null && this.filters.length > 0);
+
+    if (clipRect != null)
+    {
+      _renderTextureClipRect.set(clipRect.x - left, clipRect.y - top, clipRect.width, clipRect.height);
+
+      left += _renderTextureClipRect.x;
+      top += _renderTextureClipRect.y;
+
+      if (_renderTextureClipRect.width < 1 || _renderTextureClipRect.height < 1) return true;
+
+      _renderTexture.init(Std.int(_renderTextureClipRect.width), Std.int(_renderTextureClipRect.height));
+    }
+    else
+    {
+      _renderTexture.init(Std.int(_renderTextureRect.width), Std.int(_renderTextureRect.height));
+    }
+
+    if (this.filters != null && this.filters.length > 0)
+    {
+      if (this.filters != filterBridge.filters)
+      {
+        filterBridge.filters = this.filters;
+      }
+    }
+
+    _renderTexture.drawToCamera((textureCamera, _) ->
+    {
+      drawToRenderTexture(textureCamera, left, top);
+    });
+    _renderTexture.render();
+
+    filterBridge.filterRenderer.applyFilters(_renderTexture.graphic.bitmap);
+
+    for (camera in cameras)
+    {
+      if (!camera.visible || !camera.exists) continue;
+
+      var frame:FlxFrame = _renderTexture.graphic.imageFrame.frame;
+      var drawLeft:Float = left + frame.frame.x;
+      var drawTop:Float = top + frame.frame.y;
+
+      _matrix.identity();
+      _matrix.translate(drawLeft - camera.scroll.x * scrollFactor.x, drawTop - camera.scroll.y * scrollFactor.y);
+
+      if (filterBridge.filtered)
+      {
+        var filteredFrame:Null<FlxFrame> = filterBridge.filterRenderer.graphic?.imageFrame.frame;
+        if (filteredFrame != null)
+        {
+          camera.drawPixels(filteredFrame, null, _matrix, colorTransform, blend, antialiasing, shader, blendTarget);
+        }
+        else
+        {
+          camera.drawPixels(frame, null, _matrix, colorTransform, blend, antialiasing, shader, blendTarget);
+        }
+      }
+      else
+      {
+        camera.drawPixels(frame, null, _matrix, colorTransform, blend, antialiasing, shader, blendTarget);
+      }
+    }
+
+    return true;
+  }
+
+  var _textureCameras:Array<FlxCamera> = [];
+
+  function drawToRenderTexture(textureCamera:FlxCamera, offsetX:Float, offsetY:Float):Void
+  {
+    _textureCameras[0] = textureCamera;
+
+    for (child in children)
+    {
+      if (child == null || !child.exists || !child.visible) continue;
+
+      var cacheCameras:Array<FlxCamera> = child.cameras;
+      child.cameras = _textureCameras;
+
+      if (Std.isOfType(child, FunkinGroup))
+      {
+        var childGroup:FunkinGroup<Dynamic> = cast child;
+        childGroup.drawToRenderTexture(textureCamera, offsetX, offsetY);
+      }
+      else
+      {
+        child.x -= offsetX;
+        child.y -= offsetY;
+        child.draw();
+        child.x += offsetX;
+        child.y += offsetY;
+      }
+
+      child.cameras = cacheCameras;
+    }
+  }
+
+  function updateRenderTextureSize():Bool
+  {
+    var minLeft:Float = 0;
+    var minTop:Float = 0;
+    var maxRight:Float = 0;
+    var maxBottom:Float = 0;
+    var isValid:Bool = false;
+
+    for (child in children)
+    {
+      if (child == null || !child.exists || !child.visible) continue;
+
+      var left:Float = child.x - x;
+      var top:Float = child.y - y;
+      var right:Float;
+      var bottom:Float;
+
+      if (Std.isOfType(child, FunkinGroup))
+      {
+        var childGroup:FunkinGroup<Dynamic> = cast child;
+        right = left + childGroup.width;
+        bottom = top + childGroup.height;
+      }
+      else
+      {
+        left += child.origin.x * (1 - child.scale.x) - child.offset.x;
+        top += child.origin.y * (1 - child.scale.y) - child.offset.y;
+        right = left + child.frameWidth * Math.abs(child.scale.x);
+        bottom = top + child.frameHeight * Math.abs(child.scale.y);
+      }
+
+      if (left < minLeft) minLeft = left;
+      if (top < minTop) minTop = top;
+      if (right > maxRight) maxRight = right;
+      if (bottom > maxBottom) maxBottom = bottom;
+
+      isValid = true;
+    }
+
+    if (!isValid) return false;
+
+    if (minLeft < _renderTextureRect.x) _renderTextureRect.x = minLeft;
+    if (minTop < _renderTextureRect.y) _renderTextureRect.y = minTop;
+
+    var width:Float = Math.ceil(maxRight - _renderTextureRect.x);
+    var height:Float = Math.ceil(maxBottom - _renderTextureRect.y);
+
+    if (width > _renderTextureRect.width) _renderTextureRect.width = width;
+    if (height > _renderTextureRect.height) _renderTextureRect.height = height;
+
+    if (_renderTextureRect.width <= 0 || _renderTextureRect.height <= 0) return false;
+
+    if (_renderTexture == null) _renderTexture = new FunkinRenderTexture(Std.int(_renderTextureRect.width), Std.int(_renderTextureRect.height), this);
+
+    return true;
+  }
+
+  /**
+   * Sorts the children of this FunkinGroup. Returns the sorted children
+   *
+   * @param func     The sorting function to use - you can use one of the premade ones in
+   *                 `FlxSort` or write your own using `FlxSort.byValues()` as a "backend".
+   * @param setGroup Whether to actually sort the children of this group,
+   *                 so the caller can grab a sorted list without this group
+   *                 actually sorting the children.
+   * @param order    A constant that defines the sort order.
+   *                 Possible values are `FlxSort.ASCENDING` (default) and `FlxSort.DESCENDING`.
+   * @return         The sorted children list.
+   */
+  public inline function sort(func:(Int, T, T) -> Int, setGroup:Bool = true, order = FlxSort.ASCENDING):Null<Array<T>>
+  {
+    if (setGroup)
+    {
+      children.sort(func.bind(order));
+      return children;
+    }
+    else
+    {
+      var fakeKids = children.copy();
+      fakeKids.sort(func.bind(order));
+      return fakeKids;
+    }
+  }
+
+  /**
+   * Refreshes the group, by redoing the render order of all children.
+   * It does this based on the `zIndex` of each child.
+   */
+  public function refresh():Void
+  {
+    sort(SortUtil.byZIndex);
+  }
+
+  /**
+   * Gets the first child under this FunkinGroup that matches a specific filter.
+   * @param filter The filter to use.
+   *
+   * @return The child that matches the filter or null.
+   */
+  public function getFirst(filter:T->Bool):Null<T>
+  {
+    for (child in children)
+    {
+      if (filter(child)) return child;
+    }
+
+    return null;
+  }
+
+  /**
+   * Get's the first alive child under this FunkinGroup. Returns null if it can't
+   * find squat.
+   *
+   * @return The alive child or null.
+   */
+  public inline function getFirstAlive():Null<T>
+  {
+    for (child in children)
+    {
+      if (child.exists && child.alive) return child;
+    }
+
+    return null;
+  }
+
+  /**
+   * @return Whether or not this FunkinGroup is empty.
+   */
+  public inline function isEmpty():Bool
+  {
+    return size == 0;
+  }
+
+  /**
+   * Get's the first dead child under this FunkinGroup. Returns null if it can't
+   * find squat.
+   * getFirstAlive's evil twin.
+   *
+   * @return The dead child or null.
+   */
+  public inline function getFirstDead():Null<T>
+  {
+    for (child in children)
+    {
+      if (!child.alive) return child;
+    }
+
+    return null;
+  }
+
+  /**
+   * Clears all children from this FunkinGroup.
+   */
+  public inline function clear():Void
+  {
+    final oldChildren:Array<T> = children;
+    children = [];
+
+    for (child in oldChildren)
+    {
+      if (child == null) continue;
+      funkin.util.FlxTweenUtil.cancelPointTweens(child);
+
+      child.destroy();
+    }
+  }
+
+  /**
+   * Counts the amount of alive children in this FunkinGroup.
+   *
+   * @return The alive child number or null.
+   */
+  public inline function countLiving():Int
+  {
+    var i = 0;
+
+    for (child in children)
+    {
+      if (child.alive) i++;
+    }
+
+    return i;
+  }
+
+  /**
+   * Counts the amount of dead children in this FunkinGroup.
+   *
+   * @return The dead child number or null.
+   */
+  public inline function countDead():Int
+  {
+    var i = 0;
+
+    for (child in children)
+    {
+      if (!child.alive) i++;
+    }
+
+    return i;
+  }
+
+  /**
+   * Gets the first nonexistent child in the family and returns it.
+   * Good for recycling.
+   *
+   * @return The child or null.
+   */
+  public inline function getFirstAvailable():Null<T>
+  {
+    for (child in children)
+    {
+      if (!child.exists) return child;
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the index of the first null child under this FunkinGroup.
+   * -1 means it failed
+   *
+   * @return The index.
+   */
+  public inline function getFirstNull():Int
+  {
+    for (child in 0...size)
+    {
+      if (children[child] == null) return child;
+    }
+
+    return -1;
+  }
+
+  /**
+   * Gets the first existing child in the family and returns it.
+   * Good for recycling.
+   *
+   * @return The child or null.
+   */
+  public inline function getFirstExisting():Null<T>
+  {
+    for (child in children)
+    {
+      if (child.exists) return child;
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets a random child from this FunkinGroup.
+   * @param startIndex Optional offset off the front of the array.
+   *                   Default value is `0`, or the beginning of the array.
+   * @param length Optional restriction on the number of values you want to randomly select from.
+   * @return A child or null.
+   */
+  public inline function getRandom(startIndex:Int = 0, length:Int = 0):Null<T>
+  {
+    if (size <= 0) return null;
+
+    if (startIndex < 0) startIndex = 0;
+    if (length <= 0) length = size;
+
+    return FlxG.random.getObject(children, startIndex, length);
+  }
+
+  /**
+   * Brings a child back from the graveyard.
+   *
+   * @param child The child to revive.
+   */
+  public function reviveChild(child:T):Void
+  {
+    if (child != null) child.revive();
+  }
+
+  /**
+   * Kills all the children and then itself.
+   * Revive this group via `revive()`.
+   */
+  override public function kill():Void
+  {
+    for (child in children)
+    {
+      if (child != null) child.kill();
+    }
+
+    super.kill();
+  }
+
+  /**
+   * Revives all the children and then itself.
+   */
+  override public function revive():Void
+  {
+    for (child in children)
+    {
+      if (child != null) child.revive();
+    }
+
+    super.revive();
+  }
+
+  override public function clone():FunkinGroup<T>
+  {
+    var group = new FunkinGroup<T>(x, y, maxSize);
+
+    for (child in children)
+    {
+      group.add(cast child.clone());
+    }
+
+    return group;
+  }
+
+  // =============================================================
+  //   Unavailable functions that won't work with `FunkinGroup`.
+  // =============================================================
+
+  /**
+   * This functionality isn't supported in `FunkinGroup`.
+   * @return this group
+   */
+  override public function makeGraphic(Width:Int, Height:Int, Color:Int = FlxColor.WHITE, Unique:Bool = false, ?Key:String):FlxSprite
+  {
+    #if FLX_DEBUG
+    throw 'This function is not supported in FunkinGroup';
+    #end
+    return this;
+  }
+
+  /**
+   * This functionality isn't supported in `FunkinGroup`.
+   * @return this group
+   */
+  override public function loadGraphicFromSprite(Sprite:FlxSprite):FlxSprite
+  {
+    #if FLX_DEBUG
+    throw 'This function is not supported in FunkinGroup';
+    #end
+    return this;
+  }
+
+  /**
+   * This functionality isn't supported in `FunkinGroup`.
+   * @return this group
+   */
+  override public function loadGraphic(Graphic:flixel.system.FlxAssets.FlxGraphicAsset,
+    Animated:Bool = false,
+    Width:Int = 0,
+    Height:Int = 0,
+    Unique:Bool = false,
+    ?Key:String):FlxSprite
+  {
+    return this;
+  }
+
+  /**
+   * This functionality isn't supported in `FunkinGroup`.
+   * @return this group
+   */
+  override public function loadRotatedGraphic(Graphic:flixel.system.FlxAssets.FlxGraphicAsset,
+    Rotations:Int = 16,
+    Frame:Int = -1,
+    AntiAliasing:Bool = false,
+    AutoBuffer:Bool = false,
+    ?Key:String):FlxSprite
+  {
+    #if FLX_DEBUG
+    throw 'This function is not supported in FunkinGroup';
+    #end
+    return this;
+  }
+
+  override function get_pixels():openfl.display.BitmapData
+  {
+    return null;
+  }
+
+  /**
+   * Internal function to update the current animation frame.
+   *
+   * @param	RunOnCpp	Whether the frame should also be recalculated if we're on a non-flash target
+   */
+  override inline function calcFrame(RunOnCpp:Bool = false):Void
+  {
+    // Nothing to do here
+  }
+
+  /**
+   * This functionality isn't supported in `FunkinGroup`.
+   */
+  override inline function resetHelpers():Void
+  {
+  }
+
+  /**
+   * This functionality isn't supported in `FunkinGroup`.
+   */
+  override public inline function stamp(Brush:FlxSprite, X:Int = 0, Y:Int = 0):Void
+  {
+  }
+
+  override function set_frames(Frames:flixel.graphics.frames.FlxFramesCollection):flixel.graphics.frames.FlxFramesCollection
+  {
+    return Frames;
+  }
+
+  /**
+   * This functionality isn't supported in `FunkinGroup`.
+   */
+  override inline function updateColorTransform():Void
+  {
+  }
+
+  /**
+   * Iterates through every member.
+   */
+  public inline function iterator(?filter:T->Bool):FunkinGroupIterator<T>
+  {
+    return new FunkinGroupIterator<T>(children, filter);
+  }
+
+  /**
+   * Iterates through every member and index.
+   */
+  public inline function keyValueIterator()
+  {
+    return children.keyValueIterator();
+  }
+
+  override function set_active(v:Bool):Bool
+  {
+    for (child in children)
+    {
+      if (child == null) continue;
+      child.active = v;
+    }
+    return super.set_active(v);
+  }
+}
+
+class FunkinGroupIterator<T>
+{
+  var _groupMembers:Array<T>;
+  var _filter:T->Bool;
+  var _cursor:Int;
+  var _length:Int;
+
+  public inline function new(groupMembers:Array<T>, ?filter:T->Bool)
+  {
+    _groupMembers = groupMembers;
+    _filter = filter;
+    _cursor = 0;
+    _length = _groupMembers.length;
+  }
+
+  public inline function next()
+  {
+    return hasNext() ? _groupMembers[_cursor++] : null;
+  }
+
+  public inline function hasNext():Bool
+  {
+    while (_cursor < _length && (_groupMembers[_cursor] == null || _filter != null && !_filter(_groupMembers[_cursor])))
+    {
+      _cursor++;
+    }
+    return _cursor < _length;
+  }
+}

@@ -1,0 +1,309 @@
+package funkin.util.plugins;
+
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.FlxCamera;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+import flixel.input.touch.FlxTouch;
+import flixel.math.FlxAngle;
+import flixel.math.FlxPoint;
+import flixel.system.FlxAssets.FlxGraphicAsset;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
+import funkin.graphics.FunkinCamera;
+
+// TODO: Replace all the touchBuddy littered around the game's code with the ACTUAL touchBuddy.
+// Thnk u agua and toffee <3
+
+/**
+ * @author moondroidcoder
+ * Tracks your touch points in your game.
+ */
+class TouchPointerPlugin extends FlxTypedSpriteGroup<TouchPointer>
+{
+  /**
+   * Whether the plugin is enabled.
+   */
+  public static var enabled(default, set):Bool = true;
+
+  /**
+   * A singleton instance of the plugin.
+   */
+  static var instance:TouchPointerPlugin = null;
+
+  /**
+   * A camera dedicated to displaying the pointers.
+   */
+  static var pointerCamera:FlxCamera;
+
+  public function new()
+  {
+    super();
+  }
+
+  /**
+   * Initializes the TouchPointerPlugin by creating a new camera and setting it up to be drawn on top of other elements.
+   */
+  public static function initialize():Void
+  {
+    pointerCamera = new FlxCamera();
+    pointerCamera.bgColor.alpha = 0;
+    pointerCamera.removable = false;
+    instance = new TouchPointerPlugin();
+    pointerCamera.zIndex = 1000;
+    instance.cameras = [pointerCamera];
+
+    FlxG.cameras.add(pointerCamera, false);
+    syncPointerCameraSize();
+
+    FlxG.plugins.addPlugin(instance);
+
+    FlxG.signals.gameResized.add(function(_, _)
+    {
+      syncPointerCameraSize();
+    });
+
+    FlxG.signals.postStateSwitch.add(function()
+    {
+      syncPointerCameraSize();
+    });
+
+    FlxG.signals.preStateSwitch.add(function()
+    {
+      instance.removeAll();
+    });
+  }
+
+  /**
+   * Keeps the persistent pointer camera aligned to the logical game viewport.
+   */
+  static function syncPointerCameraSize():Void
+  {
+    if (pointerCamera == null) return;
+
+    final width:Int = FlxG.width;
+    final height:Int = FlxG.height;
+
+    if (width > 0 && height > 0 && (pointerCamera.width != width || pointerCamera.height != height))
+    {
+      pointerCamera.setSize(width, height);
+    }
+
+    pointerCamera.setPosition(0, 0);
+  }
+
+  override public function update(elapsed:Float):Void
+  {
+    super.update(elapsed);
+
+    for (touch in FlxG.touches.list)
+    {
+      if (touch == null) continue;
+
+      if (touch.justPressed) removeAll(true);
+
+      var pointer:TouchPointer = findPointerByTouchId(touch.touchPointID);
+
+      if (pointer == null)
+      {
+        pointer = recycle(TouchPointer);
+        pointer.initialize(touch.touchPointID);
+        add(pointer);
+      }
+
+      pointer.updateFromTouch(touch, pointerCamera);
+    }
+
+    for (pointer in members)
+    {
+      if (pointer == null || touchExists(pointer.touchId)) continue;
+      if (pointer.touchId != -2)
+      {
+        pointer.alpha = 0.8;
+        FlxTween.tween(pointer, {
+          alpha: 0
+        }, FlxG.random.float(0.8, 0.9), {
+          ease: FlxEase.cubeIn,
+          onComplete: function(_)
+          {
+            remove(pointer, true);
+          }
+        });
+        pointer.touchId = -2;
+      }
+    }
+  }
+
+  /**
+   * Finds a TouchPointer object in the members list by its touch ID.
+   *
+   * @param touchId The ID of the touch to find.
+   * @return The TouchPointer object with the specified touch ID, or null if not found.
+   */
+  function findPointerByTouchId(touchId:Int):TouchPointer
+  {
+    for (pointer in members)
+    {
+      if (pointer == null || pointer.touchId != touchId) continue;
+
+      return pointer;
+    }
+    return null;
+  }
+
+  /**
+   * Checks if a touch with the specified ID exists in the current touch list.
+   *
+   * @param touchId The ID of the touch to check for.
+   * @return True if a touch with the specified ID exists, false otherwise.
+   */
+  function touchExists(touchId:Int):Bool
+  {
+    for (touch in FlxG.touches.list)
+    {
+      if (touch.touchPointID != touchId) continue;
+
+      return true;
+    }
+    return false;
+  }
+
+  @:noCompletion
+  static function set_enabled(value:Bool):Bool
+  {
+    if (instance != null)
+    {
+      instance.exists = instance.visible = instance.active = instance.alive = value;
+    }
+
+    return enabled = value;
+  }
+
+  public function removeAll(skipTween:Bool = false):Void
+  {
+    for (pointer in members)
+    {
+      if (pointer == null) continue;
+
+      if (skipTween)
+      {
+        FlxTween.cancelTweensOf(pointer);
+        remove(pointer, true);
+        continue;
+      }
+
+      pointer.alpha = 0.8;
+      FlxTween.tween(pointer, {
+        alpha: 0
+      }, FlxG.random.float(0.8, 1), {
+        ease: FlxEase.quadIn,
+        onComplete: function(_)
+        {
+          remove(pointer, true);
+        }
+      });
+    }
+  }
+}
+
+/**
+ * Represents a touch pointer in the game.
+ */
+class TouchPointer extends FlxSprite
+{
+  /**
+   * Represents a touch pointer plugin.
+   */
+  public var touchId:Int = -1;
+
+  /**
+   * An internal point for grabbing the view position of the camera.
+   * Useful for reducing point allocation.
+   */
+  var viewPoint:FlxPoint;
+
+  /**
+   * Stores the last position of the touch pointer.
+   */
+  var lastPosition:FlxPoint;
+
+  /**
+   * Constructor for the TouchPointerPlugin class.
+   * Initializes the touch pointer graphic and sets the scroll factor.
+   */
+  public function new()
+  {
+    super();
+    makeGraphic(16, 16, FlxColor.RED);
+    scrollFactor.set(0, 0);
+    viewPoint = FlxPoint.get();
+    lastPosition = FlxPoint.get();
+  }
+
+  /**
+   * Initializes the touch pointer object itself with the specified touch ID.
+   * Loads the graphic for the touch pointer.
+   *
+   * @param touchId The ID of the touch event to initialize.
+   */
+  public function initialize(touchId:Int):Void
+  {
+    this.touchId = touchId;
+    loadGraphic('assets/ui/cursor/mobile/michael.png');
+  }
+
+  /**
+   * Updates the position and angle of the touch pointer based on the given touch input.
+   * Used in TouchPointerPlugin's update method.
+   *
+   * @param touch The FlxTouch object containing the current touch input data.
+   * @param camera The FlxCamera to grab the touch's view position from.
+   */
+  public function updateFromTouch(touch:FlxTouch, camera:FlxCamera):Void
+  {
+    // Grab the view coordinates
+    touch.getViewPosition(camera, viewPoint);
+
+    // Update position
+    x = viewPoint.x - width / 2;
+    y = viewPoint.y - height / 2;
+
+    if (camera.target != null)
+    {
+      x -= camera.target.x;
+      y -= camera.target.y;
+    }
+
+    // Calculate angle if moving
+    if (lastPosition.distanceTo(FlxPoint.weak(viewPoint.x, viewPoint.y)) > 3)
+    {
+      var angle = FlxAngle.angleBetweenPoint(this, lastPosition, true);
+      this.angle = angle;
+      loadGraphic('assets/ui/cursor/mobile/kevin.png');
+    }
+    else
+    {
+      angle = 0;
+      loadGraphic('assets/ui/cursor/mobile/michael.png');
+    }
+
+    lastPosition.copyFrom(viewPoint);
+  }
+
+  override public function destroy():Void
+  {
+    viewPoint.put();
+    lastPosition.put();
+    super.destroy();
+  }
+
+  override public function loadGraphic(graphic:FlxGraphicAsset, animated = false, frameWidth = 0, frameHeight = 0, unique = false, ?key:String):FlxSprite
+  {
+    super.loadGraphic(graphic, animated, frameWidth, frameHeight, unique, key);
+    color = 0xFF6666E1;
+    blend = 'screen';
+    return this;
+  }
+}

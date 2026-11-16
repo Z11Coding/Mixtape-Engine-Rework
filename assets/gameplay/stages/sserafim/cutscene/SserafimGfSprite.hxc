@@ -1,0 +1,31 @@
+import funkin.graphics.FunkinSprite;
+
+// object used when gf gets up during the second half of the intro animation for SPAGHETTI
+class SserafimGfSprite extends FunkinSprite
+{
+  public function new(x:Float, y:Float)
+  {
+    super(x, y);
+
+    loadTextureAtlas('gameplay/stages/sserafim/cutscene/gf-get-up', null, {
+      cacheOnLoad: true
+    });
+    loadAnimations();
+  }
+
+  function loadAnimations():Void
+  {
+    animation.addByFrameLabel('static', 'static', 24, false);
+    animation.addByFrameLabel('getup', 'getup', 24, false);
+  }
+
+  function resetAnim():Void
+  {
+    this.animation.play('static', true);
+  }
+
+  function doAnim():Void
+  {
+    this.animation.play('getup', true);
+  }
+}
