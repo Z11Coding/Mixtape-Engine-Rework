@@ -40,3 +40,4 @@ package-lock.json
 # Cppia stuff
 sdk/
 export_classes.info
+assets/
