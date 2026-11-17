@@ -35,31 +35,38 @@ class Project extends HXProject
   static final VERSION:String = "0.8.7";
 
   /**
+   * The engine's version number, as a Semantic Versioning string with no prefix.
+   * REMEMBER TO CHANGE THIS WHEN THE ENGINE UPDATES!
+   * You only have to change it here, the rest of the game will query this value.
+   */
+  static final MVERSION:String = "5.0.0";
+
+  /**
    * The build's number and version code.
    * Used when publishing the game to mobile app stores. Should increment with each patch.
    */
-  static final BUILD_NUMBER:Int = 70;
+  static final BUILD_NUMBER:Int = 1;
 
   /**
    * The game's name. Used as the default window title.
    */
-  static final TITLE:String = "Friday Night Funkin'";
+  static final TITLE:String = "Mixtape Engine: Re-Mixed";
 
   /**
    * The game's name on mobile. Used as the title for the game on the home screen.
    */
-  static final TITLE_MOBILE:String = "FNF";
+  static final TITLE_MOBILE:String = "Mixtape: ReMixed";
 
   /**
    * A package name used for identifying the app on various app stores.
    */
-  static final PACKAGE_NAME:String = "me.funkin.fnf";
+  static final PACKAGE_NAME:String = "me.z11gaming.mixtape";
 
   /**
    * The name of the generated executable file.
-   * For example, `"Funkin"` will create a file called `Funkin.exe`.
+   * For example, `"Mixtape"` will create a file called `Mixtape.exe`.
    */
-  static final EXECUTABLE_NAME:String = "Funkin";
+  static final EXECUTABLE_NAME:String = "Mixtape";
 
   /**
    * The relative location of the source code.
@@ -87,7 +94,7 @@ class Project extends HXProject
    * The company name for the game.
    * This appears in metadata in places I think.
    */
-  static final COMPANY:String = "The Funkin' Crew";
+  static final COMPANY:String = "Mixtape Crew";
 
   /**
    * The app's localization languages.
@@ -184,6 +191,7 @@ class Project extends HXProject
 
   /**
    * The songs whose audio files should be embedded inside the executable.
+   * TODO: Add the secret and special songs here
    */
   static final EMBED_SONGS_AUDIO:Array<String> = ["spaghetti"];
 
