@@ -367,6 +367,7 @@ class Project extends HXProject
    * `-DFEATURE_HAPTICS`
    * If this flag is enabled, the game provide haptic feedback vibrations.
    * Works for mobile targets (Android and iOS).
+   * TODO: Make this also work for vibration-supported controllers
    */
   static final FEATURE_HAPTICS:FeatureFlag = "FEATURE_HAPTICS";
 
@@ -613,6 +614,201 @@ class Project extends HXProject
   static final FEATURE_DEBUG_DISPLAY:FeatureFlag = "FEATURE_DEBUG_DISPLAY";
 
   //
+  // MIXTAPE FLAGS
+  // Flags specific for mixtape engine and its various features.
+  //
+
+  /**
+   * `-DMODS_ALLOWED`
+   * If this flag is enabled, the game will enable all mod types in general.
+   * Useful for if you specifically want to disable mods as a whole
+   * Disabled on the web version
+   */
+  static final MODS_ALLOWED:FeatureFlag = "MODS_ALLOWED";
+
+  /**
+   * `-DHSCRIPT_ALLOWED`
+   * If this flag is enabled, the game will enable HScript, and allow the engine to read .hx and .hscript files (HAS NO EFFECT ON .hxc FILES!).
+   * Useful for if you specifically want to disable the alternate hscript file types
+   * Disabled on the web version
+   */
+  static final HSCRIPT_ALLOWED:FeatureFlag = "HSCRIPT_ALLOWED";
+
+  /**
+   * `-DhscriptPos`
+   * If this flag is enabled, the game will enable HScript, and allow the engine to read .hx and .hscript files (HAS NO EFFECT ON .hxc FILES!).
+   * Useful for if you specifically want to disable the alternate hscript file types
+   * Disabled on the web version
+   */
+  static final hscriptPos:FeatureFlag = "hscriptPos";
+
+  /**
+   * `-DLUA_ALLOWED`
+   * If this flag is enabled, the game will enable lua scripting, and allow the engine to read .lua files.
+   * Useful for if you specifically want to disable lua scripts
+   * Disabled on the web version
+   */
+  static final LUA_ALLOWED:FeatureFlag = "LUA_ALLOWED";
+
+  /**
+   * `-DPYTHON_ALLOWED`
+   * If this flag is enabled, the game will enable Python, and allow the engine to read .py files.
+   * Useful for if you specifically want to disable python scripts
+   * Disabled on the web version
+   */
+  static final PYTHON_ALLOWED:FeatureFlag = "PYTHON_ALLOWED";
+
+  /**
+   * `-DACHIEVEMENTS_ALLOWED`
+   * If this flag is enabled, it will enable the In-Game Achievements Menu.
+   * It has all the achievements from the base game, as well as some custom ones, and even modded achievement support (because it's based off the psych one lmao)
+   * Enabled by default
+   */
+  static final ACHIEVEMENTS_ALLOWED:FeatureFlag = "ACHIEVEMENTS_ALLOWED";
+
+  /**
+   * `-DTRANSLATIONS_ALLOWED`
+   * If this flag is enabled, it will enable the ability to have the game work in different languages.
+   * (CURRENTLY DOESN'T WORK!)
+   * Enabled by default
+   */
+  static final TRANSLATIONS_ALLOWED:FeatureFlag = "TRANSLATIONS_ALLOWED";
+
+  /**
+   * `-DIRIS_DEBUG`
+   * If this flag is enabled, HScript will be allowed to complain. Loudly.
+   * Enabled by default
+   */
+  static final IRIS_DEBUG:FeatureFlag = "IRIS_DEBUG";
+
+  /**
+   * `-DARCHIPELAGO_ALLOWED`
+   * If this flag is enabled, Archipelago will be enabled.
+   * Currently only for Desktop, but I will work on seeing how well I can get mobile to work as well
+   */
+  static final ARCHIPELAGO_ALLOWED:FeatureFlag = "ARCHIPELAGO_ALLOWED";
+
+  /**
+   * `-DMECHANICS_MOD_ALLOWED`
+   * If this flag is enabled, the Mechanics Mod will be enabled.
+   * This allows the engine to run challenge mechanics, and can even apply some during Archipelago if it's enabled
+   * forced on if Archipelago is on
+   */
+  static final MECHANICS_MOD_ALLOWED:FeatureFlag = "MECHANICS_MOD_ALLOWED";
+
+  /**
+   * `-DCHECK_FOR_UPDATES`
+   * If this flag is enabled, the engine will auto-check for updates when possible
+   * This allows the engine to update itself when one becomes available
+   */
+  static final CHECK_FOR_UPDATES:FeatureFlag = "CHECK_FOR_UPDATES";
+
+  /**
+   * `-DTITLE_SCREEN_EASTER_EGG`
+   * If this flag is enabled, the engine will do all the easter eggs hidden in the title screen
+   * This includes the psych engine easter eggs aswell
+   */
+  static final TITLE_SCREEN_EASTER_EGG:FeatureFlag = "TITLE_SCREEN_EASTER_EGG";
+
+  /**
+   * `-DMODCHARTS_NOTITG_ALLOWED`
+   * If this flag is enabled, the engine will use the WITF Modchart System, Curtisy of the WITF Engine (I highly recommend checking it out!)
+   * Enabled by default, because its sick
+   */
+  static final MODCHARTS_NOTITG_ALLOWED:FeatureFlag = "MODCHARTS_NOTITG_ALLOWED";
+
+  /**
+   * `-DPE_MOD_COMPATIBILITY`
+   * If this flag is enabled, the engine will enable its Psych Engine mod support system
+   * Enabled by default
+   */
+  static final PE_MOD_COMPATIBILITY:FeatureFlag = "PE_MOD_COMPATIBILITY";
+
+  /**
+   * `-DCODENAME_MOD_COMPATIBILITY`
+   * If this flag is enabled, the engine will enable its Codename Engine mod support system
+   * (CURRENTLY DOESN'T WORK!)
+   * Enabled by default
+   */
+  static final CODENAME_MOD_COMPATIBILITY:FeatureFlag = "CODENAME_MOD_COMPATIBILITY";
+
+  /**
+   * `-DOTHER_ENGINE_COMPATIBILITY`
+   * If this flag is enabled, the engine will enable its Alternitive Engine support system
+   * This is designed to allow most other engines (Psych Forks mainly, but maybe others in the future as well??) to work in this engine
+   * Current Support list: None lol
+   * (CURRENTLY DOESN'T WORK!)
+   * Enabled by default
+   */
+  static final OTHER_ENGINE_COMPATIBILITY:FeatureFlag = "OTHER_ENGINE_COMPATIBILITY";
+
+  /**
+   * `-DALLOW_DEPRECATION`
+   * If this flag is enabled, depricated callbacks will still be called
+   * Added for support
+   * Enabled by default
+   */
+  static final ALLOW_DEPRECATION:FeatureFlag = "ALLOW_DEPRECATION";
+
+  /**
+   * `-DPSYCH_WATERMARKS`
+   * If this flag is enabled, the psych credits will be added to the extended title screen, aswell as the Main Menu
+   * Enabled by default
+   */
+  static final PSYCH_WATERMARKS:FeatureFlag = "PSYCH_WATERMARKS";
+
+  /**
+   * `-DSCRIPTABLE_STATES`
+   * If this flag is enabled, states can be modified or even replaced by scripts of any kind (that are enabled)
+   * Enabled by default
+   */
+  static final SCRIPTABLE_STATES:FeatureFlag = "SCRIPTABLE_STATES";
+
+  /**
+   * `-DBUILD_MACRO_ENABLED`
+   * If this flag is enabled, the build macros will also be called
+   * BE WARNED! If this is disabled, ALOT will break, and the game may crash often, or even fail to compile in the first place
+   * Enabled by defualt
+   */
+  static final BUILD_MACRO_ENABLED:FeatureFlag = "BUILD_MACRO_ENABLED";
+
+  /**
+   * `-DYSCOMP_ENABLED`
+   * If this flag is enabled, the game will load YScript files (A scripting language made by Yutamon)
+   * It's still experimental, so use at your own risk!
+   * Also increaces compile time as well!
+   * Disabled by default, but can be flagged with "-D YSCOMP_ENABLED"
+   */
+  static final YSCOMP_ENABLED:FeatureFlag = "YSCOMP_ENABLED";
+  /**
+   * `-DYSCOMP_PRESERVE_ORIGINAL`
+   * If the original script file should be preserved.
+   * True by default
+   */
+  static final YSCOMP_PRESERVE_ORIGINAL:FeatureFlag = "YSCOMP_PRESERVE_ORIGINAL";
+
+  /**
+   * `-DYSCOMP_DEBUG_INFO`
+   * Enables the debug info for YScrips.
+   * True by default
+   */
+  static final YSCOMP_DEBUG_INFO:FeatureFlag = "YSCOMP_DEBUG_INFO";
+
+   /**
+   * `-Dx86_BUILD`
+   * If this flag is enabled, the game will assume its on a 32bit device.
+   * idk why you'd need this, but hey, why not
+   */
+  static final x86_BUILD:FeatureFlag = "x86_BUILD";
+
+  /**
+   * `-DUSING_MOONCHART`
+   * If this flag is enabled, the game will enable the ability to use charts from other engines.
+   * Enabled as long as one other engine interpreter is enabled
+   */
+  static final USING_MOONCHART:FeatureFlag = "USING_MOONCHART";
+
+  //
   // CONFIGURATION FUNCTIONS
   //
 
@@ -688,6 +884,9 @@ class Project extends HXProject
     {
       configureCppiaSdk();
     }
+
+    this.ndlls.push(new NDLL("systools", new Haxelib("systools")));
+
   }
 
   /**
@@ -816,8 +1015,12 @@ class Project extends HXProject
     this.window.hardware = true;
     this.window.vsync = false;
     this.window.depthBuffer = false;
+    this.window.context = "opengl"; // Yes
     // force / allow high DPI
     this.window.allowHighDPI = FEATURE_HIGH_DPI.isEnabled(this);
+    this.window.allowShaders = true;
+    this.window.requireShaders = true;
+
 
     if (isWeb())
     {
@@ -1113,6 +1316,32 @@ class Project extends HXProject
     // Desktop (Native and Web) always has it | Used for mobile debugging purposes
     FEATURE_DEBUG_DISPLAY.apply(this, !isMobile() || FEATURE_DEBUG_FUNCTIONS.isEnabled(this));
 
+    // Mixtape Stuff
+    MODS_ALLOWED.apply(this, !isWeb());
+    HSCRIPT_ALLOWED.apply(this, !isWeb() || MODS_ALLOWED.isEnabled(this));
+    LUA_ALLOWED.apply(this, !isWeb() || MODS_ALLOWED.isEnabled(this));
+    PYTHON_ALLOWED.apply(this, !isWeb() || MODS_ALLOWED.isEnabled(this));
+    ACHIEVEMENTS_ALLOWED.apply(this, true);
+    TRANSLATIONS_ALLOWED.apply(this, true);
+    IRIS_DEBUG.apply(this, HSCRIPT_ALLOWED.isEnabled(this));
+    ARCHIPELAGO_ALLOWED.apply(this, true);
+    if (ARCHIPELAGO_ALLOWED.isEnabled(this)) MECHANICS_MOD_ALLOWED.apply(this, true);
+    CHECK_FOR_UPDATES.apply(this, true);
+    TITLE_SCREEN_EASTER_EGG.apply(this, true);
+    MODCHARTS_NOTITG_ALLOWED.apply(this, LUA_ALLOWED.isEnabled(true) || HSCRIPT_ALLOWED.isEnabled(true)); // Needs at least one of these to work
+    PE_MOD_COMPATIBILITY.apply(this, true);
+    CODENAME_MOD_COMPATIBILITY.apply(this, true);
+    OTHER_ENGINE_COMPATIBILITY.apply(this, true);
+    ALLOW_DEPRECATION.apply(this, true);
+    PSYCH_WATERMARKS.apply(this, true);
+    SCRIPTABLE_STATES.apply(this, true);
+    BUILD_MACRO_ENABLED.apply(this, true);
+    YSCOMP_ENABLED.apply(this, HSCRIPT_ALLOWED.isEnabled(this) || LUA_ALLOWED.isEnabled(this) || PYTHON_ALLOWED.isEnabled(this));
+    YSCOMP_PRESERVE_ORIGINAL.apply(this, true);
+    YSCOMP_DEBUG_INFO.apply(this, true);
+    x86_BUILD.apply(this, is32Bit());
+    USING_MOONCHART.apply(this, true);
+
     if (isRun() || isInstall() || isUninstall())
     {
       // These commands dont really need much in order to run so to improve the speed, we return here.
@@ -1246,6 +1475,7 @@ class Project extends HXProject
 
     // Cleaner looking compiler errors.
     setHaxedef("message.reporting", "pretty");
+    setHaxedef("message.log-format", "pretty");
 
     if (FEATURE_DEBUG_TRACY.isEnabled(this))
     {
@@ -1268,6 +1498,37 @@ class Project extends HXProject
       // Disables the native JSON implemention for haxe.Json because scripts cant use it if its native
       setHaxedef("haxeJSON");
     }
+
+    // Things from Mixtape
+    setHaxedef("traceShaderLineNumbers");
+    if (FEATURE_DISCORD_RPC.isEnabled(this)) setHaxedef("DISCORD_DISABLE_IO_THREAD");
+    if (isLinux()) setHaxedef("NO_PRECOMPILED_HEADERS");
+    if (FEATURE_VIDEO_PLAYBACK.isEnabled(this) && isDebug()) setHaxedef("HXC_LIBVLC_LOGGING");
+    if (FEATURE_VIDEO_PLAYBACK.isEnabled(this)) setHaxedef("HXVLC_NO_SHARE_DIRECTORY");
+    setHaxedef("loop_unroll_max_cost", "25");
+    setHaxedef("HX_HAS_ATOMIC");
+    if (isWeb()) setHaxedef("no-inline");
+    if (!isDebug()) {
+      setHaxedef("analyzer-optimize");
+      setHaxedef("no-deprecation-warnings");
+    }
+    if (isDesktop()) {
+      if (readLibraryCurrentVersion("openfl") >= 9.4.0) {
+        setHaxedef("openfl_enable_handle_error");
+      } else {
+        if (isDebug()) unsetHaxedef("openfl_enable_handle_error");
+      }
+    }
+    if (isCPP()) {
+      setHaxedef("HXCPP_GC_BIG_BLOCKS");
+    }
+
+    if (HSCRIPT_ALLOWED.isEnabled(this)) {
+      setHaxedef("hscriptPos");
+      addHaxelib('hscriptPos');
+      hscriptPos.apply(this, true);
+      addHaxeMacro("include('funkin')");
+    }
   }
 
   /**
@@ -1278,6 +1539,14 @@ class Project extends HXProject
     // Disable dead code elimination.
     // This prevents functions that are unused by the base game from being unavailable to HScript.
     addHaxeFlag("-dce no");
+
+    if (BUILD_MACRO_ENABLED.isEnabled(this)) {
+      addHaxeMacro("yutautil.typeregistry.GlobalTypeMacro.applySelective()");
+    }
+
+    if (YSCOMP_ENABLED.isEnabled(this)) {
+      addHaxeMacro("yutautil.YSComp.initialize()");
+    }
 
     // Forcibly include all Funkin' classes in builds.
     // This prevents classes that are unused by the base game from being unavailable to HScript.
@@ -1340,6 +1609,20 @@ class Project extends HXProject
     addHaxeMacro(
       "include('flixel', true, [ 'flixel.addons.editors.spine.*', 'flixel.addons.nape.*', 'flixel.system.macros.*', 'flixel.addons.tile.FlxRayCastTilemap' ])"
     );
+
+    // Mixtape Stuff
+    addHaxeMacro("allowPackage('flash')");
+    addHaxeMacro("include('my.pack')");
+    addHaxeMacro("include('animate')");
+    // TODO: Add YutaUtil
+    //addHaxeMacro("yutautil.RuntimeTypedef.processTypedef()");
+    //addHaxeMacro("yutautil.VoidFall.randomFailure()");
+
+    // TODO: Add P-Slice Stuff
+    //addHaxeMacro("addMetadata('@:build(backend.macro.pslice.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')");
+
+    //addHaxeResource("assets/embed/apworld/fridaynightfunkin.apworld@apworld");
+    //addHaxeResource("example_mods/modTemplate.zip@modTemp");
   }
 
   /**
@@ -1652,6 +1935,38 @@ class Project extends HXProject
     {
       addHaxelib('extension-agesignals'); // WebView Extension
     }
+
+    // Mixtape Engine Stuff
+    addHaxelib('tjson');
+    addHaxelib('hxnoise');
+    addHaxelib('moonchart-prism');
+    addHaxelib('flxsoundfilters');
+    addHaxelib('faxe');
+
+    if (LUA_ALLOWED.isEnabled(this))
+    {
+      addHaxelib('linc_luajit'); // For Lua scripting
+    }
+
+    if (HSCRIPT_ALLOWED.isEnabled(this))
+    {
+      addHaxelib('hscript-iris'); // For Psych HScripting scripting
+    }
+
+    if (PYTHON_ALLOWED.isEnabled(this))
+    {
+      addHaxelib('hxpy'); // For Psych HScripting scripting
+    }
+
+    // Archipelago Stuff
+    addHaxelib('helder.set');
+    addHaxelib('yaml');
+    addHaxelib('hxWebSockets');
+    addHaxelib('haxe-concurrent');
+    addHaxelib('actuate');
+    addHaxelib('tentools');
+    addHaxelib('systools');
+    addHaxelib('deflatex');
   }
 
   function configureAssets()
@@ -2065,6 +2380,14 @@ class Project extends HXProject
   public function addHaxeMacro(value:String):Void
   {
     addHaxeFlag('--macro ${value}');
+  }
+
+  /**
+   * Call a Haxe build resource.
+   */
+  public function addHaxeResource(value:String):Void
+  {
+    addHaxeFlag('--resource ${value}');
   }
 
   /**
