@@ -84,7 +84,9 @@ class ThrobberLoadingState extends LoadingState
     this.throbberParams = throbberParams;
 
     throbberCamera = new FunkinCamera('throbberLoading');
-    throbberCamera.bgColor = this.bgColor;
+    @:nullSafety(Off) {
+      throbberCamera.bgColor = this.bgColor;
+    }
     throbber = new FunkinSprite().loadTexture(Paths.image('ui/loading/throbber').toFlxGraphicAsset());
 
   }

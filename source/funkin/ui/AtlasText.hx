@@ -164,6 +164,7 @@ class AtlasText extends FlxTypedSpriteGroup<AtlasChar>
           var charSprite:AtlasChar;
           if (group.members.length <= charCount)
           {
+            @:nullSafety(Off)
             charSprite = new AtlasChar(atlas, char);
           }
           else
@@ -200,6 +201,7 @@ class AtlasText extends FlxTypedSpriteGroup<AtlasChar>
         case '\n':
           // no width for newline character
         case char:
+          @:nullSafety(Off)
           var sprite = new AtlasChar(atlas, char);
           sprite.revive();
           sprite.char = char;

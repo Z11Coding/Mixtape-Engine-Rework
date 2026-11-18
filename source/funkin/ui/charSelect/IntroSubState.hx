@@ -96,6 +96,7 @@ class IntroSubState extends MusicBeatSubState
       {
         vid?.setGraphicSize(FlxG.initialWidth, FlxG.initialHeight);
         vid?.updateHitbox();
+        @:nullSafety(Off)
         vid.screenCenter();
       });
 

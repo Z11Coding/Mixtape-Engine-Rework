@@ -12,7 +12,6 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import flixel.util.typeLimit.NextState;
-import funkin.api.newgrounds.Referral;
 import funkin.assets.FunkinAssetCache;
 import funkin.audio.FunkinSound;
 import funkin.graphics.FunkinCamera;
@@ -38,9 +37,6 @@ import funkin.ui.transition.Transition;
 import funkin.ui.transition.Transition.FlxTransition;
 #if FEATURE_DISCORD_RPC
 import funkin.api.discord.DiscordClient;
-#end
-#if FEATURE_NEWGROUNDS
-import funkin.api.newgrounds.NewgroundsClient;
 #end
 #if mobile
 import funkin.touch.input.ControlsHandler;
@@ -222,29 +218,6 @@ class MainMenuState extends MusicBeatState
       });
     });
 
-    if (hasUpgraded)
-    {
-      #if FEATURE_OPEN_URL
-      // In order to prevent popup blockers from triggering,
-      // we need to open the link as an immediate result of a keypress event,
-      // so we can't wait for the flicker animation to complete.
-      var hasPopupBlocker = #if web true #else false #end;
-      createMenuItem('merch', 'ui/main-menu/items/merch', selectMerch, hasPopupBlocker);
-      #end
-    }
-    else
-    {
-      add(upgradeSparkles);
-
-      createMenuItem('upgrade', 'ui/main-menu/items/upgrade', function()
-      {
-        #if FEATURE_MOBILE_IAP
-        InAppPurchasesUtil.purchase(InAppPurchasesUtil.UPGRADE_PRODUCT_ID, FlxG.resetState);
-        uiStateMachine.transition(Idle);
-        #end
-      });
-    }
-
     if (#if mobile ControlsHandler.usingExternalInputDevice #else true #end)
     {
       createMenuItem('options', 'ui/main-menu/items/options', goOptions);
@@ -368,13 +341,6 @@ class MainMenuState extends MusicBeatState
 
     leftWatermarkText.text = '${Constants.VERSION} Preview #4';
 
-    #if FEATURE_NEWGROUNDS
-    if (NewgroundsClient.instance.isLoggedIn())
-    {
-      leftWatermarkText.text += ' | Newgrounds: Logged in as ${NewgroundsClient.instance.user?.name}';
-    }
-    #end
-
     if (rightWatermarkText == null) return;
 
     rightWatermarkText.text += 'Public Playtest Build (v0.9 Feature Preview #4)';
@@ -458,23 +424,6 @@ class MainMenuState extends MusicBeatState
       selected.getGraphicMidpoint().y
     );
   }
-
-  #if FEATURE_OPEN_URL
-  function selectDonate()
-  {
-    WindowUtil.openURL(Constants.URL_ITCH);
-    #if FEATURE_DEBUG_MENU
-    if (QuickPanelState.instance != null) QuickPanelState.instance.allowOpen = true;
-    #end
-  }
-
-  function selectMerch()
-  {
-    Referral.doMerchReferral();
-    uiStateMachine.transition(Idle);
-    #if FEATURE_DEBUG_MENU if (QuickPanelState.instance != null) QuickPanelState.instance.allowOpen = true; #end
-  }
-  #end
 
   public function openPrompt(prompt:Prompt, onClose:Void->Void):Void
   {

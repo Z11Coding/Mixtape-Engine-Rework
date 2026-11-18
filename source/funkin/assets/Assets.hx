@@ -1111,11 +1111,6 @@ class Assets implements ConsoleClass
     // Keep the cursor assets cached persistently, since they could be used at any time.
     results.appendUnique(funkin.input.Cursor.queryAssets(type));
 
-    #if FEATURE_NEWGROUNDS
-    // Keep the medal popup assets cached persistently, since it could show up at any time.
-    results.appendUnique(funkin.api.newgrounds.Medals.queryAssets(type));
-    #end
-
     // Keep transition assets cached persistently, since we don't want to require a loading screen FOR a loading screen.
     results.appendUnique(funkin.ui.transition.Transition.queryAssets(type));
 

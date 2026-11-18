@@ -44,9 +44,6 @@ import funkin.ui.debug.playtest.ChartPlaytestMenu;
 #if FEATURE_DISCORD_RPC
 import funkin.api.discord.DiscordClient;
 #end
-#if FEATURE_NEWGROUNDS
-import funkin.api.newgrounds.NewgroundsClient;
-#end
 
 /**
  * A core class which performs initialization of the game.
@@ -196,13 +193,6 @@ class InitState extends FlxState
       #end
 
       //
-      // NEWGROUNDS API SETUP
-      //
-      #if FEATURE_NEWGROUNDS
-      NewgroundsClient.instance.init();
-      #end
-
-      //
       // DISCORD API SETUP
       //
       #if FEATURE_DISCORD_RPC
@@ -240,9 +230,6 @@ class InitState extends FlxState
       #end
       #if FEATURE_SCREENSHOTS
       funkin.util.plugins.ScreenshotPlugin.initialize();
-      #end
-      #if FEATURE_NEWGROUNDS
-      funkin.util.plugins.NewgroundsMedalPlugin.initialize();
       #end
       funkin.util.plugins.EvacuateDebugPlugin.initialize();
       funkin.util.plugins.ForceCrashPlugin.initialize();

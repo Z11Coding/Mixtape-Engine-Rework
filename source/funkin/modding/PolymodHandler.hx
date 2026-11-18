@@ -479,20 +479,6 @@ class PolymodHandler
     // `funkin.util.FileUtil` has unrestricted access to the file system.
     Polymod.addImportAlias('funkin.util.FileUtil', funkin.util.FileUtilSandboxed);
 
-    #if FEATURE_NEWGROUNDS
-    // `funkin.api.newgrounds.Leaderboards` allows for submitting cheated scores.
-    // We still grant read-only access.
-    Polymod.addImportAlias('funkin.api.newgrounds.Leaderboards', funkin.api.newgrounds.Leaderboards.LeaderboardsSandboxed);
-
-    // `funkin.api.newgrounds.Medals` allows for unfair granting of medals.
-    // We still grant read-only access.
-    Polymod.addImportAlias('funkin.api.newgrounds.Medals', funkin.api.newgrounds.Medals.MedalsSandboxed);
-
-    // `funkin.api.newgrounds.NewgroundsClientSandboxed` allows for submitting cheated data.
-    // We still grant read-only access.
-    Polymod.addImportAlias('funkin.api.newgrounds.NewgroundsClient', funkin.api.newgrounds.NewgroundsClient.NewgroundsClientSandboxed);
-    #end
-
     Polymod.addImportAlias('funkin.api.discord.DiscordClient', funkin.api.discord.DiscordClient.DiscordClientSandboxed);
 
     // Add blacklisting for prohibited classes and packages.
@@ -645,15 +631,6 @@ class PolymodHandler
       Polymod.blacklistImport(className);
     }
 
-    // `io.newgrounds.*`
-    // Contains functions which allow for cheating medals and leaderboards.
-    for (cls in ClassMacro.listClassesInPackage('io.newgrounds'))
-    {
-      if (cls == null) continue;
-      var className:String = Type.getClassName(cls);
-      Polymod.blacklistImport(className);
-    }
-
     // `sys.*`
     // Access to system utilities such as the file system.
     for (cls in ClassMacro.listClassesInPackage('sys'))
@@ -664,7 +641,7 @@ class PolymodHandler
     }
 
     // `funkin.util.macro.*`
-    // CompiledClassList's get function allows access to sys and Newgrounds classes
+    // CompiledClassList's get function allows access to sys classes
     // None of the classes are suitable for mods anyway
     for (cls in ClassMacro.listClassesInPackage('funkin.util.macro'))
     {

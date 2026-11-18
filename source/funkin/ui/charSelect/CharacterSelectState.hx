@@ -23,9 +23,6 @@ import funkin.ui.freeplay.charselect.PlayableCharacter;
 import funkin.util.HapticUtil;
 import openfl.display.BlendMode;
 import openfl.filters.ShaderFilter;
-#if FEATURE_NEWGROUNDS
-import funkin.api.newgrounds.Medals;
-#end
 #if FEATURE_TOUCH_CONTROLS
 import flixel.math.FlxMath;
 import flixel.util.FlxColor;
@@ -759,9 +756,9 @@ class CharacterSelectState extends MusicBeatSubState
     }
     else
     {
-      #if FEATURE_NEWGROUNDS
+      #if ACHIEVEMENTS_ALLOWED
       // Make the character unlock medal retroactive.
-      if (availableChars.size() > 1) Medals.award(CharSelect);
+      // if (availableChars.size() > 1) Medals.award(CharSelect);
       #end
 
       playMenuMusic();
@@ -821,9 +818,9 @@ class CharacterSelectState extends MusicBeatSubState
               icons.updateIconPositions();
               icons.playIconBop(characterId);
 
-              #if FEATURE_NEWGROUNDS
+              #if ACHIEVEMENTS_ALLOWED
               // Grant the medal when the player unlocks a character.
-              Medals.award(CharSelect);
+              // Medals.award(CharSelect);
               #end
 
               Save.instance.addCharacterSeen(characterId);

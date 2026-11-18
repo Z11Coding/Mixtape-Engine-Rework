@@ -4,6 +4,7 @@ import funkin.data.IRegistryEntry;
 import funkin.data.freeplay.player.PlayerData;
 import funkin.data.freeplay.player.PlayerRegistry;
 import funkin.play.scoring.Scoring.ScoringRank;
+import funkin.data.freeplay.player.PlayerRegistry.PlayerEntryParams;
 //
 // ~PATHS~
 //

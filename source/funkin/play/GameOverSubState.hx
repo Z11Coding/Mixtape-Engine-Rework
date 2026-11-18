@@ -527,6 +527,7 @@ class GameOverSubState extends MusicBeatSubState
     }
 
     // Stop playing the music.
+    @:nullSafety(Off)
     gameOverMusic.stop();
 
     // Snap reset the camera which may have changed because of the player character data.

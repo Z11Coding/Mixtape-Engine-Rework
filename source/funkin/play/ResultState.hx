@@ -49,9 +49,6 @@ import funkin.ui.transition.Transition.TransitionType;
 import funkin.ui.transition.Transition;
 import funkin.util.DeviceUtil;
 import funkin.util.HapticUtil;
-#if FEATURE_NEWGROUNDS
-import funkin.api.newgrounds.Medals;
-#end
 #if FEATURE_TOUCH_CONTROLS
 import funkin.util.TouchUtil;
 #if FEATURE_MOBILE_ADVERTISEMENTS
@@ -224,7 +221,7 @@ class ResultState extends MusicBeatSubState
         for (animData in playerAnimationDatas)
         {
           if (animData?.assetPath == null) continue;
-          
+
           switch (animData.renderType)
           {
             case 'animateatlas':
@@ -780,10 +777,10 @@ class ResultState extends MusicBeatSubState
         // Just to be sure that the lerp didn't mess things up.
         clearPercentCounter.curNumber = clearPercentTarget;
 
-        #if FEATURE_NEWGROUNDS
+        #if ACHIEVEMENTS_ALLOWED
         var isScoreValid = !(params?.isPracticeMode ?? false) && !(params?.isBotPlayMode ?? false);
         // This is the easiest spot to do the medal calculation lol.
-        if (isScoreValid && clearPercentTarget == 69) Medals.award(Nice);
+        // if (isScoreValid && clearPercentTarget == 69) Medals.award(Nice);
         #end
 
         clearPercentCounter.flash(true);

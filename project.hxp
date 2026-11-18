@@ -434,7 +434,7 @@ class Project extends HXProject
 
   /**
    * `-DFEATURE_MOBILE_WEBVIEW`
-   * If this feature flag is enabled, the game will be able to load WebViews, mainly needed for the Newgrounds impl.
+   * If this feature flag is enabled, the game will be able to load WebViews.
    */
   static final FEATURE_MOBILE_WEBVIEW:FeatureFlag = "FEATURE_MOBILE_WEBVIEW";
 
@@ -457,40 +457,6 @@ class Project extends HXProject
    * scheme.
    */
   static final FEATURE_ONE_CLICK_INSTALL:FeatureFlag = "FEATURE_ONE_CLICK_INSTALL";
-
-  /**
-   * `-DFEATURE_NEWGROUNDS`
-   * If this flag is enabled, the game will enable the Newgrounds library.
-   * This is used to provide Medal and Leaderboard support.
-   */
-  static final FEATURE_NEWGROUNDS:FeatureFlag = "FEATURE_NEWGROUNDS";
-
-  /**
-   * `-DFEATURE_NEWGROUNDS_AUTOLOGIN`
-   * If this flag is enabled, the game will attempt to automatically login to Newgrounds on startup.
-   */
-  static final FEATURE_NEWGROUNDS_AUTOLOGIN:FeatureFlag = "FEATURE_NEWGROUNDS_AUTOLOGIN";
-
-  /**
-   * `-DFEATURE_NEWGROUNDS_DEBUG`
-   * If this flag is enabled, the game will enable Newgrounds.io's debug functions.
-   * This provides additional information in requests, as well as "faking" medal and leaderboard submissions.
-   */
-  static final FEATURE_NEWGROUNDS_DEBUG:FeatureFlag = "FEATURE_NEWGROUNDS_DEBUG";
-
-  /**
-   * `-DFEATURE_NEWGROUNDS_EVENTS`
-   * If this flag is enabled, the game will attempt to send events to Newgrounds when the user does stuff.
-   * This lets us see cool anonymized stats! It only works if the user is logged in.
-   */
-  static final FEATURE_NEWGROUNDS_EVENTS:FeatureFlag = "FEATURE_NEWGROUNDS_EVENTS";
-
-  /**
-   * `-DFEATURE_NEWGROUNDS_TESTING_MEDALS`
-   * If this flag is enabled, use the medal IDs from the debug test bench.
-   * If disabled, use the actual medal IDs from the release project on Newgrounds.
-   */
-  static final FEATURE_NEWGROUNDS_TESTING_MEDALS:FeatureFlag = "FEATURE_NEWGROUNDS_TESTING_MEDALS";
 
   /**
    * `-DFEATURE_OPEN_URL`
@@ -633,14 +599,6 @@ class Project extends HXProject
    * Disabled on the web version
    */
   static final HSCRIPT_ALLOWED:FeatureFlag = "HSCRIPT_ALLOWED";
-
-  /**
-   * `-DhscriptPos`
-   * If this flag is enabled, the game will enable HScript, and allow the engine to read .hx and .hscript files (HAS NO EFFECT ON .hxc FILES!).
-   * Useful for if you specifically want to disable the alternate hscript file types
-   * Disabled on the web version
-   */
-  static final hscriptPos:FeatureFlag = "hscriptPos";
 
   /**
    * `-DLUA_ALLOWED`
@@ -962,6 +920,7 @@ class Project extends HXProject
   {
     // TODO: Implement this.
     info("Friday Night Funkin' - " + VERSION);
+    info("Mixtape Engine - " + MVERSION);
     info("Initializing build...");
 
     info("Git Branch:     " + getGitBranch());
@@ -1015,7 +974,7 @@ class Project extends HXProject
     this.window.hardware = true;
     this.window.vsync = false;
     this.window.depthBuffer = false;
-    this.window.context = "opengl"; // Yes
+    //this.window.context = "opengl"; // Yes
     // force / allow high DPI
     this.window.allowHighDPI = FEATURE_HIGH_DPI.isEnabled(this);
     this.window.allowShaders = true;
@@ -1193,7 +1152,7 @@ class Project extends HXProject
 
     // Should be true unless explicitly requested.
     // Disable this once we rework the unlock progression system.
-    UNLOCK_EVERYTHING.apply(this, true);
+    UNLOCK_EVERYTHING.apply(this, isRelease());
 
     // Should be true only on web builds.
     // Enabling embedding and preloading is required to preload assets properly.
@@ -1230,7 +1189,7 @@ class Project extends HXProject
     FEATURE_VIDEO_SUBTITLES.apply(this, FEATURE_VIDEO_PLAYBACK.isEnabled(this) && !isWeb());
 
     // Should be true on debug builds or if GITHUB_BUILD is enabled.
-    FEATURE_DEBUG_FUNCTIONS.apply(this, isDebug() || GITHUB_BUILD.isEnabled(this));
+    FEATURE_DEBUG_FUNCTIONS.apply(this, true);
     FEATURE_RESULTS_DEBUG.apply(this, isDebug() || GITHUB_BUILD.isEnabled(this));
 
     // Should be true on desktop, non-tester builds.
@@ -1238,13 +1197,6 @@ class Project extends HXProject
     FEATURE_DISCORD_RPC.apply(this, isDesktop() && !FEATURE_DEBUG_FUNCTIONS.isEnabled(this));
 
     FEATURE_LOST_FOCUS_VOLUME.apply(this, isDesktop());
-
-    // Newgrounds features
-    FEATURE_NEWGROUNDS.apply(this, true);
-    FEATURE_NEWGROUNDS_DEBUG.apply(this, false);
-    FEATURE_NEWGROUNDS_TESTING_MEDALS.apply(this, FEATURE_NEWGROUNDS.isEnabled(this) && FEATURE_DEBUG_FUNCTIONS.isEnabled(this));
-    FEATURE_NEWGROUNDS_AUTOLOGIN.apply(this, FEATURE_NEWGROUNDS.isEnabled(this) && isWeb());
-    FEATURE_NEWGROUNDS_EVENTS.apply(this, FEATURE_NEWGROUNDS.isEnabled(this));
 
     // Should be true only on desktop builds.
     // Debug editors aren't built to work on web or mobile right now.
@@ -1280,7 +1232,7 @@ class Project extends HXProject
 
     // The audio context issues which require the user to click before playing
     // only exist on web builds.
-    FEATURE_TOUCH_HERE_TO_PLAY.apply(this, isWeb());
+    FEATURE_TOUCH_HERE_TO_PLAY.apply(this, true);
 
     // Should be true only on mobile builds.
     FEATURE_HAPTICS.apply(this, isMobile());
@@ -1290,7 +1242,7 @@ class Project extends HXProject
     FEATURE_MOBILE_ADVERTISEMENTS.apply(this, (isMobile() && isRelease()) && envConfig != null);
     FEATURE_MOBILE_IAP.apply(this, (isMobile() && isRelease()) && envConfig != null);
     FEATURE_MOBILE_IAR.apply(this, isMobile() && isRelease());
-    FEATURE_MOBILE_WEBVIEW.apply(this, isMobile() && FEATURE_NEWGROUNDS.isEnabled(this));
+    FEATURE_MOBILE_WEBVIEW.apply(this, isMobile());
     FEATURE_MOBILE_AGESIGNALS.apply(this, isMobile() && isRelease());
 
     // Should be true for everything expect on mac since it reduces performance by alot.
@@ -1305,7 +1257,7 @@ class Project extends HXProject
     // The coveted ghost tapping feature.
     // Essential on mobile but delayed on desktop.
     // Please send targeted harassment to PhantomArcade about this.
-    FEATURE_GHOST_TAPPING.apply(this, isMobile());
+    FEATURE_GHOST_TAPPING.apply(this, true);
 
     // Enable ASTC Compressed textures for mobile.
     // Since mobile is pretty memory safe (I'm looking at you Apple...) we need them BADLY to have the game run properly.
@@ -1328,7 +1280,7 @@ class Project extends HXProject
     if (ARCHIPELAGO_ALLOWED.isEnabled(this)) MECHANICS_MOD_ALLOWED.apply(this, true);
     CHECK_FOR_UPDATES.apply(this, true);
     TITLE_SCREEN_EASTER_EGG.apply(this, true);
-    MODCHARTS_NOTITG_ALLOWED.apply(this, LUA_ALLOWED.isEnabled(true) || HSCRIPT_ALLOWED.isEnabled(true)); // Needs at least one of these to work
+    MODCHARTS_NOTITG_ALLOWED.apply(this, LUA_ALLOWED.isEnabled(this) || HSCRIPT_ALLOWED.isEnabled(this)); // Needs at least one of these to work
     PE_MOD_COMPATIBILITY.apply(this, true);
     CODENAME_MOD_COMPATIBILITY.apply(this, true);
     OTHER_ENGINE_COMPATIBILITY.apply(this, true);
@@ -1336,9 +1288,9 @@ class Project extends HXProject
     PSYCH_WATERMARKS.apply(this, true);
     SCRIPTABLE_STATES.apply(this, true);
     BUILD_MACRO_ENABLED.apply(this, true);
-    YSCOMP_ENABLED.apply(this, HSCRIPT_ALLOWED.isEnabled(this) || LUA_ALLOWED.isEnabled(this) || PYTHON_ALLOWED.isEnabled(this));
-    YSCOMP_PRESERVE_ORIGINAL.apply(this, true);
-    YSCOMP_DEBUG_INFO.apply(this, true);
+    YSCOMP_ENABLED.apply(this, !(HSCRIPT_ALLOWED.isEnabled(this) || LUA_ALLOWED.isEnabled(this) || PYTHON_ALLOWED.isEnabled(this)));
+    YSCOMP_PRESERVE_ORIGINAL.apply(this, YSCOMP_ENABLED.isEnabled(this));
+    YSCOMP_DEBUG_INFO.apply(this, YSCOMP_ENABLED.isEnabled(this));
     x86_BUILD.apply(this, is32Bit());
     USING_MOONCHART.apply(this, true);
 
@@ -1513,7 +1465,7 @@ class Project extends HXProject
       setHaxedef("no-deprecation-warnings");
     }
     if (isDesktop()) {
-      if (readLibraryCurrentVersion("openfl") >= 9.4.0) {
+      if (readLibraryCurrentVersion("openfl") >= "9.4.0") {
         setHaxedef("openfl_enable_handle_error");
       } else {
         if (isDebug()) unsetHaxedef("openfl_enable_handle_error");
@@ -1524,9 +1476,6 @@ class Project extends HXProject
     }
 
     if (HSCRIPT_ALLOWED.isEnabled(this)) {
-      setHaxedef("hscriptPos");
-      addHaxelib('hscriptPos');
-      hscriptPos.apply(this, true);
       addHaxeMacro("include('funkin')");
     }
   }
@@ -1541,7 +1490,7 @@ class Project extends HXProject
     addHaxeFlag("-dce no");
 
     if (BUILD_MACRO_ENABLED.isEnabled(this)) {
-      addHaxeMacro("yutautil.typeregistry.GlobalTypeMacro.applySelective()");
+      //addHaxeMacro("yutautil.typeregistry.GlobalTypeMacro.applySelective()");
     }
 
     if (YSCOMP_ENABLED.isEnabled(this)) {
@@ -1891,11 +1840,6 @@ class Project extends HXProject
       addHaxelib('haxe-concurrent'); // Multithreading
     }
 
-    if (FEATURE_NEWGROUNDS.isEnabled(this))
-    {
-      addHaxelib('newgrounds'); // Newgrounds API
-    }
-
     if (FEATURE_FUNKVIS.isEnabled(this))
     {
       addHaxelib('funkin.vis'); // Audio visualization
@@ -1962,7 +1906,6 @@ class Project extends HXProject
     addHaxelib('helder.set');
     addHaxelib('yaml');
     addHaxelib('hxWebSockets');
-    addHaxelib('haxe-concurrent');
     addHaxelib('actuate');
     addHaxelib('tentools');
     addHaxelib('systools');

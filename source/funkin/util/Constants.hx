@@ -66,25 +66,9 @@ class Constants
   // ==============================
 
   /**
-   * Link to buy merch for the game.
-   * This is usually fetched from the Newgrounds API but we use this as a fallback.
-   */
-  public static final URL_MERCH_FALLBACK:String = 'https://needlejuicerecords.com/en-ca/pages/friday-night-funkin';
-
-  /**
    * Link to download the game on Itch.io.
    */
-  public static final URL_ITCH:String = 'https://ninja-muffin24.itch.io/funkin';
-
-  /**
-   * Link to play the game on Newgrounds.
-   */
-  public static final URL_NEWGROUNDS:String = 'https://www.newgrounds.com/portal/view/770371';
-
-  /**
-   * Link to the game's page on Kickstarter.
-   */
-  public static final URL_KICKSTARTER:String = 'https://www.kickstarter.com/projects/funkin/friday-night-funkin-the-full-ass-game/';
+  public static final URL_GITHUB:String = 'https://ninja-muffin24.itch.io/funkin';
 
   /**
    * ONE-CLICK MOD INSTALL DATA
@@ -121,12 +105,7 @@ class Constants
   /**
    * Maps the plural path segment in a GameBanana profile URL onto the API's model name.
    */
-  public static final ONE_CLICK_MODELS:Map<String, String> = [
-    'mods' => 'Mod',
-    'tools' => 'Tool',
-    'sounds' => 'Sound',
-    'wips' => 'Wip'
-  ];
+  public static final ONE_CLICK_MODELS:Map<String, String> = ['mods' => 'Mod', 'tools' => 'Tool', 'sounds' => 'Sound', 'wips' => 'Wip'];
 
   /**
    * The GameBanana category that holds mod folders for the base game.

@@ -76,8 +76,6 @@ class SaveDataMigrator
     result.volume.value = inputSaveData.volume;
     result.mute.value = inputSaveData.mute;
 
-    result.ngSessionId.value = inputSaveData.sessionId;
-
     // TODO: Port over the save data from the legacy save data format.
     migrateLegacyScores(result, inputSaveData);
 
@@ -86,7 +84,8 @@ class SaveDataMigrator
     return result;
   }
 
-  static function migrateLegacyScores(result:Save, inputSaveData:RawSaveData_v1_0_0):Void
+  static function migrateLegacyScores(result:Save,
+    inputSaveData:RawSaveData_v1_0_0):Void
   {
     if (inputSaveData.songCompletion == null)
     {
@@ -138,7 +137,9 @@ class SaveDataMigrator
     migrateLegacySongScore(result, inputSaveData, ['stress', 'Stress']);
   }
 
-  static function migrateLegacyLevelScore(result:Save, inputSaveData:RawSaveData_v1_0_0, levelId:String):Void
+  static function migrateLegacyLevelScore(result:Save,
+    inputSaveData:RawSaveData_v1_0_0,
+    levelId:String):Void
   {
     var scoreDataEasy:SaveScoreData = {
       score: inputSaveData.songScores.get('${levelId}-easy') ?? 0,
@@ -192,7 +193,9 @@ class SaveDataMigrator
     result.setLevelScore(levelId, 'hard', scoreDataHard);
   }
 
-  static function migrateLegacySongScore(result:Save, inputSaveData:RawSaveData_v1_0_0, songIds:Array<String>):Void
+  static function migrateLegacySongScore(result:Save,
+    inputSaveData:RawSaveData_v1_0_0,
+    songIds:Array<String>):Void
   {
     var scoreDataEasy:SaveScoreData = {
       score: 0,
@@ -261,7 +264,8 @@ class SaveDataMigrator
     result.setSongScore(songIds[0], 'hard', scoreDataHard);
   }
 
-  static function migrateLegacyControls(result:Save, inputSaveData:RawSaveData_v1_0_0):Void
+  static function migrateLegacyControls(result:Save,
+    inputSaveData:RawSaveData_v1_0_0):Void
   {
     var p1Data = inputSaveData?.controls?.p1;
     if (p1Data != null)
@@ -276,7 +280,9 @@ class SaveDataMigrator
     }
   }
 
-  static function migrateLegacyPlayerControls(result:Save, playerId:Int, controlsData:SavePlayerControlsData_v1_0_0):Void
+  static function migrateLegacyPlayerControls(result:Save,
+    playerId:Int,
+    controlsData:SavePlayerControlsData_v1_0_0):Void
   {
     var outputKeyControls:SaveControlsData = {
       ACCEPT: controlsData?.keys?.ACCEPT ?? null,

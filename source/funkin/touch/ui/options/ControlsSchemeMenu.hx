@@ -27,6 +27,7 @@ import funkin.audio.FunkinSound;
  */
 class ControlsSchemeMenu extends MusicBeatSubState
 {
+  #if FEATURE_TOUCH_CONTROLS
   /**
    * Text that displays current scheme's name.
    */
@@ -335,7 +336,6 @@ class ControlsSchemeMenu extends MusicBeatSubState
     });
   }
 
-  #if FEATURE_TOUCH_CONTROLS
   /**
    * Handles touch dragging.
    */

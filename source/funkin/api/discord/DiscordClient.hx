@@ -113,7 +113,7 @@ class DiscordClient
     presence.type = DiscordActivityType_Playing;
 
     // Text when hovering over the large image. We just leave this as the game name.
-    presence.largeImageText = "Friday Night Funkin'";
+    presence.largeImageText = "Mixtape Engine: Re-Mixed";
 
     // State should be generally what the person is doing, like "In the Menus" or "Pico (Pico Mix) [Freeplay Hard]"
     presence.state = cast(params.state, Null<String>) ?? "";
@@ -138,15 +138,10 @@ class DiscordClient
     // presence.startTimestamp = time - 10;
     // presence.endTimestamp = time + 30;
 
-    final button1:DiscordButton = new DiscordButton();
-    button1.label = "Play on Web";
-    button1.url = Constants.URL_NEWGROUNDS;
-    presence.buttons[0] = button1;
-
     final button2:DiscordButton = new DiscordButton();
     button2.label = "Download";
-    button2.url = Constants.URL_ITCH;
-    presence.buttons[1] = button2;
+    button2.url = Constants.URL_GITHUB;
+    presence.buttons[0] = button2;
 
     Discord.UpdatePresence(cpp.RawConstPointer.addressOf(presence));
   }

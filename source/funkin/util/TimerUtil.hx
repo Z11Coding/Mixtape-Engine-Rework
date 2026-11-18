@@ -51,13 +51,16 @@ class Sequence
       return Reflect.compare(a.time, b.time);
     });
 
+    @:nullSafety(Off)
     timer.start(currentEvent.time * multiplier, _ ->
     {
+      @:nullSafety(Off)
       currentEvent.callback();
       eventCount++;
 
       if (!completed)
       {
+        @:nullSafety(Off)
         timer.reset((currentEvent.time - this.events[eventCount - 1].time) * multiplier);
       }
       else if (this.autoDestroy)
@@ -141,6 +144,7 @@ class Sequence
       return;
     }
     eventCount = 0;
+    @:nullSafety(Off)
     timer.reset(currentEvent.time * multiplier);
   }
 

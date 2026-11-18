@@ -201,6 +201,7 @@ class SoundGroup extends FlxTypedGroup<FunkinSound>
   {
     if (getFirstAlive() != null)
     {
+      @:nullSafety(Off)
       return getFirstAlive().time;
     }
     else
@@ -224,6 +225,7 @@ class SoundGroup extends FlxTypedGroup<FunkinSound>
   {
     if (getFirstAlive() != null)
     {
+      @:nullSafety(Off)
       return getFirstAlive().playing;
     }
     else
@@ -236,6 +238,7 @@ class SoundGroup extends FlxTypedGroup<FunkinSound>
   {
     if (getFirstAlive() != null)
     {
+      @:nullSafety(Off)
       return getFirstAlive().volume;
     }
     else
@@ -275,6 +278,7 @@ class SoundGroup extends FlxTypedGroup<FunkinSound>
 
   function get_pitch():Float
   {
+    @:nullSafety(Off)
     if (getFirstAlive() != null) return getFirstAlive().pitch;
     else
       return 1;

@@ -108,6 +108,7 @@ class CharSelectInputHandler
    */
   public function handleDirectionInput(elapsed:Float):Void
   {
+    @:nullSafety(Off)
     @:privateAccess
     var controls:funkin.input.Controls = CharacterSelectState.instance.controls;
     var directions:Map<FlxDirectionFlags, DirectionData> = [
@@ -170,6 +171,7 @@ class CharSelectInputHandler
 
   function spamOnStep():Void
   {
+    @:nullSafety(Off)
     @:privateAccess
     var controls:funkin.input.Controls = CharacterSelectState.instance.controls;
 

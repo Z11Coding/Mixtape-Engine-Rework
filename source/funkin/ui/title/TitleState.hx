@@ -18,9 +18,6 @@ import funkin.ui.AtlasText;
 // import openfl.Assets;
 import funkin.ui.mainmenu.MainMenuState;
 import funkin.ui.transition.Transition;
-#if FEATURE_NEWGROUNDS
-import funkin.api.newgrounds.Medals;
-#end
 #if FEATURE_TOUCH_CONTROLS
 import funkin.util.TouchUtil;
 import funkin.util.SwipeUtil;
@@ -62,10 +59,6 @@ class TitleState extends MusicBeatState
         results.append([
           Paths.image('ui/title/logo-bumpin'),
           Paths.image('ui/title/gf-dance-title'),
-
-          Paths.image('ui/title/newgrounds-logo-animated'),
-          Paths.image('ui/title/newgrounds-logo-classic'),
-          Paths.image('ui/title/newgrounds-logo')
         ]);
 
         #if mobile
@@ -403,10 +396,9 @@ class TitleState extends MusicBeatState
       HapticUtil.vibrate(0.1, 0.5, 0.5);
       #end
 
-      #if FEATURE_NEWGROUNDS
+      #if ACHIEVEMENTS_ALLOWED
       // Award the "Start Game" medal.
-      Medals.award(Medal.StartGame);
-      funkin.api.newgrounds.Events.logStartGame();
+      // Medals.award(Medal.StartGame);
       #end
 
       new FlxTimer().start(2, function(tmr:FlxTimer)
@@ -560,13 +552,13 @@ class TitleState extends MusicBeatState
           switch (i + 1)
           {
             case 1:
-              createCoolText(['The', 'Funkin Crew Inc']);
+              createCoolText(['Team', 'Mixtape']);
             case 3:
               addMoreText('presents');
             case 4:
               deleteCoolText();
             case 5:
-              createCoolText(['In association', 'with']);
+              createCoolText(['Not associated', 'with']);
             case 7:
               addMoreText('newgrounds');
               if (ngSpr != null) ngSpr.visible = true;

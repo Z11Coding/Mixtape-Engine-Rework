@@ -23,10 +23,6 @@ import funkin.touch.ui.FunkinHitbox;
 import thx.semver.Version;
 import flixel.util.FlxSave.SaveFailureType;
 import flixel.util.FlxSave.LoadFailureType;
-#if FEATURE_NEWGROUNDS
-import funkin.api.newgrounds.Medals;
-import funkin.api.newgrounds.Leaderboards;
-#end
 
 @:nullSafety
 @:build(funkin.util.macro.SaveMacro.buildSaveProperties())
@@ -129,11 +125,6 @@ class Save implements ConsoleClass implements ISerializable
       version: thx.Dynamics.clone(Save.SAVE_DATA_VERSION),
       volume: 1.0,
       mute: false,
-      api: {
-        newgrounds: {
-          sessionId: null,
-        }
-      },
       scores: {
         // No saved scores.
         levels: [],
@@ -300,16 +291,6 @@ class Save implements ConsoleClass implements ISerializable
    */
   @:saveProperty(data.mute)
   public var mute:SaveProperty<Bool>;
-
-  ///
-  /// API
-  ///
-
-  /**
-   * The current session ID for the logged-in Newgrounds user, or null if the user is cringe.
-   */
-  @:saveProperty(data.api.newgrounds.sessionId)
-  public var ngSessionId:SaveProperty<Null<String>>;
 
   ///
   /// MODS
@@ -1232,55 +1213,6 @@ class Save implements ConsoleClass implements ISerializable
   {
     trace(this.serialize());
   }
-
-  #if FEATURE_NEWGROUNDS
-  /**
-   * Save the current save data to the cloud on Newgrounds.
-   */
-  public static function saveToNewgrounds():Void
-  {
-    if (_instance == null) return;
-    trace('[SAVE] Saving Save Data to Newgrounds...');
-    funkin.api.newgrounds.NGSaveSlot.instance.save(_instance.data);
-  }
-
-  /**
-   * Load the save data from the cloud on Newgrounds.
-   * @param onFinish The function to call when the save data has been loaded.
-   */
-  public static function loadFromNewgrounds(onFinish:Void->Void):Void
-  {
-    trace('[SAVE] Loading Save Data from Newgrounds...');
-
-    funkin.api.newgrounds.NGSaveSlot.instance.load((data:Dynamic) ->
-    {
-      FlxG.save.bind(Constants.SAVE_NAME + Constants.BASE_SAVE_SLOT, Constants.SAVE_PATH);
-
-      if (FlxG.save.status != EMPTY)
-      {
-        // best i can do in case the NG file is corrupted or something along those lines
-        var backupSlot:Int = Save.system.archiveBadSaveData(FlxG.save.data);
-        trace('[SAVE] Backed up current save data in case of emergency to $backupSlot!');
-      }
-
-      FlxG.save.erase();
-      FlxG.save.bind(Constants.SAVE_NAME + Constants.BASE_SAVE_SLOT, Constants.SAVE_PATH); // forces regeneration of the file as erase deletes it
-
-      var gameSave = SaveDataMigrator.migrate(data);
-      FlxG.save.mergeData(gameSave.data, true);
-      _instance = gameSave;
-      onFinish();
-    }, (error:io.newgrounds.Call.CallError) ->
-      {
-        var errorMsg:String = io.newgrounds.Call.CallErrorTools.toString(error);
-
-        var msg = 'There was an error loading your save data from Newgrounds.';
-        msg += '\n${errorMsg}';
-        msg += '\nAre you sure you are connected to the internet?';
-        funkin.util.WindowUtil.showError("Newgrounds Save Slot Failure", msg);
-      });
-  }
-  #end
 }
 
 /**
@@ -1297,8 +1229,6 @@ typedef RawSaveData =
    * A semantic versioning string for the save data format.
    */
   var version:Version;
-
-  var api:SaveApiData;
 
   /**
    * The user's saved scores.
@@ -1346,22 +1276,6 @@ typedef RawSaveData =
    * The user's preferences specific to the Quick Menu.
    */
   var optionsQuickMenu:SaveDataQuickMenuOptions;
-};
-
-/**
- * Stores user preferences related to the user's use of external APIs.
- */
-typedef SaveApiData =
-{
-  var newgrounds:SaveApiNewgroundsData;
-}
-
-/**
- * Stores user preferences related to the user's use of the Newgrounds API.
- */
-typedef SaveApiNewgroundsData =
-{
-  var sessionId:Null<String>;
 }
 
 typedef SaveDataUnlocks =
