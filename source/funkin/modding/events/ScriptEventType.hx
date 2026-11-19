@@ -4,6 +4,43 @@ package funkin.modding.events;
 enum abstract ScriptEventType(String) from String to String
 {
   /**
+   * Called in playstate whenever the 'modDebugNotif' function gets used.
+   * This event is cancelable.
+   */
+  var MODCHART_NOTIFICATION = "MODCHART_NOTIFICATION";
+
+  /**
+   * Called in playstate song creation, right after the modchart event handler is first created.
+   * This function is only called once.
+   * This event is not cancelable.
+   */
+  var MODCHART_SETUP = "MODCHART_SETUP";
+
+  /**
+   * This function gets called every time the modchart event handler requests to see the timeline of events for this song.
+   * Use this function to fill out the event handler with the events of the song!
+   * Essential for modcharting in hxscript!
+   *
+   * This event is not cancelable.
+   */
+  var MODCHART_TIMELINE = "MODCHART_TIMELINE";
+
+  /**
+   * Same as MODCHART_TIMELINE but get called before lua's modchartTimeline function.
+   * Used to add custom mods for lua to use.
+   *
+   * This event is not cancelable.
+   */
+  var MODCHART_PRETIMELINE = "MODCHART_PRETIMELINE";
+
+  /**
+   * Called when going back in time to reset all mods back to their default starting values.
+   *
+   * This event is not cancelable.
+   */
+  var MODCHART_RESET = "MODCHART_RESET";
+
+  /**
    * Called when the relevant object is created.
    * Keep in mind that the constructor may be called before the object is needed,
    * for the purposes of caching data or otherwise.
@@ -328,7 +365,7 @@ enum abstract ScriptEventType(String) from String to String
    * This event is not cancelable.
    */
   public var FREEPLAY_RANK_SLAM = 'FREEPLAY_RANK_SLAM';
-  
+
   /**
    * Called when the entire freeplay capsule slams down.
    *

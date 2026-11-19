@@ -220,14 +220,21 @@
     },
     {
       "name": "linc_luajit",
-      "type": "haxelib",
-      "version": "0.0.7"
+      "type": "git",
+      "dir": null,
+      "ref": "bc8cb0bd3fa76d07dbd05a9c613fa7a2141bf548",
+      "url": "https://github.com/Psych-Slice/linc_luajit-mobile"
     },
     {
       "name": "hscript-iris",
       "type": "git",
       "ref": "072a78e6caf0501f58385121c60ad5a2079c8244",
       "url": "https://github.com/Psych-Plus-Haxelib/hscript-iris"
+    },
+    {
+      "name": "hscript",
+      "type": "haxelib",
+      "version": "2.7.0"
     },
     {
       "name": "hxpy",

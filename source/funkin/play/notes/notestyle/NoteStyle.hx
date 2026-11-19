@@ -477,6 +477,95 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
     return _data?.assets?.holdNoteCover?.data?.enabled ?? fallback?.isHoldNoteCoverEnabled() ?? false;
   }
 
+  public function checkForNoteSplashAsset():Bool
+  {
+    var rawPath:Null<String> = _data?.assets?.noteSplash?.assetPath;
+    if (rawPath == null) rawPath = fallback?.getNoteSplashAssetPath();
+    if (rawPath == null) return false;
+    else
+    {
+      if (rawPath.length <= 0 || rawPath == "") return false;
+    }
+    return true;
+  }
+
+  public function getNoteSplashAssetPath(raw:Bool = false):Null<String>
+  {
+    if (raw)
+    {
+      var rawPath:Null<String> = _data?.assets?.noteSplash?.assetPath;
+      if (rawPath == null) return fallback?.getNoteSplashAssetPath(true);
+      return rawPath;
+    }
+
+    // library:path
+    var parts = getNoteSplashAssetPath(true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
+    if (parts.length == 0) return null;
+    if (parts.length == 1) return getNoteSplashAssetPath(true);
+    return parts[1];
+  }
+
+  var frameCollection:Null<FlxFramesCollection>;
+  var triedConstructingNotesplash:Bool = false;
+
+  public function getNoteSplashAssetLibrary():Null<String>
+  {
+    // library:path
+    var parts = getNoteSplashAssetPath(true)?.split(Constants.LIBRARY_SEPARATOR) ?? [];
+    if (parts.length == 0) return null;
+    if (parts.length == 1) return null;
+    return parts[0];
+  }
+
+  public function getNoteSplashFrames():Null<FlxFramesCollection>
+  {
+    if (triedConstructingNotesplash)
+    {
+      triedConstructingNotesplash = true;
+      var noteAssetPath = getNoteSplashAssetPath();
+
+      if (noteAssetPath == null) return null;
+      frameCollection = Paths.getSparrowAtlas(noteAssetPath, getNoteSplashAssetLibrary());
+      frameCollection.parent.persist = true;
+    }
+    return frameCollection;
+  }
+
+  public function holdsBehindStrums():Bool
+  {
+    return _data?.assets?.holdNote?.data?.behindStrums ?? fallback?.holdsBehindStrums() ?? false;
+  }
+
+  public function holdCoversBehindStrums():Bool
+  {
+    return _data?.assets?.holdNoteCover?.data?.behindStrums ?? fallback?.holdCoversBehindStrums() ?? false;
+  }
+
+  public function holdCoverVanillaPositionLogic():Bool
+  {
+    return !(_data?.assets?.holdNoteCover?.data?.holdPositioned ?? fallback?.holdCoverVanillaPositionLogic() ?? false);
+  }
+
+  public function isHoldNoteCoverEnabled():Bool
+  {
+    return _data?.assets?.holdNoteCover?.data?.enabled ?? fallback?.isHoldNoteCoverEnabled() ?? false;
+  }
+
+  public function shouldHoldNoteCoverCopyHSV():Bool
+  {
+    return _data?.assets?.holdNoteCover?.data?.copyHSV ?? fallback?.isHoldNoteCoverEnabled() ?? false;
+  }
+
+  public function getHoldCoverZCalcOffsetMultipliers():Array<Float>
+  {
+    return _data?.assets?.holdNoteCover?.data?.zCalcMult ?? fallback?.getHoldCoverZCalcOffsetMultipliers() ?? [1.08, 0.75];
+  }
+
+  public function getSplashZCalcOffsetMultipliers():Array<Float>
+  {
+    return _data?.assets?.noteSplash?.data?.zCalcMult ?? fallback?.getSplashZCalcOffsetMultipliers() ?? [1.0, 1.0];
+  }
+
   /**
    * Build a sprite for the given step of the countdown.
    * @param step
@@ -1124,11 +1213,16 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
 
     target.antialiasing = !(_data.assets.holdNoteCover?.isPixel ?? false);
     target.glow.antialiasing = !(_data.assets.holdNoteCover?.isPixel ?? false);
-    target.scale.set(_data.assets.holdNoteCover?.scale ?? 1.0, _data.assets.holdNoteCover?.scale ?? 1.0);
+    target.scale.set(getHoldCoverScale(), getHoldCoverScale());
     target.updateHitbox();
     target.glow.updateHitbox();
 
     buildHoldCoverAnimations(target);
+  }
+
+  public function getHoldCoverScale():Float
+  {
+    return _data.assets?.holdNoteCover?.scale ?? fallback?.getHoldCoverScale() ?? 1.0;
   }
 
   // we use FlxFramesCollection here so we can combine em into one atlas later
@@ -1241,6 +1335,14 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
     if (filteredResult.length == 0) return fallback?.fetchHoldCoverAnimationData(dir) ?? [];
 
     return filteredResult;
+  }
+
+   // WITF exclusive offsets for moving the strumline around on it's initial creation.
+  // Added to counter the new FNF change where strumline offsets are used in the initial creation of the strumline (strumline.y in PlayState)
+
+  public function getInitialStrumlineOffsets():Array<Float>
+  {
+    return _data?.assets?.noteStrumline?.data?.initialOffsets ?? fallback?.getInitialStrumlineOffsets() ?? [0.0, 0.0];
   }
 
   // fallbacks:

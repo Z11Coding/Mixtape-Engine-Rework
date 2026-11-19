@@ -188,16 +188,18 @@ class FunkinCamera extends FlxCamera
   }
 
   override function startTrianglesBatch(graphic:FlxGraphic,
-    smoothing:Bool = false,
-    isColored:Bool = false,
-    ?blend:BlendMode,
-    ?hasColorOffsets:Bool,
-    ?shader:FlxGraphicsShader,
-    ?blendTarget:Context3DBlendTarget):FlxDrawTrianglesItem
+  smoothing:Bool = false,
+  isColored:Bool = false,
+  ?blend:BlendMode,
+  ?hasColorOffsets:Bool,
+  ?shader:FlxShader,
+  ?cullMode:TriangleCulling,
+  repeat:Bool = true,
+  ?blendTarget:Context3DBlendTarget):FlxDrawTrianglesItem
   {
     if (shader == null) shader = defaultShader;
 
-    return super.startTrianglesBatch(graphic, smoothing, isColored, blend, hasColorOffsets, shader, getBlendTarget(blendTarget, blend));
+    return super.startTrianglesBatch(graphic, smoothing, isColored, blend, hasColorOffsets, shader, cullMode, repeat, getBlendTarget(blendTarget, blend));
   }
 
   override function clearDrawStack():Void

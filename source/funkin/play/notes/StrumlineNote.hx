@@ -4,12 +4,33 @@ import funkin.play.notes.notestyle.NoteStyle;
 import flixel.graphics.frames.FlxAtlasFrames;
 import funkin.graphics.FunkinSprite;
 import funkin.play.notes.NoteSprite;
+import funkin.graphics.ZSprite;
+import funkin.graphics.ZSpriteProjected;
+import funkin.graphics.shaders.HSVNotesShader;
+import funkin.play.modchartSystem.NoteData;
+import funkin.play.modchartSystem.StrumExtraData;
+import flixel.graphics.frames.FlxFrame;
+import flixel.FlxBasic;
+import lime.math.Vector2;
 
 /**
  * The actual receptor that you see on screen.
  */
-class StrumlineNote extends FunkinSprite
+class StrumlineNote extends ZSpriteProjected
 {
+  var hsvShader:HSVNotesShader;
+
+  public var noteModData:NoteData;
+  public var strumExtraModData:StrumExtraData;
+  public var strumDistance(default, set):Float;
+
+  function set_strumDistance(value:Float):Float
+  {
+    this.strumDistance = value;
+    if (noteModData != null) noteModData.strumPosition = this.strumDistance;
+    return this.strumDistance;
+  }
+
   /**
    * Whether this strumline note is on the player's side or the opponent's side.
    */
@@ -25,6 +46,9 @@ class StrumlineNote extends FunkinSprite
     this.direction = value;
     return this.direction;
   }
+
+  // for identifying what noteStyle this notesprite is using in hxScript or even lua
+  public var noteStyleName:String = "funkin";
 
   /**
    * The Y Offset of the note.
@@ -55,6 +79,10 @@ class StrumlineNote extends FunkinSprite
 
     this.direction = direction;
 
+    this.hsvShader = new HSVNotesShader();
+    this.shader = hsvShader;
+
+    noteStyleName = noteStyle.id;
     setup(noteStyle);
 
     this.animation.onFrameChange.add(onAnimationFrame);
@@ -62,6 +90,54 @@ class StrumlineNote extends FunkinSprite
 
     // Must be true for animations to play.
     this.active = true;
+
+    noteModData = new NoteData();
+    strumExtraModData = new StrumExtraData(this);
+
+    this.applyAngularVelocityOffset = true;
+  }
+
+  @:access(flixel.FlxCamera)
+  override public function draw():Void
+  {
+    if (this.alpha <= 0 || !this.visible || !this.alive)
+    {
+      return;
+    }
+
+    this.playfieldSkewCenterX = strumExtraModData.playfieldX;
+    this.playfieldSkewCenterY = strumExtraModData.playfieldY;
+    this.playfieldSkewCenterZ = strumExtraModData.playfieldZ;
+
+    projectionEnabled = strumExtraModData?.threeD ?? false;
+    super.draw();
+  }
+
+  // call this to reset stealthGlow back to default values
+
+  public function resetStealthGlow(skipUpdate:Bool = false):Void
+  {
+    this.stealthGlow = 0.0;
+    this.stealthGlowBlue = 1.0;
+    this.stealthGlowGreen = 1.0;
+    this.stealthGlowRed = 1.0;
+    this.redMult = 1.0;
+    this.greenMult = 1.0;
+    this.blueMult = 1.0;
+    if (!skipUpdate) updateStealthGlow();
+  }
+
+  // call this to update the stealthglow on the hsv shader
+
+  public function updateStealthGlow():Void
+  {
+    this.hsvShader.stealthGlow = stealthGlow;
+    this.hsvShader.stealthGlowBlue = stealthGlowBlue;
+    this.hsvShader.stealthGlowGreen = stealthGlowGreen;
+    this.hsvShader.stealthGlowRed = stealthGlowRed;
+    this.hsvShader.redMult = redMult;
+    this.hsvShader.blueMult = blueMult;
+    this.hsvShader.greenMult = greenMult;
   }
 
   function onAnimationFrame(name:String, frameNumber:Int, frameIndex:Int):Void
@@ -98,6 +174,8 @@ class StrumlineNote extends FunkinSprite
     }
   }
 
+  public var targetScale:Float = 0.7;
+
   function setup(noteStyle:NoteStyle):Void
   {
     if (noteStyle == null)
@@ -116,6 +194,8 @@ class StrumlineNote extends FunkinSprite
     noteStyle.applyStrumlineOffsets(this);
 
     this.playStatic();
+    targetScale = this.scale.x;
+    resetStealthGlow();
   }
 
   public function playAnimation(name:String = 'static', force:Bool = false, reversed:Bool = false, startFrame:Int = 0):Void

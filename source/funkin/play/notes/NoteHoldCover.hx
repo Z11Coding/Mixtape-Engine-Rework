@@ -1,25 +1,57 @@
 package funkin.play.notes;
 
-import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
-import flixel.graphics.frames.FlxFramesCollection;
-import funkin.util.assets.FlxAnimationUtil;
 import flixel.FlxSprite;
+import flixel.graphics.frames.FlxFramesCollection;
+import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
+import funkin.graphics.ZSprite;
+import funkin.play.modchartSystem.ModConstants;
 import funkin.play.notes.notestyle.NoteStyle;
+import funkin.util.assets.FlxAnimationUtil;
+import funkin.graphics.shaders.HSVNotesShader;
 
-class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
+class NoteHoldCover extends FlxTypedSpriteGroup<ZSprite>
 {
   static final FRAMERATE_DEFAULT:Int = 24;
 
   public var holdNote:SustainTrail;
-  public var glow:FlxSprite;
+  public var glow:ZSprite;
 
-  var sparks:FlxSprite;
+  var sparks:ZSprite;
+
+  public var holdNoteDir:Int = 0;
+
+  var hsvShader:HSVNotesShader;
+  var noteStyle:NoteStyle;
+
+  // true if using spiral hold, false if not. Done this way so when the hold is finished, it keeps its angle.
+  public var isSpiralHold:Bool = false;
+  // Custom position logic added by WITF that positions holdCovers at the ends of holds (where they get clipped) instead of at the strumNote.
+  public var holdPositioned(default, set):Bool;
+
+  function set_holdPositioned(value:Bool):Bool
+  {
+    if (glow != null) glow.autoCalculatePerspective = !value;
+    holdPositioned = value;
+    return holdPositioned;
+  }
 
   public function new(noteStyle:NoteStyle)
   {
     super(0, 0);
 
     setupHoldNoteCover(noteStyle);
+    this.hsvShader = new HSVNotesShader();
+    this.shader = hsvShader;
+  }
+
+  public function setHSV(hue:Float, sat:Float, val:Float):Void
+  {
+    if (hsvShader != null)
+    {
+      this.hsvShader.hue = hue;
+      this.hsvShader.saturation = sat;
+      this.hsvShader.value = val;
+    }
   }
 
   /**
@@ -27,8 +59,13 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
    */
   function setupHoldNoteCover(noteStyle:NoteStyle):Void
   {
-    glow = new FlxSprite();
+    this.noteStyle = noteStyle;
+
+    glow = new ZSprite();
+    glow.isHoldCover = true;
+    glow.coverBehindStrums = noteStyle.holdCoversBehindStrums();
     add(glow);
+    glow.applyAngularVelocityOffset = true;
 
     // TODO: null check here like how NoteSplash does
     noteStyle.buildHoldCoverSprite(this);
@@ -39,30 +76,61 @@ class NoteHoldCover extends FlxTypedSpriteGroup<FlxSprite>
     {
       trace('WARNING: NoteHoldCover failed to initialize all animations.');
     }
+
+    final holdOrigin = noteStyle.getHoldCoverOrigin();
+    if (holdOrigin == null)
+    {
+      autoOrigin = true;
+    }
+    else
+    {
+      if (holdOrigin.length >= 2 && holdOrigin[2] >= 1)
+      {
+        autoOrigin = true;
+      }
+      else
+      {
+        autoOrigin = false;
+        this.glow.origin.set(holdOrigin[0], holdOrigin[1]); // Magic numbers which make it rotate from the center properly!
+      }
+    }
   }
+
+  public var autoOrigin:Bool = false;
 
   override public function update(elapsed):Void
   {
+    if (autoOrigin) glow.centerOrigin();
+    if (!holdPositioned)
+    {
+      var o = noteStyle.getHoldCoverZCalcOffsetMultipliers();
+      glow.perspectiveWidth = glow.width * o[0];
+      glow.perspectiveHeight = glow.height * o[1];
+    }
     super.update(elapsed);
   }
 
   public function playStart():Void
   {
+    final direction:NoteDirection = holdNote.noteDirection;
+    holdNoteDir = direction;
     glow.setPosition(this.x, this.y);
-    var direction:NoteDirection = holdNote.noteDirection;
     glow.animation.play('holdCoverStart${direction.colorName.toTitleCase()}');
+    glow.shader = hsvShader;
   }
 
   public function playContinue():Void
   {
-    var direction:NoteDirection = holdNote.noteDirection;
+    final direction:NoteDirection = holdNote?.noteDirection ?? holdNoteDir;
     glow.animation.play('holdCover${direction.colorName.toTitleCase()}');
+    glow.shader = hsvShader;
   }
 
   public function playEnd():Void
   {
-    var direction:NoteDirection = holdNote.noteDirection;
+    final direction:NoteDirection = holdNote?.noteDirection ?? holdNoteDir;
     glow.animation.play('holdCoverEnd${direction.colorName.toTitleCase()}');
+    glow.shader = hsvShader;
   }
 
   override public function kill():Void

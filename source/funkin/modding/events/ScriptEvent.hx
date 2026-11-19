@@ -765,3 +765,21 @@ class PauseScriptEvent extends ScriptEvent
     this.gitaroo = gitaroo;
   }
 }
+
+/**
+ * An event which is called whenever the 'modDebugNotif' function gets used.
+ */
+class DebugNotificationScriptEvent extends ScriptEvent
+{
+  public var text(default, default):String;
+  public var color(default, default):FlxColor;
+  public var critical(default, default):Bool;
+
+  public function new(text:String, color:FlxColor = FlxColor.WHITE, critical:Bool = false):Void
+  {
+    super(MODCHART_NOTIFICATION, true);
+    this.text = text;
+    this.color = color;
+    this.critical = critical;
+  }
+}

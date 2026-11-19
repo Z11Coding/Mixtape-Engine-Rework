@@ -1894,6 +1894,7 @@ class Project extends HXProject
 
     if (HSCRIPT_ALLOWED.isEnabled(this))
     {
+      addHaxelib('hscript'); // For WITF scripting
       addHaxelib('hscript-iris'); // For Psych HScripting scripting
     }
 

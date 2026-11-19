@@ -1,22 +1,55 @@
 package funkin.play.notes;
 
-import funkin.play.notes.notestyle.NoteStyle;
-import flixel.graphics.frames.FlxFramesCollection;
 import flixel.FlxG;
-import funkin.play.PlayState;
+import flixel.FlxSprite;
+import flixel.graphics.frames.FlxFramesCollection;
+import funkin.graphics.ZSprite;
+import funkin.play.notes.notestyle.NoteStyle;
+import funkin.graphics.shaders.HSVNotesShader;
 
-class NoteSplash extends funkin.graphics.FunkinSprite
+class NoteSplash extends ZSprite
 {
   public var splashFramerate:Int = 24;
   public var splashFramerateVariance:Int = 2;
 
+  static var frameCollection:FlxFramesCollection;
+
+  public var DIRECTION:Int = 0;
+  // If set to true, will copy the HSV values from the note that triggered this notesplash. Unique to v0.8.0 (WITF)
+  public var copyHSV:Bool = false;
+
+  var hsvShader:HSVNotesShader;
+  var noteStyle:NoteStyle = null;
+
   public function new(noteStyle:NoteStyle)
   {
     super(0, 0);
+    this.noteStyle = noteStyle;
 
     setupSplashGraphic(noteStyle);
 
     this.animation.onFinish.add(this.onAnimationFinished);
+    this.hsvShader = new HSVNotesShader();
+    this.shader = hsvShader;
+  }
+
+  override public function draw():Void
+  {
+    var o = noteStyle.getSplashZCalcOffsetMultipliers();
+    this.perspectiveWidth = this.width / 2.2 * o[0];
+    this.perspectiveHeight = this.height / 2.2 * o[1];
+
+    super.draw();
+  }
+
+  public function setHSV(hue:Float, sat:Float, val:Float):Void
+  {
+    if (hsvShader != null)
+    {
+      this.hsvShader.hue = hue;
+      this.hsvShader.saturation = sat;
+      this.hsvShader.value = val;
+    }
   }
 
   /**
@@ -43,6 +76,7 @@ class NoteSplash extends funkin.graphics.FunkinSprite
 
   public function play(direction:NoteDirection, ?variant:Int):Void
   {
+    this.DIRECTION = direction;
     if (variant == null)
     {
       variant = FlxG.random.int(0, getVariantCount(direction) - 1);

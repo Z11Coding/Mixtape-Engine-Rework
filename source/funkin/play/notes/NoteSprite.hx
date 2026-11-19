@@ -1,13 +1,23 @@
 package funkin.play.notes;
 
-import funkin.data.song.SongData.SongNoteData;
+import flixel.FlxBasic;
+import flixel.graphics.FlxGraphic;
+import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxFrame;
 import funkin.data.song.SongData.NoteParamData;
-import funkin.play.notes.notestyle.NoteStyle;
+import funkin.data.song.SongData.SongNoteData;
 import funkin.graphics.FunkinSprite;
+import funkin.graphics.ZSpriteProjected;
+import funkin.graphics.ZSprite;
+import funkin.graphics.shaders.HSVNotesShader;
 import funkin.graphics.shaders.HSVShader;
+import funkin.play.modchartSystem.NoteData;
+import funkin.play.notes.notestyle.NoteStyle;
 
-class NoteSprite extends FunkinSprite
+class NoteSprite extends ZSpriteProjected
 {
+  public var noteModData:NoteData;
+
   static final DIRECTION_COLORS:Array<String> = ['purple', 'blue', 'green', 'red'];
 
   /**
@@ -15,12 +25,15 @@ class NoteSprite extends FunkinSprite
    */
   public var holdNoteSprite:SustainTrail;
 
-  var _hsvShader:Null<HSVShader> = null;
-  var hsvShader(get, never):HSVShader;
+  var _hsvShader:Null<HSVNotesShader> = null;
+  var hsvShader(get, never):HSVNotesShader;
 
-  function get_hsvShader():HSVShader
+  // Multiplies the hitWindow size by this amount. Unused if FEATURE_WITF_INPUTS is enabled.
+  public var hitWindowMultiplier:Float = 1;
+
+  function get_hsvShader():HSVNotesShader
   {
-    if (_hsvShader == null) _hsvShader = new HSVShader();
+    if (_hsvShader == null) _hsvShader = new HSVNotesShader();
 
     return _hsvShader;
   }
@@ -173,15 +186,37 @@ class NoteSprite extends FunkinSprite
    */
   public var handledMiss:Bool;
 
+  @:access(flixel.FlxCamera)
+  override public function draw():Void
+  {
+    if (this.alpha <= 0 || !this.visible || !this.alive)
+    {
+      return;
+    }
+    var strumExtraModData = noteModData?.whichStrumNote?.strumExtraModData ?? null;
+    projectionEnabled = strumExtraModData?.threeD ?? false;
+    playfieldSkewCenterX = (strumExtraModData?.playfieldX ?? FlxG.width / 2);
+    playfieldSkewCenterY = (strumExtraModData?.playfieldY ?? FlxG.height / 2);
+    playfieldSkewCenterZ = (strumExtraModData?.playfieldZ ?? 0);
+    super.draw();
+  }
+
+  // for identifying what noteStyle this notesprite is using in hxScript or even lua
+  public var noteStyleName:String = "funkin";
+
   public function new(noteStyle:NoteStyle, direction:Int = 0)
   {
     super(0, -9999);
     this.direction = direction;
 
+    noteModData = new NoteData();
+
     this.alpha = 1;
     if (noteStyle != null) setupNoteGraphic(noteStyle);
+    this.applyAngularVelocityOffset = true;
   }
 
+  public var targetScale:Float = 0.7;
   public var builtNoteStyleId:Null<String> = null;
 
   /**
@@ -191,6 +226,13 @@ class NoteSprite extends FunkinSprite
   public function setupNoteGraphic(noteStyle:NoteStyle):Void
   {
     noteStyle.buildNoteSprite(this);
+
+    noteStyleName = noteStyle.id;
+
+    this.shader = hsvShader;
+    resetStealthGlow(false);
+
+    targetScale = this.scale.x;
 
     // `false` disables the update() function for performance.
     this.active = noteStyle.isNoteAnimated();
@@ -276,6 +318,35 @@ class NoteSprite extends FunkinSprite
       _hsvShader.saturation = 1.0;
       _hsvShader.value = 1.0;
     }
+
+    resetStealthGlow();
+  }
+
+  // call this to reset stealthGlow back to default values
+
+  public function resetStealthGlow(skipUpdate:Bool = false):Void
+  {
+    this.stealthGlow = 0.0;
+    this.stealthGlowBlue = 1.0;
+    this.stealthGlowGreen = 1.0;
+    this.stealthGlowRed = 1.0;
+    this.redMult = 1.0;
+    this.greenMult = 1.0;
+    this.blueMult = 1.0;
+    if (!skipUpdate) updateStealthGlow();
+  }
+
+  // call this to update the stealthglow on the hsv shader
+
+  public function updateStealthGlow():Void
+  {
+    this.hsvShader.stealthGlow = stealthGlow;
+    this.hsvShader.stealthGlowBlue = stealthGlowBlue;
+    this.hsvShader.stealthGlowGreen = stealthGlowGreen;
+    this.hsvShader.stealthGlowRed = stealthGlowRed;
+    this.hsvShader.redMult = redMult;
+    this.hsvShader.blueMult = blueMult;
+    this.hsvShader.greenMult = greenMult;
   }
 
   override public function kill():Void

@@ -109,6 +109,21 @@ class PolymodHandler
     FileUtil.createDirIfNotExists(MOD_FOLDER);
   }
 
+  public static function modExists(path:String):Bool
+  {
+    return modFileSystem != null && modFileSystem.exists(path);
+  }
+
+  public static function modReadDirectory(path:String):Array<String>
+  {
+    return (modFileSystem != null) ? modFileSystem.readDirectory(path) : [];
+  }
+
+  public static function modGetContent(path:String):Null<String>
+  {
+    return (modFileSystem != null) ? modFileSystem.getFileContent(path) : null;
+  }
+
   /**
    * Loads the game with ALL mods enabled with Polymod.
    */
