@@ -546,11 +546,6 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
     return !(_data?.assets?.holdNoteCover?.data?.holdPositioned ?? fallback?.holdCoverVanillaPositionLogic() ?? false);
   }
 
-  public function isHoldNoteCoverEnabled():Bool
-  {
-    return _data?.assets?.holdNoteCover?.data?.enabled ?? fallback?.isHoldNoteCoverEnabled() ?? false;
-  }
-
   public function shouldHoldNoteCoverCopyHSV():Bool
   {
     return _data?.assets?.holdNoteCover?.data?.copyHSV ?? fallback?.isHoldNoteCoverEnabled() ?? false;
@@ -1337,7 +1332,7 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
     return filteredResult;
   }
 
-   // WITF exclusive offsets for moving the strumline around on it's initial creation.
+  // WITF exclusive offsets for moving the strumline around on it's initial creation.
   // Added to counter the new FNF change where strumline offsets are used in the initial creation of the strumline (strumline.y in PlayState)
 
   public function getInitialStrumlineOffsets():Array<Float>

@@ -15,6 +15,8 @@ import openfl.display.BitmapData;
 import openfl.display.BlendMode;
 import openfl.display.OpenGLRenderer;
 import openfl.display3D.Context3DBlendTarget;
+import flixel.system.FlxAssets.FlxShader;
+import openfl.display.TriangleCulling;
 
 using funkin.graphics.framebuffer.BitmapDataUtil;
 
@@ -188,14 +190,14 @@ class FunkinCamera extends FlxCamera
   }
 
   override function startTrianglesBatch(graphic:FlxGraphic,
-  smoothing:Bool = false,
-  isColored:Bool = false,
-  ?blend:BlendMode,
-  ?hasColorOffsets:Bool,
-  ?shader:FlxShader,
-  ?cullMode:TriangleCulling,
-  repeat:Bool = true,
-  ?blendTarget:Context3DBlendTarget):FlxDrawTrianglesItem
+    smoothing:Bool = false,
+    isColored:Bool = false,
+    ?blend:BlendMode,
+    ?hasColorOffsets:Bool,
+    ?shader:FlxShader,
+    ?cullMode:TriangleCulling,
+    repeat:Bool = true,
+    ?blendTarget:Context3DBlendTarget):FlxDrawTrianglesItem
   {
     if (shader == null) shader = defaultShader;
 

@@ -12,6 +12,7 @@ import funkin.play.notes.NoteDirection;
 import funkin.ui.freeplay.SongMenuItem;
 import funkin.play.scoring.Scoring.ScoringRank;
 import openfl.events.KeyboardEvent;
+import flixel.util.FlxColor;
 
 /**
  * This is a base class for all events that are issued to scripted classes.
@@ -775,7 +776,9 @@ class DebugNotificationScriptEvent extends ScriptEvent
   public var color(default, default):FlxColor;
   public var critical(default, default):Bool;
 
-  public function new(text:String, color:FlxColor = FlxColor.WHITE, critical:Bool = false):Void
+  public function new(text:String,
+    color:FlxColor = FlxColor.WHITE,
+    critical:Bool = false):Void
   {
     super(MODCHART_NOTIFICATION, true);
     this.text = text;

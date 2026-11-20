@@ -1,6 +1,6 @@
 package funkin.graphics.shaders;
 
-class HSVNotesShader extends HSVShader
+class HSVNotesShader extends HSVWITFShader
 {
   public var redMult(default, set):Float = 1;
 
@@ -61,23 +61,10 @@ class HSVNotesShader extends HSVShader
     return this.value2;
   }
 
-  static var fragmentSource:Null<String> = null;
-  override static function getFragmentSource():String
+  public function new(h:Float = 1, s:Float = 1, v:Float = 1, g:Float = 0, shaderPath:String = "hsv_WITF")
   {
-    if (fragmentSource == null) fragmentSource = Assets.getText(Paths.frag('ui/shaders/hsv_WITF'));
-
-    return fragmentSource ?? '';
-  }
-
-  public function new(h:Float = 1, s:Float = 1, v:Float = 1, g:Float = 0)
-  {
-    super(h, s, v);
-    if (!registeredTrackerProfile)
-    {
-      registeredTrackerProfile = true;
-      FlxG.debugger.addTrackerProfile(new TrackerProfile(HSVShader, ['hue', 'saturation', 'value', 'stealthGlow']));
-    }
-
+    super(h, s, v, shaderPath);
+    FlxG.debugger.addTrackerProfile(new TrackerProfile(HSVShader, ['hue', 'saturation', 'value', 'stealthGlow']));
     hue = h;
     saturation = s;
     value = v;
