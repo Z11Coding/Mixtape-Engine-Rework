@@ -1445,6 +1445,11 @@ class FunkinSprite extends FlxAnimate
     return value;
   }
 
+  // WITF Draw Function logic
+  public var drawFunc:Null<Void->Void>;
+
+  private var doingDrawFunc:Bool = false;
+
   override public function draw():Void
   {
     #if FEATURE_DEBUG_TRACY
@@ -1452,13 +1457,22 @@ class FunkinSprite extends FlxAnimate
     final functionZones:Bool = cpp.vm.tracy.TracyProfiler.setFunctionZones(false);
     #end
 
-    for (filter in filters ?? [])
+    if (drawFunc != null && !doingDrawFunc)
     {
-      @:privateAccess
-      if (filter.__renderDirty) _renderTextureDirty = true;
+      doingDrawFunc = true;
+      drawFunc();
+      doingDrawFunc = false;
     }
+    else
+    {
+      for (filter in filters ?? [])
+      {
+        @:privateAccess
+        if (filter.__renderDirty) _renderTextureDirty = true;
+      }
 
-    super.draw();
+      super.draw();
+    }
   }
 
   override function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void

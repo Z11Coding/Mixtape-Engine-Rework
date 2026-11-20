@@ -8,6 +8,7 @@ import haxe.io.Path;
 import openfl.display.BitmapData;
 import openfl.utils.AssetType;
 import polymod.Polymod;
+import flixel.graphics.frames.FlxBitmapFont;
 
 using StringTools;
 
@@ -288,6 +289,14 @@ class Paths implements ConsoleClass
     {
       return FlxAtlasFrames.fromSpriteSheetPacker(imagePath, txtPath);
     }
+  }
+
+  // Added by WITF v1.0.2
+  // Use this application to generate the bitmap font: https://www.angelcode.com/products/bmfont/
+
+  public static function getFlxBitmapFontFromAngelCode(key:String, ?library:String):FlxBitmapFont
+  {
+    return FlxBitmapFont.fromAngelCode(image(key + "_0", library), file('images/$key.fnt', library));
   }
 }
 

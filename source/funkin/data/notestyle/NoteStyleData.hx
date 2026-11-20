@@ -207,6 +207,12 @@ typedef NoteStyleData_Countdown =
 
 typedef NoteStyleData_HoldNote =
 {
+  /**
+   * If true, holds are rendered behind the strums / receptors!
+   * @default Holds are rendered in front by default!
+   */
+  @:optional @:default(false)
+  var behindStrums:Bool;
 }
 
 typedef NoteStyleData_Judgement =
@@ -222,6 +228,13 @@ typedef NoteStyleData_ComboNum =
  */
 typedef NoteStyleData_NoteStrumline =
 {
+  /**
+   * Offset the entire strumLine by this amount. WITF Exclusive!
+   * @default [0, 0]
+   */
+  @:default([0, 0]) @:optional
+  var initialOffsets:Null<Array<Float>>;
+
   var leftStatic:UnnamedAnimationData;
   var leftPress:UnnamedAnimationData;
   var leftConfirm:UnnamedAnimationData;
@@ -249,6 +262,13 @@ typedef NoteStyleData_NoteSplash =
   @:optional @:default(true)
   var enabled:Bool;
 
+  /**
+   * Use to adjust the width and height in the zPerspective Calcs. Note that this is a multiplier!
+   * @default [1.0, 1.0]
+   */
+  @:default([1.0, 1.0]) @:optional
+  var zCalcMult:Null<Array<Float>>;
+
   @:optional @:default(24)
   var framerateDefault:Int;
   @:optional @:default(2)
@@ -274,20 +294,18 @@ typedef NoteStyleData_HoldNoteCover =
   @:optional @:default(true)
   var enabled:Bool;
 
-   /**
+  /**
    * If true, note splashes will copy the HSV shader values from the note that triggered them (if possible).
    * @default Default vanilla behaviour (in other words, doesn't copy the HSV values)
    */
-  @:optional
-  @:default(false)
+  @:optional @:default(false)
   var copyHSV:Bool;
 
   /**
    * If true, the cover is rendered behind the strums / receptors!
    * @default Covers are rendered in front by default!
    */
-  @:optional
-  @:default(false)
+  @:optional @:default(false)
   var behindStrums:Bool;
 
   /**
@@ -295,24 +313,21 @@ typedef NoteStyleData_HoldNoteCover =
    * If false, the cover is positioned at the very end of the hold note instead (where it is being clipped).
    * @default Default vanilla behaviour
    */
-  @:optional
-  @:default(false)
+  @:optional @:default(false)
   var holdPositioned:Bool;
 
   /**
    * Scale Multiplier on the x axis to stretch a hold cover for wider hold note sprites
    * @default 1.0
    */
-  @:default(1.0)
-  @:optional
+  @:default(1.0) @:optional
   var scaleX:Null<Float>;
 
   /**
    * Use to mark the origin point of the sprite (in pixels)
    * @default The 3rd slot refers to whether autoOrigin should be enabled or not. (origin[2] >= 1 means enabled)
    */
-  @:optional
-  @:default([0.0, 0.0, 1])
+  @:optional @:default([0.0, 0.0, 1])
   var origin:Null<Array<Float>>;
 
   /**
@@ -320,8 +335,7 @@ typedef NoteStyleData_HoldNoteCover =
    * Default values based on making funkin notestyle work.
    * @default [1.08, 0.75]
    */
-  @:default([1.08, 0.75])
-  @:optional
+  @:default([1.08, 0.75]) @:optional
   var zCalcMult:Null<Array<Float>>;
 
   @:optional

@@ -1386,6 +1386,11 @@ class NoteStyle implements IRegistryEntry<NoteStyleData>
     return _data?.assets?.holdNoteCover?.offsets ?? fallback?.getHoldCoverOffsets() ?? [0.0, 0.0];
   }
 
+  public function getHoldCoverOrigin():Null<Array<Float>>
+  {
+    return _data?.assets?.holdNoteCover?.data?.origin ?? fallback?.getHoldCoverOrigin() ?? [0.0, 0.0, 1.0];
+  }
+
   public function destroy():Void
   {
   }

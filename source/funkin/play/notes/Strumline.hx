@@ -1964,8 +1964,9 @@ class Strumline extends FlxSpriteGroup
   /**
    * Play a note splash for a given direction.
    * @param direction The direction of the note to play the splash animation for.
+   * @param note Optional NoteSprite graphic to use for copying the hsvShader (if enabled for this notestyle) -WITF Exclusive
    */
-  public function playNoteSplash(direction:NoteDirection):Void
+  public function playNoteSplash(direction:NoteDirection, note:NoteSprite = null):Void
   {
     if (!showNotesplash) return;
     if (!noteStyle.isNoteSplashEnabled()) return;
@@ -2455,7 +2456,6 @@ class Strumline extends FlxSpriteGroup
       // We have to create a new note hold cover.
       result = new NoteHoldCover(noteStyle);
       result.glow.weBelongTo = this;
-      result.sparks.weBelongTo = this;
       this.noteHoldCovers.add(result);
       if (PlayState.instance != null)
       {

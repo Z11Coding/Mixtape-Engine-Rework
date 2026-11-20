@@ -50,6 +50,7 @@ import funkin.play.notes.NoteSprite;
 import funkin.play.notes.NoteVibrationsHandler;
 import funkin.play.notes.ScrollVelocityTimeline;
 import funkin.play.notes.Strumline;
+import funkin.play.notes.StrumlineNote;
 import funkin.play.notes.SustainTrail;
 import funkin.play.notes.NoteHoldCover;
 import funkin.play.notes.notekind.NoteKind;
@@ -69,6 +70,7 @@ import funkin.util.GRhythmUtil;
 import funkin.util.HapticUtil;
 import funkin.util.SerializerUtil;
 import haxe.Int64;
+import sys.FileSystem;
 import funkin.graphics.ZProjectSprite_Note;
 import funkin.graphics.ZSprite;
 import funkin.play.modchartSystem.DebugNotification;
@@ -78,6 +80,7 @@ import funkin.play.modchartSystem.HazardModLuaTest;
 import funkin.play.modchartSystem.ModEventHandler;
 import funkin.play.modchartSystem.ModHandler;
 import funkin.play.modchartSystem.ModConstants;
+import funkin.modding.PolymodHandler;
 #if FEATURE_CHART_EDITOR
 import funkin.ui.debug.charting.ChartEditorState;
 #end
@@ -674,7 +677,7 @@ class PlayState extends MusicBeatSubState
    * - The Game Over screen is open.
    * - The Chart Editor screen is open.
    */
-  var isGamePaused(get, never):Bool;
+  public var isGamePaused(get, never):Bool;
 
   function get_isGamePaused():Bool
   {
@@ -4324,7 +4327,7 @@ class PlayState extends MusicBeatSubState
     }
     // Display the hit on the strums
     playerStrumline.hitNote(note, !event.isComboBreak);
-    if (event.doesNotesplash) playerStrumline.playNoteSplash(note.noteData.getDirection());
+    if (event.doesNotesplash) playerStrumline.playNoteSplash(note.noteData.getDirection(), note);
     if (note.isHoldNote && note.holdNoteSprite != null) playerStrumline.playNoteHoldCover(note.holdNoteSprite);
     if (vocals != null)
     {
