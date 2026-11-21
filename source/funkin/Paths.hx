@@ -296,7 +296,7 @@ class Paths implements ConsoleClass
 
   public static function getFlxBitmapFontFromAngelCode(key:String, ?library:String):FlxBitmapFont
   {
-    return FlxBitmapFont.fromAngelCode(image(key + "_0", library), file('images/$key.fnt', library));
+    return FlxBitmapFont.fromAngelCode(image(key, library), file('$key.fnt', library));
   }
 }
 

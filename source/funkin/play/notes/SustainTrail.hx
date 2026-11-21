@@ -348,7 +348,7 @@ class SustainTrail extends ZSprite
         }
         else
         {
-          loadGraphic(Paths.image('NOTE_ArrowPath'));
+          loadGraphic(Paths.image('gameplay/notestyles/funkin/NOTE_ArrowPath'));
         }
       }
       else
@@ -393,10 +393,10 @@ class SustainTrail extends ZSprite
     graphicHeight = sustainHeight(sustainLength, parentStrumline?.scrollSpeed ?? 1.0);
     // instead of scrollSpeed, PlayState.SONG.speed
 
-    flipY = Preferences.downscroll #if FEATURE_TOUCH_CONTROLS || (
-      Preferences.controlsScheme == FunkinHitboxControlSchemes.Arrows
-      && !funkin.touch.input.ControlsHandler.hasExternalInputDevice
-    ) #end;
+    flipY = Preferences.downscroll
+    #if FEATURE_TOUCH_CONTROLS
+    || (Preferences.controlsScheme == FunkinHitboxControlSchemes.Arrows && !funkin.touch.input.ControlsHandler.hasExternalInputDevice)
+    #end;
 
     // alpha = 0.6;
     alpha = 1.0;

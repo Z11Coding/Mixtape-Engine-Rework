@@ -118,13 +118,14 @@ class ModConstants
   {
     var foldersToCheck:Array<String> = [];
 
-    var checkHere:String = 'assets/data/modchart/' + songID + "/";
+    var checkHere:String = 'assets/gameplay/songs/' + songID + "/";
     foldersToCheck.push(checkHere);
 
     // fuck it, we just check every mod lmfao
     for (modDir in PolymodHandler.loadedModDirs)
     {
       checkHere = PolymodHandler.MOD_FOLDER + '/' + modDir + '/data/modchart/' + songID;
+      var alsoCheckHere:String = PolymodHandler.MOD_FOLDER + '/' + modDir + '/gameplay/songs/modchart/' + songID; // just to be sure
       foldersToCheck.push(checkHere);
     }
 
@@ -1037,7 +1038,13 @@ class ModConstants
     return stringReturn;
   }
 
-  public static function playfieldSkew(spr:FlxSprite, skewX:Float, skewY:Float, playfieldX:Float, playfieldY:Float, offsetX:Float = 0.0, offsetY:Float = 0.0):Void
+  public static function playfieldSkew(spr:FlxSprite,
+    skewX:Float,
+    skewY:Float,
+    playfieldX:Float,
+    playfieldY:Float,
+    offsetX:Float = 0.0,
+    offsetY:Float = 0.0):Void
   {
     // attempt to position to playfield skew mods
     var playfieldSkewOffset_Y:Float = (spr.x + offsetX) - (playfieldX);

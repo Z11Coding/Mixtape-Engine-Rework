@@ -274,4 +274,24 @@ class SongEvent implements IPlayStateScriptedClass
   public function onSongRetry(event:SongRetryEvent)
   {
   }
+
+  public function onModchartSetup(event:ScriptEvent)
+  {
+  }
+
+  public function onModchartTimeline(event:ScriptEvent)
+  {
+  }
+
+  public function onModchartPreTimeline(event:ScriptEvent)
+  {
+  }
+
+  public function onModchartReset(event:ScriptEvent)
+  {
+  }
+
+  public function onModchartNotification(event:ScriptEvent)
+  {
+  }
 }

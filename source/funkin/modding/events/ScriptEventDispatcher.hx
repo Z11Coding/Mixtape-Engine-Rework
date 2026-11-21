@@ -182,6 +182,21 @@ class ScriptEventDispatcher
       var t:IPlayStateScriptedClass = cast(target, IPlayStateScriptedClass);
       switch (event.type)
       {
+        case MODCHART_NOTIFICATION:
+          t.onModchartNotification(cast event);
+          return;
+        case MODCHART_SETUP:
+          t.onModchartSetup(cast event);
+          return;
+        case MODCHART_TIMELINE:
+          t.onModchartTimeline(cast event);
+          return;
+        case MODCHART_PRETIMELINE:
+          t.onModchartPreTimeline(cast event);
+          return;
+        case MODCHART_RESET:
+          t.onModchartReset(cast event);
+          return;
         case NOTE_GHOST_MISS:
           t.onNoteGhostMiss(cast event);
           return;

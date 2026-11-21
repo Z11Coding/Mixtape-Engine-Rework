@@ -495,7 +495,7 @@ class SongRegistry extends BaseRegistry<Song, SongMetadata, SongEntryParams> imp
   function loadMusicDataFile(id:String, ?variation:String):Null<JsonFile>
   {
     variation ??= Constants.DEFAULT_VARIATION;
-    var entryFilePath:String = Paths.musicMetadata('$id', variation == Constants.DEFAULT_VARIATION ? '' : '-$variation');
+    var entryFilePath:String = Paths.musicMetadata('${id.replace('.ogg', '')}', variation == Constants.DEFAULT_VARIATION ? '' : '-$variation');
     if (!Assets.exists(entryFilePath))
     {
       trace('  WARNING '.bold().bg_yellow() + ' Could not locate file $entryFilePath');

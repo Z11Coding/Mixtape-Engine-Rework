@@ -412,6 +412,26 @@ class Bopper extends StageProp implements IPlayStateScriptedClass
   {
   }
 
+  public function onModchartSetup(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartTimeline(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartPreTimeline(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartReset(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartNotification(event:ScriptEvent):Void
+  {
+  }
+
   public override function toString():String
   {
     return 'Bopper($name, pos=[$x, $y])';

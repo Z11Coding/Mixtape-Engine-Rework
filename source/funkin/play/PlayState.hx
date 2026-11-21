@@ -1657,15 +1657,6 @@ class PlayState extends MusicBeatSubState
         vocals.opponentVolume = opponentVocalsVolume;
       }
 
-      if (!fromDeathState)
-      {
-        playerStrumline.vwooshNotes();
-        opponentStrumline.vwooshNotes();
-      }
-
-      playerStrumline.clean();
-      opponentStrumline.clean();
-
       for (strumLine in allStrumLines)
       {
         if (!fromDeathState)
@@ -1712,6 +1703,9 @@ class PlayState extends MusicBeatSubState
       // Reset the health icons.
       currentStage?.getBoyfriend()?.initHealthIcon(false);
       currentStage?.getDad()?.initHealthIcon(true);
+
+      // Lastly, reload the modchart, or check if there is one now
+      scanForModchart(true);
 
       needsReset = false;
     }

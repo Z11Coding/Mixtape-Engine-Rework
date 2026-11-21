@@ -123,6 +123,36 @@ interface IBPMSyncedScriptedClass extends IScriptedClass
 interface IPlayStateScriptedClass extends INoteScriptedClass extends IBPMSyncedScriptedClass
 {
   /**
+   * Called from playstate whenever the 'modDebugNotif' function gets used.
+   */
+  public function onModchartNotification(event:ScriptEvent):Void;
+
+  /**
+   * Called during the setup process of Modcharts.
+   * Use this to mutate the modchart system before it gets applied / set!
+   * THIS IS BEFORE CUSTOM STRUMS ARE CREATED!
+   */
+  public function onModchartSetup(event:ScriptEvent):Void;
+
+  /**
+   * Called when going back in time
+   */
+  public function onModchartReset(event:ScriptEvent):Void;
+
+  /**
+   * Called during the setup process of Modcharts.
+   * Use this to mutate the modchart system before it gets applied / set!
+   * THIS IS AFTER CUSTOM STRUMS ARE CREATED AND LUA HAS ITS TIMELINE CALLED!
+   */
+  public function onModchartTimeline(event:ScriptEvent):Void;
+
+  /**
+   * Same as ModchartTimeline but BEFORE lua gets the function event.
+   * Useful for setting up custom mods.
+   */
+  public function onModchartPreTimeline(event:ScriptEvent):Void;
+
+  /**
    * Called when the game is paused.
    * Has properties to set whether the pause easter egg will happen,
    * and can be cancelled by scripts.

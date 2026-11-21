@@ -309,6 +309,42 @@ class Module implements IPlayStateScriptedClass implements IStateChangingScripte
   }
 
   /**
+   * Called from playstate whenever the 'modDebugNotif' function gets used.
+   */
+  public function onModchartNotification(event:ScriptEvent)
+  {
+  }
+
+  /**
+   * Called first thing during the creation of PlayState if a modchart is present. Will only be called ONCE, even if reloading midsong!
+   */
+  public function onModchartSetup(event:ScriptEvent)
+  {
+  }
+
+  /**
+   * Called when the modchart timeline is being constructed (once during song load, and again if hot reloading midsong)
+   */
+  public function onModchartTimeline(event:ScriptEvent)
+  {
+  }
+
+  /**
+   * Called when the modchart timeline is being constructed (once during song load, and again if hot reloading midsong).
+   * Done BEFORE lua
+   */
+  public function onModchartPreTimeline(event:ScriptEvent)
+  {
+  }
+
+  /**
+   * Called when the modchart requests a reset (whether restarting a song, going backwards, or hot reloading midsong)
+   */
+  public function onModchartReset(event:ScriptEvent)
+  {
+  }
+
+  /**
    * Called when any state is created.
    */
   public function onStateCreate(event:ScriptEvent)

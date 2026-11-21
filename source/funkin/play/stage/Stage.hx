@@ -1034,6 +1034,26 @@ class Stage extends FlxSpriteGroup implements IPlayStateScriptedClass implements
   {
   }
 
+  public function onModchartSetup(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartReset(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartTimeline(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartPreTimeline(event:ScriptEvent):Void
+  {
+  }
+
+  public function onModchartNotification(event:ScriptEvent):Void
+  {
+  }
+
   static function log(message:String):Void
   {
     trace(' STAGE '.bold().bg_red() + ' $message');

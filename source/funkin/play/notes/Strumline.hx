@@ -316,38 +316,7 @@ class Strumline extends FlxSpriteGroup
 
   var noteSpacingScale:Float = 1;
 
-  public var noteStyle(default, set):NoteStyle;
-
-  function set_noteStyle(value:NoteStyle):NoteStyle
-  {
-    noteStyle = value;
-
-    for (note in strumlineNotes.members)
-    {
-      if (note == null) continue;
-      note.destroy();
-    }
-
-    strumlineNotes.clear();
-
-    for (i in 0...Strumline.KEY_COUNT)
-    {
-      var child:StrumlineNote = new StrumlineNote(noteStyle, defaultPlayerControl, Strumline.DIRECTIONS[i]);
-      child.x = getXPos(Strumline.DIRECTIONS[i]);
-      child.x += Strumline.INITIAL_OFFSET;
-      child.y = 0;
-      noteStyle.applyStrumlineOffsets(child);
-      var strumlineOffsets = noteStyle.getStrumlineOffsets();
-      child.strumExtraModData.noteStyleOffsetX = strumlineOffsets[0];
-      child.strumExtraModData.noteStyleOffsetY = strumlineOffsets[1];
-      this.strumlineNotes.add(child);
-      this.strumlineNotesArray.push(child);
-
-      child.weBelongTo = this;
-    }
-
-    return value;
-  }
+  public final noteStyle:NoteStyle;
 
   /**
    * The scale of the strumline. Use this to resize it rather than setting the scale directly.
@@ -545,7 +514,7 @@ class Strumline extends FlxSpriteGroup
     this.onNoteIncoming = new FlxTypedSignal<NoteSprite->Void>();
     resetScrollSpeed(scrollSpeed);
 
-    this.noteStyle = noteStyle;
+    generateStrumLine();
 
     this.heldKeys = [];
     for (i in 0...KEY_COUNT)
@@ -557,6 +526,40 @@ class Strumline extends FlxSpriteGroup
 
     // This MUST be true for children to update!
     this.active = true;
+  }
+
+  /**
+   * Mostly done like this for mania, but also so that it can be called any other time then as soon as the strumline is made
+   * Because making a new strumline object every time instead of just reusing the current one is both ineffecient and very bad
+  **/
+  public function generateStrumLine()
+  {
+    if (strumlineNotes != null && strumlineNotes.members.length != 0)
+    {
+      for (note in strumlineNotes.members)
+      {
+        if (note == null) continue;
+        note.destroy();
+      }
+    }
+
+    strumlineNotes.clear();
+
+    for (i in 0...Strumline.KEY_COUNT)
+    {
+      var child:StrumlineNote = new StrumlineNote(noteStyle, defaultPlayerControl, Strumline.DIRECTIONS[i]);
+      child.x = getXPos(Strumline.DIRECTIONS[i]);
+      child.x += Strumline.INITIAL_OFFSET;
+      child.y = 0;
+      noteStyle.applyStrumlineOffsets(child);
+      var strumlineOffsets = noteStyle.getStrumlineOffsets();
+      child.strumExtraModData.noteStyleOffsetX = strumlineOffsets[0];
+      child.strumExtraModData.noteStyleOffsetY = strumlineOffsets[1];
+      this.strumlineNotes.add(child);
+      this.strumlineNotesArray.push(child);
+
+      child.weBelongTo = this;
+    }
   }
 
   override function set_y(value:Float):Float
@@ -588,7 +591,7 @@ class Strumline extends FlxSpriteGroup
 
     if (this.txtActiveMods == null)
     {
-      this.txtActiveMods = new FlxBitmapText(this.x, this.y, '???', Paths.getFlxBitmapFontFromAngelCode("fonts/vcr", "preload"));
+      this.txtActiveMods = new FlxBitmapText(this.x, this.y, '???', Paths.getFlxBitmapFontFromAngelCode("vcr-bmp", "ui/fonts"));
       this.txtActiveMods.borderStyle = FlxTextBorderStyle.OUTLINE;
       this.txtActiveMods.borderColor = FlxColor.BLACK;
       this.txtActiveMods.alignment = FlxTextAlign.CENTER;
@@ -1762,7 +1765,7 @@ class Strumline extends FlxSpriteGroup
       var target:Int = Math.ceil(peakHolds * 1.25) + 1;
       for (_ in existing...target)
       {
-        var warm:SustainTrail = new SustainTrail(0, 0, this.noteStyle, true, this);
+        var warm:SustainTrail = new SustainTrail(0, 0, this.noteStyle, false, this);
         if (warm.graphic != null) warm.graphic.destroyOnNoUse = false;
         holdNotes.add(warm);
         warm.kill();
