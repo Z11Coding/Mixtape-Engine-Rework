@@ -47,6 +47,7 @@ import funkin.play.cutscene.dialogue.Conversation;
 import funkin.play.event.SongEvent;
 import funkin.play.notes.NoteDirection;
 import funkin.play.notes.NoteSprite;
+import funkin.play.notes.NoteSplash;
 import funkin.play.notes.NoteVibrationsHandler;
 import funkin.play.notes.ScrollVelocityTimeline;
 import funkin.play.notes.Strumline;
@@ -600,11 +601,13 @@ class PlayState extends MusicBeatSubState
   /**
    * The sprite group containing active player's strumline notes.
    */
+  @:nullSafety(Off)
   public var playerStrumline:Strumline;
 
   /**
    * The sprite group containing opponent's strumline notes.
    */
+  @:nullSafety(Off)
   public var opponentStrumline:Strumline;
 
   /**
@@ -747,7 +750,9 @@ class PlayState extends MusicBeatSubState
   public var variables:Map<String, Dynamic> = new Map<String, Dynamic>();
   public var customLuaSprites:Map<String, FlxSprite> = new Map<String, FlxSprite>();
   public var perframeFunctions:Array<Float->Void> = [];
+  @:nullSafety(Off)
   public var allStrumSprites:FlxTypedSpriteGroup<ZSprite>;
+  @:nullSafety(Off)
   public var customZspritesGroup:FlxTypedSpriteGroup<ZSprite>;
 
   /**
@@ -760,6 +765,7 @@ class PlayState extends MusicBeatSubState
    */
   public var customStrumLines:Array<Strumline> = [];
 
+  @:nullSafety(Off)
   public var modchartTweenList:FlxBitmapText;
 
   function updateTweenList():Void
@@ -793,6 +799,7 @@ class PlayState extends MusicBeatSubState
   }
 
   // The event handler
+  @:nullSafety(Off)
   public var modchartEventHandler:ModEventHandler;
   // Array of lua files
   public var luaArray:Array<HazardModLuaTest> = [];
@@ -801,8 +808,10 @@ class PlayState extends MusicBeatSubState
   var isModchartSong:Bool = true;
 
   // basic flxSprite that can be used by lua for AFT purposes.
+  @:nullSafety(Off)
   public var luaAFT_sprite:HazardAFTSpriteTest;
   // basic AFT that can be used by lua for AFT purposes.
+  @:nullSafety(Off)
   public var luaAFT_Capture:HazardAFT;
 
   public function setUpLuaAft():Void
@@ -817,6 +826,7 @@ class PlayState extends MusicBeatSubState
     add(luaAFT_sprite);
   }
 
+  @:nullSafety(Off)
   function compareZSprites(order:Int, a:ZSprite, b:ZSprite):Int
   {
     // offset the z slightly so if zIndex plays a role in sorting. Useful for breaking ties if they are equal z value.
@@ -946,11 +956,13 @@ class PlayState extends MusicBeatSubState
     return v;
   }
 
+  @:nullSafety(Off)
   function compareByAge(order:Int, a:DebugNotification, b:DebugNotification):Int
   {
     return FlxSort.byValues(order, a?.age, b?.age);
   }
 
+  @:nullSafety(Off)
   public var debugNotifs:FlxTypedSpriteGroup<DebugNotification>;
   public var hideNotifs:Bool = false;
 
@@ -983,8 +995,10 @@ class PlayState extends MusicBeatSubState
       debugNotifs.members.insertionSort(compareByAge.bind(FlxSort.ASCENDING));
     }
 
+    @:nullSafety(Off)
     var result:DebugNotification = null;
     // Else, find a note which is inactive so we can revive it.
+    @:nullSafety(Off)
     result = debugNotifs.getFirstAvailable();
 
     if (result != null)
@@ -1103,11 +1117,13 @@ class PlayState extends MusicBeatSubState
   /**
    * The camera which contains and controls the visibility of the strumlines!
    */
+  @:nullSafety(Off)
   public var camNotes:FlxCamera;
 
   /**
    * An extra camera layer stacked in front of the notes camera that can be used for effects.
    */
+  @:nullSafety(Off)
   public var camAFT:FlxCamera;
 
   /**
@@ -3003,6 +3019,7 @@ class PlayState extends MusicBeatSubState
    * @param playerControlled If true, then the player can control this strumLine
    * @param noteStyle The notestyle this new strumline should use.
    */
+  @:nullSafety(Off)
   public function constructNewStrumLine(playerControlled:Bool, ?noteStyleName:String):Strumline
   {
     var noteStyle:NoteStyle = null;
@@ -4951,6 +4968,7 @@ class PlayState extends MusicBeatSubState
   /**
    * Perform necessary cleanup before leaving the PlayState.
    */
+  @:nullSafety(Off)
   function performCleanup():Void
   {
     isModchartSong = false;

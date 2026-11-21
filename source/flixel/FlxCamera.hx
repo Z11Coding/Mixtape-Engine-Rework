@@ -131,6 +131,11 @@ class FlxCamera extends FlxBasic
   public var scrollAngle(default, set):Float;
 
   /**
+   * Fixes camera's flashSprite fully shaking, if Main.hx extends FlxGame
+   */
+  public var shakeMatrixFix:Bool = true;
+
+  /**
    * You can assign a "dead zone" to the camera in order to better control its movement.
    * The camera will always keep the focus object inside the dead zone, unless it is bumping up against
    * the camera bounds. The `deadzone`'s coordinates are measured from the camera's upper left corner in game pixels.
@@ -1427,6 +1432,9 @@ class FlxCamera extends FlxBasic
   @:noCompletion
   var _negativeCosScrollAngle = 1.0;
   @:noCompletion final __angleMatrix = new FlxMatrix();
+  @:noCompletion final __lastCanvasMatrix = new FlxMatrix();
+  @:noCompletion
+  var __lastCanvasMatrixValid:Bool = false;
   @:noCompletion final __rotatedBounds = new FlxRect();
   @:noCompletion final __origin = new FlxPoint();
 
@@ -1456,8 +1464,18 @@ class FlxCamera extends FlxBasic
     return NewAngle;
   }
 
+  var _fxShakeXOffset:Float = 0;
+  var _fxShakeYOffset:Float = 0;
+
   function updateShake(elapsed:Float):Void
   {
+    if (!shakeMatrixFix)
+    {
+      flashSprite.x -= _fxShakeXOffset;
+      flashSprite.y -= _fxShakeYOffset;
+    }
+
+    _fxShakeXOffset = _fxShakeYOffset = 0;
     if (_fxShakeDuration > 0)
     {
       _fxShakeDuration -= elapsed;
@@ -1486,6 +1504,19 @@ class FlxCamera extends FlxBasic
 
           flashSprite.y += shakePixels * zoom * FlxG.scaleMode.scale.y;
         }
+      }
+
+      if (shakeMatrixFix)
+      {
+        _fxShakeXOffset /= zoom;
+        _fxShakeYOffset /= zoom;
+      }
+      else
+      {
+        _fxShakeXOffset *= FlxG.scaleMode.scale.x * zoom;
+        _fxShakeYOffset *= FlxG.scaleMode.scale.y * zoom;
+        flashSprite.x += _fxShakeXOffset;
+        flashSprite.y += _fxShakeYOffset;
       }
     }
   }
@@ -2225,6 +2256,21 @@ class FlxCamera extends FlxBasic
   @:noCompletion
   var __lastFlashSpriteFiltersLength:Int = -1;
 
+  static function isBatchableBlend(blend:Null<BlendMode>,
+    blendTarget:Null<Context3DBlendTarget>):Bool
+  {
+    @:privateAccess
+    if (blend == NORMAL || blend == null || !openfl.display.OpenGLRenderer.__requiresShaderBlend(blend, blendTarget)) return true;
+
+    return switch (blendTarget)
+    {
+      case null, BlendRenderTarget:
+        false;
+      default:
+        true;
+    }
+  }
+
   inline function calcMarginX():Void
   {
     viewMarginX = 0.5 * width * (scaleX - initialZoom) / scaleX;
@@ -2233,6 +2279,30 @@ class FlxCamera extends FlxBasic
   inline function calcMarginY():Void
   {
     viewMarginY = 0.5 * height * (scaleY - initialZoom) / scaleY;
+  }
+
+  /**
+   * Pushes the camera matrix to the canvas only when it actually changed.
+   */
+  @:noCompletion
+  function __apply__rotated__matrix():Void
+  {
+    final matrix = __get__rotated__matrix();
+    final last = __lastCanvasMatrix;
+
+    if (
+      __lastCanvasMatrixValid
+      && last.a == matrix.a
+      && last.b == matrix.b
+      && last.c == matrix.c
+      && last.d == matrix.d
+      && last.tx == matrix.tx
+      && last.ty == matrix.ty
+    ) return;
+
+    last.copyFrom(matrix);
+    __lastCanvasMatrixValid = true;
+    canvas.transform.matrix = matrix;
   }
 
   static inline function get_defaultCameras():Array<FlxCamera>
@@ -2247,12 +2317,12 @@ class FlxCamera extends FlxBasic
 
   inline function get_viewMarginLeft():Float
   {
-    return viewMarginX;
+    return shakeMatrixFix ? viewMarginX - _fxShakeXOffset : viewMarginX;
   }
 
   inline function get_viewMarginTop():Float
   {
-    return viewMarginY;
+    return shakeMatrixFix ? viewMarginY - _fxShakeYOffset : viewMarginY;
   }
 
   inline function get_viewMarginRight():Float

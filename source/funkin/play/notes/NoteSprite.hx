@@ -26,8 +26,8 @@ class NoteSprite extends ZSpriteProjected
   public var holdNoteSprite:SustainTrail;
 
   var _hsvShader:Null<HSVNotesShader> = null;
-  var hsvShader(get, never):HSVNotesShader;
 
+  public var hsvShader(get, never):HSVNotesShader;
   // Multiplies the hitWindow size by this amount. Unused if FEATURE_WITF_INPUTS is enabled.
   public var hitWindowMultiplier:Float = 1;
 
