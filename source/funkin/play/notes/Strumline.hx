@@ -113,8 +113,8 @@ class Strumline extends FlxSpriteGroup
    */
   public var mods:ModHandler;
 
-  // The name of the arrowPath file name to use in shared.
-  public var arrowPathFileName:String = "NOTE_ArrowPath";
+  // The name of the arrowPath file name to use.
+  public var arrowPathFileName:String = "gameplay/notestyles/funkin/NOTE_ArrowPath";
   // If set to true, this strumline will just be set to do the bare minimum work for performance.
   public var asleep(default, set):Bool = false;
 
