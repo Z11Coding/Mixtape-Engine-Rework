@@ -3,4 +3,4 @@
 	url = https://github.com/Z11Coding/Mixtape.assets.git
 [submodule "art"]
 	path = art
-	url = https://github.com/Z11Coding/Mixtape.art
+	url = https://github.com/Z11Coding/Mixtape.art.git
