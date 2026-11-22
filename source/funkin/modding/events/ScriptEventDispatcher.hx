@@ -243,6 +243,12 @@ class ScriptEventDispatcher
     {
       // If the target doesn't support the event, stop trying to dispatch.
       if ([
+        ScriptEventType.MODCHART_SETUP,
+        ScriptEventType.MODCHART_TIMELINE,
+        ScriptEventType.MODCHART_PRETIMELINE,
+        ScriptEventType.MODCHART_RESET,
+        ScriptEventType.MODCHART_NOTIFICATION,
+
         ScriptEventType.NOTE_GHOST_MISS,
         ScriptEventType.SONG_START,
         ScriptEventType.SONG_END,

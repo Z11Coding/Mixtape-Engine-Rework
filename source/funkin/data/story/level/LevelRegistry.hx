@@ -123,7 +123,8 @@ class LevelRegistry extends BaseRegistry<Level, LevelData, LevelEntryParams> imp
       'week6',
       'week7',
       'weekend1',
-      'sserafim'
+      'sserafim',
+      'secret'
     ];
   }
 

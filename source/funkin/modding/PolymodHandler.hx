@@ -470,6 +470,9 @@ class PolymodHandler
     Polymod.addImportAlias('funkin.ui.story.ScriptedLevel', funkin.ui.story.Level);
     Polymod.addImportAlias('funkin.ui.story.ScriptedPanelEntry', funkin.ui.quickpanel.PanelEntry);
     Polymod.addImportAlias('funkin.ui.transition.stickers.ScriptedStickerPack', funkin.ui.transition.stickers.StickerPack);
+    Polymod.addImportAlias('funkin.ui.transition.stickers.StickerSubState', funkin.ui.transition.StickerTransition);
+    Polymod.addImportAlias('funkin.ui.transition.LoadingState', funkin.ui.transition.loading.LoadingState);
+
     Polymod.addImportAlias('funkin.modding.module.ScriptedModule', funkin.modding.module.Module);
 
     // `FixedBitmapData` was literally just `BitmapData`.
@@ -479,6 +482,7 @@ class PolymodHandler
     Polymod.addImportAlias('funkin.mobile.input.ControlsHandler', funkin.touch.input.ControlsHandler);
 
     Polymod.addImportAlias('funkin.mobile.ui.FunkinBackButton', funkin.touch.ui.FunkinBackButton);
+    Polymod.addImportAlias('funkin.mobile.ui.FunkinButton', funkin.touch.ui.FunkinButton);
   }
 
   /**
