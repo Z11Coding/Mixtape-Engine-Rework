@@ -19,13 +19,19 @@ class Constants
    * The title of the game, for debug printing purposes.
    * Change this if you're making an engine.
    */
-  public static final TITLE:String = "Friday Night Funkin'";
+  public static final TITLE:String = "Mixtape Engine: Re-Mixed";
 
   /**
    * The current version number of the game.
-   * Modify this in the `project.xml` file.
+   * Modify this in the `project.hxp` file.
    */
   public static var VERSION(get, never):String;
+
+  /**
+   * The current version number of the engine.
+   * Modify this in the `project.hxp` file.
+   */
+  public static var MVERSION(get, never):String;
 
   /**
    * The generatedBy string embedded in the chart files made by this application.
@@ -34,7 +40,7 @@ class Constants
 
   static function get_GENERATED_BY():String
   {
-    return '${Constants.TITLE} - ${Constants.VERSION}';
+    return '${Constants.TITLE} - ${Constants.MVERSION}';
   }
 
   /**
@@ -68,7 +74,7 @@ class Constants
   /**
    * Link to download the game on Itch.io.
    */
-  public static final URL_GITHUB:String = 'https://ninja-muffin24.itch.io/funkin';
+  public static final URL_GITHUB:String = 'https://github.com/Z11Coding/Mixtape-Engine-Rework/tree/project-mixtape-ified-vslice';
 
   /**
    * ONE-CLICK MOD INSTALL DATA
@@ -78,6 +84,7 @@ class Constants
   /**
    * The custom URL scheme the game registers itself against for one-click mod installs.
    * A link looks like `funkin:https://gamebanana.com/mmdl/1234567,Mod,567890`.
+   * TODO: change this
    */
   public static final ONE_CLICK_SCHEME:String = 'funkin';
 

@@ -1252,6 +1252,103 @@ class HazardModLuaTest
       PlayState.instance.add(newSpr);
     });
 
+    Lua_helper.add_callback(lua, "makeLuaSprite", function(tag:String, imagePath:String, ?x:Float = 0, ?y:Float = 0)
+    {
+      var sprite:FlxSprite = new FlxSprite(x, y);
+      if (imagePath != null && imagePath != '') sprite.loadGraphic(Paths.image(imagePath));
+      sprite.scrollFactor.set();
+      PlayState.instance.customLuaSprites.set(tag, sprite);
+    });
+
+    Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, imagePath:String, ?x:Float = 0, ?y:Float = 0)
+    {
+      var sprite:FlxSprite = new FlxSprite(x, y);
+      sprite.frames = Paths.getSparrowAtlas(imagePath);
+      sprite.scrollFactor.set();
+      PlayState.instance.customLuaSprites.set(tag, sprite);
+    });
+
+    Lua_helper.add_callback(lua, "addLuaSprite", function(tag:String, ?front:Bool = false)
+    {
+      var sprite = PlayState.instance.customLuaSprites.get(tag);
+      if (sprite == null)
+      {
+        luaTrace('addLuaSprite: unknown sprite "$tag"', false, false, FlxColor.RED);
+        return;
+      }
+
+      if (front) sprite.zIndex = 100000;
+      PlayState.instance.add(sprite);
+    });
+
+    Lua_helper.add_callback(lua, "removeLuaSprite", function(tag:String, ?destroy:Bool = true)
+    {
+      var sprite = PlayState.instance.customLuaSprites.get(tag);
+      if (sprite == null) return;
+      PlayState.instance.remove(sprite);
+      if (destroy) sprite.destroy();
+      PlayState.instance.customLuaSprites.remove(tag);
+    });
+
+    Lua_helper.add_callback(lua, "addAnimationByPrefix", function(tag:String, name:String, prefix:String, ?fps:Int = 24, ?loop:Bool = false)
+    {
+      var sprite = PlayState.instance.customLuaSprites.get(tag);
+      if (sprite == null || sprite.animation == null)
+      {
+        luaTrace('addAnimationByPrefix: unknown animated sprite "$tag"', false, false, FlxColor.RED);
+        return;
+      }
+      sprite.animation.addByPrefix(name, prefix, fps, loop);
+    });
+
+    Lua_helper.add_callback(lua, "objectPlayAnimation", function(tag:String, name:String, ?force:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0)
+    {
+      var sprite = PlayState.instance.customLuaSprites.get(tag);
+      if (sprite == null || sprite.animation == null)
+      {
+        luaTrace('objectPlayAnimation: unknown animated sprite "$tag"', false, false, FlxColor.RED);
+        return;
+      }
+      sprite.animation.play(name, force, reverse, startFrame);
+    });
+
+    Lua_helper.add_callback(lua, "setScrollFactor", function(tag:String, x:Float, ?y:Null<Float>)
+    {
+      var sprite = PlayState.instance.customLuaSprites.get(tag);
+      if (sprite == null) return;
+      sprite.scrollFactor.set(x, y ?? x);
+    });
+
+    Lua_helper.add_callback(lua, "setObjectCamera", function(tag:String, camera:String)
+    {
+      var sprite = PlayState.instance.customLuaSprites.get(tag);
+      if (sprite == null) return;
+      sprite.cameras = switch (camera.toLowerCase())
+      {
+        case 'hud' | 'camhud': [PlayState.instance.camHUD];
+        case 'other' | 'camother': [PlayState.instance.camCutscene];
+        default: [PlayState.instance.camGame];
+      };
+    });
+
+    Lua_helper.add_callback(lua, "scaleObject", function(tag:String, x:Float, y:Float, ?updateHitbox:Bool = true)
+    {
+      var sprite = PlayState.instance.customLuaSprites.get(tag);
+      if (sprite == null) return;
+      sprite.scale.set(x, y);
+      if (updateHitbox) sprite.updateHitbox();
+    });
+
+    Lua_helper.add_callback(lua, "getProperty", function(path:String)
+    {
+      return getPsychProperty(path);
+    });
+
+    Lua_helper.add_callback(lua, "setProperty", function(path:String, value:Dynamic)
+    {
+      setPsychProperty(path, value);
+    });
+
     call('onCreate', []);
   }
 
@@ -2023,6 +2120,66 @@ class HazardModLuaTest
 
     Convert.toLua(lua, data);
     Lua.setglobal(lua, variable);
+  }
+
+  function getPsychProperty(path:String):Dynamic
+  {
+    final parts = path.split('.');
+    var value:Dynamic = resolvePsychRoot(parts.shift());
+    if (value == null) return null;
+
+    for (part in parts)
+    {
+      value = Reflect.field(value, part);
+      if (value == null) return null;
+    }
+
+    return value;
+  }
+
+  function setPsychProperty(path:String, value:Dynamic):Void
+  {
+    final parts = path.split('.');
+    if (parts.length == 0) return;
+
+    final root = parts.shift();
+    if (parts.length == 0)
+    {
+      Reflect.setField(PlayState.instance, root, value);
+      return;
+    }
+
+    var target:Dynamic = resolvePsychRoot(root);
+    while (parts.length > 1 && target != null)
+    {
+      target = Reflect.field(target, parts.shift());
+    }
+
+    if (target == null || parts.length == 0)
+    {
+      luaTrace('setProperty: invalid property path "$path"', false, false, FlxColor.RED);
+      return;
+    }
+
+    Reflect.setField(target, parts[0], value);
+  }
+
+  function resolvePsychRoot(name:String):Dynamic
+  {
+    return switch (name)
+    {
+      case 'game': PlayState.instance;
+      case 'boyfriend': PlayState.instance.currentStage?.getBoyfriend();
+      case 'dad': PlayState.instance.currentStage?.getDad();
+      case 'gf': PlayState.instance.currentStage?.getGirlfriend();
+      default:
+        PlayState.instance.customLuaSprites.get(name) ?? Reflect.field(PlayState.instance, name);
+    }
+  }
+
+  public function setGlobal(variable:String, data:Dynamic):Void
+  {
+    set(variable, data);
   }
 
   public function stop():Void

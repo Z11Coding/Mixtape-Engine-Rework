@@ -34,6 +34,18 @@ import funkin.play.notes.NoteDirection;
 @:nullSafety
 class MusicBeatState extends FlxTransitionableState implements IEventHandler
 {
+  static final scriptVariables:Map<String, Dynamic> = new Map<String, Dynamic>();
+
+  public static function getState():Dynamic
+  {
+    return FlxG.state;
+  }
+
+  public static function getVariables():Map<String, Dynamic>
+  {
+    return scriptVariables;
+  }
+
   var controls(get, never):Controls;
 
   inline function get_controls():Controls return PlayerSettings.player1.controls;

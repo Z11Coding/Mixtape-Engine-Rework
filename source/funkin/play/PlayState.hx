@@ -78,6 +78,7 @@ import funkin.play.modchartSystem.DebugNotification;
 import funkin.play.modchartSystem.HazardAFT;
 import funkin.play.modchartSystem.HazardAFTSpriteTest;
 import funkin.play.modchartSystem.HazardModLuaTest;
+import funkin.play.modchartSystem.PsychScriptRuntime;
 import funkin.play.modchartSystem.ModEventHandler;
 import funkin.play.modchartSystem.ModHandler;
 import funkin.play.modchartSystem.ModConstants;
@@ -803,6 +804,17 @@ class PlayState extends MusicBeatSubState
   public var modchartEventHandler:ModEventHandler;
   // Array of lua files
   public var luaArray:Array<HazardModLuaTest> = [];
+  public var psychScriptRuntime:Null<PsychScriptRuntime> = null;
+
+  public function getLuaObject(tag:String):Null<FlxSprite>
+  {
+    return customLuaSprites.get(tag);
+  }
+
+  public function addTextToDebug(text:String, color:FlxColor = FlxColor.WHITE):Void
+  {
+    modDebugNotif(text, color);
+  }
 
   // If true, will enable the modchart logic. If false, the game should act identical to Vanilla.
   var isModchartSong:Bool = true;
@@ -1429,6 +1441,7 @@ class PlayState extends MusicBeatSubState
     }
 
     initHazardModchart();
+    psychScriptRuntime = new PsychScriptRuntime(this);
     initStrumlines();
     initPopups();
 
@@ -1478,6 +1491,7 @@ class PlayState extends MusicBeatSubState
 
     // Read the song's note data and pass it to the strumlines.
     generateSong();
+    psychScriptRuntime?.call('onCreatePost');
 
     // Reset the camera's zoom and force it to focus on the camera follow point.
     resetCamera();
@@ -1597,6 +1611,7 @@ class PlayState extends MusicBeatSubState
     if (criticalFailure) return;
 
     super.update(elapsed);
+    psychScriptRuntime?.call('onUpdatePost', [elapsed]);
 
     updateHealthBar();
     updateScoreText();
@@ -2105,7 +2120,7 @@ class PlayState extends MusicBeatSubState
           // Calling event.cancelEvent() skips the event. Neat!
           if (!eventEvent.eventCanceled)
           {
-            SongEventRegistry.handleEvent(event);
+            if (event.eventKind != 'PsychEvent') SongEventRegistry.handleEvent(event);
           }
           eventEvent.finish();
         }
@@ -2120,6 +2135,7 @@ class PlayState extends MusicBeatSubState
 
     // super.dispatchEvent(event) dispatches event to module scripts.
     super.dispatchEvent(event, false);
+    psychScriptRuntime?.dispatchEvent(event);
     // Dispatch event to song script.
     ScriptEventDispatcher.callEvent(currentSong, event);
 
@@ -2531,6 +2547,8 @@ class PlayState extends MusicBeatSubState
 
   override public function destroy():Void
   {
+    psychScriptRuntime?.destroy();
+    psychScriptRuntime = null;
     performCleanup();
 
     #if mobile

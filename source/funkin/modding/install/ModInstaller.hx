@@ -760,7 +760,7 @@ class ModInstaller
 
     if (roots == null) throw 'Could not read that archive. It may be damaged, or packed in a format that isn\'t supported.';
 
-    if (roots.length == 0) throw 'There is no mod in that archive, it has no ${PolymodConfig.modMetadataFile} anywhere.';
+    if (roots.length == 0) throw 'There is no mod in that archive; it has neither ${PolymodConfig.modMetadataFile} nor pack.json.';
 
     final targets:Array<ExtractTarget> = [];
 
@@ -866,20 +866,30 @@ class ModInstaller
       final handle:sys.io.FileInput = sys.io.File.read(archivePath, true);
       input = handle;
 
-      final suffix:String = '/${PolymodConfig.modMetadataFile}';
+      final metadataSuffix:String = '/${PolymodConfig.modMetadataFile}';
+      final psychPackSuffix:String = '/pack.json';
       final found:Array<String> = [];
 
       for (entry in readArchiveEntries(handle, FileUtil.getFileSize(archivePath)))
       {
         final name:String = entry.name.replace('\\', '/');
 
-        if (name == PolymodConfig.modMetadataFile)
+        if (name == PolymodConfig.modMetadataFile || name == 'pack.json')
         {
           handle.close();
           return [''];
         }
 
-        if (name.endsWith(suffix)) found.push(name.substr(0, name.length - suffix.length));
+        if (name.endsWith(metadataSuffix))
+        {
+          final root:String = name.substr(0, name.length - metadataSuffix.length);
+          if (!found.contains(root)) found.push(root);
+        }
+        else if (name.endsWith(psychPackSuffix))
+        {
+          final root:String = name.substr(0, name.length - psychPackSuffix.length);
+          if (!found.contains(root)) found.push(root);
+        }
       }
 
       handle.close();

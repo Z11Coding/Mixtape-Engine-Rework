@@ -15,6 +15,7 @@ import funkin.data.song.SongRegistry;
 import funkin.data.stage.StageRegistry;
 import funkin.data.stickers.StickerRegistry;
 import funkin.data.story.level.LevelRegistry;
+import funkin.modding.PsychModFileSystem;
 import funkin.modding.module.ModuleHandler;
 import funkin.play.notes.notekind.NoteKindManager;
 import funkin.save.Save;
@@ -170,6 +171,10 @@ class PolymodHandler
    */
   public static function loadModsById(modIds:Array<String>):Void
   {
+    #if sys
+    PsychModContentAdapter.clearCache();
+    #end
+
     buildImports();
 
     // The scripts that were stopped by an error are gone now, so let the new ones run.
@@ -355,7 +360,7 @@ class PolymodHandler
   static function buildFileSystem():PolymodFileSystem
   {
     polymod.Polymod.onError = PolymodErrorHandler.onPolymodError;
-    return new PolymodFileSystem({
+    return new PsychModFileSystem({
       modRoot: MOD_FOLDER,
       autoScan: true
     });

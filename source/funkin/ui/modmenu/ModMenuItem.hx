@@ -5,6 +5,7 @@ import flixel.util.FlxColor;
 import funkin.graphics.FunkinAnimationDecoder;
 import funkin.graphics.FunkinSprite;
 import funkin.group.FunkinGroup.FunkinSpriteGroup;
+import funkin.modding.ModManager;
 import polymod.Polymod.ModMetadata;
 import polymod.Polymod.ModDependencies;
 import flixel.math.FlxRect;
@@ -588,7 +589,15 @@ class ModMenuItem extends FunkinSpriteGroup
    */
   public function getModDescription():String
   {
-    return mod != null ? mod.description : fallbackDescription;
+    if (mod == null) return fallbackDescription;
+
+    final engine:Null<String> = mod.metadata != null ? mod.metadata.get('engine') : null;
+    if (engine == ModManager.ENGINE_PSYCH)
+    {
+      return '${ModManager.getEngineNickname(ModManager.ENGINE_PSYCH)} - ${mod.description}';
+    }
+
+    return mod.description;
   }
 
   /**
